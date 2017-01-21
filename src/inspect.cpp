@@ -467,7 +467,7 @@ namespace Sass {
               expr->is_right_interpolant())
 
     )) append_string(" ");
-    switch (expr->type()) {
+    switch (expr->optype()) {
       case Sass_OP::AND: append_string("&&"); break;
       case Sass_OP::OR:  append_string("||");  break;
       case Sass_OP::EQ:  append_string("==");  break;
@@ -495,8 +495,8 @@ namespace Sass {
 
   void Inspect::operator()(Unary_Expression_Ptr expr)
   {
-    if (expr->type() == Unary_Expression::PLUS) append_string("+");
-    else                                        append_string("-");
+    if (expr->optype() == Unary_Expression::PLUS) append_string("+");
+    else                                          append_string("-");
     expr->operand()->perform(this);
   }
 

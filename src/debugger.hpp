@@ -103,6 +103,7 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     std::cerr << (selector->has_line_break() ? " [line-break]": " -");
     std::cerr << (selector->has_line_feed() ? " [line-feed]": " -");
     std::cerr << std::endl;
+    debug_ast(selector->schema(), "#{} ");
 
     for(const Complex_Selector_Obj& i : selector->elements()) { debug_ast(i, ind + " ", env); }
 
@@ -261,8 +262,6 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     std::cerr << " (" << pstate_source_position(node) << ")"
       << " [@media:" << selector->media_block() << "]"
       << (selector->connect_parent() ? " [connect-parent]": " -")
-      << (selector->has_line_break() ? " [line-break]": " -")
-      << (selector->has_line_feed() ? " [line-feed]": " -")
     << std::endl;
 
     debug_ast(selector->contents(), ind + " ");
@@ -390,7 +389,7 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     Content_Ptr block = Cast<Content>(node);
     std::cerr << ind << "Content " << block;
     std::cerr << " (" << pstate_source_position(node) << ")";
-    std::cerr << " [@media:" << block->media_block().ptr() << "]";
+    std::cerr << " [@media:" << block->media_block() << "]";
     std::cerr << " " << block->tabs() << std::endl;
   } else if (Cast<Import_Stub>(node)) {
     Import_Stub_Ptr block = Cast<Import_Stub>(node);
@@ -611,7 +610,7 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     Content_Ptr expression = Cast<Content>(node);
     std::cerr << ind << "Content " << expression;
     std::cerr << " (" << pstate_source_position(node) << ")";
-    std::cerr << " [@media:" << expression->media_block().ptr() << "]";
+    std::cerr << " [@media:" << expression->media_block() << "]";
     std::cerr << " [Statement]" << std::endl;
   } else if (Cast<Boolean>(node)) {
     Boolean_Ptr expression = Cast<Boolean>(node);

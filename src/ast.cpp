@@ -2,6 +2,7 @@
 #include "ast.hpp"
 #include "context.hpp"
 #include "node.hpp"
+#include "eval.hpp"
 #include "extend.hpp"
 #include "emitter.hpp"
 #include "color_maps.hpp"
@@ -126,7 +127,7 @@ namespace Sass {
     return length() < rhs.length();
   }
 
-  bool Compound_Selector::has_parent_ref()
+  bool Compound_Selector::has_parent_ref() const
   {
     for (Simple_Selector_Obj s : *this) {
       if (s && s->has_parent_ref()) return true;
@@ -134,7 +135,7 @@ namespace Sass {
     return false;
   }
 
-  bool Compound_Selector::has_real_parent_ref()
+  bool Compound_Selector::has_real_parent_ref() const
   {
     for (Simple_Selector_Obj s : *this) {
       if (s && s->has_real_parent_ref()) return true;
@@ -142,13 +143,13 @@ namespace Sass {
     return false;
   }
 
-  bool Complex_Selector::has_parent_ref()
+  bool Complex_Selector::has_parent_ref() const
   {
     return (head() && head()->has_parent_ref()) ||
            (tail() && tail()->has_parent_ref());
   }
 
-  bool Complex_Selector::has_real_parent_ref()
+  bool Complex_Selector::has_real_parent_ref() const
   {
     return (head() && head()->has_real_parent_ref()) ||
            (tail() && tail()->has_real_parent_ref());
@@ -1185,7 +1186,14 @@ namespace Sass {
       }
     }
 
+  }
 
+  Selector_List_Obj Selector_List::eval(Eval& eval)
+  {
+    Selector_List_Obj list = schema() ?
+      eval(schema()) : eval(this);
+    list->schema(schema());
+    return list;
   }
 
   Selector_List_Ptr Selector_List::resolve_parent_refs(Context& ctx, std::vector<Selector_List_Obj>& pstack, bool implicit_parent)
@@ -1472,7 +1480,31 @@ namespace Sass {
     }
   }
 
-  bool Selector_List::has_parent_ref()
+  size_t Wrapped_Selector::hash()
+  {
+    if (hash_ == 0) {
+      hash_combine(hash_, Simple_Selector::hash());
+      if (selector_) hash_combine(hash_, selector_->hash());
+    }
+    return hash_;
+  }
+  bool Wrapped_Selector::has_parent_ref() const {
+    // if (has_reference()) return true;
+    if (!selector()) return false;
+    return selector()->has_parent_ref();
+  }
+  bool Wrapped_Selector::has_real_parent_ref() const {
+    // if (has_reference()) return true;
+    if (!selector()) return false;
+    return selector()->has_real_parent_ref();
+  }
+  unsigned long Wrapped_Selector::specificity() const
+  {
+    return selector_ ? selector_->specificity() : 0;
+  }
+
+
+  bool Selector_List::has_parent_ref() const
   {
     for (Complex_Selector_Obj s : elements()) {
       if (s && s->has_parent_ref()) return true;
@@ -1480,7 +1512,7 @@ namespace Sass {
     return false;
   }
 
-  bool Selector_List::has_real_parent_ref()
+  bool Selector_List::has_real_parent_ref() const
   {
     for (Complex_Selector_Obj s : elements()) {
       if (s && s->has_real_parent_ref()) return true;
@@ -1488,7 +1520,7 @@ namespace Sass {
     return false;
   }
 
-  bool Selector_Schema::has_parent_ref()
+  bool Selector_Schema::has_parent_ref() const
   {
     if (String_Schema_Obj schema = Cast<String_Schema>(contents())) {
       return schema->length() > 0 && Cast<Parent_Selector>(schema->at(0)) != NULL;
@@ -1496,7 +1528,7 @@ namespace Sass {
     return false;
   }
 
-  bool Selector_Schema::has_real_parent_ref()
+  bool Selector_Schema::has_real_parent_ref() const
   {
     if (String_Schema_Obj schema = Cast<String_Schema>(contents())) {
       Parent_Selector_Obj p = Cast<Parent_Selector>(schema->at(0));

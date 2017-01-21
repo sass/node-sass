@@ -475,8 +475,8 @@ namespace Sass {
                                 l->length() / 2);
       for (size_t i = 0, L = l->length(); i < L; i += 2)
       {
-        Expression_Ptr key = (*l)[i+0]->perform(this);
-        Expression_Ptr val = (*l)[i+1]->perform(this);
+        Expression_Obj key = (*l)[i+0]->perform(this);
+        Expression_Obj val = (*l)[i+1]->perform(this);
         // make sure the color key never displays its real name
         key->is_delayed(true); // verified
         *lm << std::make_pair(key, val);
@@ -539,7 +539,7 @@ namespace Sass {
 
     String_Schema_Obj ret_schema;
     Binary_Expression_Obj b = b_in;
-    enum Sass_OP op_type = b->type();
+    enum Sass_OP op_type = b->optype();
 
     // only the last item will be used to eval the binary expression
     if (String_Schema_Ptr s_l = Cast<String_Schema>(b->left())) {
@@ -788,14 +788,14 @@ namespace Sass {
   Expression_Ptr Eval::operator()(Unary_Expression_Ptr u)
   {
     Expression_Obj operand = u->operand()->perform(this);
-    if (u->type() == Unary_Expression::NOT) {
+    if (u->optype() == Unary_Expression::NOT) {
       Boolean_Ptr result = SASS_MEMORY_NEW(Boolean, u->pstate(), (bool)*operand);
       result->value(!result->value());
       return result;
     }
     else if (Number_Obj nr = Cast<Number>(operand)) {
       // negate value for minus unary expression
-      if (u->type() == Unary_Expression::MINUS) {
+      if (u->optype() == Unary_Expression::MINUS) {
         Number_Obj cpy = SASS_MEMORY_COPY(nr);
         cpy->value( - cpy->value() ); // negate value
         return cpy.detach(); // return the copy
@@ -1047,7 +1047,7 @@ namespace Sass {
     if (unit_pos == std::string::npos) unit_pos = text.length();
     const std::string& num = text.substr(num_pos, unit_pos - num_pos);
 
-    switch (t->type())
+    switch (t->valtype())
     {
       case Textual::NUMBER:
         result = SASS_MEMORY_NEW(Number,

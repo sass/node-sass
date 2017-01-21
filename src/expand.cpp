@@ -94,9 +94,11 @@ namespace Sass {
       Block_Ptr bb = operator()(r->block());
       Keyframe_Rule_Obj k = SASS_MEMORY_NEW(Keyframe_Rule, r->pstate(), bb);
       if (r->selector()) {
-        selector_stack.push_back(0);
-        k->name(Cast<Selector_List>(r->selector()->perform(&eval)));
-        selector_stack.pop_back();
+        if (Selector_List_Ptr s = r->selector()) {
+          selector_stack.push_back(0);
+          k->name(s->eval(eval));
+          selector_stack.pop_back();
+        }
       }
       return k.detach();
     }
@@ -111,10 +113,8 @@ namespace Sass {
       has_parent_selector = ll != 0 && ll->length() > 0;
     }
 
-    Expression_Obj ex = 0;
-    if (r->selector()) ex = r->selector()->perform(&eval);
-    Selector_List_Obj sel = Cast<Selector_List>(ex);
-    if (sel == 0) throw std::runtime_error("Expanded null selector");
+    Selector_List_Obj sel = r->selector();
+    if (sel) sel = sel->eval(eval);
 
     // check for parent selectors in base level rules
     if (r->is_root()) {
@@ -219,11 +219,11 @@ namespace Sass {
   {
     LOCAL_FLAG(in_keyframes, a->is_keyframes());
     Block_Ptr ab = a->block();
-    Selector_Ptr as = a->selector();
+    Selector_List_Ptr as = a->selector();
     Expression_Ptr av = a->value();
     selector_stack.push_back(0);
     if (av) av = av->perform(&eval);
-    if (as) as = Cast<Selector>(as->perform(&eval));
+    if (as) as = eval(as);
     selector_stack.pop_back();
     Block_Ptr bb = ab ? operator()(ab) : NULL;
     Directive_Ptr aa = SASS_MEMORY_NEW(Directive,
@@ -626,28 +626,23 @@ namespace Sass {
 
   Statement* Expand::operator()(Extension_Ptr e)
   {
-    if (Selector_List_Obj extender = Cast<Selector_List>(selector())) {
-      Selector_Obj s = e->selector();
-      Selector_List_Obj sl = NULL;
-      // check if we already have a valid selector list
-      if ((sl = Cast<Selector_List>(s))) {}
-      // convert selector schema to a selector list
-      else if (Selector_Schema_Obj schema = Cast<Selector_Schema>(s)) {
+    if (Selector_List_Ptr extender = selector()) {
+      Selector_List_Ptr sl = e->selector();
+      // abort on invalid selector
+      if (sl == NULL) return NULL;
+      if (Selector_Schema_Ptr schema = sl->schema()) {
         if (schema->has_real_parent_ref()) {
           // put root block on stack again (ignore parents)
           // selector schema must not connect in eval!
           block_stack.push_back(block_stack.at(1));
-          sl = eval(schema);
+          sl = eval(sl->schema());
           block_stack.pop_back();
         } else {
           selector_stack.push_back(0);
-          sl = eval(schema);
-          sl->remove_parent_selectors();
+          sl = eval(sl->schema());
           selector_stack.pop_back();
         }
       }
-      // abort on invalid selector
-      if (sl.isNull()) return NULL;
       for (Complex_Selector_Obj cs : sl->elements()) {
         if (!cs.isNull() && !cs->head().isNull()) {
           cs->head()->media_block(media_block_stack.back());
