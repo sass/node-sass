@@ -6,8 +6,6 @@
 
 namespace Sass {
 
-  typedef Environment<AST_Node_Obj> Env;
-
   class CheckNesting : public Operation_CRTP<Statement_Ptr, CheckNesting> {
 
     std::vector<Statement_Ptr>  parents;
@@ -27,7 +25,7 @@ namespace Sass {
 
     template <typename U>
     Statement_Ptr fallback(U x) {
-      Statement_Ptr n = SASS_MEMORY_CAST_PTR(Statement, x);
+      Statement_Ptr n = Cast<Statement>(x);
       if (this->should_visit(n)) {
         return fallback_impl(n);
       }

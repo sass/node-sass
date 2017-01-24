@@ -4,7 +4,7 @@ AM_COPT = -Wall -O2
 AM_COVLDFLAGS =
 
 if ENABLE_COVERAGE
-	AM_COPT = -O0 --coverage
+	AM_COPT = -Wall -O1 -fno-omit-frame-pointer --coverage
 	AM_COVLDFLAGS += -lgcov
 endif
 
@@ -57,7 +57,7 @@ TESTS = \
 	$(SASS_SPEC_PATH)/spec/scss-tests \
 	$(SASS_SPEC_PATH)/spec/types
 
-SASS_TEST_FLAGS = -V 3.4 --impl libsass
+SASS_TEST_FLAGS = -V 3.5 --impl libsass
 LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) ./script/tap-driver
 AM_LOG_FLAGS = -c ./tester $(LOG_FLAGS)
 if USE_TAP

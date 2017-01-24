@@ -445,7 +445,7 @@ namespace Sass {
 
       Block_Obj b = r->block();
 
-      Selector_List_Ptr sl = SASS_MEMORY_CAST(Selector_List, r->selector());
+      Selector_List_Ptr sl = Cast<Selector_List>(r->selector());
       bool hasSelectors = sl ? sl->length() > 0 : false;
 
       if (!hasSelectors) {
@@ -456,16 +456,16 @@ namespace Sass {
       bool hasPrintableChildBlocks = false;
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement_Obj stm = b->at(i);
-        if (dynamic_cast<Directive_Ptr>(&stm)) {
+        if (Cast<Directive>(stm)) {
           return true;
-        } else if (Declaration_Ptr d = dynamic_cast<Declaration_Ptr>(&stm)) {
+        } else if (Declaration_Ptr d = Cast<Declaration>(stm)) {
           return isPrintable(d, style);
-        } else if (dynamic_cast<Has_Block_Ptr>(&stm)) {
-          Block_Obj pChildBlock = ((Has_Block_Ptr)&stm)->block();
-          if (isPrintable(&pChildBlock, style)) {
+        } else if (Has_Block_Ptr p = Cast<Has_Block>(stm)) {
+          Block_Obj pChildBlock = p->block();
+          if (isPrintable(pChildBlock, style)) {
             hasPrintableChildBlocks = true;
           }
-        } else if (Comment_Ptr c = dynamic_cast<Comment_Ptr>(&stm)) {
+        } else if (Comment_Ptr c = Cast<Comment>(stm)) {
           // keep for uncompressed
           if (style != COMPRESSED) {
             hasDeclarations = true;
@@ -499,8 +499,8 @@ namespace Sass {
     bool isPrintable(Declaration_Ptr d, Sass_Output_Style style)
     {
       Expression_Obj val = d->value();
-      if (String_Quoted_Obj sq = SASS_MEMORY_CAST(String_Quoted, val)) return isPrintable(&sq, style);
-      if (String_Constant_Obj sc = SASS_MEMORY_CAST(String_Constant, val)) return isPrintable(&sc, style);
+      if (String_Quoted_Obj sq = Cast<String_Quoted>(val)) return isPrintable(sq.ptr(), style);
+      if (String_Constant_Obj sc = Cast<String_Constant>(val)) return isPrintable(sc.ptr(), style);
       return true;
     }
 
@@ -511,18 +511,16 @@ namespace Sass {
 
       Block_Obj b = f->block();
 
-//      bool hasSelectors = f->selector() && static_cast<Selector_List_Ptr>(f->selector())->length() > 0;
-
       bool hasDeclarations = false;
       bool hasPrintableChildBlocks = false;
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement_Obj stm = b->at(i);
-        if (dynamic_cast<Declaration_Ptr>(&stm) || dynamic_cast<Directive_Ptr>(&stm)) {
+        if (Cast<Declaration>(stm) || Cast<Directive>(stm)) {
           hasDeclarations = true;
         }
-        else if (dynamic_cast<Has_Block_Ptr>(&stm)) {
-          Block_Obj pChildBlock = ((Has_Block_Ptr)&stm)->block();
-          if (isPrintable(&pChildBlock, style)) {
+        else if (Has_Block_Ptr b = Cast<Has_Block>(stm)) {
+          Block_Obj pChildBlock = b->block();
+          if (isPrintable(pChildBlock, style)) {
             hasPrintableChildBlocks = true;
           }
         }
@@ -542,34 +540,32 @@ namespace Sass {
       if (b == 0) return false;
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement_Obj stm = b->at(i);
-        if (dynamic_cast<Directive_Ptr>(&stm)) return true;
-        else if (dynamic_cast<Declaration_Ptr>(&stm)) return true;
-        else if (dynamic_cast<Comment_Ptr>(&stm)) {
-          Comment_Ptr c = (Comment_Ptr) &stm;
+        if (Cast<Directive>(stm)) return true;
+        else if (Cast<Declaration>(stm)) return true;
+        else if (Comment_Ptr c = Cast<Comment>(stm)) {
           if (isPrintable(c, style)) {
             return true;
           }
         }
-        else if (dynamic_cast<Ruleset_Ptr>(&stm)) {
-          Ruleset_Ptr r = (Ruleset_Ptr) &stm;
+        else if (Ruleset_Ptr r = Cast<Ruleset>(stm)) {
           if (isPrintable(r, style)) {
             return true;
           }
         }
-        else if (dynamic_cast<Supports_Block_Ptr>(&stm)) {
-          Supports_Block_Ptr f = (Supports_Block_Ptr) &stm;
+        else if (Supports_Block_Ptr f = Cast<Supports_Block>(stm)) {
           if (isPrintable(f, style)) {
             return true;
           }
         }
-        else if (dynamic_cast<Media_Block_Ptr>(&stm)) {
-          Media_Block_Ptr m = (Media_Block_Ptr) &stm;
+        else if (Media_Block_Ptr m = Cast<Media_Block>(stm)) {
           if (isPrintable(m, style)) {
             return true;
           }
         }
-        else if (dynamic_cast<Has_Block_Ptr>(&stm) && isPrintable(((Has_Block_Ptr)&stm)->block(), style)) {
-          return true;
+        else if (Has_Block_Ptr b = Cast<Has_Block>(stm)) {
+          if (isPrintable(b->block(), style)) {
+            return true;
+          }
         }
       }
       return false;
@@ -596,35 +592,33 @@ namespace Sass {
 
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement_Obj stm = b->at(i);
-        if (dynamic_cast<Declaration_Ptr>(&stm) || dynamic_cast<Directive_Ptr>(&stm)) {
+        if (Cast<Declaration>(stm) || Cast<Directive>(stm)) {
           return true;
         }
-        else if (dynamic_cast<Comment_Ptr>(&stm)) {
-          Comment_Ptr c = (Comment_Ptr) &stm;
+        else if (Comment_Ptr c = Cast<Comment>(stm)) {
           if (isPrintable(c, style)) {
             return true;
           }
         }
-        else if (dynamic_cast<Ruleset_Ptr>(&stm)) {
-          Ruleset_Ptr r = (Ruleset_Ptr) &stm;
+        else if (Ruleset_Ptr r = Cast<Ruleset>(stm)) {
           if (isPrintable(r, style)) {
             return true;
           }
         }
-        else if (dynamic_cast<Supports_Block_Ptr>(&stm)) {
-          Supports_Block_Ptr f = (Supports_Block_Ptr) &stm;
+        else if (Supports_Block_Ptr f = Cast<Supports_Block>(stm)) {
           if (isPrintable(f, style)) {
             return true;
           }
         }
-        else if (dynamic_cast<Media_Block_Ptr>(&stm)) {
-          Media_Block_Ptr m = (Media_Block_Ptr) &stm;
+        else if (Media_Block_Ptr m = Cast<Media_Block>(stm)) {
           if (isPrintable(m, style)) {
             return true;
           }
         }
-        else if (dynamic_cast<Has_Block_Ptr>(&stm) && isPrintable(((Has_Block_Ptr)&stm)->block(), style)) {
-          return true;
+        else if (Has_Block_Ptr b = Cast<Has_Block>(stm)) {
+          if (isPrintable(b->block(), style)) {
+            return true;
+          }
         }
       }
 

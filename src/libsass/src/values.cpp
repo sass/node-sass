@@ -11,32 +11,32 @@ namespace Sass {
   {
     if (val->concrete_type() == Expression::NUMBER)
     {
-      Number_Ptr_Const res = dynamic_cast<Number_Ptr_Const>(val);
+      Number_Ptr_Const res = Cast<Number>(val);
       return sass_make_number(res->value(), res->unit().c_str());
     }
     else if (val->concrete_type() == Expression::COLOR)
     {
-      Color_Ptr_Const col = dynamic_cast<Color_Ptr_Const>(val);
+      Color_Ptr_Const col = Cast<Color>(val);
       return sass_make_color(col->r(), col->g(), col->b(), col->a());
     }
     else if (val->concrete_type() == Expression::LIST)
     {
-      List_Ptr_Const l = dynamic_cast<List_Ptr_Const>(val);
-      union Sass_Value* list = sass_make_list(l->size(), l->separator());
+      List_Ptr_Const l = Cast<List>(val);
+      union Sass_Value* list = sass_make_list(l->size(), l->separator(), l->is_bracketed());
       for (size_t i = 0, L = l->length(); i < L; ++i) {
         Expression_Obj obj = l->at(i);
-        auto val = ast_node_to_sass_value(&obj);
+        auto val = ast_node_to_sass_value(obj);
         sass_list_set_value(list, i, val);
       }
       return list;
     }
     else if (val->concrete_type() == Expression::MAP)
     {
-      Map_Ptr_Const m = dynamic_cast<Map_Ptr_Const>(val);
+      Map_Ptr_Const m = Cast<Map>(val);
       union Sass_Value* map = sass_make_map(m->length());
       size_t i = 0; for (Expression_Obj key : m->keys()) {
-        sass_map_set_key(map, i, ast_node_to_sass_value(&key));
-        sass_map_set_value(map, i, ast_node_to_sass_value(&m->at(key)));
+        sass_map_set_key(map, i, ast_node_to_sass_value(key));
+        sass_map_set_value(map, i, ast_node_to_sass_value(m->at(key)));
         ++ i;
       }
       return map;
@@ -47,16 +47,16 @@ namespace Sass {
     }
     else if (val->concrete_type() == Expression::BOOLEAN)
     {
-      Boolean_Ptr_Const res = dynamic_cast<Boolean_Ptr_Const>(val);
+      Boolean_Ptr_Const res = Cast<Boolean>(val);
       return sass_make_boolean(res->value());
     }
     else if (val->concrete_type() == Expression::STRING)
     {
-      if (String_Quoted_Ptr_Const qstr = dynamic_cast<String_Quoted_Ptr_Const>(val))
+      if (String_Quoted_Ptr_Const qstr = Cast<String_Quoted>(val))
       {
         return sass_make_qstring(qstr->value().c_str());
       }
-      else if (String_Constant_Ptr_Const cstr = dynamic_cast<String_Constant_Ptr_Const>(val))
+      else if (String_Constant_Ptr_Const cstr = Cast<String_Constant>(val))
       {
         return sass_make_string(cstr->value().c_str());
       }
@@ -106,6 +106,7 @@ namespace Sass {
         for (size_t i = 0, L = sass_list_get_length(val); i < L; ++i) {
           l->append(sass_value_to_ast_node(sass_list_get_value(val, i)));
         }
+        l->is_bracketed(sass_list_get_is_bracketed(val));
         return l;
       }
       break;
