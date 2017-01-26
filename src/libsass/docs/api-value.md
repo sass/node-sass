@@ -58,7 +58,7 @@ union Sass_Value* sass_make_string  (const char* val);
 union Sass_Value* sass_make_qstring (const char* val);
 union Sass_Value* sass_make_number  (double val, const char* unit);
 union Sass_Value* sass_make_color   (double r, double g, double b, double a);
-union Sass_Value* sass_make_list    (size_t len, enum Sass_Separator sep);
+union Sass_Value* sass_make_list    (size_t len, enum Sass_Separator sep, bool is_bracketed);
 union Sass_Value* sass_make_map     (size_t len);
 union Sass_Value* sass_make_error   (const char* msg);
 union Sass_Value* sass_make_warning (const char* msg);
@@ -124,6 +124,8 @@ size_t sass_list_get_length (const union Sass_Value* v);
 // Getters and setters for Sass_List
 enum Sass_Separator sass_list_get_separator (const union Sass_Value* v);
 void sass_list_set_separator (union Sass_Value* v, enum Sass_Separator value);
+bool sass_list_get_is_bracketed (const union Sass_Value* v);
+void sass_list_set_is_bracketed (union Sass_Value* v, bool value);
 // Getters and setters for Sass_List values
 union Sass_Value* sass_list_get_value (const union Sass_Value* v, size_t i);
 void sass_list_set_value (union Sass_Value* v, size_t i, union Sass_Value* value);

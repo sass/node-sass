@@ -7,25 +7,34 @@ enum Sass_Input_Style {
   SASS_CONTEXT_FOLDER
 };
 
-// simple linked list
-struct string_list {
-  string_list* next;
-  char* string;
-};
-
 // sass config options structure
-struct Sass_Options {
-
-  // Precision for fractional numbers
-  int precision;
+struct Sass_Inspect_Options {
 
   // Output style for the generated css code
   // A value from above SASS_STYLE_* constants
   enum Sass_Output_Style output_style;
 
+  // Precision for fractional numbers
+  int precision;
+
+};
+
+// sass config options structure
+struct Sass_Output_Options : Sass_Inspect_Options {
+
+  // String to be used for indentation
+  const char* indent;
+  // String to be used to for line feeds
+  const char* linefeed;
+
   // Emit comments in the generated CSS indicating
   // the corresponding source line.
   bool source_comments;
+
+};
+
+// sass config options structure
+struct Sass_Options : Sass_Output_Options {
 
   // embed sourceMappingUrl as data uri
   bool source_map_embed;
@@ -56,15 +65,9 @@ struct Sass_Options {
   // information in source-maps etc.
   char* output_path;
 
-  // String to be used for indentation
-  const char* indent;
-  // String to be used to for line feeds
-  const char* linefeed;
-
   // Colon-separated list of paths
   // Semicolon-separated on Windows
-  // Note: It may be better to use
-  // array interface instead
+  // Maybe use array interface instead?
   char* include_path;
   char* plugin_path;
 
@@ -82,10 +85,13 @@ struct Sass_Options {
   char* source_map_root;
 
   // Custom functions that can be called from sccs code
-  Sass_C_Function_List c_functions;
+  Sass_Function_List c_functions;
 
   // Callback to overload imports
-  Sass_C_Import_Callback importer;
+  Sass_Importer_List c_importers;
+
+  // List of custom headers
+  Sass_Importer_List c_headers;
 
 };
 
@@ -111,6 +117,7 @@ struct Sass_Context : Sass_Options
   char* error_file;
   size_t error_line;
   size_t error_column;
+  const char* error_src;
 
   // report imported files
   char** included_files;
@@ -130,6 +137,7 @@ struct Sass_Data_Context : Sass_Context {
 
   // provided source string
   char* source_string;
+  char* srcmap_string;
 
 };
 
@@ -147,9 +155,9 @@ struct Sass_Compiler {
   // original c context
   Sass_Context* c_ctx;
   // Sass::Context
-  void* cpp_ctx;
+  Sass::Context* cpp_ctx;
   // Sass::Block
-  void* root;
+  Sass::Block_Obj root;
 };
 ```
 

@@ -218,6 +218,9 @@
     <ClCompile Include="$(LIBSASS_SRC_DIR)\memory\SharedPtr.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\ast_fwd_decl.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
     <ClCompile Include="$(LIBSASS_SRC_DIR)\base64vlq.cpp">
       <Filter>Sources</Filter>
     </ClCompile>

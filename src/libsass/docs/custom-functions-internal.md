@@ -45,14 +45,16 @@ The cookie can hold any pointer you want. In the `perl-libsass` implementation i
 
 ```C
 // allocate memory (copies passed strings)
-union Sass_Value* make_sass_boolean (int val);
-union Sass_Value* make_sass_number  (double val, const char* unit);
-union Sass_Value* make_sass_color   (double r, double g, double b, double a);
-union Sass_Value* make_sass_string  (const char* val);
-union Sass_Value* make_sass_list    (size_t len, enum Sass_Separator sep);
-union Sass_Value* make_sass_map     (size_t len);
-union Sass_Value* make_sass_null    ();
-union Sass_Value* make_sass_error   (const char* msg);
+union Sass_Value* sass_make_null    (void);
+union Sass_Value* sass_make_boolean (bool val);
+union Sass_Value* sass_make_string  (const char* val);
+union Sass_Value* sass_make_qstring (const char* val);
+union Sass_Value* sass_make_number  (double val, const char* unit);
+union Sass_Value* sass_make_color   (double r, double g, double b, double a);
+union Sass_Value* sass_make_list    (size_t len, enum Sass_Separator sep, bool is_bracketed);
+union Sass_Value* sass_make_map     (size_t len);
+union Sass_Value* sass_make_error   (const char* msg);
+union Sass_Value* sass_make_warning (const char* msg);
 
 // Make a deep cloned copy of the given sass value
 union Sass_Value* sass_clone_value (const union Sass_Value* val);

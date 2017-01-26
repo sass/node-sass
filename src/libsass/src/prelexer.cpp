@@ -1,6 +1,5 @@
 #include "sass.hpp"
 #include <cctype>
-#include <cstddef>
 #include <iostream>
 #include <iomanip>
 #include "util.hpp"
@@ -1419,6 +1418,28 @@ namespace Sass {
         >
       >(src);
     }
+
+    const char* list_terminator(const char* src) {
+      return alternatives <
+        exactly<';'>,
+        exactly<'}'>,
+        exactly<'{'>,
+        exactly<')'>,
+        exactly<']'>,
+        exactly<':'>,
+        end_of_file,
+        exactly<ellipsis>,
+        default_flag,
+        global_flag
+      >(src);
+    };
+
+    const char* space_list_terminator(const char* src) {
+      return alternatives <
+        exactly<','>,
+        list_terminator
+      >(src);
+    };
 
 
     // const char* real_uri_prefix(const char* src) {

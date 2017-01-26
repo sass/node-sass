@@ -18,7 +18,7 @@ namespace Sass {
       std::cerr << "# REPORTING MISSING DEALLOCATIONS #\n";
       std::cerr << "###################################\n";
       for (auto var : all) {
-        if (AST_Node_Ptr ast = SASS_MEMORY_CAST_PTR(AST_Node, var)) {
+        if (AST_Node_Ptr ast = Cast<AST_Node>(var)) {
           debug_ast(ast);
         } else {
           std::cerr << "LEAKED " << var << "\n";
@@ -62,7 +62,7 @@ namespace Sass {
       #endif
       if (node->refcounter == 0) {
         #ifdef DEBUG_SHARED_PTR
-          AST_Node_Ptr ptr = SASS_MEMORY_CAST_PTR(AST_Node, node);
+          AST_Node_Ptr ptr = Cast<AST_Node>(node);
           if (node->dbg) std::cerr << "DELETE NODE " << node << "\n";
         #endif
         if (!node->detached) {

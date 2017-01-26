@@ -75,9 +75,6 @@ ADDAPI void ADDCALL sass_free_memory(void* ptr);
 ADDAPI char* ADDCALL sass_string_quote (const char* str, const char quote_mark);
 ADDAPI char* ADDCALL sass_string_unquote (const char* str);
 
-// Resolve a file via the given include paths in the include char* array
-ADDAPI char* ADDCALL sass_resolve_file (const char* path, const char* incs[]);
-
 // Implemented sass language version
 // Hardcoded version 3.4 for time being
 ADDAPI const char* ADDCALL libsass_version(void);

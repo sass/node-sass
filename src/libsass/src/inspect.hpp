@@ -92,6 +92,9 @@ namespace Sass {
     virtual void operator()(Complex_Selector_Ptr);
     virtual void operator()(Selector_List_Ptr);
 
+    virtual std::string lbracket(List_Ptr);
+    virtual std::string rbracket(List_Ptr);
+
     // template <typename U>
     // void fallback(U x) { fallback_impl(reinterpret_cast<AST_Node_Ptr>(x)); }
   };

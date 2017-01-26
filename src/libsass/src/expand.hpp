@@ -13,14 +13,12 @@ namespace Sass {
   class Listize;
   class Context;
   class Eval;
-  typedef Environment<AST_Node_Obj> Env;
   struct Backtrace;
 
   class Expand : public Operation_CRTP<Statement_Ptr, Expand> {
   public:
 
     Env* environment();
-    Context& context();
     Selector_List_Obj selector();
     Backtrace* backtrace();
 

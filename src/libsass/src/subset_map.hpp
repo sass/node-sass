@@ -60,15 +60,15 @@ namespace Sass {
 
   class Subset_Map {
   private:
-    std::vector<Subset_Map_Val> values_;
-    std::map<Simple_Selector_Obj, std::vector<std::pair<Compound_Selector_Obj, size_t> > > hash_;
+    std::vector<SubSetMapPair> values_;
+    std::map<Simple_Selector_Obj, std::vector<std::pair<Compound_Selector_Obj, size_t> >, OrderNodes > hash_;
   public:
-    void put(const Compound_Selector_Obj& sel, const Subset_Map_Val& value);
-    std::vector<Subset_Map_Val> get_kv(const Compound_Selector_Obj& s);
-    std::vector<Subset_Map_Val> get_v(const Compound_Selector_Obj& s);
+    void put(const Compound_Selector_Obj& sel, const SubSetMapPair& value);
+    std::vector<SubSetMapPair> get_kv(const Compound_Selector_Obj& s);
+    std::vector<SubSetMapPair> get_v(const Compound_Selector_Obj& s);
     bool empty() { return values_.empty(); }
     void clear() { values_.clear(); hash_.clear(); }
-    const std::vector<Subset_Map_Val> values(void) { return values_; }
+    const std::vector<SubSetMapPair> values(void) { return values_; }
   };
 
 }

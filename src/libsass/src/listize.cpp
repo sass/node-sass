@@ -70,7 +70,7 @@ namespace Sass {
     if (tail)
     {
       Expression_Obj tt = tail->perform(this);
-      if (List_Ptr ls = SASS_MEMORY_CAST(List, tt))
+      if (List_Ptr ls = Cast<List>(tt))
       { l->concat(ls); }
     }
     if (l->length() == 0) return 0;
@@ -79,7 +79,7 @@ namespace Sass {
 
   Expression_Ptr Listize::fallback_impl(AST_Node_Ptr n)
   {
-    return dynamic_cast<Expression_Ptr>(n);
+    return Cast<Expression>(n);
   }
 
 }
