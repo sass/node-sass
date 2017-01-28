@@ -35,13 +35,29 @@
     SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
     matrix:
       - nodejs_version: 0.10
+        GYP_MSVS_VERSION: 2013
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 0.12
+        GYP_MSVS_VERSION: 2013
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 1.0
+        GYP_MSVS_VERSION: 2013
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 1
+        GYP_MSVS_VERSION: 2013
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 2
+        GYP_MSVS_VERSION: 2013
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 3
+        GYP_MSVS_VERSION: 2013
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 4
+        GYP_MSVS_VERSION: 2013
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 5
+        GYP_MSVS_VERSION: 2013
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 6
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
