@@ -268,7 +268,10 @@ function watch(options, emitter) {
 
     // Add children to watcher
     graph.visitDescendents(file, function(child) {
-      gaze.add(child);
+      if (watch.indexOf(child) === -1) {
+        watch.push(child);
+        gaze.add(child);
+      }
     });
     files.forEach(function(file) {
       if (path.basename(file)[0] !== '_') {
