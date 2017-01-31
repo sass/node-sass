@@ -142,6 +142,23 @@ describe('api', function() {
       });
     });
 
+    it('should add cwd to the front on include paths', function(done) {
+      var src = fixture('cwd-include-path/root/index.scss');
+      var expected = read(fixture('cwd-include-path/expected.css'), 'utf8').trim();
+      var cwd = process.cwd();
+
+      process.chdir(fixture('cwd-include-path'));
+      sass.render({
+        file: src,
+        includePaths: []
+      }, function(error, result) {
+        assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+
+        process.chdir(cwd);
+        done();
+      });
+    });
+
     it('should check SASS_PATH in the specified order', function(done) {
       var src = read(fixture('sass-path/index.scss'), 'utf8');
       var expectedRed = read(fixture('sass-path/expected-red.css'), 'utf8').trim();
