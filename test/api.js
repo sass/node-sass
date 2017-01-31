@@ -87,22 +87,6 @@ describe('api', function() {
       });
     });
 
-    it('should NOT compile empty data string', function(done) {
-      sass.render({
-        data: ''
-      }, function(error) {
-        assert.equal(error.message, 'No input specified: provide a file name or a source string to process');
-        done();
-      });
-    });
-
-    it('should NOT compile without parameters', function(done) {
-      sass.render({ }, function(error) {
-        assert.equal(error.message, 'No input specified: provide a file name or a source string to process');
-        done();
-      });
-    });
-
     it('should compile sass to css using indented syntax', function(done) {
       var src = read(fixture('indent/index.sass'), 'utf8');
       var expected = read(fixture('indent/expected.css'), 'utf8').trim();
@@ -116,7 +100,23 @@ describe('api', function() {
       });
     });
 
-    it('should throw error status 1 for bad input', function(done) {
+    it('should NOT compile empty data string', function(done) {
+      sass.render({
+        data: ''
+      }, function(error) {
+        assert.equal(error.message, 'No input specified: provide a file name or a source string to process');
+        done();
+      });
+    });
+
+    it('should NOT compile without any input', function(done) {
+      sass.render({ }, function(error) {
+        assert.equal(error.message, 'No input specified: provide a file name or a source string to process');
+        done();
+      });
+    });
+
+    it('should returnn error status 1 for bad input', function(done) {
       sass.render({
         data: '#navbar width 80%;'
       }, function(error) {
@@ -138,6 +138,23 @@ describe('api', function() {
         ]
       }, function(error, result) {
         assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+        done();
+      });
+    });
+
+    it('should add cwd to the front on include paths', function(done) {
+      var src = fixture('cwd-include-path/root/index.scss');
+      var expected = read(fixture('cwd-include-path/expected.css'), 'utf8').trim();
+      var cwd = process.cwd();
+
+      process.chdir(fixture('cwd-include-path'));
+      sass.render({
+        file: src,
+        includePaths: []
+      }, function(error, result) {
+        assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+
+        process.chdir(cwd);
         done();
       });
     });
@@ -1387,6 +1404,143 @@ describe('api', function() {
         sass.renderSync({ data: '#navbar width 80%;' });
       });
 
+      done();
+    });
+
+    it('should compile with include paths', function(done) {
+      var src = read(fixture('include-path/index.scss'), 'utf8');
+      var expected = read(fixture('include-path/expected.css'), 'utf8').trim();
+      var result = sass.renderSync({
+        data: src,
+        includePaths: [
+          fixture('include-path/functions'),
+          fixture('include-path/lib')
+        ]
+      });
+
+      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+      done();
+    });
+
+    it('should add cwd to the front on include paths', function(done) {
+      var src = fixture('cwd-include-path/root/index.scss');
+      var expected = read(fixture('cwd-include-path/expected.css'), 'utf8').trim();
+      var cwd = process.cwd();
+
+      process.chdir(fixture('cwd-include-path'));
+      var result = sass.renderSync({
+        file: src,
+        includePaths: [
+          fixture('include-path/functions'),
+          fixture('include-path/lib')
+        ]
+      });
+      process.chdir(cwd);
+
+      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+      done();
+    });
+
+    it('should check SASS_PATH in the specified order', function(done) {
+      var src = read(fixture('sass-path/index.scss'), 'utf8');
+      var expectedRed = read(fixture('sass-path/expected-red.css'), 'utf8').trim();
+      var expectedOrange = read(fixture('sass-path/expected-orange.css'), 'utf8').trim();
+
+      var envIncludes = [
+        fixture('sass-path/red'),
+        fixture('sass-path/orange')
+      ];
+
+      process.env.SASS_PATH = envIncludes.join(path.delimiter);
+      var result = sass.renderSync({
+        data: src,
+        includePaths: []
+      });
+
+      assert.equal(result.css.toString().trim(), expectedRed.replace(/\r\n/g, '\n'));
+
+      process.env.SASS_PATH = envIncludes.reverse().join(path.delimiter);
+      result = sass.renderSync({
+        data: src,
+        includePaths: []
+      });
+
+      assert.equal(result.css.toString().trim(), expectedOrange.replace(/\r\n/g, '\n'));
+      done();
+    });
+
+    it('should prefer include path over SASS_PATH', function(done) {
+      var src = read(fixture('sass-path/index.scss'), 'utf8');
+      var expectedRed = read(fixture('sass-path/expected-red.css'), 'utf8').trim();
+      var expectedOrange = read(fixture('sass-path/expected-orange.css'), 'utf8').trim();
+
+      var envIncludes = [
+        fixture('sass-path/red')
+      ];
+      process.env.SASS_PATH = envIncludes.join(path.delimiter);
+
+      var result = sass.renderSync({
+        data: src,
+        includePaths: []
+      });
+
+      assert.equal(result.css.toString().trim(), expectedRed.replace(/\r\n/g, '\n'));
+
+      result = sass.renderSync({
+        data: src,
+        includePaths: [fixture('sass-path/orange')]
+      });
+
+      assert.equal(result.css.toString().trim(), expectedOrange.replace(/\r\n/g, '\n'));
+      done();
+    });
+
+    it('should render with precision option', function(done) {
+      var src = read(fixture('precision/index.scss'), 'utf8');
+      var expected = read(fixture('precision/expected.css'), 'utf8').trim();
+      var result = sass.renderSync({
+        data: src,
+        precision: 10
+      });
+
+      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+      done();
+    });
+
+    it('should contain all included files in stats when data is passed', function(done) {
+      var src = read(fixture('include-files/index.scss'), 'utf8');
+      var expected = [
+        fixture('include-files/bar.scss').replace(/\\/g, '/'),
+        fixture('include-files/foo.scss').replace(/\\/g, '/')
+      ];
+
+      var result = sass.renderSync({
+        data: src,
+        includePaths: [fixture('include-files')]
+      });
+
+      assert.deepEqual(result.stats.includedFiles, expected);
+      done();
+    });
+
+    it('should render with indentWidth and indentType options', function(done) {
+      var result = sass.renderSync({
+        data: 'div { color: transparent; }',
+        indentWidth: 7,
+        indentType: 'tab'
+      });
+
+      assert.equal(result.css.toString().trim(), 'div {\n\t\t\t\t\t\t\tcolor: transparent; }');
+      done();
+    });
+
+    it('should render with linefeed option', function(done) {
+      var result = sass.renderSync({
+        data: 'div { color: transparent; }',
+        linefeed: 'lfcr'
+      });
+
+      assert.equal(result.css.toString().trim(), 'div {\n\r  color: transparent; }');
       done();
     });
   });
