@@ -1511,6 +1511,16 @@ namespace Sass {
   };
   Node Extend::extendCompoundSelector(Compound_Selector_Ptr pSelector, CompoundSelectorSet& seen, bool isReplace) {
 
+    /* this turned out to be too much overhead
+       probably due to holding a "Node" object
+    // check if we already extended this selector
+    // we can do this since subset_map is "static"
+    auto memoized = memoizeCompound.find(pSelector);
+    if (memoized != memoizeCompound.end()) {
+      return memoized->second.klone();
+    }
+    */
+
     DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelector, "EXTEND COMPOUND: "))
     // TODO: Ruby has another loop here to skip certain members?
 
@@ -1658,6 +1668,10 @@ namespace Sass {
 
     DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelector, "EXTEND COMPOUND END: "))
 
+    // this turned out to be too much overhead
+    // memory results in a map table - since extending is very expensive
+    // memoizeCompound.insert(std::pair<Compound_Selector_Obj, Node>(pSelector, results));
+
     return results;
   }
 
@@ -1720,6 +1734,13 @@ namespace Sass {
      next [[sseq_or_op]] unless sseq_or_op.is_a?(SimpleSequence)
    */
   Node Extend::extendComplexSelector(Complex_Selector_Ptr selector, CompoundSelectorSet& seen, bool isReplace, bool isOriginal) {
+
+    // check if we already extended this selector
+    // we can do this since subset_map is "static"
+    auto memoized = memoizeComplex.find(selector);
+    if (memoized != memoizeComplex.end()) {
+      return memoized->second;
+    }
 
     // convert the input selector to extend node format
     Node complexSelector = complexSelectorToNode(selector);
@@ -1825,6 +1846,9 @@ namespace Sass {
     DEBUG_PRINTLN(EXTEND_COMPLEX, ">>>>> EXTENDED: " << extendedSelectors)
     DEBUG_PRINTLN(EXTEND_COMPLEX, "EXTEND COMPLEX END: " << complexSelector)
 
+    // memory results in a map table - since extending is very expensive
+    memoizeComplex.insert(std::pair<Complex_Selector_Obj, Node>(selector, flattened));
+
     // return trim(WEAVES)
     return flattened;
   }
@@ -1839,6 +1863,14 @@ namespace Sass {
   Selector_List_Ptr Extend::extendSelectorList(Selector_List_Obj pSelectorList, bool isReplace, bool& extendedSomething, CompoundSelectorSet& seen) {
 
     Selector_List_Obj pNewSelectors = SASS_MEMORY_NEW(Selector_List, pSelectorList->pstate(), pSelectorList->length());
+
+    // check if we already extended this selector
+    // we can do this since subset_map is "static"
+    auto memoized = memoizeList.find(pSelectorList);
+    if (memoized != memoizeList.end()) {
+      extendedSomething = true;
+      return memoized->second;
+    }
 
     extendedSomething = false;
     // process each comlplex selector in the selector list.
@@ -1949,6 +1981,10 @@ namespace Sass {
         cur = cur->tail();
       }
     }
+
+    // memory results in a map table - since extending is very expensive
+    memoizeList.insert(std::pair<Selector_List_Obj, Selector_List_Obj>(pSelectorList, pNewSelectors));
+
     return pNewSelectors.detach();
 
   }

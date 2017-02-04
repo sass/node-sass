@@ -22,6 +22,30 @@ namespace Sass {
 
   private:
 
+    std::unordered_map<
+      Selector_List_Obj, // key
+      Selector_List_Obj, // value
+      HashNodes, // hasher
+      CompareNodes // compare
+    > memoizeList;
+
+    std::unordered_map<
+      Complex_Selector_Obj, // key
+      Node, // value
+      HashNodes, // hasher
+      CompareNodes // compare
+    > memoizeComplex;
+
+    /* this turned out to be too much overhead
+       re-evaluate once we store an ast selector
+    std::unordered_map<
+      Compound_Selector_Obj, // key
+      Node, // value
+      HashNodes, // hasher
+      CompareNodes // compare
+    > memoizeCompound;
+    */
+
     void extendObjectWithSelectorAndBlock(Ruleset_Ptr pObject);
     Node extendComplexSelector(Complex_Selector_Ptr sel, CompoundSelectorSet& seen, bool isReplace, bool isOriginal);
     Node extendCompoundSelector(Compound_Selector_Ptr sel, CompoundSelectorSet& seen, bool isReplace);
