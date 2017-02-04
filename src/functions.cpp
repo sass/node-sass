@@ -1478,7 +1478,9 @@ namespace Sass {
       Expression_Obj v = ARG("$key", Expression);
       try {
         Expression_Obj val = m->at(v);
-        return val ? val.detach() : SASS_MEMORY_NEW(Null, pstate);
+        if (!val) return SASS_MEMORY_NEW(Null, pstate);
+        val->set_delayed(false);
+        return val.detach();
       } catch (const std::out_of_range&) {
         return SASS_MEMORY_NEW(Null, pstate);
       }
