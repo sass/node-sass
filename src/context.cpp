@@ -661,7 +661,7 @@ namespace Sass {
     // should we extend something?
     if (!subset_map.empty()) {
       // create crtp visitor object
-      Extend extend(*this, subset_map);
+      Extend extend(subset_map);
       // extend tree nodes
       extend(root);
     }

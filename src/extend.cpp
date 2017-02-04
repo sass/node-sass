@@ -206,7 +206,7 @@ namespace Sass {
   }
 
   // Print a string representation of a ComplexSelectorSet
-  static void printSourcesSet(ComplexSelectorSet& sources, Context& ctx, const char* message=NULL, bool newline=true) {
+  static void printSourcesSet(ComplexSelectorSet& sources, const char* message=NULL, bool newline=true) {
 
     if (message) {
       std::cerr << message;
@@ -219,7 +219,7 @@ namespace Sass {
     for (ComplexSelectorSet::iterator iterator = sources.begin(), iteratorEnd = sources.end(); iterator != iteratorEnd; ++iterator) {
       Complex_Selector_Ptr pSource = *iterator;
       std::stringstream sstream;
-      sstream << complexSelectorToNode(pSource, ctx);
+      sstream << complexSelectorToNode(pSource);
       sourceStrings.push_back(sstream.str());
     }
 
@@ -279,7 +279,7 @@ namespace Sass {
   }
 #endif
 
-  static bool parentSuperselector(Complex_Selector_Ptr pOne, Complex_Selector_Ptr pTwo, Context& ctx) {
+  static bool parentSuperselector(Complex_Selector_Ptr pOne, Complex_Selector_Ptr pTwo) {
     // TODO: figure out a better way to create a Complex_Selector from scratch
     // TODO: There's got to be a better way. This got ugly quick...
     Position noPosition(-1, -1, -1);
@@ -299,19 +299,19 @@ namespace Sass {
     return isSuperselector;
   }
 
-  void nodeToComplexSelectorDeque(const Node& node, ComplexSelectorDeque& out, Context& ctx) {
+  void nodeToComplexSelectorDeque(const Node& node, ComplexSelectorDeque& out) {
     for (NodeDeque::iterator iter = node.collection()->begin(), iterEnd = node.collection()->end(); iter != iterEnd; iter++) {
       Node& child = *iter;
-      out.push_back(nodeToComplexSelector(child, ctx));
+      out.push_back(nodeToComplexSelector(child));
     }
   }
 
-  Node complexSelectorDequeToNode(const ComplexSelectorDeque& deque, Context& ctx) {
+  Node complexSelectorDequeToNode(const ComplexSelectorDeque& deque) {
     Node result = Node::createCollection();
 
     for (ComplexSelectorDeque::const_iterator iter = deque.begin(), iterEnd = deque.end(); iter != iterEnd; iter++) {
       Complex_Selector_Obj pChild = *iter;
-      result.collection()->push_back(complexSelectorToNode(pChild, ctx));
+      result.collection()->push_back(complexSelectorToNode(pChild));
     }
 
     return result;
@@ -319,9 +319,7 @@ namespace Sass {
 
   class LcsCollectionComparator {
   public:
-    LcsCollectionComparator(Context& ctx) : mCtx(ctx) {}
-
-    Context& mCtx;
+    LcsCollectionComparator() {}
 
     bool operator()(Complex_Selector_Obj pOne, Complex_Selector_Obj pTwo, Complex_Selector_Obj& pOut) const {
       /*
@@ -343,12 +341,12 @@ namespace Sass {
         return false;
       }
 
-      if (parentSuperselector(pOne, pTwo, mCtx)) {
+      if (parentSuperselector(pOne, pTwo)) {
         pOut = pTwo;
         return true;
       }
 
-      if (parentSuperselector(pTwo, pOne, mCtx)) {
+      if (parentSuperselector(pTwo, pOne)) {
         pOut = pOne;
         return true;
       }
@@ -438,7 +436,7 @@ namespace Sass {
 
   http://en.wikipedia.org/wiki/Longest_common_subsequence_problem
   */
-  void lcs(ComplexSelectorDeque& x, ComplexSelectorDeque& y, const LcsCollectionComparator& comparator, Context& ctx, ComplexSelectorDeque& out) {
+  void lcs(ComplexSelectorDeque& x, ComplexSelectorDeque& y, const LcsCollectionComparator& comparator, ComplexSelectorDeque& out) {
     //DEBUG_PRINTLN(LCS, "LCS: X=" << x << " Y=" << y)
     // TODO: make printComplexSelectorDeque and use DEBUG_EXEC AND DEBUG_PRINTLN HERE to get equivalent output
 
@@ -518,7 +516,7 @@ namespace Sass {
   /*
    - IMPROVEMENT: We could probably work directly in the output trimmed deque.
    */
-  static Node trim(Node& seqses, Context& ctx, bool isReplace) {
+  Node Extend::trim(Node& seqses, bool isReplace) {
     // See the comments in the above ruby code before embarking on understanding this function.
 
     // Avoid poor performance in extreme cases.
@@ -551,7 +549,7 @@ namespace Sass {
       for (NodeDeque::iterator seqs1Iter = seqs1.collection()->begin(), seqs1EndIter = seqs1.collection()->end(); seqs1Iter != seqs1EndIter; ++seqs1Iter) {
         Node& seq1 = *seqs1Iter;
 
-        Complex_Selector_Obj pSeq1 = nodeToComplexSelector(seq1, ctx);
+        Complex_Selector_Obj pSeq1 = nodeToComplexSelector(seq1);
 
         // Compute the maximum specificity. This requires looking at the "sources" of the sequence. See SimpleSequence.sources in the ruby code
         // for a good description of sources.
@@ -565,7 +563,7 @@ namespace Sass {
         ComplexSelectorSet sources = pSeq1->sources();
 
         DEBUG_PRINTLN(TRIM, "TRIM SEQ1: " << seq1)
-        DEBUG_EXEC(TRIM, printSourcesSet(sources, ctx, "TRIM SOURCES: "))
+        DEBUG_EXEC(TRIM, printSourcesSet(sources, "TRIM SOURCES: "))
 
         for (ComplexSelectorSet::iterator sourcesSetIterator = sources.begin(), sourcesSetIteratorEnd = sources.end(); sourcesSetIterator != sourcesSetIteratorEnd; ++sourcesSetIterator) {
           const Complex_Selector_Obj& pCurrentSelector = *sourcesSetIterator;
@@ -598,7 +596,7 @@ namespace Sass {
           for (NodeDeque::iterator seqs2Iter = seqs2.collection()->begin(), seqs2IterEnd = seqs2.collection()->end(); seqs2Iter != seqs2IterEnd; ++seqs2Iter) {
             Node& seq2 = *seqs2Iter;
 
-            Complex_Selector_Obj pSeq2 = nodeToComplexSelector(seq2, ctx);
+            Complex_Selector_Obj pSeq2 = nodeToComplexSelector(seq2);
 
             DEBUG_PRINTLN(TRIM, "SEQ2 SPEC: " << pSeq2->specificity())
             DEBUG_PRINTLN(TRIM, "IS SPEC: " << pSeq2->specificity() << " >= " << maxSpecificity << " " << (pSeq2->specificity() >= maxSpecificity ? "true" : "false"))
@@ -642,7 +640,7 @@ namespace Sass {
 
 
 
-  static bool parentSuperselector(const Node& one, const Node& two, Context& ctx) {
+  static bool parentSuperselector(const Node& one, const Node& two) {
     // TODO: figure out a better way to create a Complex_Selector from scratch
     // TODO: There's got to be a better way. This got ugly quick...
     Position noPosition(-1, -1, -1);
@@ -651,9 +649,9 @@ namespace Sass {
     fakeHead->elements().push_back(fakeParent);
     Complex_Selector_Obj fakeParentContainer = SASS_MEMORY_NEW(Complex_Selector, ParserState("[FAKE]"), Complex_Selector::ANCESTOR_OF, fakeHead /*head*/, NULL /*tail*/);
 
-    Complex_Selector_Obj pOneWithFakeParent = nodeToComplexSelector(one, ctx);
+    Complex_Selector_Obj pOneWithFakeParent = nodeToComplexSelector(one);
     pOneWithFakeParent->set_innermost(fakeParentContainer, Complex_Selector::ANCESTOR_OF);
-    Complex_Selector_Obj pTwoWithFakeParent = nodeToComplexSelector(two, ctx);
+    Complex_Selector_Obj pTwoWithFakeParent = nodeToComplexSelector(two);
     pTwoWithFakeParent->set_innermost(fakeParentContainer, Complex_Selector::ANCESTOR_OF);
 
     return pOneWithFakeParent->is_superselector_of(pTwoWithFakeParent);
@@ -662,14 +660,13 @@ namespace Sass {
 
   class ParentSuperselectorChunker {
   public:
-    ParentSuperselectorChunker(Node& lcs, Context& ctx) : mLcs(lcs), mCtx(ctx) {}
+    ParentSuperselectorChunker(Node& lcs) : mLcs(lcs) {}
     Node& mLcs;
-    Context& mCtx;
 
     bool operator()(const Node& seq) const {
       // {|s| parent_superselector?(s.first, lcs.first)}
       if (seq.collection()->size() == 0) return false;
-      return parentSuperselector(seq.collection()->front(), mLcs.collection()->front(), mCtx);
+      return parentSuperselector(seq.collection()->front(), mLcs.collection()->front());
     }
   };
 
@@ -765,7 +762,7 @@ namespace Sass {
   }
 
 
-  static Node groupSelectors(Node& seq, Context& ctx) {
+  static Node groupSelectors(Node& seq) {
     Node newSeq = Node::createCollection();
 
     Node tail = Node::createCollection();
@@ -825,7 +822,7 @@ namespace Sass {
         return (newline ? ["\n"] : []) + (ops1.size > ops2.size ? ops1 : ops2)
       end
   */
-  static Node mergeInitialOps(Node& seq1, Node& seq2, Context& ctx) {
+  static Node mergeInitialOps(Node& seq1, Node& seq2) {
     Node ops1 = Node::createCollection();
     Node ops2 = Node::createCollection();
 
@@ -839,7 +836,7 @@ namespace Sass {
 
     // If neither sequence is a subsequence of the other, they cannot be merged successfully
     DefaultLcsComparator lcsDefaultComparator;
-    Node opsLcs = lcs(ops1, ops2, lcsDefaultComparator, ctx);
+    Node opsLcs = lcs(ops1, ops2, lcsDefaultComparator);
 
     if (!(opsLcs == ops1 || opsLcs == ops2)) {
       return Node::createNil();
@@ -916,7 +913,7 @@ namespace Sass {
         end
       end
   */
-  static Node mergeFinalOps(Node& seq1, Node& seq2, Context& ctx, Node& res) {
+  static Node mergeFinalOps(Node& seq1, Node& seq2, Node& res) {
 
     Node ops1 = Node::createCollection();
     Node ops2 = Node::createCollection();
@@ -934,7 +931,7 @@ namespace Sass {
 
     if (ops1.collection()->size() > 1 || ops2.collection()->size() > 1) {
       DefaultLcsComparator lcsDefaultComparator;
-      Node opsLcs = lcs(ops1, ops2, lcsDefaultComparator, ctx);
+      Node opsLcs = lcs(ops1, ops2, lcsDefaultComparator);
 
       // If there are multiple operators, something hacky's going on. If one is a supersequence of the other, use that, otherwise give up.
 
@@ -981,7 +978,7 @@ namespace Sass {
 
           Complex_Selector_Obj pMergedWrapper = SASS_MEMORY_CLONE(sel1.selector()); // Clone the Complex_Selector to get back to something we can transform to a node once we replace the head with the unification result
           // TODO: does subject matter? Ruby: return unless merged = sel1.unify(sel2.members, sel2.subject?)
-          Compound_Selector_Ptr pMerged = sel1.selector()->head()->unify_with(sel2.selector()->head(), ctx);
+          Compound_Selector_Ptr pMerged = sel1.selector()->head()->unify_with(sel2.selector()->head());
           pMergedWrapper->head(pMerged);
 
           DEBUG_EXEC(ALL, printCompoundSelector(pMerged, "MERGED: "))
@@ -1004,7 +1001,7 @@ namespace Sass {
 
           if (pMerged) {
             Node mergedPerm = Node::createCollection();
-            mergedPerm.collection()->push_back(Node::createSelector(pMergedWrapper, ctx));
+            mergedPerm.collection()->push_back(Node::createSelector(pMergedWrapper));
             mergedPerm.collection()->push_back(Node::createCombinator(Complex_Selector::PRECEDES));
             newRes.collection()->push_back(mergedPerm);
           }
@@ -1040,7 +1037,7 @@ namespace Sass {
 
             Complex_Selector_Obj pMergedWrapper = SASS_MEMORY_CLONE(plusSel.selector()); // Clone the Complex_Selector to get back to something we can transform to a node once we replace the head with the unification result
             // TODO: does subject matter? Ruby: merged = plus_sel.unify(tilde_sel.members, tilde_sel.subject?)
-            Compound_Selector_Ptr pMerged = plusSel.selector()->head()->unify_with(tildeSel.selector()->head(), ctx);
+            Compound_Selector_Ptr pMerged = plusSel.selector()->head()->unify_with(tildeSel.selector()->head());
             pMergedWrapper->head(pMerged);
 
             DEBUG_EXEC(ALL, printCompoundSelector(pMerged, "MERGED: "))
@@ -1056,7 +1053,7 @@ namespace Sass {
 
             if (pMerged) {
               Node mergedPerm = Node::createCollection();
-              mergedPerm.collection()->push_back(Node::createSelector(pMergedWrapper, ctx));
+              mergedPerm.collection()->push_back(Node::createSelector(pMergedWrapper));
               mergedPerm.collection()->push_back(Node::createCombinator(Complex_Selector::ADJACENT_TO));
               newRes.collection()->push_back(mergedPerm);
             }
@@ -1089,7 +1086,7 @@ namespace Sass {
 
         Complex_Selector_Obj pMergedWrapper = SASS_MEMORY_CLONE(sel1.selector()); // Clone the Complex_Selector to get back to something we can transform to a node once we replace the head with the unification result
         // TODO: does subject matter? Ruby: return unless merged = sel1.unify(sel2.members, sel2.subject?)
-        Compound_Selector_Ptr pMerged = sel1.selector()->head()->unify_with(sel2.selector()->head(), ctx);
+        Compound_Selector_Ptr pMerged = sel1.selector()->head()->unify_with(sel2.selector()->head());
         pMergedWrapper->head(pMerged);
 
         DEBUG_EXEC(ALL, printCompoundSelector(pMerged, "MERGED: "))
@@ -1099,7 +1096,7 @@ namespace Sass {
         }
 
         res.collection()->push_front(op1);
-        res.collection()->push_front(Node::createSelector(pMergedWrapper, ctx));
+        res.collection()->push_front(Node::createSelector(pMergedWrapper));
 
         DEBUG_PRINTLN(ALL, "RESULT: " << res)
 
@@ -1107,7 +1104,7 @@ namespace Sass {
         return Node::createNil();
       }
 
-      return mergeFinalOps(seq1, seq2, ctx, res);
+      return mergeFinalOps(seq1, seq2, res);
 
     } else if (!ops1.collection()->empty()) {
 
@@ -1122,7 +1119,7 @@ namespace Sass {
       res.collection()->push_front(seq1.collection()->back());
       seq1.collection()->pop_back();
 
-      return mergeFinalOps(seq1, seq2, ctx, res);
+      return mergeFinalOps(seq1, seq2, res);
 
     } else { // !ops2.collection()->empty()
 
@@ -1136,7 +1133,7 @@ namespace Sass {
       res.collection()->push_front(seq2.collection()->back());
       seq2.collection()->pop_back();
 
-      return mergeFinalOps(seq1, seq2, ctx, res);
+      return mergeFinalOps(seq1, seq2, res);
 
     }
 
@@ -1179,7 +1176,7 @@ namespace Sass {
         result
       end
   */
-  Node Extend::subweave(Node& one, Node& two, Context& ctx) {
+  Node subweave(Node& one, Node& two) {
     // Check for the simple cases
     if (one.collection()->size() == 0) {
       Node out = Node::createCollection();
@@ -1192,8 +1189,6 @@ namespace Sass {
       return out;
     }
 
-
-
     Node seq1 = Node::createCollection();
     seq1.plus(one);
     Node seq2 = Node::createCollection();
@@ -1202,7 +1197,7 @@ namespace Sass {
     DEBUG_PRINTLN(SUBWEAVE, "SUBWEAVE ONE: " << seq1)
     DEBUG_PRINTLN(SUBWEAVE, "SUBWEAVE TWO: " << seq2)
 
-    Node init = mergeInitialOps(seq1, seq2, ctx);
+    Node init = mergeInitialOps(seq1, seq2);
     if (init.isNil()) {
       return Node::createNil();
     }
@@ -1210,7 +1205,7 @@ namespace Sass {
     DEBUG_PRINTLN(SUBWEAVE, "INIT: " << init)
 
     Node res = Node::createCollection();
-    Node fin = mergeFinalOps(seq1, seq2, ctx, res);
+    Node fin = mergeFinalOps(seq1, seq2, res);
     if (fin.isNil()) {
       return Node::createNil();
     }
@@ -1238,23 +1233,23 @@ namespace Sass {
 
 
 
-    Node groupSeq1 = groupSelectors(seq1, ctx);
+    Node groupSeq1 = groupSelectors(seq1);
     DEBUG_PRINTLN(SUBWEAVE, "SEQ1: " << groupSeq1)
 
-    Node groupSeq2 = groupSelectors(seq2, ctx);
+    Node groupSeq2 = groupSelectors(seq2);
     DEBUG_PRINTLN(SUBWEAVE, "SEQ2: " << groupSeq2)
 
 
     ComplexSelectorDeque groupSeq1Converted;
-    nodeToComplexSelectorDeque(groupSeq1, groupSeq1Converted, ctx);
+    nodeToComplexSelectorDeque(groupSeq1, groupSeq1Converted);
 
     ComplexSelectorDeque groupSeq2Converted;
-    nodeToComplexSelectorDeque(groupSeq2, groupSeq2Converted, ctx);
+    nodeToComplexSelectorDeque(groupSeq2, groupSeq2Converted);
 
     ComplexSelectorDeque out;
-    LcsCollectionComparator collectionComparator(ctx);
-    lcs(groupSeq2Converted, groupSeq1Converted, collectionComparator, ctx, out);
-    Node seqLcs = complexSelectorDequeToNode(out, ctx);
+    LcsCollectionComparator collectionComparator;
+    lcs(groupSeq2Converted, groupSeq1Converted, collectionComparator, out);
+    Node seqLcs = complexSelectorDequeToNode(out);
 
     DEBUG_PRINTLN(SUBWEAVE, "SEQLCS: " << seqLcs)
 
@@ -1268,7 +1263,7 @@ namespace Sass {
 
 
     while (!seqLcs.collection()->empty()) {
-      ParentSuperselectorChunker superselectorChunker(seqLcs, ctx);
+      ParentSuperselectorChunker superselectorChunker(seqLcs);
       Node chunksResult = chunks(groupSeq1, groupSeq2, superselectorChunker);
       diff.collection()->push_back(chunksResult);
 
@@ -1313,7 +1308,7 @@ namespace Sass {
     DEBUG_PRINTLN(SUBWEAVE, "DIFF POST REJECT: " << diff)
 
 
-    Node pathsResult = paths(diff, ctx);
+    Node pathsResult = paths(diff);
 
     DEBUG_PRINTLN(SUBWEAVE, "PATHS: " << pathsResult)
 
@@ -1323,7 +1318,7 @@ namespace Sass {
       pathsIter != pathsEndIter; ++pathsIter) {
 
       Node& child = *pathsIter;
-      child = flatten(child, ctx);
+      child = flatten(child);
     }
 
     DEBUG_PRINTLN(SUBWEAVE, "FLATTENED: " << pathsResult)
@@ -1341,25 +1336,25 @@ namespace Sass {
   }
   /*
   // disabled to avoid clang warning [-Wunused-function]
-  static Node subweaveNaive(const Node& one, const Node& two, Context& ctx) {
+  static Node subweaveNaive(const Node& one, const Node& two) {
     Node out = Node::createCollection();
 
     // Check for the simple cases
     if (one.isNil()) {
-      out.collection()->push_back(two.klone(ctx));
+      out.collection()->push_back(two.klone());
     } else if (two.isNil()) {
-      out.collection()->push_back(one.klone(ctx));
+      out.collection()->push_back(one.klone());
     } else {
       // Do the naive implementation. pOne = A B and pTwo = C D ...yields...  A B C D and C D A B
       // See https://gist.github.com/nex3/7609394 for details.
 
-      Node firstPerm = one.klone(ctx);
-      Node twoCloned = two.klone(ctx);
+      Node firstPerm = one.klone();
+      Node twoCloned = two.klone();
       firstPerm.plus(twoCloned);
       out.collection()->push_back(firstPerm);
 
-      Node secondPerm = two.klone(ctx);
-      Node oneCloned = one.klone(ctx);
+      Node secondPerm = two.klone();
+      Node oneCloned = one.klone();
       secondPerm.plus(oneCloned );
       out.collection()->push_back(secondPerm);
     }
@@ -1442,7 +1437,7 @@ namespace Sass {
         return befores
       end
   */
-  static Node weave(Node& path, Context& ctx) {
+  Node Extend::weave(Node& path) {
 
     DEBUG_PRINTLN(WEAVE, "WEAVE: " << path)
 
@@ -1453,7 +1448,7 @@ namespace Sass {
     afters.plus(path);
 
     while (!afters.collection()->empty()) {
-      Node current = afters.collection()->front().klone(ctx);
+      Node current = afters.collection()->front().klone();
       afters.collection()->pop_front();
       DEBUG_PRINTLN(WEAVE, "CURRENT: " << current)
       if (current.collection()->size() == 0) continue;
@@ -1469,7 +1464,7 @@ namespace Sass {
       for (NodeDeque::iterator beforesIter = befores.collection()->begin(), beforesEndIter = befores.collection()->end(); beforesIter != beforesEndIter; beforesIter++) {
         Node& before = *beforesIter;
 
-        Node sub = Extend::subweave(before, current, ctx);
+        Node sub = subweave(before, current);
 
         DEBUG_PRINTLN(WEAVE, "SUB: " << sub)
 
@@ -1498,16 +1493,6 @@ namespace Sass {
 
 
 
-  // This forward declaration is needed since extendComplexSelector calls extendCompoundSelector, which may recursively
-  // call extendComplexSelector again.
-  static Node extendComplexSelector(
-    Complex_Selector_Ptr pComplexSelector,
-    Context& ctx,
-    Subset_Map& subset_map,
-    std::set<Compound_Selector> seen, bool isReplace, bool isOriginal);
-
-
-
   /*
    This is the equivalent of ruby's SimpleSequence.do_extend.
 
@@ -1528,11 +1513,7 @@ namespace Sass {
       return pSelector;
     }
   };
-  static Node extendCompoundSelector(
-    Compound_Selector_Ptr pSelector,
-    Context& ctx,
-    Subset_Map& subset_map,
-    std::set<Compound_Selector> seen, bool isReplace) {
+  Node Extend::extendCompoundSelector(Compound_Selector_Ptr pSelector, std::set<Compound_Selector>& seen, bool isReplace) {
 
     DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelector, "EXTEND COMPOUND: "))
     // TODO: Ruby has another loop here to skip certain members?
@@ -1557,7 +1538,6 @@ namespace Sass {
 
       DEBUG_EXEC(EXTEND_COMPOUND, printComplexSelector(seq, "SEQ: "))
 
-// changing this makes aua
       Compound_Selector_Obj pSels = SASS_MEMORY_NEW(Compound_Selector, pSelector->pstate());
       for (SubSetMapPairs::iterator groupIter = group.begin(), groupIterEnd = group.end(); groupIter != groupIterEnd; groupIter++) {
         SubSetMapPair& pair = *groupIter;
@@ -1571,11 +1551,12 @@ namespace Sass {
 
       DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSels, "SELS: "))
 
-      Complex_Selector_Ptr pExtComplexSelector = seq;    // The selector up to where the @extend is (ie, the thing to merge)
+      // The selector up to where the @extend is (ie, the thing to merge)
+      Complex_Selector_Ptr pExtComplexSelector = seq;
 
       // TODO: This can return a Compound_Selector with no elements. Should that just be returning NULL?
       // RUBY: self_without_sel = Sass::Util.array_minus(members, sels)
-      Compound_Selector_Obj pSelectorWithoutExtendSelectors = pSelector->minus(pSels, ctx);
+      Compound_Selector_Obj pSelectorWithoutExtendSelectors = pSelector->minus(pSels);
 
       DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelector, "MEMBERS: "))
       DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelectorWithoutExtendSelectors, "SELF_WO_SEL: "))
@@ -1585,7 +1566,7 @@ namespace Sass {
       if (!pInnermostCompoundSelector) {
         pInnermostCompoundSelector = SASS_MEMORY_NEW(Compound_Selector, pSelector->pstate());
       }
-      Compound_Selector_Obj pUnifiedSelector = pInnermostCompoundSelector->unify_with(pSelectorWithoutExtendSelectors, ctx);
+      Compound_Selector_Obj pUnifiedSelector = pInnermostCompoundSelector->unify_with(pSelectorWithoutExtendSelectors);
 
       DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pInnermostCompoundSelector, "LHS: "))
       DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelectorWithoutExtendSelectors, "RHS: "))
@@ -1625,22 +1606,22 @@ namespace Sass {
 
       // if (pSelector && pSelector->has_line_feed()) pNewInnerMost->has_line_feed(true);
       // Set the sources on our new Complex_Selector to the sources of this simple sequence plus the thing we're extending.
-      DEBUG_PRINTLN(EXTEND_COMPOUND, "SOURCES SETTING ON NEW SEQ: " << complexSelectorToNode(pNewSelector, ctx))
+      DEBUG_PRINTLN(EXTEND_COMPOUND, "SOURCES SETTING ON NEW SEQ: " << complexSelectorToNode(pNewSelector))
 
-      DEBUG_EXEC(EXTEND_COMPOUND, ComplexSelectorSet oldSet = pNewSelector->sources(); printSourcesSet(oldSet, ctx, "SOURCES NEW SEQ BEGIN: "))
+      DEBUG_EXEC(EXTEND_COMPOUND, ComplexSelectorSet oldSet = pNewSelector->sources(); printSourcesSet(oldSet, "SOURCES NEW SEQ BEGIN: "))
 
       // I actually want to create a copy here (performance!)
       ComplexSelectorSet newSourcesSet = pSelector->sources(); // XXX
-      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, ctx, "SOURCES THIS EXTEND: "))
+      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, "SOURCES THIS EXTEND: "))
 
       newSourcesSet.insert(pExtComplexSelector);
-      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, ctx, "SOURCES WITH NEW SOURCE: "))
+      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(newSourcesSet, "SOURCES WITH NEW SOURCE: "))
 
       // RUBY: new_seq.add_sources!(sources + [seq])
-      pNewSelector->addSources(newSourcesSet, ctx);
+      pNewSelector->addSources(newSourcesSet);
 
-      DEBUG_EXEC(EXTEND_COMPOUND, ComplexSelectorSet newSet = pNewSelector->sources(); printSourcesSet(newSet, ctx, "SOURCES ON NEW SELECTOR AFTER ADD: "))
-      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(pSelector->sources(), ctx, "SOURCES THIS EXTEND WHICH SHOULD BE SAME STILL: "))
+      DEBUG_EXEC(EXTEND_COMPOUND, ComplexSelectorSet newSet = pNewSelector->sources(); printSourcesSet(newSet, "SOURCES ON NEW SELECTOR AFTER ADD: "))
+      DEBUG_EXEC(EXTEND_COMPOUND, printSourcesSet(pSelector->sources(), "SOURCES THIS EXTEND WHICH SHOULD BE SAME STILL: "))
 
 
       if (pSels->has_line_feed()) pNewSelector->has_line_feed(true);
@@ -1666,8 +1647,8 @@ namespace Sass {
       recurseSeen.insert(*pSels);
 
 
-      DEBUG_PRINTLN(EXTEND_COMPOUND, "RECURSING DO EXTEND: " << complexSelectorToNode(pNewSelector, ctx))
-      Node recurseExtendedSelectors = extendComplexSelector(pNewSelector, ctx, subset_map, recurseSeen, isReplace, false); // !:isOriginal
+      DEBUG_PRINTLN(EXTEND_COMPOUND, "RECURSING DO EXTEND: " << complexSelectorToNode(pNewSelector))
+      Node recurseExtendedSelectors = extendComplexSelector(pNewSelector, recurseSeen, isReplace, false); // !:isOriginal
 
       DEBUG_PRINTLN(EXTEND_COMPOUND, "RECURSING DO EXTEND RETURN: " << recurseExtendedSelectors)
 
@@ -1678,7 +1659,7 @@ namespace Sass {
 //        DEBUG_PRINTLN(EXTEND_COMPOUND, "EXTENDED AT THIS POINT: " << extendedSelectors)
 //        DEBUG_PRINTLN(EXTEND_COMPOUND, "SELECTOR EXISTS ALREADY: " << newSelector << " " << extendedSelectors.contains(newSelector, false /*simpleSelectorOrderDependent*/));
 
-        if (!extendedSelectors.contains(newSelector, false /*simpleSelectorOrderDependent*/)) {
+        if (!extendedSelectors.contains(newSelector)) {
 //          DEBUG_PRINTLN(EXTEND_COMPOUND, "ADDING NEW SELECTOR")
           extendedSelectors.collection()->push_back(newSelector);
         }
@@ -1691,11 +1672,8 @@ namespace Sass {
   }
 
 
-  static bool complexSelectorHasExtension(
-    Complex_Selector_Ptr pComplexSelector,
-    Context& ctx,
-    Subset_Map& subset_map,
-    std::set<Compound_Selector>& seen) {
+  // check if selector has something to be extended by subset_map
+  bool Extend::complexSelectorHasExtension(Complex_Selector_Ptr pComplexSelector, std::set<Compound_Selector>& seen) {
 
     bool hasExtension = false;
 
@@ -1714,8 +1692,8 @@ namespace Sass {
               ext.second->media_block()->media_queries() &&
               pHead->media_block()->media_queries()
           ) {
-            std::string query_left(ext.second->media_block()->media_queries()->to_string(ctx.c_options));
-            std::string query_right(pHead->media_block()->media_queries()->to_string(ctx.c_options));
+            std::string query_left(ext.second->media_block()->media_queries()->to_string());
+            std::string query_right(pHead->media_block()->media_queries()->to_string());
             if (query_left == query_right) continue;
           }
 
@@ -1726,7 +1704,7 @@ namespace Sass {
           std::string rel_path(Sass::File::abs2rel(pstate.path, cwd, cwd));
           err << "You may not @extend an outer selector from within @media.\n";
           err << "You may only @extend selectors within the same directive.\n";
-          err << "From \"@extend " << ext.second->to_string(ctx.c_options) << "\"";
+          err << "From \"@extend " << ext.second->to_string() << "\"";
           err << " on line " << pstate.line+1 << " of " << rel_path << "\n";
           error(err.str(), pComplexSelector->pstate());
         }
@@ -1751,13 +1729,9 @@ namespace Sass {
      the combinator and compound selector are one unit
      next [[sseq_or_op]] unless sseq_or_op.is_a?(SimpleSequence)
    */
-  static Node extendComplexSelector(
-    Complex_Selector_Ptr pComplexSelector,
-    Context& ctx,
-    Subset_Map& subset_map,
-    std::set<Compound_Selector> seen, bool isReplace, bool isOriginal) {
+  Node Extend::extendComplexSelector(Complex_Selector_Ptr pComplexSelector, std::set<Compound_Selector>& seen, bool isReplace, bool isOriginal) {
 
-    Node complexSelector = complexSelectorToNode(pComplexSelector, ctx);
+    Node complexSelector = complexSelectorToNode(pComplexSelector);
     DEBUG_PRINTLN(EXTEND_COMPLEX, "EXTEND COMPLEX: " << complexSelector)
 
     Node extendedNotExpanded = Node::createCollection();
@@ -1787,7 +1761,7 @@ namespace Sass {
       Compound_Selector_Obj pCompoundSelector = sseqOrOp.selector()->head();
 
       // RUBY: extended = sseq_or_op.do_extend(extends, parent_directives, replace, seen)
-      Node extended = extendCompoundSelector(pCompoundSelector, ctx, subset_map, seen, isReplace);
+      Node extended = extendCompoundSelector(pCompoundSelector, seen, isReplace);
       if (sseqOrOp.got_line_feed) extended.got_line_feed = true;
       DEBUG_PRINTLN(EXTEND_COMPLEX, "EXTENDED: " << extended)
 
@@ -1800,7 +1774,7 @@ namespace Sass {
       if (isOriginal && !pComplexSelector->has_placeholder()) {
         ComplexSelectorSet srcset;
         srcset.insert(pComplexSelector);
-        pJustCurrentCompoundSelector->addSources(srcset, ctx);
+        pJustCurrentCompoundSelector->addSources(srcset);
         DEBUG_PRINTLN(EXTEND_COMPLEX, "ADD SOURCES: " << *pComplexSelector)
       }
 
@@ -1808,7 +1782,7 @@ namespace Sass {
       for (NodeDeque::iterator iterator = extended.collection()->begin(), endIterator = extended.collection()->end();
            iterator != endIterator; ++iterator) {
         Node& childNode = *iterator;
-        Complex_Selector_Obj pExtensionSelector = nodeToComplexSelector(childNode, ctx);
+        Complex_Selector_Obj pExtensionSelector = nodeToComplexSelector(childNode);
         if (pExtensionSelector->is_superselector_of(pJustCurrentCompoundSelector)) {
           isSuperselector = true;
           break;
@@ -1817,7 +1791,7 @@ namespace Sass {
 
       if (!isSuperselector) {
         if (sseqOrOp.got_line_feed) pJustCurrentCompoundSelector->has_line_feed(sseqOrOp.got_line_feed);
-        extended.collection()->push_front(complexSelectorToNode(pJustCurrentCompoundSelector, ctx));
+        extended.collection()->push_front(complexSelectorToNode(pJustCurrentCompoundSelector));
       }
 
       DEBUG_PRINTLN(EXTEND_COMPLEX, "CHOICES UNSHIFTED: " << extended)
@@ -1832,7 +1806,7 @@ namespace Sass {
 
 
     // Ruby Equivalent: paths
-    Node paths = Sass::paths(extendedNotExpanded, ctx);
+    Node paths = Sass::paths(extendedNotExpanded);
 
     DEBUG_PRINTLN(EXTEND_COMPLEX, "PATHS: " << paths)
 
@@ -1843,7 +1817,7 @@ namespace Sass {
 
     for (NodeDeque::iterator pathsIter = paths.collection()->begin(), pathsEndIter = paths.collection()->end(); pathsIter != pathsEndIter; ++pathsIter) {
       Node& path = *pathsIter;
-      Node weaved = weave(path, ctx);
+      Node weaved = weave(path);
       weaved.got_line_feed = path.got_line_feed;
       weaves.collection()->push_back(weaved);
     }
@@ -1853,13 +1827,13 @@ namespace Sass {
 
 
     // Ruby Equivalent: trim
-    Node trimmed = trim(weaves, ctx, isReplace);
+    Node trimmed = trim(weaves, isReplace);
 
     DEBUG_PRINTLN(EXTEND_COMPLEX, "TRIMMED: " << trimmed)
 
 
     // Ruby Equivalent: flatten
-    Node extendedSelectors = flatten(trimmed, ctx, 1);
+    Node extendedSelectors = flatten(trimmed, 1);
 
     DEBUG_PRINTLN(EXTEND_COMPLEX, ">>>>> EXTENDED: " << extendedSelectors)
 
@@ -1875,20 +1849,15 @@ namespace Sass {
   /*
    This is the equivalent of ruby's CommaSequence.do_extend.
   */
-  Selector_List_Ptr Extend::extendSelectorList(Selector_List_Obj pSelectorList, Context& ctx, Subset_Map& subset_map, bool isReplace, bool& extendedSomething) {
-    std::set<Compound_Selector> seen;
-    return extendSelectorList(pSelectorList, ctx, subset_map, isReplace, extendedSomething, seen);
-  }
-
-  /*
-   This is the equivalent of ruby's CommaSequence.do_extend.
-  */
-  Selector_List_Ptr Extend::extendSelectorList(Selector_List_Obj pSelectorList, Context& ctx, Subset_Map& subset_map, bool isReplace, bool& extendedSomething, std::set<Compound_Selector>& seen) {
+  // We get a selector list with has something to extend and a subset_map with
+  // all extenders. Pick the ones that match our selectors in the list.
+  Selector_List_Ptr Extend::extendSelectorList(Selector_List_Obj pSelectorList, bool isReplace, bool& extendedSomething, std::set<Compound_Selector>& seen) {
 
     Selector_List_Obj pNewSelectors = SASS_MEMORY_NEW(Selector_List, pSelectorList->pstate(), pSelectorList->length());
 
     extendedSomething = false;
-
+    // process each comlplex selector in the selector list.
+    // Find the ones that can be extended by given subset_map.
     for (size_t index = 0, length = pSelectorList->length(); index < length; index++) {
       Complex_Selector_Obj pSelector = (*pSelectorList)[index];
 
@@ -1897,16 +1866,18 @@ namespace Sass {
       // run through the extend code (which does a data model transformation), check if there is anything to extend before doing
       // the extend. We might be able to optimize extendComplexSelector, but this approach keeps us closer to ruby sass (which helps
       // when debugging).
-      if (!complexSelectorHasExtension(pSelector, ctx, subset_map, seen)) {
+      if (!complexSelectorHasExtension(pSelector, seen)) {
         pNewSelectors->append(pSelector);
         continue;
       }
 
+      // complexSelectorHasExtension was true!
       extendedSomething = true;
 
-      Node extendedSelectors = extendComplexSelector(pSelector, ctx, subset_map, seen, isReplace, true);
+      // now do the actual extension of the complex selector
+      Node extendedSelectors = extendComplexSelector(pSelector, seen, isReplace, true);
       if (!pSelector->has_placeholder()) {
-        if (!extendedSelectors.contains(complexSelectorToNode(pSelector, ctx), true /*simpleSelectorOrderDependent*/)) {
+        if (!extendedSelectors.contains(complexSelectorToNode(pSelector))) {
           pNewSelectors->append(pSelector);
           continue;
         }
@@ -1917,7 +1888,7 @@ namespace Sass {
         if(isReplace && iterator == iteratorBegin && extendedSelectors.collection()->size() > 1 ) continue;
 
         Node& childNode = *iterator;
-        pNewSelectors->append(nodeToComplexSelector(childNode, ctx));
+        pNewSelectors->append(nodeToComplexSelector(childNode));
       }
     }
 
@@ -1948,7 +1919,7 @@ namespace Sass {
                 // has wrapped selectors
                 else {
                   // extend the inner list of wrapped selector
-                  Selector_List_Obj ext_sl = extendSelectorList(sl, ctx, subset_map, recseen);
+                  Selector_List_Obj ext_sl = extendSelectorList(sl, recseen);
                   for (size_t i = 0; i < ext_sl->length(); i += 1) {
                     if (Complex_Selector_Obj ext_cs = ext_sl->at(i)) {
                       // create clones for wrapped selector and the inner list
@@ -2027,24 +1998,30 @@ namespace Sass {
 
 
   // Extend a ruleset by extending the selectors and updating them on the ruleset. The block's rules don't need to change.
-  template <typename ObjectType>
-  static void extendObjectWithSelectorAndBlock(ObjectType* pObject, Context& ctx, Subset_Map& subset_map) {
+  // Every Ruleset in the whole tree is calling this function. We decide if there
+  // was is @extend that matches our selector. If we find one, we will go further
+  // and call the extend magic for our selector. The subset_map contains all blocks
+  // where @extend was found. Pick the ones that match our selector!
+  void Extend::extendObjectWithSelectorAndBlock(Ruleset_Ptr pObject) {
 
-    DEBUG_PRINTLN(EXTEND_OBJECT, "FOUND SELECTOR: " << Cast<Selector_List>(pObject->selector())->to_string(ctx.c_options))
+    DEBUG_PRINTLN(EXTEND_OBJECT, "FOUND SELECTOR: " << Cast<Selector_List>(pObject->selector())->to_string())
 
-    // Ruby sass seems to filter nodes that don't have any content well before we get here. I'm not sure the repercussions
-    // of doing so, so for now, let's just not extend things that won't be output later.
+    // Ruby sass seems to filter nodes that don't have any content well before we get here.
+    // I'm not sure the repercussions of doing so, so for now, let's just not extend things
+    // that won't be output later. Profiling shows this may us 0.2% or so.
     if (!shouldExtendBlock(pObject->block())) {
       DEBUG_PRINTLN(EXTEND_OBJECT, "RETURNING WITHOUT EXTEND ATTEMPT")
       return;
     }
 
     bool extendedSomething = false;
-    Selector_List_Obj pNewSelectorList = Extend::extendSelectorList(Cast<Selector_List>(pObject->selector()), ctx, subset_map, false, extendedSomething);
+
+    std::set<Compound_Selector> seen;
+    Selector_List_Obj pNewSelectorList = extendSelectorList(pObject->selector(), false, extendedSomething, seen);
 
     if (extendedSomething && pNewSelectorList) {
-      DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND ORIGINAL SELECTORS: " << Cast<Selector_List>(pObject->selector())->to_string(ctx.c_options))
-      DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND SETTING NEW SELECTORS: " << pNewSelectorList->to_string(ctx.c_options))
+      DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND ORIGINAL SELECTORS: " << pObject->selector()->to_string())
+      DEBUG_PRINTLN(EXTEND_OBJECT, "EXTEND SETTING NEW SELECTORS: " << pNewSelectorList->to_string())
       pNewSelectorList->remove_parent_selectors();
       pObject->selector(pNewSelectorList);
     } else {
@@ -2052,10 +2029,8 @@ namespace Sass {
     }
   }
 
-
-
-  Extend::Extend(Context& ctx, Subset_Map& ssm)
-  : ctx(ctx), subset_map(ssm)
+  Extend::Extend(Subset_Map& ssm)
+  : subset_map(ssm)
   { }
 
   void Extend::operator()(Block_Ptr b)
@@ -2089,7 +2064,7 @@ namespace Sass {
 
   void Extend::operator()(Ruleset_Ptr pRuleset)
   {
-    extendObjectWithSelectorAndBlock( pRuleset, ctx, subset_map);
+    extendObjectWithSelectorAndBlock( pRuleset );
     pRuleset->block()->perform(this);
   }
 

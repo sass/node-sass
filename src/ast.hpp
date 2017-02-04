@@ -1125,7 +1125,7 @@ namespace Sass {
     std::string type() const { return "map"; }
     static std::string type_name() { return "map"; }
     bool is_invisible() const { return empty(); }
-    List_Obj to_list(Context& ctx, ParserState& pstate);
+    List_Obj to_list(ParserState& pstate);
 
     virtual size_t hash()
     {
@@ -2428,7 +2428,7 @@ namespace Sass {
     }
 
     virtual ~Simple_Selector() = 0;
-    virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr, Context&);
+    virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr);
     virtual bool has_parent_ref() const { return false; };
     virtual bool has_real_parent_ref() const  { return false; };
     virtual bool is_pseudo_element() const { return false; }
@@ -2515,8 +2515,8 @@ namespace Sass {
       if (name() == "*") return 0;
       else               return Constants::Specificity_Element;
     }
-    virtual Simple_Selector_Ptr unify_with(Simple_Selector_Ptr, Context&);
-    virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr, Context&);
+    virtual Simple_Selector_Ptr unify_with(Simple_Selector_Ptr);
+    virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr);
     ATTACH_AST_OPERATIONS(Element_Selector)
     ATTACH_OPERATIONS()
   };
@@ -2536,7 +2536,7 @@ namespace Sass {
     {
       return Constants::Specificity_Class;
     }
-    virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr, Context&);
+    virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr);
     ATTACH_AST_OPERATIONS(Class_Selector)
     ATTACH_OPERATIONS()
   };
@@ -2556,7 +2556,7 @@ namespace Sass {
     {
       return Constants::Specificity_ID;
     }
-    virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr, Context&);
+    virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr);
     ATTACH_AST_OPERATIONS(Id_Selector)
     ATTACH_OPERATIONS()
   };
@@ -2655,7 +2655,7 @@ namespace Sass {
     virtual bool operator==(const Pseudo_Selector& rhs) const;
     virtual bool operator<(const Simple_Selector& rhs) const;
     virtual bool operator<(const Pseudo_Selector& rhs) const;
-    virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr, Context&);
+    virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr);
     ATTACH_AST_OPERATIONS(Pseudo_Selector)
     ATTACH_OPERATIONS()
   };
@@ -2731,7 +2731,7 @@ namespace Sass {
     }
 
     Complex_Selector_Obj to_complex();
-    Compound_Selector_Ptr unify_with(Compound_Selector_Ptr rhs, Context& ctx);
+    Compound_Selector_Ptr unify_with(Compound_Selector_Ptr rhs);
     // virtual Placeholder_Selector_Ptr find_placeholder();
     virtual bool has_parent_ref() const;
     virtual bool has_real_parent_ref() const;
@@ -2784,9 +2784,9 @@ namespace Sass {
 
     ComplexSelectorSet& sources() { return sources_; }
     void clearSources() { sources_.clear(); }
-    void mergeSources(ComplexSelectorSet& sources, Context& ctx);
+    void mergeSources(ComplexSelectorSet& sources);
 
-    Compound_Selector_Ptr minus(Compound_Selector_Ptr rhs, Context& ctx);
+    Compound_Selector_Ptr minus(Compound_Selector_Ptr rhs);
     virtual void cloneChildren();
     ATTACH_AST_OPERATIONS(Compound_Selector)
     ATTACH_OPERATIONS()
@@ -2850,7 +2850,7 @@ namespace Sass {
              combinator() == Combinator::ANCESTOR_OF;
     }
 
-    Selector_List_Ptr tails(Context& ctx, Selector_List_Ptr tails);
+    Selector_List_Ptr tails(Selector_List_Ptr tails);
 
     // front returns the first real tail
     // skips over parent and empty ones
@@ -2862,13 +2862,13 @@ namespace Sass {
     Complex_Selector_Obj innermost() { return last(); };
 
     size_t length() const;
-    Selector_List_Ptr resolve_parent_refs(Context& ctx, std::vector<Selector_List_Obj>& pstack, bool implicit_parent = true);
+    Selector_List_Ptr resolve_parent_refs(std::vector<Selector_List_Obj>& pstack, bool implicit_parent = true);
     virtual bool is_superselector_of(Compound_Selector_Obj sub, std::string wrapping = "");
     virtual bool is_superselector_of(Complex_Selector_Obj sub, std::string wrapping = "");
     virtual bool is_superselector_of(Selector_List_Obj sub, std::string wrapping = "");
-    Selector_List_Ptr unify_with(Complex_Selector_Ptr rhs, Context& ctx);
+    Selector_List_Ptr unify_with(Complex_Selector_Ptr rhs);
     Combinator clear_innermost();
-    void append(Context&, Complex_Selector_Obj);
+    void append(Complex_Selector_Obj);
     void set_innermost(Complex_Selector_Obj, Combinator);
     virtual size_t hash()
     {
@@ -2925,14 +2925,14 @@ namespace Sass {
 
       return srcs;
     }
-    void addSources(ComplexSelectorSet& sources, Context& ctx) {
+    void addSources(ComplexSelectorSet& sources) {
       // members.map! {|m| m.is_a?(SimpleSequence) ? m.with_more_sources(sources) : m}
       Complex_Selector_Ptr pIter = this;
       while (pIter) {
         Compound_Selector_Ptr pHead = pIter->head();
 
         if (pHead) {
-          pHead->mergeSources(sources, ctx);
+          pHead->mergeSources(sources);
         }
 
         pIter = pIter->tail();
@@ -2983,12 +2983,12 @@ namespace Sass {
     virtual bool has_parent_ref() const;
     virtual bool has_real_parent_ref() const;
     void remove_parent_selectors();
-    Selector_List_Ptr resolve_parent_refs(Context& ctx, std::vector<Selector_List_Obj>& pstack, bool implicit_parent = true);
+    Selector_List_Ptr resolve_parent_refs(std::vector<Selector_List_Obj>& pstack, bool implicit_parent = true);
     virtual bool is_superselector_of(Compound_Selector_Obj sub, std::string wrapping = "");
     virtual bool is_superselector_of(Complex_Selector_Obj sub, std::string wrapping = "");
     virtual bool is_superselector_of(Selector_List_Obj sub, std::string wrapping = "");
-    Selector_List_Ptr unify_with(Selector_List_Ptr, Context&);
-    void populate_extends(Selector_List_Obj, Context&, Subset_Map&);
+    Selector_List_Ptr unify_with(Selector_List_Ptr);
+    void populate_extends(Selector_List_Obj, Subset_Map&);
     Selector_List_Obj eval(Eval& eval);
     virtual size_t hash()
     {
