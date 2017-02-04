@@ -410,6 +410,7 @@ namespace Sass {
   typedef std::deque<Complex_Selector_Obj> ComplexSelectorDeque;
   typedef std::set<Simple_Selector_Obj, OrderNodes> SimpleSelectorSet;
   typedef std::set<Complex_Selector_Obj, OrderNodes> ComplexSelectorSet;
+  typedef std::set<Compound_Selector_Obj, OrderNodes> CompoundSelectorSet;
   typedef std::unordered_set<Simple_Selector_Obj, HashNodes, CompareNodes> SimpleSelectorDict;
 
   // ###########################################################################

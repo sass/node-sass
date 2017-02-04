@@ -23,20 +23,20 @@ namespace Sass {
   private:
 
     void extendObjectWithSelectorAndBlock(Ruleset_Ptr pObject);
-    Node extendComplexSelector(Complex_Selector_Ptr sel, std::set<Compound_Selector>& seen, bool isReplace, bool isOriginal);
-    Node extendCompoundSelector(Compound_Selector_Ptr sel, std::set<Compound_Selector>& seen, bool isReplace);
-    bool complexSelectorHasExtension(Complex_Selector_Ptr selector, std::set<Compound_Selector>& seen);
+    Node extendComplexSelector(Complex_Selector_Ptr sel, CompoundSelectorSet& seen, bool isReplace, bool isOriginal);
+    Node extendCompoundSelector(Compound_Selector_Ptr sel, CompoundSelectorSet& seen, bool isReplace);
+    bool complexSelectorHasExtension(Complex_Selector_Ptr selector, CompoundSelectorSet& seen);
     Node trim(Node& seqses, bool isReplace);
     Node weave(Node& path);
 
   public:
-    Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, bool isReplace, bool& extendedSomething, std::set<Compound_Selector>& seen);
+    Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, bool isReplace, bool& extendedSomething, CompoundSelectorSet& seen);
     Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, bool isReplace = false) {
       bool extendedSomething = false;
-      std::set<Compound_Selector> seen;
+      CompoundSelectorSet seen;
       return extendSelectorList(pSelectorList, isReplace, extendedSomething, seen);
     }
-    Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, std::set<Compound_Selector>& seen) {
+    Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, CompoundSelectorSet& seen) {
       bool isReplace = false;
       bool extendedSomething = false;
       return extendSelectorList(pSelectorList, isReplace, extendedSomething, seen);

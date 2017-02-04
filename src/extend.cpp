@@ -1513,7 +1513,7 @@ namespace Sass {
       return pSelector;
     }
   };
-  Node Extend::extendCompoundSelector(Compound_Selector_Ptr pSelector, std::set<Compound_Selector>& seen, bool isReplace) {
+  Node Extend::extendCompoundSelector(Compound_Selector_Ptr pSelector, CompoundSelectorSet& seen, bool isReplace) {
 
     DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelector, "EXTEND COMPOUND: "))
     // TODO: Ruby has another loop here to skip certain members?
@@ -1638,13 +1638,13 @@ namespace Sass {
 
 
       // RUBY??: next [] if seen.include?(sels)
-      if (seen.find(*pSels) != seen.end()) {
+      if (seen.find(pSels) != seen.end()) {
         continue;
       }
 
 
-      std::set<Compound_Selector> recurseSeen(seen);
-      recurseSeen.insert(*pSels);
+      CompoundSelectorSet recurseSeen(seen);
+      recurseSeen.insert(pSels);
 
 
       DEBUG_PRINTLN(EXTEND_COMPOUND, "RECURSING DO EXTEND: " << complexSelectorToNode(pNewSelector))
@@ -1673,7 +1673,7 @@ namespace Sass {
 
 
   // check if selector has something to be extended by subset_map
-  bool Extend::complexSelectorHasExtension(Complex_Selector_Ptr pComplexSelector, std::set<Compound_Selector>& seen) {
+  bool Extend::complexSelectorHasExtension(Complex_Selector_Ptr pComplexSelector, CompoundSelectorSet& seen) {
 
     bool hasExtension = false;
 
@@ -1729,7 +1729,7 @@ namespace Sass {
      the combinator and compound selector are one unit
      next [[sseq_or_op]] unless sseq_or_op.is_a?(SimpleSequence)
    */
-  Node Extend::extendComplexSelector(Complex_Selector_Ptr pComplexSelector, std::set<Compound_Selector>& seen, bool isReplace, bool isOriginal) {
+  Node Extend::extendComplexSelector(Complex_Selector_Ptr pComplexSelector, CompoundSelectorSet& seen, bool isReplace, bool isOriginal) {
 
     Node complexSelector = complexSelectorToNode(pComplexSelector);
     DEBUG_PRINTLN(EXTEND_COMPLEX, "EXTEND COMPLEX: " << complexSelector)
@@ -1851,7 +1851,7 @@ namespace Sass {
   */
   // We get a selector list with has something to extend and a subset_map with
   // all extenders. Pick the ones that match our selectors in the list.
-  Selector_List_Ptr Extend::extendSelectorList(Selector_List_Obj pSelectorList, bool isReplace, bool& extendedSomething, std::set<Compound_Selector>& seen) {
+  Selector_List_Ptr Extend::extendSelectorList(Selector_List_Obj pSelectorList, bool isReplace, bool& extendedSomething, CompoundSelectorSet& seen) {
 
     Selector_List_Obj pNewSelectors = SASS_MEMORY_NEW(Selector_List, pSelectorList->pstate(), pSelectorList->length());
 
@@ -1902,9 +1902,9 @@ namespace Sass {
       // process tails
       while (cur) {
         // process header
-        if (cur->head() && seen.find(*cur->head()) == seen.end()) {
-          std::set<Compound_Selector> recseen(seen);
-          recseen.insert(*cur->head());
+        if (cur->head() && seen.find(cur->head()) == seen.end()) {
+          CompoundSelectorSet recseen(seen);
+          recseen.insert(cur->head());
           // create a copy since we add multiple items if stuff get unwrapped
           Compound_Selector_Obj cpy_head = SASS_MEMORY_NEW(Compound_Selector, cur->pstate());
           for (Simple_Selector_Obj hs : *cur->head()) {
@@ -2016,7 +2016,7 @@ namespace Sass {
 
     bool extendedSomething = false;
 
-    std::set<Compound_Selector> seen;
+    CompoundSelectorSet seen;
     Selector_List_Obj pNewSelectorList = extendSelectorList(pObject->selector(), false, extendedSomething, seen);
 
     if (extendedSomething && pNewSelectorList) {
