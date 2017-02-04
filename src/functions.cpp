@@ -184,7 +184,9 @@ namespace Sass {
       std::string exp_src = exp->to_string(ctx.c_options);
       Selector_List_Obj sel_list = Parser::parse_selector(exp_src.c_str(), ctx);
       if (sel_list->length() == 0) return NULL;
-      return sel_list->first()->tail()->head();
+      Complex_Selector_Obj first = sel_list->first();
+      if (!first->tail()) return first->head();
+      return first->tail()->head();
     }
 
     #ifdef __MINGW32__
