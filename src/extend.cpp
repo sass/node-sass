@@ -282,7 +282,6 @@ namespace Sass {
   static bool parentSuperselector(Complex_Selector_Ptr pOne, Complex_Selector_Ptr pTwo) {
     // TODO: figure out a better way to create a Complex_Selector from scratch
     // TODO: There's got to be a better way. This got ugly quick...
-    Position noPosition(-1, -1, -1);
     Element_Selector_Obj fakeParent = SASS_MEMORY_NEW(Element_Selector, ParserState("[FAKE]"), "temp");
     Compound_Selector_Obj fakeHead = SASS_MEMORY_NEW(Compound_Selector, ParserState("[FAKE]"), 1 /*size*/);
     fakeHead->elements().push_back(fakeParent);
@@ -643,7 +642,6 @@ namespace Sass {
   static bool parentSuperselector(const Node& one, const Node& two) {
     // TODO: figure out a better way to create a Complex_Selector from scratch
     // TODO: There's got to be a better way. This got ugly quick...
-    Position noPosition(-1, -1, -1);
     Element_Selector_Obj fakeParent = SASS_MEMORY_NEW(Element_Selector, ParserState("[FAKE]"), "temp");
     Compound_Selector_Obj fakeHead = SASS_MEMORY_NEW(Compound_Selector, ParserState("[FAKE]"), 1 /*size*/);
     fakeHead->elements().push_back(fakeParent);
@@ -1015,12 +1013,10 @@ namespace Sass {
       } else if (((op1.combinator() == Complex_Selector::PRECEDES && op2.combinator() == Complex_Selector::ADJACENT_TO)) || ((op1.combinator() == Complex_Selector::ADJACENT_TO && op2.combinator() == Complex_Selector::PRECEDES))) {
 
           Node tildeSel = sel1;
-          Node tildeOp = op1;
           Node plusSel = sel2;
           Node plusOp = op2;
           if (op1.combinator() != Complex_Selector::PRECEDES) {
             tildeSel = sel2;
-            tildeOp = op2;
             plusSel = sel1;
             plusOp = op1;
           }

@@ -1147,22 +1147,22 @@ namespace Sass {
 
   inline static const std::string sass_op_to_name(enum Sass_OP op) {
     switch (op) {
-      case AND: return "and"; break;
-      case OR: return "or"; break;
-      case EQ: return "eq"; break;
-      case NEQ: return "neq"; break;
-      case GT: return "gt"; break;
-      case GTE: return "gte"; break;
-      case LT: return "lt"; break;
-      case LTE: return "lte"; break;
-      case ADD: return "plus"; break;
-      case SUB: return "sub"; break;
-      case MUL: return "times"; break;
-      case DIV: return "div"; break;
-      case MOD: return "mod"; break;
+      case AND: return "and";
+      case OR: return "or";
+      case EQ: return "eq";
+      case NEQ: return "neq";
+      case GT: return "gt";
+      case GTE: return "gte";
+      case LT: return "lt";
+      case LTE: return "lte";
+      case ADD: return "plus";
+      case SUB: return "sub";
+      case MUL: return "times";
+      case DIV: return "div";
+      case MOD: return "mod";
       // this is only used internally!
-      case NUM_OPS: return "[OPS]"; break;
-      default: return "invalid"; break;
+      case NUM_OPS: return "[OPS]";
+      default: return "invalid";
     }
   }
 
@@ -1191,42 +1191,42 @@ namespace Sass {
     { }
     const std::string type_name() {
       switch (optype()) {
-        case AND: return "and"; break;
-        case OR: return "or"; break;
-        case EQ: return "eq"; break;
-        case NEQ: return "neq"; break;
-        case GT: return "gt"; break;
-        case GTE: return "gte"; break;
-        case LT: return "lt"; break;
-        case LTE: return "lte"; break;
-        case ADD: return "add"; break;
-        case SUB: return "sub"; break;
-        case MUL: return "mul"; break;
-        case DIV: return "div"; break;
-        case MOD: return "mod"; break;
+        case AND: return "and";
+        case OR: return "or";
+        case EQ: return "eq";
+        case NEQ: return "neq";
+        case GT: return "gt";
+        case GTE: return "gte";
+        case LT: return "lt";
+        case LTE: return "lte";
+        case ADD: return "add";
+        case SUB: return "sub";
+        case MUL: return "mul";
+        case DIV: return "div";
+        case MOD: return "mod";
         // this is only used internally!
-        case NUM_OPS: return "[OPS]"; break;
-        default: return "invalid"; break;
+        case NUM_OPS: return "[OPS]";
+        default: return "invalid";
       }
     }
     const std::string separator() {
       switch (optype()) {
-        case AND: return "&&"; break;
-        case OR: return "||"; break;
-        case EQ: return "=="; break;
-        case NEQ: return "!="; break;
-        case GT: return ">"; break;
-        case GTE: return ">="; break;
-        case LT: return "<"; break;
-        case LTE: return "<="; break;
-        case ADD: return "+"; break;
-        case SUB: return "-"; break;
-        case MUL: return "*"; break;
-        case DIV: return "/"; break;
-        case MOD: return "%"; break;
+        case AND: return "&&";
+        case OR: return "||";
+        case EQ: return "==";
+        case NEQ: return "!=";
+        case GT: return ">";
+        case GTE: return ">=";
+        case LT: return "<";
+        case LTE: return "<=";
+        case ADD: return "+";
+        case SUB: return "-";
+        case MUL: return "*";
+        case DIV: return "/";
+        case MOD: return "%";
         // this is only used internally!
-        case NUM_OPS: return "[OPS]"; break;
-        default: return "invalid"; break;
+        case NUM_OPS: return "[OPS]";
+        default: return "invalid";
       }
     }
     bool is_left_interpolant(void) const;
@@ -1294,10 +1294,10 @@ namespace Sass {
     { }
     const std::string type_name() {
       switch (optype_) {
-        case PLUS: return "plus"; break;
-        case MINUS: return "minus"; break;
-        case NOT: return "not"; break;
-        default: return "invalid"; break;
+        case PLUS: return "plus";
+        case MINUS: return "minus";
+        case NOT: return "not";
+        default: return "invalid";
       }
     }
     virtual bool operator==(const Expression& rhs) const
@@ -3001,7 +3001,7 @@ namespace Sass {
     virtual unsigned long specificity() const
     {
       unsigned long sum = 0;
-      unsigned long specificity = 0;
+      unsigned long specificity;
       for (size_t i = 0, L = length(); i < L; ++i)
       {
         specificity = (*this)[i]->specificity();

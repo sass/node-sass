@@ -1038,6 +1038,7 @@ namespace Sass {
         if (tail) append_mandatory_space();
         else append_optional_space();
       break;
+      default: break;
     }
     if (tail && comb != Complex_Selector::ANCESTOR_OF) {
       if (c->has_line_break()) append_optional_linefeed();

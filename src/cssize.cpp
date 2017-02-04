@@ -174,9 +174,9 @@ namespace Sass {
 
     if (props->length())
     {
-      Block_Obj bb = SASS_MEMORY_NEW(Block, rr->block()->pstate());
-      bb->concat(props);
-      rr->block(bb);
+      Block_Obj pb = SASS_MEMORY_NEW(Block, rr->block()->pstate());
+      pb->concat(props);
+      rr->block(pb);
 
       for (size_t i = 0, L = rules->length(); i < L; i++)
       {
@@ -442,7 +442,7 @@ namespace Sass {
 
       for (size_t j = 0, K = slice->length(); j < K; ++j)
       {
-        Statement_Ptr ss = NULL;
+        Statement_Ptr ss;
         Statement_Obj stm = slice->at(j);
         // this has to go now here (too bad)
         Bubble_Obj node = Cast<Bubble>(stm);

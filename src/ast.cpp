@@ -222,7 +222,6 @@ namespace Sass {
       // heads are not equal
       else return *l_h < *r_h;
     }
-    return true;
   }
 
   bool Complex_Selector::operator== (const Complex_Selector& rhs) const
@@ -326,7 +325,6 @@ namespace Sass {
     if (const Complex_Selector* cs = Cast<Complex_Selector>(&rhs)) return *this < *cs;
     if (const Compound_Selector* ch = Cast<Compound_Selector>(&rhs)) return *this < *ch;
     throw std::runtime_error("invalid selector base classes to compare");
-    return false;
   }
 
   bool Compound_Selector::operator== (const Selector& rhs) const
@@ -366,7 +364,6 @@ namespace Sass {
     if (const Complex_Selector* cs = Cast<Complex_Selector>(&rhs)) return *this < *cs;
     if (const Compound_Selector* ch = Cast<Compound_Selector>(&rhs)) return *this < *ch;
     throw std::runtime_error("invalid selector base classes to compare");
-    return false;
   }
 
   bool Simple_Selector::operator== (const Selector& rhs) const
@@ -406,9 +403,9 @@ namespace Sass {
   bool Selector_List::operator== (const Selector& rhs) const
   {
     // solve the double dispatch problem by using RTTI information via dynamic cast
-    if (Selector_List_Ptr_Const ls = Cast<Selector_List>(&rhs)) { return *this == *ls; }
-    else if (Complex_Selector_Ptr_Const ls = Cast<Complex_Selector>(&rhs)) { return *this == *ls; }
-    else if (Compound_Selector_Ptr_Const ls = Cast<Compound_Selector>(&rhs)) { return *this == *ls; }
+    if (Selector_List_Ptr_Const sl = Cast<Selector_List>(&rhs)) { return *this == *sl; }
+    else if (Complex_Selector_Ptr_Const cpx = Cast<Complex_Selector>(&rhs)) { return *this == *cpx; }
+    else if (Compound_Selector_Ptr_Const cpd = Cast<Compound_Selector>(&rhs)) { return *this == *cpd; }
     // no compare method
     return this == &rhs;
   }
@@ -452,8 +449,7 @@ namespace Sass {
       // advance
       ++i; ++n;
     }
-    // no mismatch
-    return true;
+    // there is no break?!
   }
 
   bool Selector_List::operator< (const Selector& rhs) const
@@ -834,9 +830,9 @@ namespace Sass {
 
     for (size_t i = 0, iL = length(); i < iL; ++i)
     {
-      Selector_Obj lhs = (*this)[i];
+      Selector_Obj wlhs = (*this)[i];
       // very special case for wrapped matches selector
-      if (Wrapped_Selector_Obj wrapped = Cast<Wrapped_Selector>(lhs)) {
+      if (Wrapped_Selector_Obj wrapped = Cast<Wrapped_Selector>(wlhs)) {
         if (wrapped->name() == ":not") {
           if (Selector_List_Obj not_list = Cast<Selector_List>(wrapped->selector())) {
             if (not_list->is_superselector_of(rhs, wrapped->name())) return false;
@@ -845,7 +841,7 @@ namespace Sass {
           }
         }
         if (wrapped->name() == ":matches" || wrapped->name() == ":-moz-any") {
-          lhs = wrapped->selector();
+          wlhs = wrapped->selector();
           if (Selector_List_Obj list = Cast<Selector_List>(wrapped->selector())) {
             if (Compound_Selector_Obj comp = Cast<Compound_Selector>(rhs)) {
               if (!wrapping.empty() && wrapping != wrapped->name()) return false;
@@ -861,13 +857,11 @@ namespace Sass {
           if (wrapped->name() == wrapped_r->name()) {
           if (wrapped->is_superselector_of(wrapped_r)) {
              continue;
-             rset.insert(lhs->to_string());
-
           }}
         }
       }
       // match from here on as strings
-      lset.insert(lhs->to_string());
+      lset.insert(wlhs->to_string());
     }
 
     for (size_t n = 0, nL = rhs->length(); n < nL; ++n)
@@ -1010,8 +1004,7 @@ namespace Sass {
       // advance now
       ++i; ++n;
     }
-    // no mismatch
-    return true;
+    // there is no break?!
   }
 
   bool Complex_Selector::is_superselector_of(Compound_Selector_Obj rhs, std::string wrapping)
@@ -1091,12 +1084,7 @@ namespace Sass {
       { return false; }
       return lhs->tail()->is_superselector_of(marker->tail());
     }
-    else
-    {
-      return lhs->tail()->is_superselector_of(marker->tail());
-    }
-    // catch-all
-    return false;
+    return lhs->tail()->is_superselector_of(marker->tail());
   }
 
   size_t Complex_Selector::length() const
@@ -1127,17 +1115,18 @@ namespace Sass {
         error("Invalid parent selector", pstate_);
       } else if (last()->head_ && last()->head_->length()) {
         Compound_Selector_Obj rh = last()->head();
-        size_t i = 0, L = h->length();
+        size_t i;
+        size_t L = h->length();
         if (Cast<Element_Selector>(h->first())) {
-          if (Class_Selector_Ptr sq = Cast<Class_Selector>(rh->last())) {
-            Class_Selector_Ptr sqs = SASS_MEMORY_COPY(sq);
+          if (Class_Selector_Ptr cs = Cast<Class_Selector>(rh->last())) {
+            Class_Selector_Ptr sqs = SASS_MEMORY_COPY(cs);
             sqs->name(sqs->name() + (*h)[0]->name());
             sqs->pstate((*h)[0]->pstate());
             (*rh)[rh->length()-1] = sqs;
             rh->pstate(h->pstate());
             for (i = 1; i < L; ++i) rh->append((*h)[i]);
-          } else if (Id_Selector_Ptr sq = Cast<Id_Selector>(rh->last())) {
-            Id_Selector_Ptr sqs = SASS_MEMORY_COPY(sq);
+          } else if (Id_Selector_Ptr is = Cast<Id_Selector>(rh->last())) {
+            Id_Selector_Ptr sqs = SASS_MEMORY_COPY(is);
             sqs->name(sqs->name() + (*h)[0]->name());
             sqs->pstate((*h)[0]->pstate());
             (*rh)[rh->length()-1] = sqs;
@@ -1353,12 +1342,7 @@ namespace Sass {
 
     }
     // has no head
-    else {
-      return this->tails(tails);
-    }
-
-    // unreachable
-    return 0;
+    return this->tails(tails);
   }
 
   Selector_List_Ptr Complex_Selector::tails(Selector_List_Ptr tails)
@@ -1762,7 +1746,8 @@ namespace Sass {
     denominator_units_(std::vector<std::string>()),
     hash_(0)
   {
-    size_t l = 0, r = 0;
+    size_t l = 0;
+    size_t r;
     if (!u.empty()) {
       bool nominator = true;
       while (true) {

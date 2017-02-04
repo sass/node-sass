@@ -232,7 +232,6 @@ namespace Sass {
     NodeDeque& childNodes = *toConvert.collection();
 
     std::string noPath("");
-    Position noPosition(-1, -1, -1);
     Complex_Selector_Obj pFirst = SASS_MEMORY_NEW(Complex_Selector, ParserState("[NODE]"), Complex_Selector::ANCESTOR_OF, NULL, NULL);
 
     Complex_Selector_Obj pCurrent = pFirst;

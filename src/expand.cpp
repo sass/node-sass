@@ -515,11 +515,11 @@ namespace Sass {
         list = Cast<List>(list);
       }
       for (size_t i = 0, L = list->length(); i < L; ++i) {
-        Expression_Obj e = list->at(i);
+        Expression_Obj item = list->at(i);
         // unwrap value if the expression is an argument
-        if (Argument_Obj arg = Cast<Argument>(e)) e = arg->value();
+        if (Argument_Obj arg = Cast<Argument>(item)) item = arg->value();
         // check if we got passed a list of args (investigate)
-        if (List_Obj scalars = Cast<List>(e)) {
+        if (List_Obj scalars = Cast<List>(item)) {
           if (variables.size() == 1) {
             List_Obj var = scalars;
             // if (arglist) var = (*scalars)[0];
@@ -534,7 +534,7 @@ namespace Sass {
           }
         } else {
           if (variables.size() > 0) {
-            env.set_local(variables.at(0), e);
+            env.set_local(variables.at(0), item);
             for (size_t j = 1, K = variables.size(); j < K; ++j) {
               Expression_Obj res = SASS_MEMORY_NEW(Null, expr->pstate());
               env.set_local(variables[j], res);

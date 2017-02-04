@@ -73,12 +73,10 @@ namespace Sass {
                                ParserState("[C-VALUE]"),
                                sass_number_get_value(val),
                                sass_number_get_unit(val));
-      break;
       case SASS_BOOLEAN:
         return SASS_MEMORY_NEW(Boolean,
                                ParserState("[C-VALUE]"),
                                sass_boolean_get_value(val));
-      break;
       case SASS_COLOR:
         return SASS_MEMORY_NEW(Color,
                                ParserState("[C-VALUE]"),
@@ -86,18 +84,15 @@ namespace Sass {
                                sass_color_get_g(val),
                                sass_color_get_b(val),
                                sass_color_get_a(val));
-      break;
       case SASS_STRING:
         if (sass_string_is_quoted(val)) {
           return SASS_MEMORY_NEW(String_Quoted,
                                  ParserState("[C-VALUE]"),
                                  sass_string_get_value(val));
-        } else {
-          return SASS_MEMORY_NEW(String_Constant,
+        }
+        return SASS_MEMORY_NEW(String_Constant,
                                  ParserState("[C-VALUE]"),
                                  sass_string_get_value(val));
-        }
-      break;
       case SASS_LIST: {
         List_Ptr l = SASS_MEMORY_NEW(List,
                                   ParserState("[C-VALUE]"),
@@ -109,7 +104,6 @@ namespace Sass {
         l->is_bracketed(sass_list_get_is_bracketed(val));
         return l;
       }
-      break;
       case SASS_MAP: {
         Map_Ptr m = SASS_MEMORY_NEW(Map, ParserState("[C-VALUE]"));
         for (size_t i = 0, L = sass_map_get_length(val); i < L; ++i) {
@@ -119,20 +113,17 @@ namespace Sass {
         }
         return m;
       }
-      break;
       case SASS_NULL:
         return SASS_MEMORY_NEW(Null, ParserState("[C-VALUE]"));
-      break;
       case SASS_ERROR:
         return SASS_MEMORY_NEW(Custom_Error,
                                ParserState("[C-VALUE]"),
                                sass_error_get_message(val));
-      break;
       case SASS_WARNING:
         return SASS_MEMORY_NEW(Custom_Warning,
                                ParserState("[C-VALUE]"),
                                sass_warning_get_message(val));
-      break;
+      default: break;
     }
     return 0;
   }

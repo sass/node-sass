@@ -266,11 +266,11 @@ namespace Sass {
         list = Cast<List>(list);
       }
       for (size_t i = 0, L = list->length(); i < L; ++i) {
-        Expression_Ptr e = list->at(i);
+        Expression_Ptr item = list->at(i);
         // unwrap value if the expression is an argument
-        if (Argument_Ptr arg = Cast<Argument>(e)) e = arg->value();
+        if (Argument_Ptr arg = Cast<Argument>(item)) item = arg->value();
         // check if we got passed a list of args (investigate)
-        if (List_Ptr scalars = Cast<List>(e)) {
+        if (List_Ptr scalars = Cast<List>(item)) {
           if (variables.size() == 1) {
             Expression_Ptr var = scalars;
             env.set_local(variables[0], var);
@@ -285,7 +285,7 @@ namespace Sass {
           }
         } else {
           if (variables.size() > 0) {
-            env.set_local(variables.at(0), e);
+            env.set_local(variables.at(0), item);
             for (size_t j = 1, K = variables.size(); j < K; ++j) {
               // XXX: this is never hit via spec tests
               Expression_Ptr res = SASS_MEMORY_NEW(Null, expr->pstate());
@@ -604,11 +604,11 @@ namespace Sass {
     switch (op_type) {
       case Sass_OP::AND: {
         return *lhs ? b->right()->perform(this) : lhs.detach();
-      } break;
+      }
 
       case Sass_OP::OR: {
         return *lhs ? lhs.detach() : b->right()->perform(this);
-      } break;
+      }
 
       default:
         break;
@@ -618,8 +618,8 @@ namespace Sass {
     AST_Node_Obj lu = lhs;
     AST_Node_Obj ru = rhs;
 
-    Expression::Concrete_Type l_type = lhs->concrete_type();
-    Expression::Concrete_Type r_type = rhs->concrete_type();
+    Expression::Concrete_Type l_type;
+    Expression::Concrete_Type r_type;
 
     // Is one of the operands an interpolant?
     String_Schema_Obj s1 = Cast<String_Schema>(b->left());
@@ -661,8 +661,6 @@ namespace Sass {
       To_Value to_value(ctx);
       Value_Obj v_l = Cast<Value>(lhs->perform(&to_value));
       Value_Obj v_r = Cast<Value>(rhs->perform(&to_value));
-      l_type = lhs->concrete_type();
-      r_type = rhs->concrete_type();
 
       if (s2 && s2->has_interpolants() && s2->length()) {
         Textual_Obj front = Cast<Textual>(s2->elements().front());
@@ -710,7 +708,7 @@ namespace Sass {
 
     // ToDo: throw error in op functions
     // ToDo: then catch and re-throw them
-    Expression_Obj rv = 0;
+    Expression_Obj rv;
     try {
       ParserState pstate(b->pstate());
       if (l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
@@ -1098,6 +1096,7 @@ namespace Sass {
                                    t->value());
         }
       } break;
+      default: break;
     }
     result->is_interpolant(t->is_interpolant());
     return result.detach();
@@ -1517,8 +1516,6 @@ namespace Sass {
       v->value(ops[op](lv, r.value() * r.convert_factor(l)));
       // v->normalize();
       return v.detach();
-
-      v->value(ops[op](lv, tmp.value()));
     }
     v->normalize();
     return v.detach();
@@ -1536,7 +1533,7 @@ namespace Sass {
                                ops[op](lv, r.g()),
                                ops[op](lv, r.b()),
                                r.a());
-      } break;
+      }
       case Sass_OP::SUB:
       case Sass_OP::DIV: {
         std::string sep(op == Sass_OP::SUB ? "-" : "/");
@@ -1546,10 +1543,10 @@ namespace Sass {
                                l.to_string(opt)
                                + sep
                                + color);
-      } break;
+      }
       case Sass_OP::MOD: {
         throw Exception::UndefinedOperation(&l, &r, sass_op_to_name(op));
-      } break;
+      }
       default: break; // caller should ensure that we don't get here
     }
     // unreachable
@@ -1687,6 +1684,7 @@ namespace Sass {
       case SASS_WARNING: {
         error("Warning in C function: " + std::string(sass_warning_get_message(v)), pstate, backtrace);
       } break;
+      default: break;
     }
     return e;
   }
