@@ -1301,7 +1301,7 @@ namespace Sass {
         l->append(ARG("$list", Expression));
       }
       if (m) {
-        l = m->to_list(ctx, pstate);
+        l = m->to_list(pstate);
       }
       if (l->empty()) error("argument `$list` of `" + std::string(sig) + "` must not be empty", pstate);
       double index = std::floor(n->value() < 0 ? l->length() + n->value() : n->value() - 1);
@@ -1324,7 +1324,7 @@ namespace Sass {
         l->append(ARG("$list", Expression));
       }
       if (m) {
-        l = m->to_list(ctx, pstate);
+        l = m->to_list(pstate);
       }
       for (size_t i = 0, L = l->length(); i < L; ++i) {
         if (Eval::eq(l->value_at_index(i), v)) return SASS_MEMORY_NEW(Number, pstate, (double)(i+1));
@@ -1354,11 +1354,11 @@ namespace Sass {
         l2->append(ARG("$list2", Expression));
       }
       if (m1) {
-        l1 = m1->to_list(ctx, pstate);
+        l1 = m1->to_list(pstate);
         sep_val = SASS_COMMA;
       }
       if (m2) {
-        l2 = m2->to_list(ctx, pstate);
+        l2 = m2->to_list(pstate);
       }
       size_t len = l1->length() + l2->length();
       std::string sep_str = unquote(sep->value());
@@ -1392,7 +1392,7 @@ namespace Sass {
         l->append(ARG("$list", Expression));
       }
       if (m) {
-        l = m->to_list(ctx, pstate);
+        l = m->to_list(pstate);
       }
       List_Ptr result = SASS_MEMORY_COPY(l);
       std::string sep_str(unquote(sep->value()));
@@ -1425,7 +1425,7 @@ namespace Sass {
         Map_Obj mith = Cast<Map>(arglist->value_at_index(i));
         if (!ith) {
           if (mith) {
-            ith = mith->to_list(ctx, pstate);
+            ith = mith->to_list(pstate);
           } else {
             ith = SASS_MEMORY_NEW(List, pstate, 1);
             ith->append(arglist->value_at_index(i));
@@ -1793,7 +1793,7 @@ namespace Sass {
         Selector_List_Obj child = *itr;
         std::vector<Complex_Selector_Obj> exploded;
         selector_stack.push_back(result);
-        Selector_List_Obj rv = child->resolve_parent_refs(ctx, selector_stack);
+        Selector_List_Obj rv = child->resolve_parent_refs(selector_stack);
         selector_stack.pop_back();
         for (size_t m = 0, mLen = rv->length(); m < mLen; ++m) {
           exploded.push_back((*rv)[m]);
@@ -1905,7 +1905,7 @@ namespace Sass {
       Selector_List_Obj selector1 = ARGSEL("$selector1", Selector_List_Obj, p_contextualize);
       Selector_List_Obj selector2 = ARGSEL("$selector2", Selector_List_Obj, p_contextualize);
 
-      Selector_List_Obj result = selector1->unify_with(selector2, ctx);
+      Selector_List_Obj result = selector1->unify_with(selector2);
       Listize listize;
       return result->perform(&listize);
     }
@@ -1935,9 +1935,10 @@ namespace Sass {
       Selector_List_Obj  extender = ARGSEL("$extender", Selector_List_Obj, p_contextualize);
 
       Subset_Map subset_map;
-      extender->populate_extends(extendee, ctx, subset_map);
+      extender->populate_extends(extendee, subset_map);
+      Extend extend(subset_map);
 
-      Selector_List_Obj result = Extend::extendSelectorList(selector, ctx, subset_map, false);
+      Selector_List_Obj result = extend.extendSelectorList(selector, false);
 
       Listize listize;
       return result->perform(&listize);
@@ -1950,9 +1951,10 @@ namespace Sass {
       Selector_List_Obj original = ARGSEL("$original", Selector_List_Obj, p_contextualize);
       Selector_List_Obj replacement = ARGSEL("$replacement", Selector_List_Obj, p_contextualize);
       Subset_Map subset_map;
-      replacement->populate_extends(original, ctx, subset_map);
+      replacement->populate_extends(original, subset_map);
+      Extend extend(subset_map);
 
-      Selector_List_Obj result = Extend::extendSelectorList(selector, ctx, subset_map, true);
+      Selector_List_Obj result = extend.extendSelectorList(selector, true);
 
       Listize listize;
       return result->perform(&listize);
