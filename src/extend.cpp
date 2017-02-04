@@ -1518,7 +1518,8 @@ namespace Sass {
     DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelector, "EXTEND COMPOUND: "))
     // TODO: Ruby has another loop here to skip certain members?
 
-    Node extendedSelectors = Node::createCollection();
+    // let RESULTS be an empty list of complex selectors
+    Node results = Node::createCollection();
     // extendedSelectors.got_line_feed = true;
 
     SubSetMapPairs entries = subset_map.get_v(pSelector);
@@ -1529,9 +1530,8 @@ namespace Sass {
 
     SubSetMapLookups holder;
 
-
-    for (SubSetMapResults::iterator groupedIter = arr.begin(), groupedIterEnd = arr.end(); groupedIter != groupedIterEnd; groupedIter++) {
-      SubSetMapResult& groupedPair = *groupedIter;
+    // for each (EXTENDER, TARGET) in MAP.get(COMPOUND):
+    for (SubSetMapResult& groupedPair : arr) {
 
       Complex_Selector_Obj seq = groupedPair.first;
       SubSetMapPairs& group = groupedPair.second;
@@ -1539,14 +1539,9 @@ namespace Sass {
       DEBUG_EXEC(EXTEND_COMPOUND, printComplexSelector(seq, "SEQ: "))
 
       Compound_Selector_Obj pSels = SASS_MEMORY_NEW(Compound_Selector, pSelector->pstate());
-      for (SubSetMapPairs::iterator groupIter = group.begin(), groupIterEnd = group.end(); groupIter != groupIterEnd; groupIter++) {
-        SubSetMapPair& pair = *groupIter;
-        Compound_Selector_Obj pCompound = pair.second;
-        for (size_t index = 0; index < pCompound->length(); index++) {
-          Simple_Selector_Obj pSimpleSelector = (*pCompound)[index];
-          pSels->append(pSimpleSelector);
-          pCompound->extended(true);
-        }
+      for (SubSetMapPair& pair : group) {
+        pair.second->extended(true);
+        pSels->concat(pair.second);
       }
 
       DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSels, "SELS: "))
@@ -1630,8 +1625,7 @@ namespace Sass {
     }
 
 
-    for (SubSetMapLookups::iterator holderIter = holder.begin(), holderIterEnd = holder.end(); holderIter != holderIterEnd; holderIter++) {
-      SubSetMapLookup& pair = *holderIter;
+    for (SubSetMapLookup& pair : holder) {
 
       Compound_Selector_Obj pSels = pair.first;
       Complex_Selector_Obj pNewSelector = pair.second;
@@ -1656,28 +1650,28 @@ namespace Sass {
            iterator != endIterator; ++iterator) {
         Node newSelector = *iterator;
 
-//        DEBUG_PRINTLN(EXTEND_COMPOUND, "EXTENDED AT THIS POINT: " << extendedSelectors)
-//        DEBUG_PRINTLN(EXTEND_COMPOUND, "SELECTOR EXISTS ALREADY: " << newSelector << " " << extendedSelectors.contains(newSelector, false /*simpleSelectorOrderDependent*/));
+//        DEBUG_PRINTLN(EXTEND_COMPOUND, "EXTENDED AT THIS POINT: " << results)
+//        DEBUG_PRINTLN(EXTEND_COMPOUND, "SELECTOR EXISTS ALREADY: " << newSelector << " " << results.contains(newSelector, false /*simpleSelectorOrderDependent*/));
 
-        if (!extendedSelectors.contains(newSelector)) {
+        if (!results.contains(newSelector)) {
 //          DEBUG_PRINTLN(EXTEND_COMPOUND, "ADDING NEW SELECTOR")
-          extendedSelectors.collection()->push_back(newSelector);
+          results.collection()->push_back(newSelector);
         }
       }
     }
 
     DEBUG_EXEC(EXTEND_COMPOUND, printCompoundSelector(pSelector, "EXTEND COMPOUND END: "))
 
-    return extendedSelectors;
+    return results;
   }
 
 
   // check if selector has something to be extended by subset_map
-  bool Extend::complexSelectorHasExtension(Complex_Selector_Ptr pComplexSelector, CompoundSelectorSet& seen) {
+  bool Extend::complexSelectorHasExtension(Complex_Selector_Ptr selector, CompoundSelectorSet& seen) {
 
     bool hasExtension = false;
 
-    Complex_Selector_Obj pIter = pComplexSelector;
+    Complex_Selector_Obj pIter = selector;
 
     while (!hasExtension && pIter) {
       Compound_Selector_Obj pHead = pIter->head();
@@ -1706,7 +1700,7 @@ namespace Sass {
           err << "You may only @extend selectors within the same directive.\n";
           err << "From \"@extend " << ext.second->to_string() << "\"";
           err << " on line " << pstate.line+1 << " of " << rel_path << "\n";
-          error(err.str(), pComplexSelector->pstate());
+          error(err.str(), selector->pstate());
         }
         if (entries.size() > 0) hasExtension = true;
       }
@@ -1729,19 +1723,18 @@ namespace Sass {
      the combinator and compound selector are one unit
      next [[sseq_or_op]] unless sseq_or_op.is_a?(SimpleSequence)
    */
-  Node Extend::extendComplexSelector(Complex_Selector_Ptr pComplexSelector, CompoundSelectorSet& seen, bool isReplace, bool isOriginal) {
+  Node Extend::extendComplexSelector(Complex_Selector_Ptr selector, CompoundSelectorSet& seen, bool isReplace, bool isOriginal) {
 
-    Node complexSelector = complexSelectorToNode(pComplexSelector);
+    // convert the input selector to extend node format
+    Node complexSelector = complexSelectorToNode(selector);
     DEBUG_PRINTLN(EXTEND_COMPLEX, "EXTEND COMPLEX: " << complexSelector)
 
-    Node extendedNotExpanded = Node::createCollection();
+    // let CHOICES be an empty list of selector-lists
+    // create new collection to hold the results
+    Node choices = Node::createCollection();
 
-    for (NodeDeque::iterator complexSelIter = complexSelector.collection()->begin(),
-                             complexSelIterEnd = complexSelector.collection()->end();
-         complexSelIter != complexSelIterEnd; ++complexSelIter)
-    {
-
-      Node& sseqOrOp = *complexSelIter;
+    // for each compound selector COMPOUND in COMPLEX:
+    for (Node& sseqOrOp : *complexSelector.collection()) {
 
       DEBUG_PRINTLN(EXTEND_COMPLEX, "LOOP: " << sseqOrOp)
 
@@ -1754,94 +1747,90 @@ namespace Sass {
         Node inner = Node::createCollection();
         outer.collection()->push_back(inner);
         inner.collection()->push_back(sseqOrOp);
-        extendedNotExpanded.collection()->push_back(outer);
+        choices.collection()->push_back(outer);
         continue;
       }
 
-      Compound_Selector_Obj pCompoundSelector = sseqOrOp.selector()->head();
+      // verified now that node is a valid selector
+      Complex_Selector_Obj sseqSel = sseqOrOp.selector();
+      Compound_Selector_Obj sseqHead = sseqSel->head();
 
+      // let EXTENDED be extend_compound(COMPOUND, SEEN)
+      // extend the compound selector against the given subset_map
       // RUBY: extended = sseq_or_op.do_extend(extends, parent_directives, replace, seen)
-      Node extended = extendCompoundSelector(pCompoundSelector, seen, isReplace);
+      Node extended = extendCompoundSelector(sseqHead, seen, isReplace); // slow(17%)!
       if (sseqOrOp.got_line_feed) extended.got_line_feed = true;
       DEBUG_PRINTLN(EXTEND_COMPLEX, "EXTENDED: " << extended)
 
-
-      // Prepend the Compound_Selector based on the choices logic; choices seems to be extend but with an ruby Array instead of a Sequence
-      // due to the member mapping: choices = extended.map {|seq| seq.members}
-      Complex_Selector_Obj pJustCurrentCompoundSelector = sseqOrOp.selector();
-
+      // Prepend the Compound_Selector based on the choices logic; choices seems to be extend but with a ruby
+      // Array instead of a Sequence due to the member mapping: choices = extended.map {|seq| seq.members}
       // RUBY: extended.first.add_sources!([self]) if original && !has_placeholder?
-      if (isOriginal && !pComplexSelector->has_placeholder()) {
+      if (isOriginal && !selector->has_placeholder()) {
         ComplexSelectorSet srcset;
-        srcset.insert(pComplexSelector);
-        pJustCurrentCompoundSelector->addSources(srcset);
+        srcset.insert(selector);
+        sseqSel->addSources(srcset);
         DEBUG_PRINTLN(EXTEND_COMPLEX, "ADD SOURCES: " << *pComplexSelector)
       }
 
       bool isSuperselector = false;
-      for (NodeDeque::iterator iterator = extended.collection()->begin(), endIterator = extended.collection()->end();
-           iterator != endIterator; ++iterator) {
-        Node& childNode = *iterator;
+      // if no complex selector in EXTENDED is a superselector of COMPOUND:
+      for (Node& childNode : *extended.collection()) {
         Complex_Selector_Obj pExtensionSelector = nodeToComplexSelector(childNode);
-        if (pExtensionSelector->is_superselector_of(pJustCurrentCompoundSelector)) {
+        if (pExtensionSelector->is_superselector_of(sseqSel)) {
           isSuperselector = true;
           break;
         }
       }
 
       if (!isSuperselector) {
-        if (sseqOrOp.got_line_feed) pJustCurrentCompoundSelector->has_line_feed(sseqOrOp.got_line_feed);
-        extended.collection()->push_front(complexSelectorToNode(pJustCurrentCompoundSelector));
+        // add a complex selector composed only of COMPOUND to EXTENDED
+        if (sseqOrOp.got_line_feed) sseqSel->has_line_feed(sseqOrOp.got_line_feed);
+        extended.collection()->push_front(complexSelectorToNode(sseqSel));
       }
 
       DEBUG_PRINTLN(EXTEND_COMPLEX, "CHOICES UNSHIFTED: " << extended)
 
+      // add EXTENDED to CHOICES
       // Aggregate our current extensions
-      extendedNotExpanded.collection()->push_back(extended);
+      choices.collection()->push_back(extended);
     }
 
 
-    DEBUG_PRINTLN(EXTEND_COMPLEX, "EXTENDED NOT EXPANDED: " << extendedNotExpanded)
+    DEBUG_PRINTLN(EXTEND_COMPLEX, "EXTENDED NOT EXPANDED: " << choices)
 
 
 
     // Ruby Equivalent: paths
-    Node paths = Sass::paths(extendedNotExpanded);
+    Node paths = Sass::paths(choices);
 
     DEBUG_PRINTLN(EXTEND_COMPLEX, "PATHS: " << paths)
 
-
-
-    // Ruby Equivalent: weave
+    // let WEAVES be an empty list of selector lists
     Node weaves = Node::createCollection();
 
-    for (NodeDeque::iterator pathsIter = paths.collection()->begin(), pathsEndIter = paths.collection()->end(); pathsIter != pathsEndIter; ++pathsIter) {
-      Node& path = *pathsIter;
-      Node weaved = weave(path);
+    // for each list of complex selectors PATH in paths(CHOICES):
+    for (Node& path : *paths.collection()) {
+      // add weave(PATH) to WEAVES
+      Node weaved = weave(path); // slow(12%)!
       weaved.got_line_feed = path.got_line_feed;
       weaves.collection()->push_back(weaved);
     }
 
     DEBUG_PRINTLN(EXTEND_COMPLEX, "WEAVES: " << weaves)
 
-
-
     // Ruby Equivalent: trim
-    Node trimmed = trim(weaves, isReplace);
+    Node trimmed(trim(weaves, isReplace)); // slow(19%)!
 
     DEBUG_PRINTLN(EXTEND_COMPLEX, "TRIMMED: " << trimmed)
 
-
     // Ruby Equivalent: flatten
-    Node extendedSelectors = flatten(trimmed, 1);
+    Node flattened(flatten(trimmed, 1));
 
     DEBUG_PRINTLN(EXTEND_COMPLEX, ">>>>> EXTENDED: " << extendedSelectors)
-
-
     DEBUG_PRINTLN(EXTEND_COMPLEX, "EXTEND COMPLEX END: " << complexSelector)
 
-
-    return extendedSelectors;
+    // return trim(WEAVES)
+    return flattened;
   }
 
 
@@ -1876,18 +1865,22 @@ namespace Sass {
 
       // now do the actual extension of the complex selector
       Node extendedSelectors = extendComplexSelector(pSelector, seen, isReplace, true);
+
       if (!pSelector->has_placeholder()) {
-        if (!extendedSelectors.contains(complexSelectorToNode(pSelector))) {
+        Node nSelector(complexSelectorToNode(pSelector));
+        if (!extendedSelectors.contains(nSelector)) {
           pNewSelectors->append(pSelector);
           continue;
         }
       }
 
-      for (NodeDeque::iterator iterator = extendedSelectors.collection()->begin(), iteratorBegin = extendedSelectors.collection()->begin(), iteratorEnd = extendedSelectors.collection()->end(); iterator != iteratorEnd; ++iterator) {
+      bool doReplace = isReplace;
+      for (Node& childNode : *extendedSelectors.collection()) {
         // When it is a replace, skip the first one, unless there is only one
-        if(isReplace && iterator == iteratorBegin && extendedSelectors.collection()->size() > 1 ) continue;
-
-        Node& childNode = *iterator;
+        if(doReplace && extendedSelectors.collection()->size() > 1 ) {
+          doReplace = false;
+          continue;
+        }
         pNewSelectors->append(nodeToComplexSelector(childNode));
       }
     }
