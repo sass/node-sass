@@ -21,7 +21,7 @@ namespace Sass {
       caller(c)
     { }
 
-    std::string to_string(bool warning = false)
+    const std::string to_string(bool warning = false)
     {
       size_t i = -1;
       std::stringstream ss;

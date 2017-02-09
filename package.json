@@ -1,7 +1,7 @@
 {
   "name": "node-sass",
-  "version": "4.2.0",
-  "libsass": "3.4.3",
+  "version": "4.5.0",
+  "libsass": "3.5.0.beta.2",
   "description": "Wrapper around libsass",
   "license": "MIT",
   "bugs": "https://github.com/sass/node-sass/issues",
@@ -81,6 +81,6 @@
     "object-merge": "^2.5.1",
     "read-yaml": "^1.0.0",
     "rimraf": "^2.5.2",
-    "sass-spec": "3.4.3"
+    "sass-spec": "3.5.0-1"
   }
 }

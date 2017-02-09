@@ -34,7 +34,7 @@ include $(top_srcdir)/Makefile.conf
 
 libsass_la_SOURCES = ${CSOURCES} ${SOURCES}
 
-libsass_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 0:9:0
+libsass_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 1:0:0
 
 if ENABLE_TESTS
 if ENABLE_COVERAGE

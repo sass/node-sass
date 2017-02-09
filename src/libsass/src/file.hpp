@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "sass/context.h"
 #include "ast_fwd_decl.hpp"
 
 namespace Sass {
@@ -47,9 +48,16 @@ namespace Sass {
     std::string abs2rel(const std::string& path, const std::string& base = ".", const std::string& cwd = get_cwd());
 
     // helper function to resolve a filename
+    // searching without variations in all paths
+    std::string find_file(const std::string& file, struct Sass_Compiler* options);
     std::string find_file(const std::string& file, const std::vector<std::string> paths);
-    // inc paths can be directly passed from C code
-    std::string find_file(const std::string& file, const char** paths);
+
+    // helper function to resolve a include filename
+    // this has the original resolve logic for sass include
+    std::string find_include(const std::string& file, const std::vector<std::string> paths);
+
+    // split a path string delimited by semicolons or colons (OS dependent)
+    std::vector<std::string> split_path_list(const char* paths);
 
     // try to load the given filename
     // returned memory must be freed
@@ -113,7 +121,10 @@ namespace Sass {
 
   namespace File {
 
-    std::vector<Include> resolve_includes(const std::string& root, const std::string& file);
+    static std::vector<std::string> defaultExtensions = { ".scss", ".sass", ".css" };
+
+    std::vector<Include> resolve_includes(const std::string& root, const std::string& file,
+      const std::vector<std::string>& exts = defaultExtensions);
 
   }
 

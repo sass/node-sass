@@ -36,7 +36,7 @@ namespace Sass {
 
   union Sass_Value* To_C::operator()(List_Ptr l)
   {
-    union Sass_Value* v = sass_make_list(l->length(), l->separator());
+    union Sass_Value* v = sass_make_list(l->length(), l->separator(), l->is_bracketed());
     for (size_t i = 0, L = l->length(); i < L; ++i) {
       sass_list_set_value(v, i, (*l)[i]->perform(this));
     }
@@ -57,7 +57,7 @@ namespace Sass {
 
   union Sass_Value* To_C::operator()(Arguments_Ptr a)
   {
-    union Sass_Value* v = sass_make_list(a->length(), SASS_COMMA);
+    union Sass_Value* v = sass_make_list(a->length(), SASS_COMMA, false);
     for (size_t i = 0, L = a->length(); i < L; ++i) {
       sass_list_set_value(v, i, (*a)[i]->perform(this));
     }

@@ -12,7 +12,7 @@ var assert = require('assert'),
   glob = require('glob'),
   specPath = require('sass-spec').dirname.replace(/\\/g, '/'),
   impl = 'libsass',
-  version = 3.4;
+  version = 3.5;
 
 var normalize = function(str) {
   // This should be /\r\n/g, '\n', but there seems to be some empty line issues

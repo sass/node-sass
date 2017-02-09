@@ -2,6 +2,12 @@
 
 if [ "x$COVERAGE" = "xyes" ]; then
 
+  # find / -name "gcovr"
+  # find / -name "coveralls"
+  # this is only needed for mac os x builds!
+  PATH=$PATH:/Users/travis/Library/Python/2.7/bin/
+
+
   # exclude some directories from profiling (.libs is from autotools)
   export EXCLUDE_COVERAGE="--exclude plugins
                            --exclude sassc/sassc.c
@@ -21,10 +27,14 @@ if [ "x$COVERAGE" = "xyes" ]; then
                            --exclude src/test
                            --exclude src/posix
                            --exclude src/debugger.hpp"
-  # debug via gcovr
-  gcov -v
+  # debug used gcov version
+  # option not available on mac
+  if [ "$TRAVIS_OS_NAME" != "osx" ]; then
+    gcov -v
+  fi
+  # create summarized report
   gcovr -r .
-  # generate and submit report to coveralls.io
+  # submit report to coveralls.io
   coveralls $EXCLUDE_COVERAGE --gcov-options '\-lp'
 
 else

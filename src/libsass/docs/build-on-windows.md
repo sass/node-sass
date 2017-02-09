@@ -130,7 +130,7 @@ cd libsass
 REM set PATH=%PATH%;%PROGRAMFILES%\MSBuild\12.0\Bin
 msbuild /m:4 /p:Configuration=Release win\libsass.sln
 REM running the spec test-suite manually (needs ruby and minitest gem)
-ruby sass-spec\sass-spec.rb -V 3.4 -c win\bin\sassc.exe -s --impl libsass sass-spec/spec
+ruby sass-spec\sass-spec.rb -V 3.5 -c win\bin\sassc.exe -s --impl libsass sass-spec/spec
 cd ..
 ```
 

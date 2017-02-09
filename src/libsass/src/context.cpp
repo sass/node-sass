@@ -87,8 +87,9 @@ namespace Sass {
 
   {
 
-    // add cwd to include paths
-    include_paths.push_back(CWD);
+    // Sass 3.4: The current working directory will no longer be placed onto the Sass load path by default.
+    // If you need the current working directory to be available, set SASS_PATH=. in your shell's environment.
+    // include_paths.push_back(CWD);
 
     // collect more paths from different options
     collect_include_paths(c_options.include_path);
@@ -391,8 +392,8 @@ namespace Sass {
       String_Constant_Ptr loc = SASS_MEMORY_NEW(String_Constant, pstate, unquote(load_path));
       Argument_Obj loc_arg = SASS_MEMORY_NEW(Argument, pstate, loc);
       Arguments_Obj loc_args = SASS_MEMORY_NEW(Arguments, pstate);
-      loc_args->append(&loc_arg);
-      Function_Call_Ptr new_url = SASS_MEMORY_NEW(Function_Call, pstate, "url", &loc_args);
+      loc_args->append(loc_arg);
+      Function_Call_Ptr new_url = SASS_MEMORY_NEW(Function_Call, pstate, "url", loc_args);
       imp->urls().push_back(new_url);
     }
     else {
@@ -528,11 +529,11 @@ namespace Sass {
     Import_Obj imp = SASS_MEMORY_NEW(Import, pstate);
     // dispatch headers which will add custom functions
     // custom headers are added to the import instance
-    call_headers(entry_path, ctx_path, pstate, &imp);
+    call_headers(entry_path, ctx_path, pstate, imp);
     // increase head count to skip later
     head_imports += resources.size() - 1;
     // add the statement if we have urls
-    if (!imp->urls().empty()) root->append(&imp);
+    if (!imp->urls().empty()) root->append(imp);
     // process all other resources (add Import_Stub nodes)
     for (size_t i = 0, S = imp->incs().size(); i < S; ++i) {
       root->append(SASS_MEMORY_NEW(Import_Stub, pstate, imp->incs()[i]));
@@ -650,24 +651,24 @@ namespace Sass {
     Cssize cssize(*this, &backtrace);
     CheckNesting check_nesting;
     // check nesting
-    check_nesting(&root);
+    check_nesting(root);
     // expand and eval the tree
-    root = expand(&root);
+    root = expand(root);
     // check nesting
-    check_nesting(&root);
+    check_nesting(root);
     // merge and bubble certain rules
-    root = cssize(&root);
+    root = cssize(root);
     // should we extend something?
     if (!subset_map.empty()) {
       // create crtp visitor object
       Extend extend(*this, subset_map);
       // extend tree nodes
-      extend(&root);
+      extend(root);
     }
 
     // clean up by removing empty placeholders
     // ToDo: maybe we can do this somewhere else?
-    Remove_Placeholders remove_placeholders(*this);
+    Remove_Placeholders remove_placeholders;
     root->perform(&remove_placeholders);
     // return processed tree
     return root;
@@ -810,6 +811,7 @@ namespace Sass {
     register_function(ctx, append_sig, append, env);
     register_function(ctx, zip_sig, zip, env);
     register_function(ctx, list_separator_sig, list_separator, env);
+    register_function(ctx, is_bracketed_sig, is_bracketed, env);
     // Map Functions
     register_function(ctx, map_get_sig, map_get, env);
     register_function(ctx, map_merge_sig, map_merge, env);

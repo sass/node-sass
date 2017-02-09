@@ -2,6 +2,7 @@
 #include <cstring>
 #include "util.hpp"
 #include "context.hpp"
+#include "values.hpp"
 #include "sass/functions.h"
 #include "sass_functions.hpp"
 
@@ -17,10 +18,28 @@ extern "C" {
   {
     Sass_Function_Entry cb = (Sass_Function_Entry) calloc(1, sizeof(Sass_Function));
     if (cb == 0) return 0;
-    cb->signature = signature;
+    cb->signature = strdup(signature);
     cb->function = function;
     cb->cookie = cookie;
     return cb;
+  }
+
+  void ADDCALL sass_delete_function(Sass_Function_Entry entry)
+  {
+    free(entry->signature);
+    free(entry);
+  }
+
+  // Deallocator for the allocated memory
+  void ADDCALL sass_delete_function_list(Sass_Function_List list)
+  {
+    Sass_Function_List it = list;
+    if (list == 0) return;
+    while(*list) {
+      sass_delete_function(*list);
+      ++list;
+    }
+    free(it);
   }
 
   // Setters and getters for callbacks on function lists
@@ -55,6 +74,18 @@ extern "C" {
   Sass_Importer_List ADDCALL sass_make_importer_list(size_t length)
   {
     return (Sass_Importer_List) calloc(length + 1, sizeof(Sass_Importer_Entry));
+  }
+
+  // Deallocator for the allocated memory
+  void ADDCALL sass_delete_importer_list(Sass_Importer_List list)
+  {
+    Sass_Importer_List it = list;
+    if (list == 0) return;
+    while(*list) {
+      sass_delete_importer(*list);
+      ++list;
+    }
+    free(it);
   }
 
   Sass_Importer_Entry ADDCALL sass_importer_get_list_entry(Sass_Importer_List list, size_t idx) { return list[idx]; }
@@ -124,6 +155,37 @@ extern "C" {
     free(import->srcmap);
     free(import->error);
     free(import);
+  }
+
+  // Getter for callee entry
+  const char* ADDCALL sass_callee_get_name(Sass_Callee_Entry entry) { return entry->name; }
+  const char* ADDCALL sass_callee_get_path(Sass_Callee_Entry entry) { return entry->path; }
+  size_t ADDCALL sass_callee_get_line(Sass_Callee_Entry entry) { return entry->line; }
+  size_t ADDCALL sass_callee_get_column(Sass_Callee_Entry entry) { return entry->column; }
+  enum Sass_Callee_Type ADDCALL sass_callee_get_type(Sass_Callee_Entry entry) { return entry->type; }
+  Sass_Env_Frame ADDCALL sass_callee_get_env (Sass_Callee_Entry entry) { return &entry->env; }
+
+  // Getters and Setters for environments (lexical, local and global)
+  union Sass_Value* ADDCALL sass_env_get_lexical (Sass_Env_Frame env, const char* name) {
+    Expression_Ptr ex = Cast<Expression>((*env->frame)[name]);
+    return ex != NULL ? ast_node_to_sass_value(ex) : NULL;
+  }
+  void ADDCALL sass_env_set_lexical (Sass_Env_Frame env, const char* name, union Sass_Value* val) {
+    (*env->frame)[name] = sass_value_to_ast_node(val);
+  }
+  union Sass_Value* ADDCALL sass_env_get_local (Sass_Env_Frame env, const char* name) {
+    Expression_Ptr ex = Cast<Expression>(env->frame->get_local(name));
+    return ex != NULL ? ast_node_to_sass_value(ex) : NULL;
+  }
+  void ADDCALL sass_env_set_local (Sass_Env_Frame env, const char* name, union Sass_Value* val) {
+    env->frame->set_local(name, sass_value_to_ast_node(val));
+  }
+  union Sass_Value* ADDCALL sass_env_get_global (Sass_Env_Frame env, const char* name) {
+    Expression_Ptr ex = Cast<Expression>(env->frame->get_global(name));
+    return ex != NULL ? ast_node_to_sass_value(ex) : NULL;
+  }
+  void ADDCALL sass_env_set_global (Sass_Env_Frame env, const char* name, union Sass_Value* val) {
+    env->frame->set_global(name, sass_value_to_ast_node(val));
   }
 
   // Getter for import entry

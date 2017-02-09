@@ -116,8 +116,8 @@ namespace Sass {
     if (!Util::isPrintable(r, output_style())) {
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         const Statement_Obj& stm = b->at(i);
-        if (dynamic_cast<Has_Block_Ptr>(&stm)) {
-          if (!dynamic_cast<Declaration_Ptr>(&stm)) {
+        if (Cast<Has_Block>(stm)) {
+          if (!Cast<Declaration>(stm)) {
             stm->perform(this);
           }
         }
@@ -135,27 +135,27 @@ namespace Sass {
       append_optional_linefeed();
     }
     if (s) s->perform(this);
-    append_scope_opener(&b);
+    append_scope_opener(b);
     for (size_t i = 0, L = b->length(); i < L; ++i) {
       Statement_Obj stm = b->at(i);
       bool bPrintExpression = true;
       // Check print conditions
-      if (Declaration_Ptr dec = SASS_MEMORY_CAST(Declaration, stm)) {
-        if (String_Constant_Ptr valConst = SASS_MEMORY_CAST(String_Constant, dec->value())) {
+      if (Declaration_Ptr dec = Cast<Declaration>(stm)) {
+        if (String_Constant_Ptr valConst = Cast<String_Constant>(dec->value())) {
           std::string val(valConst->value());
-          if (String_Quoted_Ptr qstr = SASS_MEMORY_CAST_PTR(String_Quoted, valConst)) {
+          if (String_Quoted_Ptr qstr = Cast<String_Quoted>(valConst)) {
             if (!qstr->quote_mark() && val.empty()) {
               bPrintExpression = false;
             }
           }
         }
-        else if (List_Ptr list = SASS_MEMORY_CAST(List, dec->value())) {
+        else if (List_Ptr list = Cast<List>(dec->value())) {
           bool all_invisible = true;
           for (size_t list_i = 0, list_L = list->length(); list_i < list_L; ++list_i) {
-            Expression_Ptr item = &list->at(list_i);
+            Expression_Ptr item = list->at(list_i);
             if (!item->is_invisible()) all_invisible = false;
           }
-          if (all_invisible) bPrintExpression = false;
+          if (all_invisible && !list->is_bracketed()) bPrintExpression = false;
         }
       }
       // Print if OK
@@ -164,7 +164,7 @@ namespace Sass {
       }
     }
     if (output_style() == NESTED) indentation -= r->tabs();
-    append_scope_closer(&b);
+    append_scope_closer(b);
 
   }
   void Output::operator()(Keyframe_Rule_Ptr r)
@@ -172,7 +172,7 @@ namespace Sass {
     Block_Obj b = r->block();
     Selector_Obj v = r->name();
 
-    if (&v) {
+    if (!v.isNull()) {
       v->perform(this);
     }
 
@@ -201,7 +201,7 @@ namespace Sass {
     if (!Util::isPrintable(f, output_style())) {
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement_Obj stm = b->at(i);
-        if (dynamic_cast<Has_Block_Ptr>(&stm)) {
+        if (Cast<Has_Block>(stm)) {
           stm->perform(this);
         }
       }
@@ -237,7 +237,7 @@ namespace Sass {
     if (!Util::isPrintable(m, output_style())) {
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement_Obj stm = b->at(i);
-        if (dynamic_cast<Has_Block_Ptr>(&stm)) {
+        if (Cast<Has_Block>(stm)) {
           stm->perform(this);
         }
       }
@@ -282,7 +282,7 @@ namespace Sass {
     if (v) {
       append_mandatory_space();
       // ruby sass bug? should use options?
-      append_token(v->to_string(/* opt */), &v);
+      append_token(v->to_string(/* opt */), v);
     }
     if (!b) {
       append_delimiter();

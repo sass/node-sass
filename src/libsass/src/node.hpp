@@ -113,8 +113,6 @@ namespace Sass {
   Node complexSelectorToNode(Complex_Selector_Ptr pToConvert, Context& ctx);
   Complex_Selector_Ptr nodeToComplexSelector(const Node& toConvert, Context& ctx);
 
-  bool nodesEqual(const Node& one, const Node& two, bool simpleSelectorOrderDependent);
-
 }
 
 #endif

@@ -39,12 +39,11 @@ namespace Sass {
 
 
     Token lexed;
-    bool in_at_root;
 
     Parser(Context& ctx, const ParserState& pstate)
     : ParserState(pstate), ctx(ctx), block_stack(), stack(0), last_media_block(),
       source(0), position(0), end(0), before_token(pstate), after_token(pstate), pstate(pstate), indentation(0)
-    { in_at_root = false; stack.push_back(Scope::Root); }
+    { stack.push_back(Scope::Root); }
 
     // static Parser from_string(const std::string& src, Context& ctx, ParserState pstate = ParserState("[STRING]"));
     static Parser from_c_str(const char* src, Context& ctx, ParserState pstate = ParserState("[CSTRING]"), const char* source = 0);
@@ -240,10 +239,10 @@ namespace Sass {
     Arguments_Obj parse_arguments();
     Argument_Obj parse_argument();
     Assignment_Obj parse_assignment();
-    Ruleset_Obj parse_ruleset(Lookahead lookahead, bool is_root = false);
-    Selector_Schema_Obj parse_selector_schema(const char* end_of_selector);
-    Selector_List_Obj parse_selector_list(bool at_root = false);
-    Complex_Selector_Obj parse_complex_selector(bool in_root = true);
+    Ruleset_Obj parse_ruleset(Lookahead lookahead);
+    Selector_List_Obj parse_selector_list(bool chroot);
+    Complex_Selector_Obj parse_complex_selector(bool chroot);
+    Selector_Schema_Obj parse_selector_schema(const char* end_of_selector, bool chroot);
     Compound_Selector_Obj parse_compound_selector();
     Simple_Selector_Obj parse_simple_selector();
     Wrapped_Selector_Obj parse_negated_selector();
@@ -257,6 +256,7 @@ namespace Sass {
     bool parse_number_prefix();
     Declaration_Obj parse_declaration();
     Expression_Obj parse_map();
+    Expression_Obj parse_bracket_list();
     Expression_Obj parse_list(bool delayed = false);
     Expression_Obj parse_comma_list(bool delayed = false);
     Expression_Obj parse_space_list();
@@ -340,15 +340,15 @@ namespace Sass {
         schema->append(SASS_MEMORY_NEW(String_Constant, pstate, lexed));
         if (position[0] == '#' && position[1] == '{') {
           Expression_Obj itpl = lex_interpolation();
-          if (&itpl) schema->append(&itpl);
+          if (!itpl.isNull()) schema->append(itpl);
           while (lex < close >(false)) {
             // std::cerr << "LEX [[" << std::string(lexed) << "]]\n";
             schema->append(SASS_MEMORY_NEW(String_Constant, pstate, lexed));
             if (position[0] == '#' && position[1] == '{') {
               Expression_Obj itpl = lex_interpolation();
-              if (&itpl) schema->append(&itpl);
+              if (!itpl.isNull()) schema->append(itpl);
             } else {
-              return &schema;
+              return schema;
             }
           }
         } else {

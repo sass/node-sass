@@ -12,6 +12,7 @@
       ],
       'sources': [
         'libsass/src/ast.cpp',
+        'libsass/src/ast_fwd_decl.cpp',
         'libsass/src/base64vlq.cpp',
         'libsass/src/bind.cpp',
         'libsass/src/cencode.c',

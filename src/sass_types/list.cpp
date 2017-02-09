@@ -8,6 +8,7 @@ namespace SassTypes
   Sass_Value* List::construct(const std::vector<v8::Local<v8::Value>> raw_val, Sass_Value **out) {
     size_t length = 0;
     bool comma = true;
+    bool is_bracketed = false;
 
     if (raw_val.size() >= 1) {
       if (!raw_val[0]->IsNumber()) {
@@ -25,7 +26,7 @@ namespace SassTypes
       }
     }
 
-    return *out = sass_make_list(length, comma ? SASS_COMMA : SASS_SPACE);
+    return *out = sass_make_list(length, comma ? SASS_COMMA : SASS_SPACE, is_bracketed);
   }
 
   void List::initPrototype(v8::Local<v8::FunctionTemplate> proto) {
