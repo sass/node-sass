@@ -38,9 +38,9 @@ extern "C" {
     uv_work_t request;
 
     // v8 and nan related
-    Nan::Persistent<v8::Object> result;
-    Nan::Callback* error_callback;
-    Nan::Callback* success_callback;
+    napi_persistent result;
+    napi_value error_callback;
+    napi_value success_callback;
 
     std::vector<CustomFunctionBridge *> function_bridges;
     std::vector<CustomImporterBridge *> importer_bridges;

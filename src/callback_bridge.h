@@ -11,7 +11,7 @@
 template <typename T, typename L = void*>
 class CallbackBridge {
   public:
-    CallbackBridge(v8::Local<v8::Function>, bool);
+    CallbackBridge(napi_value, bool);
     virtual ~CallbackBridge();
 
     // Executes the callback
@@ -20,11 +20,11 @@ class CallbackBridge {
   protected:
     // We will expose a bridge object to the JS callback that wraps this instance so we don't loose context.
     // This is the V8 constructor for such objects.
-    static Nan::MaybeLocal<v8::Function> get_wrapper_constructor();
+    static napi_persistent get_wrapper_constructor(napi_env e);
     static void async_gone(uv_handle_t *handle);
-    static NAN_METHOD(New);
-    static NAN_METHOD(ReturnCallback);
-    static Nan::Persistent<v8::Function> wrapper_constructor;
+    static NAPI_METHOD(New);
+    static NAPI_METHOD(ReturnCallback);
+    static napi_persistent wrapper_constructor;
     Nan::Persistent<v8::Object> wrapper;
 
     // The callback that will get called in the main thread after the worker thread used for the sass
@@ -51,15 +51,19 @@ class CallbackBridge {
 };
 
 template <typename T, typename L>
-Nan::Persistent<v8::Function> CallbackBridge<T, L>::wrapper_constructor;
+napi_persistent CallbackBridge<T, L>::wrapper_constructor;
 
 template <typename T, typename L>
-CallbackBridge<T, L>::CallbackBridge(v8::Local<v8::Function> callback, bool is_sync) : callback(new Nan::Callback(callback)), is_sync(is_sync) {
+CallbackBridge<T, L>::CallbackBridge(napi_value callback, bool is_sync) : callback(callback), is_sync(is_sync) {
   /* 
    * This is invoked from the main JavaScript thread.
    * V8 context is available.
    */
-  Nan::HandleScope scope;
+  napi_env e;
+  CHECK_NAPI_RESULT(napi_get_current_env(&e));
+  napi_handle_scope scope;
+  CHECK_NAPI_RESULT(napi_open_handle_scope(e, &scope));
+
   uv_mutex_init(&this->cv_mutex);
   uv_cond_init(&this->condition_variable);
   if (!is_sync) {
@@ -68,7 +72,7 @@ CallbackBridge<T, L>::CallbackBridge(v8::Local<v8::Function> callback, bool is_s
     uv_async_init(uv_default_loop(), this->async, (uv_async_cb) dispatched_async_uv_callback);
   }
 
-  v8::Local<v8::Function> func = CallbackBridge<T, L>::get_wrapper_constructor().ToLocalChecked();
+  napi_persistent func = CallbackBridge<T, L>::get_wrapper_constructor(e);
   wrapper.Reset(Nan::NewInstance(func).ToLocalChecked());
   Nan::SetInternalFieldPointer(Nan::New(wrapper), 0, this);
 }
@@ -167,7 +171,7 @@ void CallbackBridge<T, L>::dispatched_async_uv_callback(uv_async_t *req) {
 }
 
 template <typename T, typename L>
-NAN_METHOD(CallbackBridge<T COMMA L>::ReturnCallback) {
+NAPI_METHOD(CallbackBridge<T COMMA L>::ReturnCallback) {
 
   /* 
    * Callback function invoked by the user code.
@@ -195,26 +199,26 @@ NAN_METHOD(CallbackBridge<T COMMA L>::ReturnCallback) {
 }
 
 template <typename T, typename L>
-Nan::MaybeLocal<v8::Function> CallbackBridge<T, L>::get_wrapper_constructor() {
-  /* Uses handle scope created in the CallbackBridge<T, L> constructor */
-  if (wrapper_constructor.IsEmpty()) {
-    v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-    tpl->SetClassName(Nan::New("CallbackBridge").ToLocalChecked());
-    tpl->InstanceTemplate()->SetInternalFieldCount(1);
+napi_persistent CallbackBridge<T, L>::get_wrapper_constructor(napi_env e) {
+  // TODO: cache wrapper_constructor
 
-    Nan::SetPrototypeTemplate(tpl, "success",
-      Nan::New<v8::FunctionTemplate>(ReturnCallback)
-    );
+  napi_property_descriptor methods[] = {
+    { "success", CallbackBridge::ReturnCallback },
+  };
 
-    wrapper_constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-  }
+  napi_value ctor;
+  CHECK_NAPI_RESULT(napi_create_constructor(e, "CallbackBridge", CallbackBridge::New, nullptr, 1, methods, &ctor));
+  CHECK_NAPI_RESULT(napi_create_persistent(e, ctor, &wrapper_constructor));
 
-  return Nan::New(wrapper_constructor);
+  return wrapper_constructor;
 }
 
 template <typename T, typename L>
-NAN_METHOD(CallbackBridge<T COMMA L>::New) {
-  info.GetReturnValue().Set(info.This());
+NAPI_METHOD(CallbackBridge<T COMMA L>::New) {
+  napi_value _this;
+  CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
+
+  CHECK_NAPI_RESULT(napi_set_return_value(env, info, _this));
 }
 
 template <typename T, typename L>

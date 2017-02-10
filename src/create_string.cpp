@@ -1,21 +1,28 @@
-#include <nan.h>
 #include <stdlib.h>
 #include <string.h>
 #include "create_string.h"
 
-char* create_string(Nan::MaybeLocal<v8::Value> maybevalue) {
-  v8::Local<v8::Value> value;
-  
-  if (maybevalue.ToLocal(&value)) {
-    if (value->IsNull() || !value->IsString()) {
-      return 0;
-    }
-  } else {
-    return 0;
+#define CHECK_NAPI_RESULT(condition) do { if((condition) != napi_ok) { return nullptr; } } while(0)
+
+char* create_string(napi_env e, napi_value v) {
+  napi_valuetype t;  
+  CHECK_NAPI_RESULT(napi_get_type_of_value(e, v, &t));
+
+  if (t != napi_string) {
+      return nullptr;
   }
 
-  v8::String::Utf8Value string(value);
-  char *str = (char *)malloc(string.length() + 1);
-  strcpy(str, *string);
+  int len;
+  CHECK_NAPI_RESULT(napi_get_value_string_utf8_length(e, v, &len));
+
+  char* str = (char *)malloc(len + 1);
+  int written;
+  CHECK_NAPI_RESULT(napi_get_value_string_utf8(e, v, str, len, &written));
+
+  if (len != written) {
+    free(str);
+    return nullptr;
+  }
+
   return str;
 }

@@ -1,8 +1,8 @@
 #ifndef CREATE_STRING_H
 #define CREATE_STRING_H
 
-#include <nan.h>
+#include <node_jsvmapi.h>
 
-char* create_string(Nan::MaybeLocal<v8::Value>);
+char* create_string(napi_env e, napi_value v);
 
 #endif
