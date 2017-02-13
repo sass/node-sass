@@ -245,23 +245,11 @@ function watch(options, emitter) {
     return graph;
   };
 
-  var watch = [];
-  var graph = buildGraph(options);
-
-  // Add all files to watch list
-  for (var i in graph.index) {
-    watch.push(i);
-  }
-
-  var gaze = new Gaze();
-  gaze.add(watch);
-  gaze.on('error', emitter.emit.bind(emitter, 'error'));
-
-  gaze.on('changed', function(file) {
+  var updateWatcher = function(file) {
+    var graph = buildGraph(options);
     var files = [file];
 
     // descendents may be added, so we need a new graph
-    graph = buildGraph(options);
     graph.visitAncestors(file, function(parent) {
       files.push(parent);
     });
@@ -278,15 +266,34 @@ function watch(options, emitter) {
         renderFile(file, options, emitter);
       }
     });
-  });
+  };
 
-  gaze.on('added', function() {
-    graph = buildGraph(options);
+  var watch = [];
+  var graph = buildGraph(options);
+
+  // Add all files to watch list
+  for (var i in graph.index) {
+    watch.push(i);
+  }
+
+  var gaze = new Gaze();
+  gaze.add(watch);
+  gaze.on('error', emitter.emit.bind(emitter, 'error'));
+
+  gaze.on('changed', function(file) {
+    updateWatcher(file);
+  });
+  gaze.on('added', function(file) {
+    updateWatcher(file);
   });
 
   gaze.on('deleted', function() {
     graph = buildGraph(options);
   });
+
+  if (!options.quiet) {
+    emitter.emit('warn', util.format('Watching %s', options.directory || options.src));
+  }
 }
 
 /**

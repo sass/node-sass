@@ -1,3 +1,4 @@
+
 {
   "name": "node-sass",
   "version": "4.5.2",
@@ -31,7 +32,7 @@
     "install": "node scripts/install.js",
     "postinstall": "node scripts/build.js",
     "lint": "node_modules/.bin/eslint bin/node-sass lib scripts test",
-    "test": "node_modules/.bin/mocha test/{*,**/**}.js",
+    "test": "node_modules/.bin/mocha test/cli.js",
     "build": "node scripts/build.js --force",
     "prepublish": "not-in-install && node scripts/prepublish.js || in-install"
   },
@@ -76,11 +77,14 @@
     "coveralls": "^2.11.8",
     "eslint": "^3.4.0",
     "istanbul": "^0.4.2",
+    "lodash.once": "^4.1.1",
     "mocha": "^3.1.2",
     "mocha-lcov-reporter": "^1.2.0",
     "object-merge": "^2.5.1",
     "read-yaml": "^1.0.0",
     "rimraf": "^2.5.2",
-    "sass-spec": "3.5.0-1"
+    "sass-spec": "3.5.0-1",
+    "touch": "^1.0.0",
+    "unique-temp-dir": "^1.0.0"
   }
 }

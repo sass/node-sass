@@ -5,14 +5,17 @@ var assert = require('assert'),
   glob = require('glob'),
   rimraf = require('rimraf'),
   stream = require('stream'),
+  once = require('lodash.once'),
   spawn = require('cross-spawn'),
   cli = path.join(__dirname, '..', 'bin', 'node-sass'),
+  touch = require('touch'),
+  tmpDir = require('unique-temp-dir'),
   fixture = path.join.bind(null, __dirname, 'fixtures');
 
-describe('cli', function() {
+describe.only('cli', function() {
   // For some reason we experience random timeout failures in CI
   // due to spawn hanging/failing silently. See #1692.
-  this.retries(4);
+  // this.retries(4);
 
   describe('node-sass < in.scss', function() {
     it('should read data from stdin', function(done) {
@@ -226,53 +229,57 @@ describe('cli', function() {
       }, 100);
     });
 
-    it.skip('should emit `warn` on file change when using --watch option', function(done) {
-      var src = fixture('simple/tmp.scss');
-
-      fs.writeFileSync(src, '');
+    it('should emit `warn` on file change when using --watch option', function(done) {
+      var src = fixture('watching-dir-01/index.scss');
 
       var bin = spawn(cli, ['--watch', src]);
 
       bin.stderr.setEncoding('utf8');
-      bin.stderr.once('data', function(data) {
-        assert.strictEqual(data.trim(), '=> changed: ' + src);
-        fs.unlinkSync(src);
-        bin.kill();
+      bin.stderr.once('data', function (data) {
+        touch.sync(src);
+      });
+      bin.stderr.on('data', function (data) {
+        if (data.trim() === '=> changed: ' + src) {
+          bin.kill();
+        }
+      });
+      bin.on('error', function(err) {
+        assert.fail(err);
         done();
       });
+      bin.on('exit', done);
+    }).timeout(5000);
 
-      setTimeout(function() {
-        fs.appendFileSync(src, 'body {}');
-      }, 500);
-    });
-
-    it.skip('should emit nothing on file change when using --watch and --quiet options', function(done) {
-      var src = fixture('simple/tmp.scss');
-      var didEmit = false;
-      fs.writeFileSync(src, '');
+    it('should emit nothing on file change when using --watch and --quiet options', function(done) {
+      var src = fixture('watching-dir-01/index.scss');
 
       var bin = spawn(cli, ['--watch', '--quiet', src]);
 
       bin.stderr.setEncoding('utf8');
       bin.stderr.once('data', function() {
-        didEmit = true;
+        assert.fail('should not emit console output with --quiet flag');
       });
+      bin.on('error', function(err) {
+        assert.fail(err);
+        done();
+      });
+      bin.on('exit', done);
 
       setTimeout(function() {
-        fs.appendFileSync(src, 'body {}');
-        setTimeout(function() {
-          assert.equal(didEmit, false);
-          bin.kill();
-          done();
-          fs.unlinkSync(src);
-        }, 200);
+        touch(src, {}, function(err) {
+          if (err) {
+            assert.fail(err);
+          }
+
+          setTimeout(function() {
+            bin.kill();
+          }, 1000);
+        });
       }, 500);
-    });
+    }).timeout(5000);
 
-    it.skip('should render all watched files', function(done) {
-      var src = fixture('simple/bar.scss');
-
-      fs.writeFileSync(src, '');
+    it('should render all watched files', function(done) {
+      var src = fixture('watching-dir-01/index.scss');
 
       var bin = spawn(cli, [
         '--output-style', 'compressed',
@@ -280,23 +287,26 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
+      // bin.stderr.on('data', function(data) { console.log('stderr', data.toString()) })
+      // bin.stdout.on('data', function(data) { console.log('stdout', data.toString()) })
       bin.stdout.once('data', function(data) {
-        assert.strictEqual(data.trim(), 'body{background:white}');
-        fs.unlinkSync(src);
+        assert.strictEqual(data.trim(), 'a{color:green}');
         bin.kill();
+      });
+      bin.on('error', function(err) {
+        assert.fail(err);
         done();
       });
+      bin.on('exit', done);
 
       setTimeout(function() {
-        fs.appendFileSync(src, 'body{background:white}');
+        touch.sync(src);
       }, 500);
-    });
+    }).timeout(5000);
 
-    it.skip('should watch the full scss dep tree for a single file (scss)', function(done) {
+    it('should watch the full scss dep tree for a single file (scss)', function(done) {
       var src = fixture('watching/index.scss');
-      var foo = fixture('watching/white.scss');
-
-      fs.writeFileSync(foo, '');
+      var child = fixture('watching/white.scss');
 
       var bin = spawn(cli, [
         '--output-style', 'compressed',
@@ -304,22 +314,24 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
-      bin.stdout.once('data', function(data) {
-        assert.strictEqual(data.trim(), 'body{background:blue}');
-        bin.kill();
+      bin.stderr.once('data', function() {
+        touch(child, function() {
+          bin.stdout.once('data', function(data) {
+            assert.strictEqual(data.trim(), 'body{background:white}');
+            bin.kill();
+          });
+        });
+      });
+      bin.on('error', function(err) {
+        assert.fail(err);
         done();
       });
+      bin.on('exit', done);
+    }).timeout(5000);
 
-      setTimeout(function() {
-        fs.appendFileSync(foo, 'body{background:blue}\n');
-      }, 500);
-    });
-
-    it.skip('should watch the full sass dep tree for a single file (sass)', function(done) {
+    it('should watch the full sass dep tree for a single file (sass)', function(done) {
       var src = fixture('watching/index.sass');
-      var foo = fixture('watching/bar.sass');
-
-      fs.writeFileSync(foo, '');
+      var child = fixture('watching/bar.sass');
 
       var bin = spawn(cli, [
         '--output-style', 'compressed',
@@ -327,65 +339,99 @@ describe('cli', function() {
       ]);
 
       bin.stdout.setEncoding('utf8');
-      bin.stdout.once('data', function(data) {
-        assert.strictEqual(data.trim(), 'body{background:red}');
-        bin.kill();
+      bin.stderr.once('data', function() {
+        touch(child, function() {
+          bin.stdout.once('data', function(data) {
+            assert.strictEqual(data.trim(), 'body{background:white}');
+            bin.kill();
+          });
+        });
+      });
+      bin.on('error', function(err) {
+        assert.fail(err);
         done();
       });
+      bin.on('exit', done);
 
       setTimeout(function() {
-        fs.appendFileSync(foo, 'body\n\tbackground: red\n');
+        touch.sync(child);
       }, 500);
     });
-  });
+  }).timeout(5000);
 
   describe('node-sass --output directory', function() {
-    it.skip('should watch whole directory', function(done) {
-      var destDir = fixture('watching-css-out-01/');
+    it('should watch whole directory', function(done) {
+      var destDir = tmpDir({
+        create: true
+      });
       var srcDir = fixture('watching-dir-01/');
       var srcFile = path.join(srcDir, 'index.scss');
 
-      fs.writeFileSync(srcFile, '');
-
       var bin = spawn(cli, [
         '--output-style', 'compressed',
         '--output', destDir,
         '--watch', srcDir
       ]);
 
-      setTimeout(function() {
-        fs.appendFileSync(srcFile, 'a {color:green;}\n');
-        setTimeout(function() {
+      var w = fs.watch(destDir, function() {
+        fs.readdir(destDir, function (err, files) {
+          if (err) {
+            assert.fail(err);
+          } else {
+            assert.deepEqual(files, ['index.css']);
+          }
+          rimraf.sync(destDir);
           bin.kill();
-          var files = fs.readdirSync(destDir);
-          assert.deepEqual(files, ['index.css']);
-          rimraf(destDir, done);
-        }, 200);
-      }, 500);
-    });
+          w.close();
+        });
+      });
 
-    it.skip('should compile all changed files in watched directory', function(done) {
-      var destDir = fixture('watching-css-out-02/');
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.once('data', function() {
+        assert.fail('should not emit console output when watching a directory');
+      });
+      bin.stderr.once('data', function () {
+        touch(srcFile);
+      });
+      bin.on('error', assert.fail);
+      bin.on('exit', done);
+    }).timeout(5000);
+
+    it('should compile all changed files in watched directory', function(done) {
+      var destDir = tmpDir({
+        create: true
+      });
       var srcDir = fixture('watching-dir-02/');
       var srcFile = path.join(srcDir, 'foo.scss');
 
-      fs.writeFileSync(srcFile, '');
-
       var bin = spawn(cli, [
         '--output-style', 'compressed',
         '--output', destDir,
         '--watch', srcDir
       ]);
 
-      setTimeout(function () {
-        fs.appendFileSync(srcFile, 'body{background:white}\n');
-        setTimeout(function () {
+      var w = fs.watch(destDir, function() {
+        fs.readdir(destDir, function (err, files) {
+          if (err) {
+            assert.fail(err);
+          } else if (files.length === 2) {
+            assert.deepEqual(files, ['foo.css', 'index.css']);
+          }
+          rimraf.sync(destDir);
+          w.close();
           bin.kill();
-          var files = fs.readdirSync(destDir);
-          assert.deepEqual(files, ['foo.css', 'index.css']);
-          rimraf(destDir, done);
-        }, 200);
-      }, 500);
+        });
+      });
+
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.once('data', function() {
+        assert.fail('should not emit console output when watching a directory');
+      });
+      bin.stderr.once('data', function () {
+        touch(srcFile);
+      });
+      bin.on('error', assert.fail);
+      bin.on('exit', done);
     });
   });
 
@@ -408,7 +454,10 @@ describe('cli', function() {
       var destMap = fixture('source-map/index.map');
       var expectedCss = read(fixture('source-map/expected.css'), 'utf8').trim().replace(/\r\n/g, '\n');
       var expectedMap = read(fixture('source-map/expected.map'), 'utf8').trim().replace(/\r\n/g, '\n');
-      var bin = spawn(cli, [src, '--output', path.dirname(destCss), '--source-map', destMap]);
+      var bin = spawn(cli, [
+        src, '--output', path.dirname(destCss),
+        '--source-map', destMap
+      ]);
 
       bin.once('close', function() {
         assert.equal(read(destCss, 'utf8').trim(), expectedCss);
