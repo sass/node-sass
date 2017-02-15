@@ -376,6 +376,11 @@ namespace Sass {
   struct CompareNodes {
     template <class T>
     bool operator() (const T& lhs, const T& rhs) const {
+      // code around sass logic issue. 1px == 1 is true
+      // but both items are still different keys in maps
+      if (dynamic_cast<Number*>(lhs.ptr()))
+        if (dynamic_cast<Number*>(rhs.ptr()))
+          return lhs->hash() == rhs->hash();
       return !lhs.isNull() && !rhs.isNull() && *lhs == *rhs;
     }
   };
