@@ -275,7 +275,7 @@ namespace Sass {
       else if ((!l_h && !r_h) ||
                (!l_h && r_h->empty()) ||
                (!r_h && l_h->empty()) ||
-               (*l_h == *r_h))
+               (l_h && r_h && *l_h == *r_h))
       {
         // check combinator after heads
         if (l->combinator() != r->combinator())
@@ -314,7 +314,6 @@ namespace Sass {
     if (const Complex_Selector* cs = Cast<Complex_Selector>(&rhs)) return *this == *cs;
     if (const Compound_Selector* ch = Cast<Compound_Selector>(&rhs)) return *this == *ch;
     throw std::runtime_error("invalid selector base classes to compare");
-    return false;
   }
 
 
@@ -334,7 +333,6 @@ namespace Sass {
     if (const Complex_Selector* cs = Cast<Complex_Selector>(&rhs)) return *this == *cs;
     if (const Compound_Selector* ch = Cast<Compound_Selector>(&rhs)) return *this == *ch;
     throw std::runtime_error("invalid selector base classes to compare");
-    return false;
   }
 
   bool Compound_Selector::operator< (const Selector& rhs) const
@@ -344,7 +342,6 @@ namespace Sass {
     if (const Complex_Selector* cs = Cast<Complex_Selector>(&rhs)) return *this < *cs;
     if (const Compound_Selector* ch = Cast<Compound_Selector>(&rhs)) return *this < *ch;
     throw std::runtime_error("invalid selector base classes to compare");
-    return false;
   }
 
   bool Selector_Schema::operator== (const Selector& rhs) const
@@ -354,7 +351,6 @@ namespace Sass {
     if (const Complex_Selector* cs = Cast<Complex_Selector>(&rhs)) return *this == *cs;
     if (const Compound_Selector* ch = Cast<Compound_Selector>(&rhs)) return *this == *ch;
     throw std::runtime_error("invalid selector base classes to compare");
-    return false;
   }
 
   bool Selector_Schema::operator< (const Selector& rhs) const
