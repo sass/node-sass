@@ -9,13 +9,14 @@
 #include "map.h"
 #include "null.h"
 #include "error.h"
+#include "..\common.h"
 
 namespace SassTypes
 {
-  SassTypes::Value* Factory::create(Sass_Value* v) {
+  SassTypes::Value* Factory::create(napi_env env, Sass_Value* v) {
     switch (sass_value_get_tag(v)) {
     case SASS_NUMBER:
-      return new Number(v);
+      return new Number(env, v);
 
     case SASS_STRING:
       return new String(v);
@@ -40,57 +41,52 @@ namespace SassTypes
 
     default:
       const char *msg = "Unknown type encountered.";
-      Nan::ThrowTypeError(msg);
+      CHECK_NAPI_RESULT(napi_throw_type_error(env, msg));
       return new Error(sass_make_error(msg));
     }
   }
 
-  void Factory::initExports(napi_value target) {
-    napi_env e;
-    CHECK_NAPI_RESULT(napi_get_current_env(&e));
+  void Factory::initExports(napi_env env, napi_value target) {
     napi_handle_scope scope;
-    CHECK_NAPI_RESULT(napi_open_handle_scope(e, &scope));
+    CHECK_NAPI_RESULT(napi_open_handle_scope(env, &scope));
 
     napi_value types;
-    CHECK_NAPI_RESULT(napi_create_object(e, &types));
+    CHECK_NAPI_RESULT(napi_create_object(env, &types));
     
     napi_propertyname nameNumber;
-    CHECK_NAPI_RESULT(napi_property_name(e, "Number", &nameNumber));
+    CHECK_NAPI_RESULT(napi_property_name(env, "Number", &nameNumber));
     napi_propertyname nameString;
-    CHECK_NAPI_RESULT(napi_property_name(e, "String", &nameString));
+    CHECK_NAPI_RESULT(napi_property_name(env, "String", &nameString));
     napi_propertyname nameColor;
-    CHECK_NAPI_RESULT(napi_property_name(e, "Color", &nameColor));
+    CHECK_NAPI_RESULT(napi_property_name(env, "Color", &nameColor));
     napi_propertyname nameBoolean;
-    CHECK_NAPI_RESULT(napi_property_name(e, "Boolean", &nameBoolean));
+    CHECK_NAPI_RESULT(napi_property_name(env, "Boolean", &nameBoolean));
     napi_propertyname nameList;
-    CHECK_NAPI_RESULT(napi_property_name(e, "List", &nameList));
+    CHECK_NAPI_RESULT(napi_property_name(env, "List", &nameList));
     napi_propertyname nameMap;
-    CHECK_NAPI_RESULT(napi_property_name(e, "Map", &nameMap));
+    CHECK_NAPI_RESULT(napi_property_name(env, "Map", &nameMap));
     napi_propertyname nameNull;
-    CHECK_NAPI_RESULT(napi_property_name(e, "Null", &nameNull));
+    CHECK_NAPI_RESULT(napi_property_name(env, "Null", &nameNull));
     napi_propertyname nameError;
-    CHECK_NAPI_RESULT(napi_property_name(e, "Error", &nameError));
+    CHECK_NAPI_RESULT(napi_property_name(env, "Error", &nameError));
     napi_propertyname nameTypes;
-    CHECK_NAPI_RESULT(napi_property_name(e, "types", &nameTypes));
+    CHECK_NAPI_RESULT(napi_property_name(env, "types", &nameTypes));
 
-    CHECK_NAPI_RESULT(napi_set_property(e, types, nameNumber, Number::get_constructor()));
-    CHECK_NAPI_RESULT(napi_set_property(e, types, nameString, String::get_constructor()));
-    CHECK_NAPI_RESULT(napi_set_property(e, types, nameColor, Color::get_constructor()));
-    CHECK_NAPI_RESULT(napi_set_property(e, types, nameBoolean, Boolean::get_constructor()));
-    CHECK_NAPI_RESULT(napi_set_property(e, types, nameList, List::get_constructor()));
-    CHECK_NAPI_RESULT(napi_set_property(e, types, nameMap, Map::get_constructor()));
-    CHECK_NAPI_RESULT(napi_set_property(e, types, nameNull, Null::get_constructor()));
-    CHECK_NAPI_RESULT(napi_set_property(e, types, nameError, Error::get_constructor()));
+    CHECK_NAPI_RESULT(napi_set_property(env, types, nameNumber, Number::get_constructor(env)));
+    CHECK_NAPI_RESULT(napi_set_property(env, types, nameString, String::get_constructor(env)));
+    CHECK_NAPI_RESULT(napi_set_property(env, types, nameColor, Color::get_constructor(env)));
+    CHECK_NAPI_RESULT(napi_set_property(env, types, nameBoolean, Boolean::get_constructor(env)));
+    CHECK_NAPI_RESULT(napi_set_property(env, types, nameList, List::get_constructor(env)));
+    CHECK_NAPI_RESULT(napi_set_property(env, types, nameMap, Map::get_constructor(env)));
+    CHECK_NAPI_RESULT(napi_set_property(env, types, nameNull, Null::get_constructor(env)));
+    CHECK_NAPI_RESULT(napi_set_property(env, types, nameError, Error::get_constructor(env)));
 
-    CHECK_NAPI_RESULT(napi_set_property(e, target, nameTypes, types));
+    CHECK_NAPI_RESULT(napi_set_property(env, target, nameTypes, types));
   }
 
-  Value* Factory::unwrap(v8::Local<v8::Value> obj) {
-    // Todo: non-SassValue objects could easily fall under that condition, need to be more specific.
-    if (!obj->IsObject() || obj.As<v8::Object>()->InternalFieldCount() != 1) {
-      return NULL;
-    }
-
-    return static_cast<Value*>(Nan::GetInternalFieldPointer(obj.As<v8::Object>(), 0));
+  Value* Factory::unwrap(napi_env env, napi_value obj) {
+    void* wrapped;
+    CHECK_NAPI_RESULT(napi_unwrap(env, obj, &wrapped));
+    return static_cast<Value*>(wrapped);
   }
 }

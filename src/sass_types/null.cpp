@@ -1,59 +1,66 @@
-#include <nan.h>
 #include "null.h"
 
 namespace SassTypes
 {
-  Nan::Persistent<v8::Function> Null::constructor;
+  napi_ref Null::constructor = nullptr;
   bool Null::constructor_locked = false;
 
-  Null::Null() {}
+  Null::Null() : js_object(nullptr) {}
 
   Null& Null::get_singleton() {
     static Null singleton_instance;
     return singleton_instance;
   }
 
-  v8::Local<v8::Function> Null::get_constructor() {
-    Nan::EscapableHandleScope scope;
-    v8::Local<v8::Function> conslocal;
-    if (constructor.IsEmpty()) {
-      v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
+  napi_value Null::get_constructor(napi_env env) {
+    Napi::EscapableHandleScope scope;
+    napi_value ctor;
 
-      tpl->SetClassName(Nan::New("SassNull").ToLocalChecked());
-      tpl->InstanceTemplate()->SetInternalFieldCount(1);
+    if (Null::constructor) {
+      CHECK_NAPI_RESULT(napi_get_reference_value(env, Null::constructor, &ctor));
+    } else {
+      CHECK_NAPI_RESULT(napi_define_class(env, "SassNull", Null::New, nullptr, 0, nullptr, &ctor));
+      CHECK_NAPI_RESULT(napi_create_reference(env, ctor, 1, &Null::constructor));
 
-      conslocal = Nan::GetFunction(tpl).ToLocalChecked();
-      constructor.Reset(conslocal);
+      Null& singleton = get_singleton();
+      napi_value instance;
+      CHECK_NAPI_RESULT(napi_new_instance(env, ctor, 0, nullptr, &instance));
+      CHECK_NAPI_RESULT(napi_wrap(env, instance, &singleton, nullptr, nullptr));
+      CHECK_NAPI_RESULT(napi_create_reference(env, instance, 1, &singleton.js_object));
 
-      get_singleton().js_object.Reset(Nan::NewInstance(conslocal).ToLocalChecked());
-      Nan::SetInternalFieldPointer(Nan::New(get_singleton().js_object), 0, &get_singleton());
-      Nan::Set(conslocal, Nan::New("NULL").ToLocalChecked(), Nan::New(get_singleton().js_object));
+      napi_propertyname nullName;
+      CHECK_NAPI_RESULT(napi_property_name(env, "NULL", &nullName));
+      CHECK_NAPI_RESULT(napi_set_property(env, ctor, nullName, instance));
 
       constructor_locked = true;
-    } else {
-      conslocal = Nan::New(constructor);
     }
 
-    return scope.Escape(conslocal);
+    return scope.Escape(ctor);
   }
 
   Sass_Value* Null::get_sass_value() {
     return sass_make_null();
   }
 
-  v8::Local<v8::Object> Null::get_js_object() {
-    return Nan::New(this->js_object);
+  napi_value Null::get_js_object(napi_env env) {
+    napi_value v;
+    CHECK_NAPI_RESULT(napi_get_reference_value(env, this->js_object, &v));
+    return v;
   }
 
-  NAN_METHOD(Null::New) {
+  NAPI_METHOD(Null::New) {
+    bool r;
+    CHECK_NAPI_RESULT(napi_is_construct_call(env, info, &r));
 
-    if (info.IsConstructCall()) {
+    if (r) {
       if (constructor_locked) {
-        return Nan::ThrowTypeError("Cannot instantiate SassNull");
+        CHECK_NAPI_RESULT(napi_throw_type_error(env, "Cannot instantiate SassNull"));
+        return;
       }
     }
     else {
-      info.GetReturnValue().Set(get_singleton().get_js_object());
+      napi_value obj = Null::get_singleton().get_js_object(env);
+      CHECK_NAPI_RESULT(napi_set_return_value(env, info, obj));
     }
   }
 }

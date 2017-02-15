@@ -1,71 +1,128 @@
-#include <nan.h>
 #include "number.h"
 #include "../create_string.h"
 
 namespace SassTypes
 {
-  Number::Number(Sass_Value* v) : SassValueWrapper(v) {}
+  Number::Number(napi_env env, Sass_Value* v) : SassValueWrapper(env, v) {}
 
-  Sass_Value* Number::construct(const std::vector<v8::Local<v8::Value>> raw_val, Sass_Value **out) {
+  Sass_Value* Number::construct(napi_env env, const std::vector<napi_value> raw_val, Sass_Value **out) {
     double value = 0;
     char const* unit = "";
 
     if (raw_val.size() >= 1) {
-      if (!raw_val[0]->IsNumber()) {
+      napi_valuetype t;
+      CHECK_NAPI_RESULT(napi_get_type_of_value(env, raw_val[0], &t));
+
+      if (t != napi_number) {
         return fail("First argument should be a number.", out);
       }
 
-      value = Nan::To<double>(raw_val[0]).FromJust();
+      CHECK_NAPI_RESULT(napi_get_value_double(env, raw_val[0], &value));
 
       if (raw_val.size() >= 2) {
-        if (!raw_val[1]->IsString()) {
+        CHECK_NAPI_RESULT(napi_get_type_of_value(env, raw_val[1], &t));
+
+        if (t != napi_string) {
           return fail("Second argument should be a string.", out);
         }
 
-        unit = create_string(raw_val[1]);
+        unit = create_string(env, raw_val[1]);
       }
     }
 
     return *out = sass_make_number(value, unit);
   }
 
-  void Number::initPrototype(v8::Local<v8::FunctionTemplate> proto) {
-    Nan::SetPrototypeMethod(proto, "getValue", GetValue);
-    Nan::SetPrototypeMethod(proto, "getUnit", GetUnit);
-    Nan::SetPrototypeMethod(proto, "setValue", SetValue);
-    Nan::SetPrototypeMethod(proto, "setUnit", SetUnit);
+  napi_value Number::getConstructor(napi_env env, napi_callback cb) {
+    napi_value ctor;
+    napi_property_descriptor descriptors [] = {
+        { "getValue", GetValue },
+        { "getUnit", GetUnit },
+        { "setValue", SetValue },
+        { "setUnit", SetUnit },
+    };
+
+    CHECK_NAPI_RESULT(napi_define_class(env, get_constructor_name(), cb, nullptr, 4, descriptors, &ctor));
+    return ctor;
   }
 
-  NAN_METHOD(Number::GetValue) {
-    info.GetReturnValue().Set(Nan::New<v8::Number>(sass_number_get_value(unwrap(info.This())->value)));
+  NAPI_METHOD(Number::GetValue) {
+    napi_value _this;
+    CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
+
+    double v = sass_number_get_value(unwrap(env, _this)->value);
+
+    napi_value d;
+    CHECK_NAPI_RESULT(napi_create_number(env, v, &d));
+    CHECK_NAPI_RESULT(napi_set_return_value(env, info, d));
   }
 
-  NAN_METHOD(Number::GetUnit) {
-    info.GetReturnValue().Set(Nan::New<v8::String>(sass_number_get_unit(unwrap(info.This())->value)).ToLocalChecked());
+  NAPI_METHOD(Number::GetUnit) {
+    napi_value _this;
+    CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
+
+    const char* s = sass_number_get_unit(unwrap(env, _this)->value);
+    int len = (int)strlen(s);
+
+    napi_value str;
+    CHECK_NAPI_RESULT(napi_create_string_utf8(env, s, len, &str));
+    CHECK_NAPI_RESULT(napi_set_return_value(env, info, str));
   }
 
-  NAN_METHOD(Number::SetValue) {
+  NAPI_METHOD(Number::SetValue) {
+    int argLength;
+    CHECK_NAPI_RESULT(napi_get_cb_args_length(env, info, &argLength));
 
-    if (info.Length() != 1) {
-      return Nan::ThrowTypeError("Expected just one argument");
+    if (argLength != 1) {
+      CHECK_NAPI_RESULT(napi_throw_type_error(env, "Expected just one argument"));
+      return;
     }
 
-    if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError("Supplied value should be a number");
+    napi_value argv;
+    CHECK_NAPI_RESULT(napi_get_cb_args(env, info, &argv, 1));
+    napi_valuetype t;
+    CHECK_NAPI_RESULT(napi_get_type_of_value(env, argv, &t));
+
+    if (t != napi_number) {
+      CHECK_NAPI_RESULT(napi_throw_type_error(env, "Supplied value should be a number"));
+      return;
     }
 
-    sass_number_set_value(unwrap(info.This())->value, Nan::To<double>(info[0]).FromJust());
+    napi_value _this;
+    CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
+
+    auto v = unwrap(env, _this)->value;
+    double d;
+    CHECK_NAPI_RESULT(napi_get_value_double(env, argv, &d));
+
+    sass_number_set_value(v, d);
   }
 
-  NAN_METHOD(Number::SetUnit) {
-    if (info.Length() != 1) {
-      return Nan::ThrowTypeError("Expected just one argument");
+  NAPI_METHOD(Number::SetUnit) {
+    int argLength;
+    CHECK_NAPI_RESULT(napi_get_cb_args_length(env, info, &argLength));
+
+    if (argLength != 1) {
+        CHECK_NAPI_RESULT(napi_throw_type_error(env, "Expected just one argument"));
+        return;
     }
 
-    if (!info[0]->IsString()) {
-      return Nan::ThrowTypeError("Supplied value should be a string");
+    napi_value argv;
+    CHECK_NAPI_RESULT(napi_get_cb_args(env, info, &argv, 1));
+    napi_valuetype t;
+    CHECK_NAPI_RESULT(napi_get_type_of_value(env, argv, &t));
+
+    if (t != napi_string) {
+      CHECK_NAPI_RESULT(napi_throw_type_error(env, "Supplied value should be a string"));
+      return;
     }
 
-    sass_number_set_unit(unwrap(info.This())->value, create_string(info[0]));
+    napi_value _this;
+    CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
+
+    auto v = unwrap(env, _this)->value;
+    char* s = create_string(env, argv);
+
+    sass_number_set_unit(v, s);
   }
 }

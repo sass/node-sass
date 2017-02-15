@@ -1,5 +1,6 @@
 #include <nan.h>
 #include <vector>
+#include <node_api_helpers.h>
 #include "sass_context_wrapper.h"
 #include "custom_function_bridge.h"
 #include "create_string.h"
@@ -33,8 +34,7 @@ union Sass_Value* sass_custom_function(const union Sass_Value* s_args, Sass_Func
 }
 
 int ExtractOptions(napi_env e, napi_value options, void* cptr, sass_context_wrapper* ctx_w, bool is_file, bool is_sync) {
-  napi_handle_scope scope;
-  CHECK_NAPI_RESULT(napi_open_handle_scope(e, &scope));
+  Napi::HandleScope scope;
 
   struct Sass_Context* ctx;
 
@@ -206,7 +206,7 @@ int ExtractOptions(napi_env e, napi_value options, void* cptr, sass_context_wrap
   CHECK_NAPI_RESULT(napi_get_type_of_value(e, propertyImporter, &t));
 
   if (t == napi_function) {
-    CustomImporterBridge *bridge = new CustomImporterBridge(propertyImporter, ctx_w->is_sync);
+    CustomImporterBridge *bridge = new CustomImporterBridge(e, propertyImporter, ctx_w->is_sync);
     ctx_w->importer_bridges.push_back(bridge);
 
     Sass_Importer_List c_importers = sass_make_importer_list(1);
@@ -227,7 +227,7 @@ int ExtractOptions(napi_env e, napi_value options, void* cptr, sass_context_wrap
         napi_value callback;
         CHECK_NAPI_RESULT(napi_get_element(e, propertyImporter, i, &callback));
 
-        CustomImporterBridge *bridge = new CustomImporterBridge(callback, ctx_w->is_sync);
+        CustomImporterBridge *bridge = new CustomImporterBridge(e, callback, ctx_w->is_sync);
         ctx_w->importer_bridges.push_back(bridge);
 
         c_importers[i] = sass_make_importer(sass_importer, len - i - 1, bridge);
@@ -254,7 +254,7 @@ int ExtractOptions(napi_env e, napi_value options, void* cptr, sass_context_wrap
       napi_value callback;
       CHECK_NAPI_RESULT(napi_get_property(e, propertyFunctions, signature, &callback));
 
-      CustomFunctionBridge *bridge = new CustomFunctionBridge(callback, ctx_w->is_sync);
+      CustomFunctionBridge *bridge = new CustomFunctionBridge(e, callback, ctx_w->is_sync);
       ctx_w->function_bridges.push_back(bridge);
 
       Sass_Function_Entry fn = sass_make_function(create_string(e, signature), sass_custom_function, bridge);
@@ -266,68 +266,87 @@ int ExtractOptions(napi_env e, napi_value options, void* cptr, sass_context_wrap
   return 0;
 }
 
-void GetStats(sass_context_wrapper* ctx_w, Sass_Context* ctx) {
-  Nan::HandleScope scope;
+void GetStats(napi_env env, sass_context_wrapper* ctx_w, Sass_Context* ctx) {
+  Napi::HandleScope scope;
 
   char** included_files = sass_context_get_included_files(ctx);
-  v8::Local<v8::Array> arr = Nan::New<v8::Array>();
+  napi_value arr;
+  CHECK_NAPI_RESULT(napi_create_array(env, &arr));
 
   if (included_files) {
     for (int i = 0; included_files[i] != nullptr; ++i) {
-      Nan::Set(arr, i, Nan::New<v8::String>(included_files[i]).ToLocalChecked());
+      const char* s = included_files[i];
+      int len = (int)strlen(s);
+      napi_value str;
+      CHECK_NAPI_RESULT(napi_create_string_utf8(env, s, len, &str));
+      CHECK_NAPI_RESULT(napi_set_element(env, arr, i, str));
     }
   }
 
-  v8::Local<v8::Object> result = Nan::New(ctx_w->result);
-  assert(result->IsObject());
+  napi_value result;
+  CHECK_NAPI_RESULT(napi_get_persistent_value(env, ctx_w->result, &result));
+  napi_propertyname nameStats;
+  CHECK_NAPI_RESULT(napi_property_name(env, "stats", &nameStats));
+  napi_value propertyStats;
+  CHECK_NAPI_RESULT(napi_get_property(env, result, nameStats, &propertyStats));
+  napi_valuetype t;
+  CHECK_NAPI_RESULT(napi_get_type_of_value(env, propertyStats, &t));
 
-  v8::Local<v8::Value> stats = Nan::Get(
-    result,
-    Nan::New("stats").ToLocalChecked()
-  ).ToLocalChecked();
-  if (stats->IsObject()) {
-    Nan::Set(
-      stats.As<v8::Object>(),
-      Nan::New("includedFiles").ToLocalChecked(),
-      arr
-    );
+  if (t == napi_object) {
+    napi_propertyname nameIncludedFiles;
+    CHECK_NAPI_RESULT(napi_property_name(env, "includedFiles", &nameIncludedFiles));
+    CHECK_NAPI_RESULT(napi_set_property(env, propertyStats, nameIncludedFiles, arr));
   } else {
-    Nan::ThrowTypeError("\"result.stats\" element is not an object");
+    CHECK_NAPI_RESULT(napi_throw_type_error(env, "\"result.stats\" element is not an object"));
   }
 }
 
-int GetResult(sass_context_wrapper* ctx_w, Sass_Context* ctx, bool is_sync = false) {
-  Nan::HandleScope scope;
-  v8::Local<v8::Object> result;
+int GetResult(napi_env env, sass_context_wrapper* ctx_w, Sass_Context* ctx, bool is_sync = false) {
+  Napi::HandleScope scope;
 
   int status = sass_context_get_error_status(ctx);
-
-  result = Nan::New(ctx_w->result);
-  assert(result->IsObject());
+  napi_value result;
+  CHECK_NAPI_RESULT(napi_get_persistent_value(env, ctx_w->result, &result));
 
   if (status == 0) {
     const char* css = sass_context_get_output_string(ctx);
+    int css_len = (int)strlen(css);
     const char* map = sass_context_get_source_map_string(ctx);
 
-    Nan::Set(result, Nan::New("css").ToLocalChecked(), Nan::CopyBuffer(css, static_cast<uint32_t>(strlen(css))).ToLocalChecked());
+    napi_propertyname nameCss;
+    CHECK_NAPI_RESULT(napi_property_name(env, "css", &nameCss));
+    napi_value cssBuffer;
+    CHECK_NAPI_RESULT(napi_buffer_copy(env, css, css_len, &cssBuffer));
+    CHECK_NAPI_RESULT(napi_set_property(env, result, nameCss, cssBuffer));
 
-    GetStats(ctx_w, ctx);
+    GetStats(env, ctx_w, ctx);
 
     if (map) {
-      Nan::Set(result, Nan::New("map").ToLocalChecked(), Nan::CopyBuffer(map, static_cast<uint32_t>(strlen(map))).ToLocalChecked());
+      int map_len = (int)strlen(map);
+      napi_propertyname nameMap;
+      CHECK_NAPI_RESULT(napi_property_name(env, "map", &nameMap));
+      napi_value mapBuffer;
+      CHECK_NAPI_RESULT(napi_buffer_copy(env, map, map_len, &mapBuffer));
+      CHECK_NAPI_RESULT(napi_set_property(env, result, nameMap, mapBuffer));
     }
-  }
-  else if (is_sync) {
-    Nan::Set(result, Nan::New("error").ToLocalChecked(), Nan::New<v8::String>(sass_context_get_error_json(ctx)).ToLocalChecked());
+  } else if (is_sync) {
+    const char* err = sass_context_get_error_json(ctx);
+    int err_len = (int)strlen(err);
+    napi_propertyname nameError;
+    CHECK_NAPI_RESULT(napi_property_name(env, "error", &nameError));
+    napi_value str;
+    CHECK_NAPI_RESULT(napi_create_string_utf8(env, err, err_len, &str));
+    CHECK_NAPI_RESULT(napi_set_property(env, result, nameError, str));
   }
 
   return status;
 }
 
 void MakeCallback(uv_work_t* req) {
-  Nan::HandleScope scope;
+  Napi::HandleScope scope;
+  napi_env env;
+  CHECK_NAPI_RESULT(napi_get_current_env(&env));
 
-  Nan::TryCatch try_catch;
   sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(req->data);
   struct Sass_Context* ctx;
 
@@ -338,28 +357,39 @@ void MakeCallback(uv_work_t* req) {
     ctx = sass_file_context_get_context(ctx_w->fctx);
   }
 
-  int status = GetResult(ctx_w, ctx);
+  int status = GetResult(env, ctx_w, ctx);
 
   if (status == 0 && ctx_w->success_callback) {
     // if no error, do callback(null, result)
-    ctx_w->success_callback->Call(0, 0);
+    napi_value unused;
+    CHECK_NAPI_RESULT(napi_make_callback(env, ctx_w->success_callback, ctx_w->success_callback, 0, nullptr, &unused));
   }
   else if (ctx_w->error_callback) {
     // if error, do callback(error)
     const char* err = sass_context_get_error_json(ctx);
-    v8::Local<v8::Value> argv[] = {
-      Nan::New<v8::String>(err).ToLocalChecked()
+    int len = (int)strlen(err);
+    napi_value str;
+    CHECK_NAPI_RESULT(napi_create_string_utf8(env, err, len, &str));
+
+    napi_value argv[] = {
+      str
     };
-    ctx_w->error_callback->Call(1, argv);
+
+    napi_value unused;
+    CHECK_NAPI_RESULT(napi_make_callback(env, ctx_w->error_callback, ctx_w->error_callback, 1, argv, &unused));
   }
-  if (try_catch.HasCaught()) {
-    Nan::FatalException(try_catch);
+
+  bool r;
+  CHECK_NAPI_RESULT(napi_is_exception_pending(env, &r));
+  if (r) {
+    // TODO: FatalException
+    return;
   }
 
   sass_free_context_wrapper(ctx_w);
 }
 
-void render(napi_env env, napi_callback_info info) {
+NAPI_METHOD(render) {
   napi_value options;
   CHECK_NAPI_RESULT(napi_get_cb_args(env, info, &options, 1));
 
@@ -380,59 +410,80 @@ void render(napi_env env, napi_callback_info info) {
   }
 }
 
-NAN_METHOD(render_sync) {
+NAPI_METHOD(render_sync) {
+  napi_value options;
+  CHECK_NAPI_RESULT(napi_get_cb_args(env, info, &options, 1));
 
-  v8::Local<v8::Object> options = Nan::To<v8::Object>(info[0]).ToLocalChecked();
-  char* source_string = create_string(Nan::Get(options, Nan::New("data").ToLocalChecked()));
+  napi_propertyname nameData;
+  CHECK_NAPI_RESULT(napi_property_name(env, "data", &nameData));
+
+  napi_value propertyData;
+  CHECK_NAPI_RESULT(napi_get_property(env, options, nameData, &propertyData));
+  char* source_string = create_string(env, propertyData);
+
   struct Sass_Data_Context* dctx = sass_make_data_context(source_string);
   struct Sass_Context* ctx = sass_data_context_get_context(dctx);
   sass_context_wrapper* ctx_w = sass_make_context_wrapper();
   int result = -1;
 
-  if ((result = ExtractOptions(options, dctx, ctx_w, false, true)) >= 0) {
+  if ((result = ExtractOptions(env, options, dctx, ctx_w, false, true)) >= 0) {
     compile_data(dctx);
-    result = GetResult(ctx_w, ctx, true);
+    result = GetResult(env, ctx_w, ctx, true);
   }
 
   sass_free_context_wrapper(ctx_w);
-  info.GetReturnValue().Set(result == 0);
+
+  napi_value boolResult;
+  CHECK_NAPI_RESULT(napi_create_boolean(env, result == 0, &boolResult));
+  CHECK_NAPI_RESULT(napi_set_return_value(env, info, boolResult));
 }
 
-NAN_METHOD(render_file) {
+NAPI_METHOD(render_file) {
+  napi_value options;
+  CHECK_NAPI_RESULT(napi_get_cb_args(env, info, &options, 1));
+  napi_propertyname nameFile;
+  CHECK_NAPI_RESULT(napi_property_name(env, "file", &nameFile));
+  napi_value propertyFile;
+  CHECK_NAPI_RESULT(napi_get_property(env, options, nameFile, &propertyFile));
+  char* input_path = create_string(env, propertyFile);
 
-  v8::Local<v8::Object> options = Nan::To<v8::Object>(info[0]).ToLocalChecked();
-  char* input_path = create_string(Nan::Get(options, Nan::New("file").ToLocalChecked()));
   struct Sass_File_Context* fctx = sass_make_file_context(input_path);
   sass_context_wrapper* ctx_w = sass_make_context_wrapper();
 
-  if (ExtractOptions(options, fctx, ctx_w, true, false) >= 0) {
-
+  if (ExtractOptions(env, options, fctx, ctx_w, true, false) >= 0) {
     int status = uv_queue_work(uv_default_loop(), &ctx_w->request, compile_it, (uv_after_work_cb)MakeCallback);
     assert(status == 0);
   }
 }
 
-NAN_METHOD(render_file_sync) {
+NAPI_METHOD(render_file_sync) {
+  napi_value options;
+  CHECK_NAPI_RESULT(napi_get_cb_args(env, info, &options, 1));
+  napi_propertyname nameFile;
+  CHECK_NAPI_RESULT(napi_property_name(env, "file", &nameFile));
+  napi_value propertyFile;
+  CHECK_NAPI_RESULT(napi_get_property(env, options, nameFile, &propertyFile));
+  char* input_path = create_string(env, propertyFile);
 
-  v8::Local<v8::Object> options = Nan::To<v8::Object>(info[0]).ToLocalChecked();
-  char* input_path = create_string(Nan::Get(options, Nan::New("file").ToLocalChecked()));
   struct Sass_File_Context* fctx = sass_make_file_context(input_path);
   struct Sass_Context* ctx = sass_file_context_get_context(fctx);
   sass_context_wrapper* ctx_w = sass_make_context_wrapper();
   int result = -1;
 
-  if ((result = ExtractOptions(options, fctx, ctx_w, true, true)) >= 0) {
+  if ((result = ExtractOptions(env, options, fctx, ctx_w, true, true)) >= 0) {
     compile_file(fctx);
-    result = GetResult(ctx_w, ctx, true);
+    result = GetResult(env, ctx_w, ctx, true);
   };
 
   free(input_path);
   sass_free_context_wrapper(ctx_w);
 
-  info.GetReturnValue().Set(result == 0);
+  napi_value b;
+  CHECK_NAPI_RESULT(napi_create_boolean(env, result == 0, &b));
+  CHECK_NAPI_RESULT(napi_set_return_value(env, info, b));
 }
 
-void libsass_version(napi_env env, napi_callback_info info) {
+NAPI_METHOD(libsass_version) {
   const char* ver = libsass_version();
   int len = (int)strlen(ver);
   napi_value str;
@@ -470,7 +521,7 @@ void Init(napi_env env, napi_value target, napi_value module) {
   CHECK_NAPI_RESULT(napi_set_property(env, target, nameRenderFileSync, functionRenderFileSync));
   CHECK_NAPI_RESULT(napi_set_property(env, target, nameLibsassVersion, functionLibsassVersion));
 
-  SassTypes::Factory::initExports(target);
+  SassTypes::Factory::initExports(env, target);
 }
 
 NODE_MODULE_ABI(binding, Init)

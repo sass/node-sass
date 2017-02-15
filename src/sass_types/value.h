@@ -3,6 +3,7 @@
 
 #include <nan.h>
 #include <sass/values.h>
+#include "..\common.h"
 
 namespace SassTypes
 {
@@ -10,7 +11,7 @@ namespace SassTypes
   class Value {
     public:
       virtual Sass_Value* get_sass_value() =0;
-      virtual v8::Local<v8::Object> get_js_object() =0;
+      virtual napi_value get_js_object(napi_env env) = 0;
   };
 }
 

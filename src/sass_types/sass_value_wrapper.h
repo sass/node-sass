@@ -6,6 +6,7 @@
 #include <nan.h>
 #include "value.h"
 #include "factory.h"
+#include <node_api_helpers.h>
 
 namespace SassTypes
 {
@@ -16,37 +17,40 @@ namespace SassTypes
     public:
       static char const* get_constructor_name() { return "SassValue"; }
 
-      SassValueWrapper(Sass_Value*);
+      SassValueWrapper(napi_env, Sass_Value*);
       virtual ~SassValueWrapper();
 
       Sass_Value* get_sass_value();
-      v8::Local<v8::Object> get_js_object();
+      napi_value get_js_object(napi_env);
 
-      static v8::Local<v8::Function> get_constructor();
-      static v8::Local<v8::FunctionTemplate> get_constructor_template();
-      static NAN_METHOD(New);
+      static napi_value get_constructor(napi_env);
+      static NAPI_METHOD(New);
       static Sass_Value *fail(const char *, Sass_Value **);
 
     protected:
       Sass_Value* value;
-      static T* unwrap(v8::Local<v8::Object>);
+      static T* unwrap(napi_env, napi_value);
 
     private:
-      static Nan::Persistent<v8::Function> constructor;
-      Nan::Persistent<v8::Object> js_object;
+      static napi_ref constructor;
+      napi_ref js_object;
+      napi_env e;
   };
 
   template <class T>
-  Nan::Persistent<v8::Function> SassValueWrapper<T>::constructor;
+  napi_ref SassValueWrapper<T>::constructor = nullptr;
 
   template <class T>
-  SassValueWrapper<T>::SassValueWrapper(Sass_Value* v) {
+  SassValueWrapper<T>::SassValueWrapper(napi_env env, Sass_Value* v) {
     this->value = sass_clone_value(v);
+    this->e = env;
+    this->js_object = nullptr;
   }
 
   template <class T>
   SassValueWrapper<T>::~SassValueWrapper() {
-    this->js_object.Reset();
+    int unused;
+    CHECK_NAPI_RESULT(napi_reference_release(this->e, this->js_object, &unused));
     sass_delete_value(this->value);
   }
 
@@ -56,70 +60,82 @@ namespace SassTypes
   }
 
   template <class T>
-  v8::Local<v8::Object> SassValueWrapper<T>::get_js_object() {
-    if (this->js_object.IsEmpty()) {
-      v8::Local<v8::Object> wrapper = Nan::NewInstance(T::get_constructor()).ToLocalChecked();
-      delete static_cast<T*>(Nan::GetInternalFieldPointer(wrapper, 0));
-      Nan::SetInternalFieldPointer(wrapper, 0, this);
-      this->js_object.Reset(wrapper);
+  napi_value SassValueWrapper<T>::get_js_object(napi_env env) {
+    if (this->js_object == nullptr) {
+      napi_value wrapper;
+      napi_value ctor = T::get_constructor(env);
+      CHECK_NAPI_RESULT(napi_new_instance(env, ctor, 0, nullptr, &wrapper));
+      void* wrapped;
+      CHECK_NAPI_RESULT(napi_unwrap(env, wrapper, &wrapped));
+      delete static_cast<T*>(wrapped);
+      CHECK_NAPI_RESULT(napi_wrap(env, wrapper, this, nullptr, nullptr));
+      CHECK_NAPI_RESULT(napi_create_reference(env, wrapper, 1, &this->js_object));
     }
 
-    return Nan::New(this->js_object);
+    napi_value v;
+    CHECK_NAPI_RESULT(napi_get_reference_value(env, this->js_object, &v));
+    return v;
+  }
+  
+  template <class T>
+  napi_value SassValueWrapper<T>::get_constructor(napi_env env) {
+    Napi::EscapableHandleScope scope;
+
+    napi_value ctor;
+    if (!constructor) {
+      ctor = T::getConstructor(env, New);
+      CHECK_NAPI_RESULT(napi_create_reference(env, ctor, 1, &constructor));
+    }
+    else {
+      CHECK_NAPI_RESULT(napi_get_reference_value(env, constructor, &ctor));
+    }
+
+    return scope.Escape(ctor);
   }
 
   template <class T>
-  v8::Local<v8::FunctionTemplate> SassValueWrapper<T>::get_constructor_template() {
-    Nan::EscapableHandleScope scope;
-    v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-    tpl->SetClassName(Nan::New<v8::String>(T::get_constructor_name()).ToLocalChecked());
-    tpl->InstanceTemplate()->SetInternalFieldCount(1);
-    T::initPrototype(tpl);
-
-    return scope.Escape(tpl);
-  }
-
-  template <class T>
-  v8::Local<v8::Function> SassValueWrapper<T>::get_constructor() {
-    if (constructor.IsEmpty()) {
-      constructor.Reset(Nan::GetFunction(T::get_constructor_template()).ToLocalChecked());
+  NAPI_METHOD(SassValueWrapper<T>::New) {
+    int argsLength;
+    CHECK_NAPI_RESULT(napi_get_cb_args_length(env, info, &argsLength));
+    std::vector<napi_value> localArgs(argsLength);
+    napi_value argv[argsLength];
+    CHECK_NAPI_RESULT(napi_get_cb_args(env, info, argv, argsLength));
+    
+    for (auto i = 0; i < argsLength; ++i) {
+      localArgs[i] = argv[i];
     }
+    
+    bool r;
+    CHECK_NAPI_RESULT(napi_is_construct_call(env, info, &r));
 
-    return Nan::New(constructor);
-  }
-
-  template <class T>
-  NAN_METHOD(SassValueWrapper<T>::New) {
-    std::vector<v8::Local<v8::Value>> localArgs(info.Length());
-
-    for (auto i = 0; i < info.Length(); ++i) {
-      localArgs[i] = info[i];
-    }
-    if (info.IsConstructCall()) {
+    if (r) {
       Sass_Value* value;
-      if (T::construct(localArgs, &value) != NULL) {
+      if (T::construct(env, localArgs, &value) != NULL) {
         T* obj = new T(value);
         sass_delete_value(value);
 
-        Nan::SetInternalFieldPointer(info.This(), 0, obj);
-        obj->js_object.Reset(info.This());
+        napi_value _this;
+        CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
+        CHECK_NAPI_RESULT(napi_wrap(env, _this, obj, nullptr, nullptr));
+        CHECK_NAPI_RESULT(napi_create_reference(env, _this, &obj->js_object));
       } else {
-        return Nan::ThrowError(Nan::New<v8::String>(sass_error_get_message(value)).ToLocalChecked());
+        CHECK_NAPI_RESULT(napi_throw_error(sass_error_get_message(value)));
+        return;
       }
     } else {
-      v8::Local<v8::Function> cons = T::get_constructor();
-      v8::Local<v8::Object> inst;
-      if (Nan::NewInstance(cons, info.Length(), &localArgs[0]).ToLocal(&inst)) {
-        info.GetReturnValue().Set(inst);
-      } else {
-        info.GetReturnValue().Set(Nan::Undefined());
-      }
+      napi_value ctor = T::get_constructor(env);
+      napi_value instance;
+      CHECK_NAPI_RESULT(napi_new_instance(env, ctor, argsLength, &localArgs[0], &instance));
+      CHECK_NAPI_RESULT(napi_set_return_value(env, info, instance));
+
+      // TODO: If new instance fails, return undefined
     }
   }
 
   template <class T>
-  T* SassValueWrapper<T>::unwrap(v8::Local<v8::Object> obj) {
+  T* SassValueWrapper<T>::unwrap(napi_env env, napi_value obj) {
     /* This maybe NULL */
-    return static_cast<T*>(Factory::unwrap(obj));
+    return static_cast<T*>(Factory::unwrap(env, obj));
   }
 
   template <class T>

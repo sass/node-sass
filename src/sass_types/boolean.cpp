@@ -1,75 +1,111 @@
-#include <nan.h>
 #include "boolean.h"
 
 namespace SassTypes
 {
-  Nan::Persistent<v8::Function> Boolean::constructor;
+  napi_ref Boolean::constructor = nullptr;
   bool Boolean::constructor_locked = false;
 
-  Boolean::Boolean(bool v) : value(v) {}
+  Boolean::Boolean(bool v) : value(v), js_object(nullptr) {}
 
   Boolean& Boolean::get_singleton(bool v) {
     static Boolean instance_false(false), instance_true(true);
     return v ? instance_true : instance_false;
   }
 
-  v8::Local<v8::Function> Boolean::get_constructor() {
-    Nan::EscapableHandleScope scope;
-    v8::Local<v8::Function> conslocal; 
-    if (constructor.IsEmpty()) {
-      v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
+  napi_value Boolean::get_constructor(napi_env env) {
+    Napi::EscapableHandleScope scope;
+    napi_value ctor;
 
-      tpl->SetClassName(Nan::New("SassBoolean").ToLocalChecked());
-      tpl->InstanceTemplate()->SetInternalFieldCount(1);
-      Nan::SetPrototypeTemplate(tpl, "getValue", Nan::New<v8::FunctionTemplate>(GetValue));
+    if (Boolean::constructor) {
+      CHECK_NAPI_RESULT(napi_get_reference_value(env, Boolean::constructor, &ctor));
+    } else {
+      napi_property_descriptor methods[] = {
+        { "getValue", Boolean::GetValue },
+      };
+      
+      CHECK_NAPI_RESULT(napi_define_class(env, "SassBoolean", Boolean::New, nullptr, 1, methods, &ctor));
+      CHECK_NAPI_RESULT(napi_create_reference(env, ctor, 1, &Boolean::constructor));
 
-      conslocal = Nan::GetFunction(tpl).ToLocalChecked();
-      constructor.Reset(conslocal);
+      Boolean& falseSingleton = get_singleton(false);
+      napi_value instance;
+      CHECK_NAPI_RESULT(napi_new_instance(env, ctor, 0, nullptr, &instance));
+      CHECK_NAPI_RESULT(napi_wrap(env, instance, &falseSingleton, nullptr, nullptr));
+      CHECK_NAPI_RESULT(napi_create_reference(env, instance, 1, &falseSingleton.js_object));
 
-      get_singleton(false).js_object.Reset(Nan::NewInstance(conslocal).ToLocalChecked());
-      Nan::SetInternalFieldPointer(Nan::New(get_singleton(false).js_object), 0, &get_singleton(false));
-      Nan::Set(conslocal, Nan::New("FALSE").ToLocalChecked(), Nan::New(get_singleton(false).js_object));
+      napi_propertyname falseName;
+      CHECK_NAPI_RESULT(napi_property_name(env, "FALSE", &falseName));
+      CHECK_NAPI_RESULT(napi_set_property(env, ctor, falseName, instance));
 
-      get_singleton(true).js_object.Reset(Nan::NewInstance(conslocal).ToLocalChecked());
-      Nan::SetInternalFieldPointer(Nan::New(get_singleton(true).js_object), 0, &get_singleton(true));
-      Nan::Set(conslocal, Nan::New("TRUE").ToLocalChecked(), Nan::New(get_singleton(true).js_object));
+      Boolean& trueSingleton = get_singleton(true);
+      napi_value instance;
+      CHECK_NAPI_RESULT(napi_new_instance(env, ctor, 0, nullptr, &instance));
+      CHECK_NAPI_RESULT(napi_wrap(env, instance, &trueSingleton, nullptr, nullptr));
+      CHECK_NAPI_RESULT(napi_create_reference(env, instance, 1, &trueSingleton.js_object));
+
+      napi_propertyname trueName;
+      CHECK_NAPI_RESULT(napi_property_name(env, "TRUE", &trueName));
+      CHECK_NAPI_RESULT(napi_set_property(env, ctor, trueName, instance));
 
       constructor_locked = true;
-    } else {
-      conslocal = Nan::New(constructor);
     }
 
-    return scope.Escape(conslocal);
+    return scope.Escape(ctor);
   }
 
   Sass_Value* Boolean::get_sass_value() {
     return sass_make_boolean(value);
   }
 
-  v8::Local<v8::Object> Boolean::get_js_object() {
-    return Nan::New(this->js_object);
+  napi_value Boolean::get_js_object(napi_env env) {
+    Napi::EscapableHandleScope scope;
+    napi_value v;
+    CHECK_NAPI_RESULT(napi_get_reference_value(env, this->js_object, &v));
+    return scope.Escape(v);
   }
 
-  NAN_METHOD(Boolean::New) {
+  NAPI_METHOD(Boolean::New) {
+    bool r;
+    CHECK_NAPI_RESULT(napi_is_construct_call(env, info, &r));
 
-    if (info.IsConstructCall()) {
+    if (r) {
       if (constructor_locked) {
-        return Nan::ThrowTypeError("Cannot instantiate SassBoolean");
+        CHECK_NAPI_RESULT(napi_throw_type_error(env, "Cannot instantiate SassBoolean"));
+        return;
       }
-    }
-    else {
-      if (info.Length() != 1 || !info[0]->IsBoolean()) {
-        return Nan::ThrowTypeError("Expected one boolean argument");
+    } else {
+      int argsLength;
+      CHECK_NAPI_RESULT(napi_get_cb_args_length(env, info, &argsLength));
+
+      if (argsLength != 1) {
+        CHECK_NAPI_RESULT(napi_throw_type_error(env, "Expected one boolean argument"));
+        return;
       }
 
-      info.GetReturnValue().Set(get_singleton(Nan::To<bool>(info[0]).FromJust()).get_js_object());
+      napi_value argv[1];
+      CHECK_NAPI_RESULT(napi_get_cb_args(env, info, argv, 1));
+      napi_valuetype t;
+      CHECK_NAPI_RESULT(napi_get_type_of_value(env, argv[0], &t));
+
+      if (t != napi_boolean) {
+        CHECK_NAPI_RESULT(napi_throw_type_error(env, "Expected one boolean argument"));
+        return;
+      }
+
+      CHECK_NAPI_RESULT(napi_get_value_bool(env, argv[0], &r));
+      napi_value obj = Boolean::get_singleton(r).get_js_object(env);
+      CHECK_NAPI_RESULT(napi_set_return_value(env, info, obj));
     }
   }
 
-  NAN_METHOD(Boolean::GetValue) {
-    Boolean *out;
-    if ((out = static_cast<Boolean*>(Factory::unwrap(info.This())))) { 
-      info.GetReturnValue().Set(Nan::New(out->value));
+  NAPI_METHOD(Boolean::GetValue) {
+    napi_value _this;
+    CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
+
+    Boolean *out = static_cast<Boolean*>(Factory::unwrap(env, _this));
+    if (out) {
+      napi_value b;
+      CHECK_NAPI_RESULT(napi_create_boolean(env, out->value, &b));
+      CHECK_NAPI_RESULT(napi_set_return_value(env, info, b));
     }
   }
 }
