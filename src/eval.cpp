@@ -185,8 +185,6 @@ namespace Sass {
     // only create iterator once in this environment
     Env env(environment(), true);
     exp.env_stack.push_back(&env);
-    Number_Ptr it = SASS_MEMORY_NEW(Number, low->pstate(), start, sass_end->unit());
-    env.set_local(variable, it);
     Block_Obj body = f->block();
     Expression_Ptr val = 0;
     if (start < end) {
@@ -194,7 +192,7 @@ namespace Sass {
       for (double i = start;
            i < end;
            ++i) {
-        it->value(i);
+        Number_Obj it = SASS_MEMORY_NEW(Number, low->pstate(), i, sass_end->unit());
         env.set_local(variable, it);
         val = body->perform(this);
         if (val) break;
@@ -204,7 +202,7 @@ namespace Sass {
       for (double i = start;
            i > end;
            --i) {
-        it->value(i);
+        Number_Obj it = SASS_MEMORY_NEW(Number, low->pstate(), i, sass_end->unit());
         env.set_local(variable, it);
         val = body->perform(this);
         if (val) break;
