@@ -17,6 +17,11 @@ os:
 env:
   global:
     - SKIP_SASS_BINARY_DOWNLOAD_FOR_CI=true
+    - secure: "iVtYk6Od3tj4xxjX9o0kYb26XyTVriOBK87gSa9i1LMx57v06VI4pK1Ldcq/uhFR9zzYRCEx5GdVuUUyb2eySH+AnWfp4BKNOxLKa0wFFzaMfuSwl2zvoXxJ1KXN8hfL3UjSzXRn1Z1xMbR/2AGQckDHmkMChcWy8d0WtQDMwv8="
+    - COVERITY_SCAN_PROJECT_NAME="sass/node-sass"
+    - COVERITY_SCAN_BRANCH_PATTERN="coverity_scan"
+    - COVERITY_SCAN_NOTIFICATION_EMAIL="XXX"
+    - COVERITY_SCAN_BUILD_COMMAND="echo 'already built'"
 
 matrix:
   fast_finish: true
@@ -59,6 +64,7 @@ script:
 after_success:
   - if [ $TRAVIS_OS_NAME == "linux" ] && [ $TRAVIS_NODE_VERSION == "4" ]; then
       npm run-script coverage;
+      curl -s "https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh" | bash || true ;
     fi
 
 cache:
