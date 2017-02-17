@@ -961,13 +961,13 @@ namespace Sass {
 
     // do some magic we inherit from node and extend
     Node node = subweave(lhsNode, rhsNode);
-    Selector_List_Ptr result = SASS_MEMORY_NEW(Selector_List, pstate());
+    Selector_List_Obj result = SASS_MEMORY_NEW(Selector_List, pstate());
     NodeDequePtr col = node.collection(); // move from collection to list
     for (NodeDeque::iterator it = col->begin(), end = col->end(); it != end; it++)
     { result->append(nodeToComplexSelector(Node::naiveTrim(*it))); }
 
     // only return if list has some entries
-    return result->length() ? result : 0;
+    return result->length() ? result.detach() : 0;
 
   }
 
