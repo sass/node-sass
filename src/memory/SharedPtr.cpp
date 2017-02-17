@@ -37,22 +37,20 @@ namespace Sass {
     , dbg(false)
     #endif
   {
-      refcounter = 0;
-      #ifdef DEBUG_SHARED_PTR
-        if (taint) all.push_back(this);
-      #endif
-    };
+    refcounter = 0;
+    #ifdef DEBUG_SHARED_PTR
+      if (taint) all.push_back(this);
+    #endif
+  };
 
-    SharedObj::~SharedObj() {
-      #ifdef DEBUG_SHARED_PTR
-          if (dbg) std::cerr << "Destruct " << this << "\n";
-          if(!all.empty()) { // check needed for MSVC (no clue why?)
-            all.erase(std::remove(all.begin(), all.end(), this), all.end());
-          }
-      #endif
-    };
-
-
+  SharedObj::~SharedObj() {
+    #ifdef DEBUG_SHARED_PTR
+      if (dbg) std::cerr << "Destruct " << this << "\n";
+      if(!all.empty()) { // check needed for MSVC (no clue why?)
+        all.erase(std::remove(all.begin(), all.end(), this), all.end());
+      }
+    #endif
+  };
 
   void SharedPtr::decRefCount() {
     if (node) {
