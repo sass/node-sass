@@ -15,7 +15,7 @@
 
 namespace Sass {
 
-  Inspect::Inspect(Emitter emi)
+  Inspect::Inspect(const Emitter& emi)
   : Emitter(emi)
   { }
   Inspect::~Inspect() { }
