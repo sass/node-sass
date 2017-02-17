@@ -2224,22 +2224,22 @@ namespace Sass {
     void adjust_after_pushing(Parameter_Obj p)
     {
       if (p->default_value()) {
-        if (has_rest_parameter_) {
+        if (has_rest_parameter()) {
           error("optional parameters may not be combined with variable-length parameters", p->pstate());
         }
-        has_optional_parameters_ = true;
+        has_optional_parameters(true);
       }
       else if (p->is_rest_parameter()) {
-        if (has_rest_parameter_) {
+        if (has_rest_parameter()) {
           error("functions and mixins cannot have more than one variable-length parameter", p->pstate());
         }
-        has_rest_parameter_ = true;
+        has_rest_parameter(true);
       }
       else {
-        if (has_rest_parameter_) {
+        if (has_rest_parameter()) {
           error("required parameters must precede variable-length parameters", p->pstate());
         }
-        if (has_optional_parameters_) {
+        if (has_optional_parameters()) {
           error("required parameters must precede optional parameters", p->pstate());
         }
       }

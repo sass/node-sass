@@ -1597,20 +1597,19 @@ namespace Sass {
 
     if (ltype == Expression::NULL_VAL) throw Exception::InvalidNullOperation(&lhs, &rhs, sass_op_to_name(op));
     if (rtype == Expression::NULL_VAL) throw Exception::InvalidNullOperation(&lhs, &rhs, sass_op_to_name(op));
-    if (op == Sass_OP::MOD) throw Exception::UndefinedOperation(&lhs, &rhs, sass_op_to_name(op));
-    if (op == Sass_OP::MUL) throw Exception::UndefinedOperation(&lhs, &rhs, sass_op_to_name(op));
     std::string sep;
     switch (op) {
       case Sass_OP::SUB: sep = "-"; break;
       case Sass_OP::DIV: sep = "/"; break;
-      case Sass_OP::MUL: sep = "*"; break;
-      case Sass_OP::MOD: sep = "%"; break;
+      // cases are already handled above
       case Sass_OP::EQ:  sep = "=="; break;
       case Sass_OP::NEQ:  sep = "!="; break;
       case Sass_OP::LT:  sep = "<"; break;
       case Sass_OP::GT:  sep = ">"; break;
       case Sass_OP::LTE:  sep = "<="; break;
       case Sass_OP::GTE:  sep = ">="; break;
+      case Sass_OP::MUL: throw Exception::UndefinedOperation(&lhs, &rhs, sass_op_to_name(op));
+      case Sass_OP::MOD: throw Exception::UndefinedOperation(&lhs, &rhs, sass_op_to_name(op));
       default:                      break;
     }
 

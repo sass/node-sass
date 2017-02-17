@@ -476,8 +476,6 @@ namespace Sass {
         ss->tabs(ss->tabs() + node->tabs());
         ss->group_end(node->group_end());
 
-        if (!ss) continue;
-
         Block_Obj bb = SASS_MEMORY_NEW(Block,
                                     children->pstate(),
                                     children->length(),
@@ -584,10 +582,11 @@ namespace Sass {
     }
 
     Media_Query_Ptr mm = SASS_MEMORY_NEW(Media_Query,
-
-mq1->pstate(), 0,
-mq1->length() + mq2->length(), mod == "not", mod == "only"
-);
+                                         mq1->pstate(),
+                                         0,
+                                         mq1->length() + mq2->length(),
+                                         mod == "not",
+                                         mod == "only");
 
     if (!type.empty()) {
       mm->media_type(SASS_MEMORY_NEW(String_Quoted, mq1->pstate(), type));

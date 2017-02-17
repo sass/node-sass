@@ -1688,31 +1688,31 @@ namespace Sass {
   void Arguments::adjust_after_pushing(Argument_Obj a)
   {
     if (!a->name().empty()) {
-      if (/* has_rest_argument_ || */ has_keyword_argument_) {
+      if (has_keyword_argument()) {
         error("named arguments must precede variable-length argument", a->pstate());
       }
-      has_named_arguments_ = true;
+      has_named_arguments(true);
     }
     else if (a->is_rest_argument()) {
-      if (has_rest_argument_) {
+      if (has_rest_argument()) {
         error("functions and mixins may only be called with one variable-length argument", a->pstate());
       }
       if (has_keyword_argument_) {
         error("only keyword arguments may follow variable arguments", a->pstate());
       }
-      has_rest_argument_ = true;
+      has_rest_argument(true);
     }
     else if (a->is_keyword_argument()) {
-      if (has_keyword_argument_) {
+      if (has_keyword_argument()) {
         error("functions and mixins may only be called with one keyword argument", a->pstate());
       }
-      has_keyword_argument_ = true;
+      has_keyword_argument(true);
     }
     else {
-      if (has_rest_argument_) {
+      if (has_rest_argument()) {
         error("ordinal arguments must precede variable-length arguments", a->pstate());
       }
-      if (has_named_arguments_) {
+      if (has_named_arguments()) {
         error("ordinal arguments must precede named arguments", a->pstate());
       }
     }
