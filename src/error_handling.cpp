@@ -111,12 +111,20 @@ namespace Sass {
     }
 
     IncompatibleUnits::IncompatibleUnits(const Number& lhs, const Number& rhs)
-    : lhs(lhs), rhs(rhs)
     {
       msg  = "Incompatible units: '";
       msg += rhs.unit();
       msg += "' and '";
       msg += lhs.unit();
+      msg += "'.";
+    }
+
+    IncompatibleUnits::IncompatibleUnits(const UnitType lhs, const UnitType rhs)
+    {
+      msg  = "Incompatible units: '";
+      msg += unit_to_string(rhs);
+      msg += "' and '";
+      msg += unit_to_string(lhs);
       msg += "'.";
     }
 

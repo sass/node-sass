@@ -66,27 +66,6 @@ namespace Sass {
   // throws incompatibleUnits exceptions
   double conversion_factor(const std::string&, const std::string&, bool = true);
 
-  class incompatibleUnits: public std::exception
-  {
-    public:
-      const char* msg;
-      incompatibleUnits(Sass::UnitType a, Sass::UnitType b)
-      : exception()
-      {
-        std::stringstream ss;
-        ss << "Incompatible units: ";
-        ss << "'" << unit_to_string(a) << "' and ";
-        ss << "'" << unit_to_string(b) << "'";
-        // hold on to string on stack!
-        std::string str(ss.str());
-        msg = str.c_str();
-      }
-      virtual const char* what() const throw()
-      {
-        return msg;
-      }
-  };
-
 }
 
 #endif
