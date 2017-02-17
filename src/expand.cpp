@@ -434,16 +434,13 @@ namespace Sass {
     Env env(environment(), true);
     env_stack.push_back(&env);
     call_stack.push_back(f);
-    Number_Obj it = SASS_MEMORY_NEW(Number, low->pstate(), start, sass_end->unit());
-    env.set_local(variable, it);
     Block_Ptr body = f->block();
     if (start < end) {
       if (f->is_inclusive()) ++end;
       for (double i = start;
            i < end;
            ++i) {
-        it = SASS_MEMORY_COPY(it);
-        it->value(i);
+        Number_Obj it = SASS_MEMORY_NEW(Number, low->pstate(), i, sass_end->unit());
         env.set_local(variable, it);
         append_block(body);
       }
@@ -452,8 +449,7 @@ namespace Sass {
       for (double i = start;
            i > end;
            --i) {
-        it = SASS_MEMORY_COPY(it);
-        it->value(i);
+        Number_Obj it = SASS_MEMORY_NEW(Number, low->pstate(), i, sass_end->unit());
         env.set_local(variable, it);
         append_block(body);
       }
