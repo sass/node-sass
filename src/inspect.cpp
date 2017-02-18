@@ -354,6 +354,8 @@ namespace Sass {
       if (items_output) append_comma_separator();
       key->perform(this);
       append_colon_separator();
+      LOCAL_FLAG(in_space_array, true);
+      LOCAL_FLAG(in_comma_array, true);
       map->at(key)->perform(this);
       items_output = true;
     }
