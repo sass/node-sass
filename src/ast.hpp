@@ -358,8 +358,11 @@ namespace Sass {
     void reset_duplicate_key() { duplicate_key_ = 0; }
     virtual void adjust_after_pushing(std::pair<Expression_Obj, Expression_Obj> p) { }
   public:
-    Hashed(size_t s = 0) : elements_(ExpressionMap(s)), list_(std::vector<Expression_Obj>())
-    { elements_.reserve(s); list_.reserve(s); reset_duplicate_key(); }
+    Hashed(size_t s = 0)
+    : elements_(ExpressionMap(s)),
+      list_(std::vector<Expression_Obj>()),
+      hash_(0), duplicate_key_(NULL)
+    { elements_.reserve(s); list_.reserve(s); }
     virtual ~Hashed();
     size_t length() const                  { return list_.size(); }
     bool empty() const                     { return list_.empty(); }
@@ -1036,9 +1039,13 @@ namespace Sass {
   class Content : public Statement {
     ADD_PROPERTY(Media_Block_Ptr, media_block)
   public:
-    Content(ParserState pstate) : Statement(pstate)
+    Content(ParserState pstate)
+    : Statement(pstate),
+      media_block_(NULL)
     { statement_type(CONTENT); }
-    Content(const Content* ptr) : Statement(ptr)
+    Content(const Content* ptr)
+    : Statement(ptr),
+      media_block_(ptr->media_block_)
     { statement_type(CONTENT); }
     ATTACH_AST_OPERATIONS(Content)
     ATTACH_OPERATIONS()
@@ -2217,22 +2224,22 @@ namespace Sass {
     void adjust_after_pushing(Parameter_Obj p)
     {
       if (p->default_value()) {
-        if (has_rest_parameter_) {
+        if (has_rest_parameter()) {
           error("optional parameters may not be combined with variable-length parameters", p->pstate());
         }
-        has_optional_parameters_ = true;
+        has_optional_parameters(true);
       }
       else if (p->is_rest_parameter()) {
-        if (has_rest_parameter_) {
+        if (has_rest_parameter()) {
           error("functions and mixins cannot have more than one variable-length parameter", p->pstate());
         }
-        has_rest_parameter_ = true;
+        has_rest_parameter(true);
       }
       else {
-        if (has_rest_parameter_) {
+        if (has_rest_parameter()) {
           error("required parameters must precede variable-length parameters", p->pstate());
         }
-        if (has_optional_parameters_) {
+        if (has_optional_parameters()) {
           error("required parameters must precede optional parameters", p->pstate());
         }
       }
@@ -2326,13 +2333,15 @@ namespace Sass {
     : AST_Node(pstate),
       contents_(c),
       connect_parent_(true),
-      media_block_(NULL)
+      media_block_(NULL),
+      hash_(0)
     { }
     Selector_Schema(const Selector_Schema* ptr)
     : AST_Node(ptr),
       contents_(ptr->contents_),
       connect_parent_(ptr->connect_parent_),
-      media_block_(ptr->media_block_)
+      media_block_(ptr->media_block_),
+      hash_(ptr->hash_)
     { }
     virtual bool has_parent_ref() const;
     virtual bool has_real_parent_ref() const;

@@ -778,7 +778,7 @@ namespace Sass {
         return hsla_impl(hsl_struct.h, hsl_struct.s, hsl_struct.l, alpha, ctx, pstate);
       }
       if (a) {
-        double ascale = (a ? ARGR("$alpha", Number, -100.0, 100.0)->value() : 0.0) / 100.0;
+        double ascale = (ARGR("$alpha", Number, -100.0, 100.0)->value()) / 100.0;
         return SASS_MEMORY_NEW(Color,
                                pstate,
                                color->r(),
@@ -826,7 +826,7 @@ namespace Sass {
         return hsla_impl(hsl_struct.h, hsl_struct.s, hsl_struct.l, alpha, ctx, pstate);
       }
       if (a) {
-        double alpha = a ? ARGR("$alpha", Number, 0, 1.0)->value() : color->a();
+        double alpha = ARGR("$alpha", Number, 0, 1.0)->value();
         return SASS_MEMORY_NEW(Color,
                                pstate,
                                color->r(),

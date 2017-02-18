@@ -60,13 +60,13 @@ namespace Sass {
 
     size_t depth()
     {
-      size_t d = 0;
+      size_t d = std::string::npos;
       Backtrace* p = parent;
       while (p) {
         ++d;
         p = p->parent;
       }
-      return d-1;
+      return d;
     }
 
   };

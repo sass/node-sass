@@ -1,6 +1,7 @@
 #include "sass.hpp"
 #include <stdexcept>
 #include "units.hpp"
+#include "error_handling.hpp"
 
 namespace Sass {
 
@@ -177,7 +178,7 @@ namespace Sass {
     size_t i2 = u2 - t2;
     // error if units are not of the same group
     // don't error for multiplication and division
-    if (strict && t1 != t2) throw incompatibleUnits(u1, u2);
+    if (strict && t1 != t2) throw Exception::IncompatibleUnits(u1, u2);
     // only process known units
     if (u1 != UNKNOWN && u2 != UNKNOWN) {
       switch (t1) {

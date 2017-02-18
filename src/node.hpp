@@ -61,7 +61,7 @@ namespace Sass {
     static Node createCombinator(const Complex_Selector::Combinator& combinator);
 
     // This method will klone the selector, stripping off the tail and combinator
-    static Node createSelector(Complex_Selector_Ptr pSelector);
+    static Node createSelector(const Complex_Selector& pSelector);
 
     static Node createCollection();
     static Node createCollection(const NodeDeque& values);

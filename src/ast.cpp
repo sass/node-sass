@@ -961,13 +961,13 @@ namespace Sass {
 
     // do some magic we inherit from node and extend
     Node node = subweave(lhsNode, rhsNode);
-    Selector_List_Ptr result = SASS_MEMORY_NEW(Selector_List, pstate());
+    Selector_List_Obj result = SASS_MEMORY_NEW(Selector_List, pstate());
     NodeDequePtr col = node.collection(); // move from collection to list
     for (NodeDeque::iterator it = col->begin(), end = col->end(); it != end; it++)
     { result->append(nodeToComplexSelector(Node::naiveTrim(*it))); }
 
     // only return if list has some entries
-    return result->length() ? result : 0;
+    return result->length() ? result.detach() : 0;
 
   }
 
@@ -1688,31 +1688,31 @@ namespace Sass {
   void Arguments::adjust_after_pushing(Argument_Obj a)
   {
     if (!a->name().empty()) {
-      if (/* has_rest_argument_ || */ has_keyword_argument_) {
+      if (has_keyword_argument()) {
         error("named arguments must precede variable-length argument", a->pstate());
       }
-      has_named_arguments_ = true;
+      has_named_arguments(true);
     }
     else if (a->is_rest_argument()) {
-      if (has_rest_argument_) {
+      if (has_rest_argument()) {
         error("functions and mixins may only be called with one variable-length argument", a->pstate());
       }
       if (has_keyword_argument_) {
         error("only keyword arguments may follow variable arguments", a->pstate());
       }
-      has_rest_argument_ = true;
+      has_rest_argument(true);
     }
     else if (a->is_keyword_argument()) {
-      if (has_keyword_argument_) {
+      if (has_keyword_argument()) {
         error("functions and mixins may only be called with one keyword argument", a->pstate());
       }
-      has_keyword_argument_ = true;
+      has_keyword_argument(true);
     }
     else {
-      if (has_rest_argument_) {
+      if (has_rest_argument()) {
         error("ordinal arguments must precede variable-length arguments", a->pstate());
       }
-      if (has_named_arguments_) {
+      if (has_named_arguments()) {
         error("ordinal arguments must precede named arguments", a->pstate());
       }
     }
@@ -1867,7 +1867,7 @@ namespace Sass {
     // maybe convert to other unit
     // easier implemented on its own
     try { convert(prefered, strict); }
-    catch (incompatibleUnits& err)
+    catch (Exception::IncompatibleUnits& err)
     { error(err.what(), pstate()); }
     catch (...) { throw; }
 

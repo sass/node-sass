@@ -54,15 +54,14 @@ namespace Sass {
     }
     json_append_member(json_srcmap, "sources", json_sources);
 
-    if (include_sources) {
+    if (include_sources && source_index.size()) {
       JsonNode *json_contents = json_mkarray();
       for (size_t i = 0; i < source_index.size(); ++i) {
         const Resource& resource(sources[source_index[i]]);
         JsonNode *json_content = json_mkstring(resource.contents);
         json_append_element(json_contents, json_content);
       }
-      if (json_contents->children.head)
-        json_append_member(json_srcmap, "sourcesContent", json_contents);
+      json_append_member(json_srcmap, "sourcesContent", json_contents);
     }
 
     JsonNode *json_names = json_mkarray();

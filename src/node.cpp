@@ -14,15 +14,15 @@ namespace Sass {
   }
 
 
-  Node Node::createSelector(Complex_Selector_Ptr pSelector) {
+  Node Node::createSelector(const Complex_Selector& pSelector) {
     NodeDequePtr null;
 
-    Complex_Selector_Ptr pStripped = SASS_MEMORY_COPY(pSelector);
+    Complex_Selector_Ptr pStripped = SASS_MEMORY_COPY(&pSelector);
     pStripped->tail(NULL);
     pStripped->combinator(Complex_Selector::ANCESTOR_OF);
 
     Node n(SELECTOR, Complex_Selector::ANCESTOR_OF, pStripped, null /*pCollection*/);
-    if (pSelector) n.got_line_feed = pSelector->has_line_feed();
+    n.got_line_feed = pSelector.has_line_feed();
     return n;
   }
 
@@ -196,7 +196,7 @@ namespace Sass {
 
       // the first Complex_Selector may contain a dummy head pointer, skip it.
       if (pToConvert->head() && !empty_parent_ref) {
-        node.collection()->push_back(Node::createSelector(pToConvert));
+        node.collection()->push_back(Node::createSelector(*pToConvert));
         if (has_lf) node.collection()->back().got_line_feed = has_lf;
         has_lf = false;
       }
