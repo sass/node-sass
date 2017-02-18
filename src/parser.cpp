@@ -1272,7 +1272,6 @@ namespace Sass {
       bool right_ws = peek < css_comments >() != NULL;
       operators.push_back({ op, left_ws, right_ws });
       operands.push_back(parse_expression());
-      left_ws = peek < css_comments >() != NULL;
     }
     // we are called recursively for list, so we first
     // fold inner binary expression which has delayed

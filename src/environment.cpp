@@ -128,8 +128,9 @@ namespace Sass {
   template <typename T>
   void Environment<T>::set_lexical(const std::string& key, T val)
   {
-    auto cur = this; bool shadow = false;
-    while (cur->is_lexical() || shadow) {
+    auto cur = this;
+    bool shadow = false;
+    while ((cur && cur->is_lexical()) || shadow) {
       if (cur->has_local(key)) {
         cur->set_local(key, val);
         return;

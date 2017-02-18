@@ -2081,7 +2081,7 @@ namespace Sass {
         error("\"" + str_sel + "\" failed to @extend \"" + str_ext + "\".\n"
               "The selector \"" + str_ext + "\" was not found.\n"
               "Use \"@extend " + str_ext + " !optional\" if the"
-                " extend should be able to fail.", ext->pstate());
+              " extend should be able to fail.", (ext ? ext->pstate() : NULL));
       }
     }
 
