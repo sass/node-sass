@@ -158,9 +158,6 @@ namespace Sass {
   class Variable;
   typedef Variable* Variable_Ptr;
   typedef Variable const* Variable_Ptr_Const;
-  class Textual;
-  typedef Textual* Textual_Ptr;
-  typedef Textual const* Textual_Ptr_Const;
   class Number;
   typedef Number* Number_Ptr;
   typedef Number const* Number_Ptr_Const;
@@ -321,7 +318,6 @@ namespace Sass {
   IMPL_MEM_OBJ(Custom_Warning);
   IMPL_MEM_OBJ(Custom_Error);
   IMPL_MEM_OBJ(Variable);
-  IMPL_MEM_OBJ(Textual);
   IMPL_MEM_OBJ(Number);
   IMPL_MEM_OBJ(Color);
   IMPL_MEM_OBJ(Boolean);

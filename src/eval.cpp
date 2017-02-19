@@ -641,8 +641,7 @@ namespace Sass {
           std::string value(str->value());
           const char* start = value.c_str();
           if (Prelexer::sequence < Prelexer::dimension, Prelexer::end_of_file >(start) != 0) {
-            Textual_Obj l = SASS_MEMORY_NEW(Textual, b->pstate(), Textual::DIMENSION, str->value());
-            lhs = l->perform(this);
+            lhs = Parser::lexed_dimension(b->pstate(), str->value());
           }
         }
         // If possible upgrade RHS to a number (for string to number compare)
@@ -650,8 +649,7 @@ namespace Sass {
           std::string value(str->value());
           const char* start = value.c_str();
           if (Prelexer::sequence < Prelexer::dimension, Prelexer::number >(start) != 0) {
-            Textual_Obj r = SASS_MEMORY_NEW(Textual, b->pstate(), Textual::DIMENSION, str->value());
-            rhs = r->perform(this);
+            rhs = Parser::lexed_dimension(b->pstate(), str->value());
           }
         }
       }
@@ -659,16 +657,6 @@ namespace Sass {
       To_Value to_value(ctx);
       Value_Obj v_l = Cast<Value>(lhs->perform(&to_value));
       Value_Obj v_r = Cast<Value>(rhs->perform(&to_value));
-
-      if (s2 && s2->has_interpolants() && s2->length()) {
-        Textual_Obj front = Cast<Textual>(s2->elements().front());
-        if (front && !front->is_interpolant())
-        {
-          // XXX: this is never hit via spec tests
-          schema_op = true;
-          rhs = front->perform(this);
-        }
-      }
 
       if (force_delay) {
         std::string str("");
@@ -1025,81 +1013,6 @@ namespace Sass {
     return value.detach();
   }
 
-  Expression_Ptr Eval::operator()(Textual_Ptr t)
-  {
-    using Prelexer::number;
-    Expression_Obj result = 0;
-    size_t L = t->value().length();
-    bool zero = !( (L > 0 && t->value().substr(0, 1) == ".") ||
-                   (L > 1 && t->value().substr(0, 2) == "0.") ||
-                   (L > 1 && t->value().substr(0, 2) == "-.")  ||
-                   (L > 2 && t->value().substr(0, 3) == "-0.")
-                 );
-
-    const std::string& text = t->value();
-    size_t num_pos = text.find_first_not_of(" \n\r\t");
-    if (num_pos == std::string::npos) num_pos = text.length();
-    size_t unit_pos = text.find_first_not_of("-+0123456789.", num_pos);
-    if (unit_pos == std::string::npos) unit_pos = text.length();
-    const std::string& num = text.substr(num_pos, unit_pos - num_pos);
-
-    switch (t->valtype())
-    {
-      case Textual::NUMBER:
-        result = SASS_MEMORY_NEW(Number,
-                                 t->pstate(),
-                                 sass_atof(num.c_str()),
-                                 "",
-                                 zero);
-        break;
-      case Textual::PERCENTAGE:
-        result = SASS_MEMORY_NEW(Number,
-                                 t->pstate(),
-                                 sass_atof(num.c_str()),
-                                 "%",
-                                 true);
-        break;
-      case Textual::DIMENSION:
-        result = SASS_MEMORY_NEW(Number,
-                                 t->pstate(),
-                                 sass_atof(num.c_str()),
-                                 Token(number(text.c_str())),
-                                 zero);
-        break;
-      case Textual::HEX: {
-        if (t->value().substr(0, 1) != "#") {
-          result = SASS_MEMORY_NEW(String_Quoted, t->pstate(), t->value());
-          break;
-        }
-        std::string hext(t->value().substr(1)); // chop off the '#'
-        if (hext.length() == 6) {
-          std::string r(hext.substr(0,2));
-          std::string g(hext.substr(2,2));
-          std::string b(hext.substr(4,2));
-          result = SASS_MEMORY_NEW(Color,
-                                   t->pstate(),
-                                   static_cast<double>(strtol(r.c_str(), NULL, 16)),
-                                   static_cast<double>(strtol(g.c_str(), NULL, 16)),
-                                   static_cast<double>(strtol(b.c_str(), NULL, 16)),
-                                   1, // alpha channel
-                                   t->value());
-        }
-        else {
-          result = SASS_MEMORY_NEW(Color,
-                                   t->pstate(),
-                                   static_cast<double>(strtol(std::string(2,hext[0]).c_str(), NULL, 16)),
-                                   static_cast<double>(strtol(std::string(2,hext[1]).c_str(), NULL, 16)),
-                                   static_cast<double>(strtol(std::string(2,hext[2]).c_str(), NULL, 16)),
-                                   1, // alpha channel
-                                   t->value());
-        }
-      } break;
-      default: break;
-    }
-    result->is_interpolant(t->is_interpolant());
-    return result.detach();
-  }
-
   Expression_Ptr Eval::operator()(Color_Ptr c)
   {
     return c;
@@ -1177,7 +1090,6 @@ namespace Sass {
     }
 
     // Value
-    // Textual
     // Function_Call
     // Selector_List
     // String_Quoted

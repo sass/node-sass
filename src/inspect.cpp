@@ -519,11 +519,6 @@ namespace Sass {
     append_token(var->name(), var);
   }
 
-  void Inspect::operator()(Textual_Ptr txt)
-  {
-    append_token(txt->value(), txt);
-  }
-
   void Inspect::operator()(Number_Ptr n)
   {
 

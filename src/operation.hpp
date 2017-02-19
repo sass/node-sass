@@ -47,7 +47,6 @@ namespace Sass {
     virtual T operator()(Custom_Warning_Ptr x)         = 0;
     virtual T operator()(Custom_Error_Ptr x)           = 0;
     virtual T operator()(Variable_Ptr x)               = 0;
-    virtual T operator()(Textual_Ptr x)                = 0;
     virtual T operator()(Number_Ptr x)                 = 0;
     virtual T operator()(Color_Ptr x)                  = 0;
     virtual T operator()(Boolean_Ptr x)                = 0;
@@ -129,7 +128,6 @@ namespace Sass {
     T operator()(Custom_Warning_Ptr x)         { return static_cast<D*>(this)->fallback(x); }
     T operator()(Custom_Error_Ptr x)           { return static_cast<D*>(this)->fallback(x); }
     T operator()(Variable_Ptr x)               { return static_cast<D*>(this)->fallback(x); }
-    T operator()(Textual_Ptr x)                { return static_cast<D*>(this)->fallback(x); }
     T operator()(Number_Ptr x)                 { return static_cast<D*>(this)->fallback(x); }
     T operator()(Color_Ptr x)                  { return static_cast<D*>(this)->fallback(x); }
     T operator()(Boolean_Ptr x)                { return static_cast<D*>(this)->fallback(x); }

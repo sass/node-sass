@@ -357,6 +357,18 @@ namespace Sass {
       }
       return 0;
     }
+
+  public:
+    static Number_Ptr lexed_number(const ParserState& pstate, const std::string& parsed);
+    static Number_Ptr lexed_dimension(const ParserState& pstate, const std::string& parsed);
+    static Number_Ptr lexed_percentage(const ParserState& pstate, const std::string& parsed);
+    static Expression_Ptr lexed_hex_color(const ParserState& pstate, const std::string& parsed);
+  private:
+    Number_Ptr lexed_number(const std::string& parsed) { return lexed_number(pstate, parsed); };
+    Number_Ptr lexed_dimension(const std::string& parsed) { return lexed_dimension(pstate, parsed); };
+    Number_Ptr lexed_percentage(const std::string& parsed) { return lexed_percentage(pstate, parsed); };
+    Expression_Ptr lexed_hex_color(const std::string& parsed) { return lexed_hex_color(pstate, parsed); };
+
   };
 
   size_t check_bom_chars(const char* src, const char *end, const unsigned char* bom, size_t len);

@@ -1790,6 +1790,8 @@ namespace Sass {
 
   void Number::normalize(const std::string& prefered, bool strict)
   {
+    // no conversion if unit is empty
+    if (prefered.empty() && numerator_units_.size() == 0 && denominator_units_.size() == 0) return;
 
     // first make sure same units cancel each other out
     // it seems that a map table will fit nicely to do this
@@ -2428,7 +2430,6 @@ namespace Sass {
   IMPLEMENT_AST_OPERATORS(Function_Call_Schema);
   IMPLEMENT_AST_OPERATORS(Block);
   IMPLEMENT_AST_OPERATORS(Content);
-  IMPLEMENT_AST_OPERATORS(Textual);
   IMPLEMENT_AST_OPERATORS(Trace);
   IMPLEMENT_AST_OPERATORS(Keyframe_Rule);
   IMPLEMENT_AST_OPERATORS(Bubble);
