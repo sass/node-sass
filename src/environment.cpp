@@ -53,12 +53,25 @@ namespace Sass {
   bool Environment<T>::has_local(const std::string& key) const
   { return local_frame_.find(key) != local_frame_.end(); }
 
+  template <typename T> EnvResult
+  Environment<T>::find_local(const std::string& key)
+  {
+    auto end = local_frame_.end();
+    auto it = local_frame_.find(key);
+    return EnvResult(it, it != end);
+  }
+
   template <typename T>
   T& Environment<T>::get_local(const std::string& key)
   { return local_frame_[key]; }
 
   template <typename T>
-  void Environment<T>::set_local(const std::string& key, T val)
+  void Environment<T>::set_local(const std::string& key, const T& val)
+  {
+    local_frame_[key] = val;
+  }
+  template <typename T>
+  void Environment<T>::set_local(const std::string& key, T&& val)
   {
     local_frame_[key] = val;
   }
@@ -86,7 +99,12 @@ namespace Sass {
   { return (*global_env())[key]; }
 
   template <typename T>
-  void Environment<T>::set_global(const std::string& key, T val)
+  void Environment<T>::set_global(const std::string& key, const T& val)
+  {
+    global_env()->local_frame_[key] = val;
+  }
+  template <typename T>
+  void Environment<T>::set_global(const std::string& key, T&& val)
   {
     global_env()->local_frame_[key] = val;
   }
@@ -126,13 +144,31 @@ namespace Sass {
   // either update already existing lexical value
   // or if flag is set, we create one if no lexical found
   template <typename T>
-  void Environment<T>::set_lexical(const std::string& key, T val)
+  void Environment<T>::set_lexical(const std::string& key, const T& val)
   {
-    auto cur = this;
+    Environment<T>* cur = this;
     bool shadow = false;
     while ((cur && cur->is_lexical()) || shadow) {
-      if (cur->has_local(key)) {
-        cur->set_local(key, val);
+      EnvResult rv(cur->find_local(key));
+      if (rv.found) {
+        rv.it->second = val;
+        return;
+      }
+      shadow = cur->is_shadow();
+      cur = cur->parent_;
+    }
+    set_local(key, val);
+  }
+  // this one moves the value
+  template <typename T>
+  void Environment<T>::set_lexical(const std::string& key, T&& val)
+  {
+    Environment<T>* cur = this;
+    bool shadow = false;
+    while ((cur && cur->is_lexical()) || shadow) {
+      EnvResult rv(cur->find_local(key));
+      if (rv.found) {
+        rv.it->second = val;
         return;
       }
       shadow = cur->is_shadow();
@@ -155,6 +191,20 @@ namespace Sass {
     }
     return false;
   }
+
+  // look on the full stack for key
+  // include all scopes available
+  template <typename T> EnvResult
+  Environment<T>::find(const std::string& key)
+  {
+    auto cur = this;
+    while (true) {
+      EnvResult rv(cur->find_local(key));
+      if (rv.found) return rv;
+      cur = cur->parent_;
+      if (!cur) return rv;
+    }
+  };
 
   // use array access for getter and setter functions
   template <typename T>

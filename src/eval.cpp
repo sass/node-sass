@@ -989,27 +989,19 @@ namespace Sass {
 
   Expression_Ptr Eval::operator()(Variable_Ptr v)
   {
-    std::string name(v->name());
     Expression_Obj value = 0;
     Env* env = environment();
-    if (env->has(name)) {
-      value = Cast<Expression>((*env)[name]);
-    }
+    const std::string& name(v->name());
+    EnvResult rv(env->find(name));
+    if (rv.found) value = static_cast<Expression*>(rv.it->second.ptr());
     else error("Undefined variable: \"" + v->name() + "\".", v->pstate());
-    if (Argument* arg = Cast<Argument>(value)) {
-      value = arg->value();
-    }
-
-    // behave according to as ruby sass (add leading zero)
-    if (Number_Ptr nr = Cast<Number>(value)) {
-      nr->zero(true);
-    }
-
+    if (Argument_Ptr arg = Cast<Argument>(value)) value = arg->value();
+    if (Number_Ptr nr = Cast<Number>(value)) nr->zero(true); // force flag
     value->is_interpolant(v->is_interpolant());
     if (force) value->is_expanded(false);
     value->set_delayed(false); // verified
     value = value->perform(this);
-    if(!force) (*env)[name] = value;
+    if(!force) rv.it->second = value;
     return value.detach();
   }
 
