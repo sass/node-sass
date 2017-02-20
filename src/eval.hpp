@@ -90,11 +90,11 @@ namespace Sass {
     static bool eq(Expression_Obj, Expression_Obj);
     static bool lt(Expression_Obj, Expression_Obj, std::string op);
     // -- arithmetic on the combinations that matter
-    static Value_Ptr op_numbers(enum Sass_OP, const Number&, const Number&, struct Sass_Inspect_Options opt, ParserState* pstate = 0);
-    static Value_Ptr op_number_color(enum Sass_OP, const Number&, const Color&, struct Sass_Inspect_Options opt, ParserState* pstate = 0);
-    static Value_Ptr op_color_number(enum Sass_OP, const Color&, const Number&, struct Sass_Inspect_Options opt, ParserState* pstate = 0);
-    static Value_Ptr op_colors(enum Sass_OP, const Color&, const Color&, struct Sass_Inspect_Options opt, ParserState* pstate = 0);
-    static Value_Ptr op_strings(Sass::Operand, Value&, Value&, struct Sass_Inspect_Options opt, ParserState* pstate = 0, bool interpolant = false);
+    static Value_Ptr op_numbers(enum Sass_OP, const Number&, const Number&, struct Sass_Inspect_Options opt, const ParserState& pstate);
+    static Value_Ptr op_number_color(enum Sass_OP, const Number&, const Color&, struct Sass_Inspect_Options opt, const ParserState& pstate);
+    static Value_Ptr op_color_number(enum Sass_OP, const Color&, const Number&, struct Sass_Inspect_Options opt, const ParserState& pstate);
+    static Value_Ptr op_colors(enum Sass_OP, const Color&, const Color&, struct Sass_Inspect_Options opt, const ParserState& pstate);
+    static Value_Ptr op_strings(Sass::Operand, Value&, Value&, struct Sass_Inspect_Options opt, const ParserState& pstate, bool interpolant = false);
 
   private:
     void interpolation(Context& ctx, std::string& res, Expression_Obj ex, bool into_quotes, bool was_itpl = false);

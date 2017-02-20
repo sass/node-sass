@@ -700,22 +700,22 @@ namespace Sass {
       if (l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
         Number_Ptr l_n = Cast<Number>(lhs);
         Number_Ptr r_n = Cast<Number>(rhs);
-        rv = op_numbers(op_type, *l_n, *r_n, ctx.c_options, &pstate);
+        rv = op_numbers(op_type, *l_n, *r_n, ctx.c_options, pstate);
       }
       else if (l_type == Expression::NUMBER && r_type == Expression::COLOR) {
         Number_Ptr l_n = Cast<Number>(lhs);
         Color_Ptr r_c = Cast<Color>(rhs);
-        rv = op_number_color(op_type, *l_n, *r_c, ctx.c_options, &pstate);
+        rv = op_number_color(op_type, *l_n, *r_c, ctx.c_options, pstate);
       }
       else if (l_type == Expression::COLOR && r_type == Expression::NUMBER) {
         Color_Ptr l_c = Cast<Color>(lhs);
         Number_Ptr r_n = Cast<Number>(rhs);
-        rv = op_color_number(op_type, *l_c, *r_n, ctx.c_options, &pstate);
+        rv = op_color_number(op_type, *l_c, *r_n, ctx.c_options, pstate);
       }
       else if (l_type == Expression::COLOR && r_type == Expression::COLOR) {
         Color_Ptr l_c = Cast<Color>(lhs);
         Color_Ptr r_c = Cast<Color>(rhs);
-        rv = op_colors(op_type, *l_c, *r_c, ctx.c_options, &pstate);
+        rv = op_colors(op_type, *l_c, *r_c, ctx.c_options, pstate);
       }
       else {
         To_Value to_value(ctx);
@@ -734,7 +734,7 @@ namespace Sass {
         if (r_type == Expression::MAP) {
           throw Exception::InvalidValue(*v_r);
         }
-        Value_Ptr ex = op_strings(b->op(), *v_l, *v_r, ctx.c_options, &pstate, !interpolant); // pass true to compress
+        Value_Ptr ex = op_strings(b->op(), *v_l, *v_r, ctx.c_options, pstate, !interpolant); // pass true to compress
         if (String_Constant_Ptr str = Cast<String_Constant>(ex))
         {
           if (str->concrete_type() == Expression::STRING)
@@ -1380,13 +1380,13 @@ namespace Sass {
     return *l < *r;
   }
 
-  Value_Ptr Eval::op_numbers(enum Sass_OP op, const Number& l, const Number& r, struct Sass_Inspect_Options opt, ParserState* pstate)
+  Value_Ptr Eval::op_numbers(enum Sass_OP op, const Number& l, const Number& r, struct Sass_Inspect_Options opt, const ParserState& pstate)
   {
     double lv = l.value();
     double rv = r.value();
     if (op == Sass_OP::DIV && rv == 0) {
       // XXX: this is never hit via spec tests
-      return SASS_MEMORY_NEW(String_Quoted, pstate ? *pstate : l.pstate(), lv ? "Infinity" : "NaN");
+      return SASS_MEMORY_NEW(String_Quoted, pstate, lv ? "Infinity" : "NaN");
     }
     if (op == Sass_OP::MOD && !rv) {
       // XXX: this is never hit via spec tests
@@ -1399,7 +1399,7 @@ namespace Sass {
     std::string l_unit(l.unit());
     std::string r_unit(tmp.unit());
     Number_Obj v = SASS_MEMORY_COPY(&l); // copy
-    v->pstate(pstate ? *pstate : l.pstate());
+    v->pstate(pstate);
     if (l_unit.empty() && (op == Sass_OP::ADD || op == Sass_OP::SUB || op == Sass_OP::MOD)) {
       v->numerator_units() = r.numerator_units();
       v->denominator_units() = r.denominator_units();
@@ -1431,14 +1431,14 @@ namespace Sass {
     return v.detach();
   }
 
-  Value_Ptr Eval::op_number_color(enum Sass_OP op, const Number& l, const Color& r, struct Sass_Inspect_Options opt, ParserState* pstate)
+  Value_Ptr Eval::op_number_color(enum Sass_OP op, const Number& l, const Color& r, struct Sass_Inspect_Options opt, const ParserState& pstate)
   {
     double lv = l.value();
     switch (op) {
       case Sass_OP::ADD:
       case Sass_OP::MUL: {
         return SASS_MEMORY_NEW(Color,
-                               pstate ? *pstate : l.pstate(),
+                               pstate,
                                ops[op](lv, r.r()),
                                ops[op](lv, r.g()),
                                ops[op](lv, r.b()),
@@ -1449,7 +1449,7 @@ namespace Sass {
         std::string sep(op == Sass_OP::SUB ? "-" : "/");
         std::string color(r.to_string(opt));
         return SASS_MEMORY_NEW(String_Quoted,
-                               pstate ? *pstate : l.pstate(),
+                               pstate,
                                l.to_string(opt)
                                + sep
                                + color);
@@ -1463,7 +1463,7 @@ namespace Sass {
     return NULL;
   }
 
-  Value_Ptr Eval::op_color_number(enum Sass_OP op, const Color& l, const Number& r, struct Sass_Inspect_Options opt, ParserState* pstate)
+  Value_Ptr Eval::op_color_number(enum Sass_OP op, const Color& l, const Number& r, struct Sass_Inspect_Options opt, const ParserState& pstate)
   {
     double rv = r.value();
     if (op == Sass_OP::DIV && !rv) {
@@ -1471,14 +1471,14 @@ namespace Sass {
       throw Exception::ZeroDivisionError(l, r);
     }
     return SASS_MEMORY_NEW(Color,
-                           pstate ? *pstate : l.pstate(),
+                           pstate,
                            ops[op](l.r(), rv),
                            ops[op](l.g(), rv),
                            ops[op](l.b(), rv),
                            l.a());
   }
 
-  Value_Ptr Eval::op_colors(enum Sass_OP op, const Color& l, const Color& r, struct Sass_Inspect_Options opt, ParserState* pstate)
+  Value_Ptr Eval::op_colors(enum Sass_OP op, const Color& l, const Color& r, struct Sass_Inspect_Options opt, const ParserState& pstate)
   {
     if (l.a() != r.a()) {
       throw Exception::AlphaChannelsNotEqual(&l, &r, "+");
@@ -1488,14 +1488,14 @@ namespace Sass {
       throw Exception::ZeroDivisionError(l, r);
     }
     return SASS_MEMORY_NEW(Color,
-                           pstate ? *pstate : l.pstate(),
+                           pstate,
                            ops[op](l.r(), r.r()),
                            ops[op](l.g(), r.g()),
                            ops[op](l.b(), r.b()),
                            l.a());
   }
 
-  Value_Ptr Eval::op_strings(Sass::Operand operand, Value& lhs, Value& rhs, struct Sass_Inspect_Options opt, ParserState* pstate, bool delayed)
+  Value_Ptr Eval::op_strings(Sass::Operand operand, Value& lhs, Value& rhs, struct Sass_Inspect_Options opt, const ParserState& pstate, bool delayed)
   {
     Expression::Concrete_Type ltype = lhs.concrete_type();
     Expression::Concrete_Type rtype = rhs.concrete_type();
@@ -1529,7 +1529,7 @@ namespace Sass {
          (sep != "/" || !rqstr || !rqstr->quote_mark()) */
     ) {
       // create a new string that might be quoted on output (but do not unquote what we pass)
-      return SASS_MEMORY_NEW(String_Quoted, pstate ? *pstate : lhs.pstate(), lstr + rstr, 0, false, true);
+      return SASS_MEMORY_NEW(String_Quoted, pstate, lstr + rstr, 0, false, true);
     }
 
     if (sep != "" && !delayed) {
@@ -1542,7 +1542,7 @@ namespace Sass {
       if (rqstr && rqstr->quote_mark()) rstr = quote(rstr);
     }
 
-    return SASS_MEMORY_NEW(String_Constant, pstate ? *pstate : lhs.pstate(), lstr + sep + rstr);
+    return SASS_MEMORY_NEW(String_Constant, pstate, lstr + sep + rstr);
   }
 
   Expression_Ptr cval_to_astnode(union Sass_Value* v, Backtrace* backtrace, ParserState pstate)
