@@ -9,11 +9,22 @@
 
 #include <cmath>
 #include <stdint.h>
+#if defined(_MSC_VER) && _MSC_VER >= 1800 && _MSC_VER < 1900 && defined(_M_X64)
+#include <mutex>
+#endif
 
 namespace Sass {
 
   double round(double val, size_t precision)
   {
+    // Disable FMA3-optimized implementation when compiling with VS2013 for x64 targets
+    // See https://github.com/sass/node-sass/issues/1854 for details
+    // FIXME: Remove this workaround when we switch to VS2015+
+    #if defined(_MSC_VER) && _MSC_VER >= 1800 && _MSC_VER < 1900 && defined(_M_X64)
+      static std::once_flag flag;
+      std::call_once(flag, []() { _set_FMA3_enable(0); });
+    #endif
+
     // https://github.com/sass/sass/commit/4e3e1d5684cc29073a507578fc977434ff488c93
     if (fmod(val, 1) - 0.5 > - std::pow(0.1, precision + 1)) return std::ceil(val);
     else if (fmod(val, 1) - 0.5 > std::pow(0.1, precision)) return std::floor(val);
@@ -557,8 +568,8 @@ namespace Sass {
             return true;
           }
         }
-        else if (Media_Block_Ptr m = Cast<Media_Block>(stm)) {
-          if (isPrintable(m, style)) {
+        else if (Media_Block_Ptr mb = Cast<Media_Block>(stm)) {
+          if (isPrintable(mb, style)) {
             return true;
           }
         }

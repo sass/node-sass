@@ -1,6 +1,7 @@
 #include "sass.hpp"
 #include <stdexcept>
 #include "units.hpp"
+#include "error_handling.hpp"
 
 namespace Sass {
 
@@ -53,12 +54,12 @@ namespace Sass {
   {
     switch (unit & 0xFF00)
     {
-      case UnitClass::LENGTH:      return UnitClass::LENGTH; break;
-      case UnitClass::ANGLE:       return UnitClass::ANGLE; break;
-      case UnitClass::TIME:        return UnitClass::TIME; break;
-      case UnitClass::FREQUENCY:   return UnitClass::FREQUENCY; break;
-      case UnitClass::RESOLUTION:  return UnitClass::RESOLUTION; break;
-      default:                     return UnitClass::INCOMMENSURABLE; break;
+      case UnitClass::LENGTH:      return UnitClass::LENGTH;
+      case UnitClass::ANGLE:       return UnitClass::ANGLE;
+      case UnitClass::TIME:        return UnitClass::TIME;
+      case UnitClass::FREQUENCY:   return UnitClass::FREQUENCY;
+      case UnitClass::RESOLUTION:  return UnitClass::RESOLUTION;
+      default:                     return UnitClass::INCOMMENSURABLE;
     }
   };
 
@@ -66,12 +67,12 @@ namespace Sass {
   {
     switch (unit & 0xFF00)
     {
-      case UnitClass::LENGTH:      return "LENGTH"; break;
-      case UnitClass::ANGLE:       return "ANGLE"; break;
-      case UnitClass::TIME:        return "TIME"; break;
-      case UnitClass::FREQUENCY:   return "FREQUENCY"; break;
-      case UnitClass::RESOLUTION:  return "RESOLUTION"; break;
-      default:                     return "INCOMMENSURABLE"; break;
+      case UnitClass::LENGTH:      return "LENGTH";
+      case UnitClass::ANGLE:       return "ANGLE";
+      case UnitClass::TIME:        return "TIME";
+      case UnitClass::FREQUENCY:   return "FREQUENCY";
+      case UnitClass::RESOLUTION:  return "RESOLUTION";
+      default:                     return "INCOMMENSURABLE";
     }
   };
 
@@ -107,29 +108,29 @@ namespace Sass {
   {
     switch (unit) {
       // size units
-      case UnitType::PX:      return "px"; break;
-      case UnitType::PT:      return "pt"; break;
-      case UnitType::PC:      return "pc"; break;
-      case UnitType::MM:      return "mm"; break;
-      case UnitType::CM:      return "cm"; break;
-      case UnitType::IN:      return "in"; break;
+      case UnitType::PX:      return "px";
+      case UnitType::PT:      return "pt";
+      case UnitType::PC:      return "pc";
+      case UnitType::MM:      return "mm";
+      case UnitType::CM:      return "cm";
+      case UnitType::IN:      return "in";
       // angle units
-      case UnitType::DEG:     return "deg"; break;
-      case UnitType::GRAD:    return "grad"; break;
-      case UnitType::RAD:     return "rad"; break;
-      case UnitType::TURN:    return "turn"; break;
+      case UnitType::DEG:     return "deg";
+      case UnitType::GRAD:    return "grad";
+      case UnitType::RAD:     return "rad";
+      case UnitType::TURN:    return "turn";
       // time units
-      case UnitType::SEC:     return "s"; break;
-      case UnitType::MSEC:    return "ms"; break;
+      case UnitType::SEC:     return "s";
+      case UnitType::MSEC:    return "ms";
       // frequency units
-      case UnitType::HERTZ:   return "Hz"; break;
-      case UnitType::KHERTZ:  return "kHz"; break;
+      case UnitType::HERTZ:   return "Hz";
+      case UnitType::KHERTZ:  return "kHz";
       // resolutions units
-      case UnitType::DPI:     return "dpi"; break;
-      case UnitType::DPCM:    return "dpcm"; break;
-      case UnitType::DPPX:    return "dppx"; break;
+      case UnitType::DPI:     return "dpi";
+      case UnitType::DPCM:    return "dpcm";
+      case UnitType::DPPX:    return "dppx";
       // for unknown units
-      default:                return ""; break;
+      default:                return "";
     }
   }
 
@@ -177,17 +178,18 @@ namespace Sass {
     size_t i2 = u2 - t2;
     // error if units are not of the same group
     // don't error for multiplication and division
-    if (strict && t1 != t2) throw incompatibleUnits(u1, u2);
+    if (strict && t1 != t2) throw Exception::IncompatibleUnits(u1, u2);
     // only process known units
     if (u1 != UNKNOWN && u2 != UNKNOWN) {
       switch (t1) {
-        case UnitClass::LENGTH:            return size_conversion_factors[i1][i2]; break;
-        case UnitClass::ANGLE:             return angle_conversion_factors[i1][i2]; break;
-        case UnitClass::TIME:              return time_conversion_factors[i1][i2]; break;
-        case UnitClass::FREQUENCY:         return frequency_conversion_factors[i1][i2]; break;
-        case UnitClass::RESOLUTION:        return resolution_conversion_factors[i1][i2]; break;
+        case UnitClass::LENGTH:            return size_conversion_factors[i1][i2];
+        case UnitClass::ANGLE:             return angle_conversion_factors[i1][i2];
+        case UnitClass::TIME:              return time_conversion_factors[i1][i2];
+        case UnitClass::FREQUENCY:         return frequency_conversion_factors[i1][i2];
+        case UnitClass::RESOLUTION:        return resolution_conversion_factors[i1][i2];
         // ToDo: should we throw error here?
-        case UnitClass::INCOMMENSURABLE:   return 0; break;
+        case UnitClass::INCOMMENSURABLE:   return 0;
+        default: break;
       }
     }
     // fallback

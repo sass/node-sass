@@ -185,8 +185,6 @@ namespace Sass {
     // only create iterator once in this environment
     Env env(environment(), true);
     exp.env_stack.push_back(&env);
-    Number_Ptr it = SASS_MEMORY_NEW(Number, low->pstate(), start, sass_end->unit());
-    env.set_local(variable, it);
     Block_Obj body = f->block();
     Expression_Ptr val = 0;
     if (start < end) {
@@ -194,7 +192,7 @@ namespace Sass {
       for (double i = start;
            i < end;
            ++i) {
-        it->value(i);
+        Number_Obj it = SASS_MEMORY_NEW(Number, low->pstate(), i, sass_end->unit());
         env.set_local(variable, it);
         val = body->perform(this);
         if (val) break;
@@ -204,7 +202,7 @@ namespace Sass {
       for (double i = start;
            i > end;
            --i) {
-        it->value(i);
+        Number_Obj it = SASS_MEMORY_NEW(Number, low->pstate(), i, sass_end->unit());
         env.set_local(variable, it);
         val = body->perform(this);
         if (val) break;
@@ -266,11 +264,11 @@ namespace Sass {
         list = Cast<List>(list);
       }
       for (size_t i = 0, L = list->length(); i < L; ++i) {
-        Expression_Ptr e = list->at(i);
+        Expression_Ptr item = list->at(i);
         // unwrap value if the expression is an argument
-        if (Argument_Ptr arg = Cast<Argument>(e)) e = arg->value();
+        if (Argument_Ptr arg = Cast<Argument>(item)) item = arg->value();
         // check if we got passed a list of args (investigate)
-        if (List_Ptr scalars = Cast<List>(e)) {
+        if (List_Ptr scalars = Cast<List>(item)) {
           if (variables.size() == 1) {
             Expression_Ptr var = scalars;
             env.set_local(variables[0], var);
@@ -285,7 +283,7 @@ namespace Sass {
           }
         } else {
           if (variables.size() > 0) {
-            env.set_local(variables.at(0), e);
+            env.set_local(variables.at(0), item);
             for (size_t j = 1, K = variables.size(); j < K; ++j) {
               // XXX: this is never hit via spec tests
               Expression_Ptr res = SASS_MEMORY_NEW(Null, expr->pstate());
@@ -604,11 +602,11 @@ namespace Sass {
     switch (op_type) {
       case Sass_OP::AND: {
         return *lhs ? b->right()->perform(this) : lhs.detach();
-      } break;
+      }
 
       case Sass_OP::OR: {
         return *lhs ? lhs.detach() : b->right()->perform(this);
-      } break;
+      }
 
       default:
         break;
@@ -618,8 +616,8 @@ namespace Sass {
     AST_Node_Obj lu = lhs;
     AST_Node_Obj ru = rhs;
 
-    Expression::Concrete_Type l_type = lhs->concrete_type();
-    Expression::Concrete_Type r_type = rhs->concrete_type();
+    Expression::Concrete_Type l_type;
+    Expression::Concrete_Type r_type;
 
     // Is one of the operands an interpolant?
     String_Schema_Obj s1 = Cast<String_Schema>(b->left());
@@ -661,8 +659,6 @@ namespace Sass {
       To_Value to_value(ctx);
       Value_Obj v_l = Cast<Value>(lhs->perform(&to_value));
       Value_Obj v_r = Cast<Value>(rhs->perform(&to_value));
-      l_type = lhs->concrete_type();
-      r_type = rhs->concrete_type();
 
       if (s2 && s2->has_interpolants() && s2->length()) {
         Textual_Obj front = Cast<Textual>(s2->elements().front());
@@ -710,7 +706,7 @@ namespace Sass {
 
     // ToDo: throw error in op functions
     // ToDo: then catch and re-throw them
-    Expression_Obj rv = 0;
+    Expression_Obj rv;
     try {
       ParserState pstate(b->pstate());
       if (l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
@@ -1098,6 +1094,7 @@ namespace Sass {
                                    t->value());
         }
       } break;
+      default: break;
     }
     result->is_interpolant(t->is_interpolant());
     return result.detach();
@@ -1517,8 +1514,6 @@ namespace Sass {
       v->value(ops[op](lv, r.value() * r.convert_factor(l)));
       // v->normalize();
       return v.detach();
-
-      v->value(ops[op](lv, tmp.value()));
     }
     v->normalize();
     return v.detach();
@@ -1536,7 +1531,7 @@ namespace Sass {
                                ops[op](lv, r.g()),
                                ops[op](lv, r.b()),
                                r.a());
-      } break;
+      }
       case Sass_OP::SUB:
       case Sass_OP::DIV: {
         std::string sep(op == Sass_OP::SUB ? "-" : "/");
@@ -1546,10 +1541,10 @@ namespace Sass {
                                l.to_string(opt)
                                + sep
                                + color);
-      } break;
+      }
       case Sass_OP::MOD: {
         throw Exception::UndefinedOperation(&l, &r, sass_op_to_name(op));
-      } break;
+      }
       default: break; // caller should ensure that we don't get here
     }
     // unreachable
@@ -1602,20 +1597,19 @@ namespace Sass {
 
     if (ltype == Expression::NULL_VAL) throw Exception::InvalidNullOperation(&lhs, &rhs, sass_op_to_name(op));
     if (rtype == Expression::NULL_VAL) throw Exception::InvalidNullOperation(&lhs, &rhs, sass_op_to_name(op));
-    if (op == Sass_OP::MOD) throw Exception::UndefinedOperation(&lhs, &rhs, sass_op_to_name(op));
-    if (op == Sass_OP::MUL) throw Exception::UndefinedOperation(&lhs, &rhs, sass_op_to_name(op));
     std::string sep;
     switch (op) {
       case Sass_OP::SUB: sep = "-"; break;
       case Sass_OP::DIV: sep = "/"; break;
-      case Sass_OP::MUL: sep = "*"; break;
-      case Sass_OP::MOD: sep = "%"; break;
+      // cases are already handled above
       case Sass_OP::EQ:  sep = "=="; break;
       case Sass_OP::NEQ:  sep = "!="; break;
       case Sass_OP::LT:  sep = "<"; break;
       case Sass_OP::GT:  sep = ">"; break;
       case Sass_OP::LTE:  sep = "<="; break;
       case Sass_OP::GTE:  sep = ">="; break;
+      case Sass_OP::MUL: throw Exception::UndefinedOperation(&lhs, &rhs, sass_op_to_name(op));
+      case Sass_OP::MOD: throw Exception::UndefinedOperation(&lhs, &rhs, sass_op_to_name(op));
       default:                      break;
     }
 
@@ -1687,6 +1681,7 @@ namespace Sass {
       case SASS_WARNING: {
         error("Warning in C function: " + std::string(sass_warning_get_message(v)), pstate, backtrace);
       } break;
+      default: break;
     }
     return e;
   }
@@ -1727,7 +1722,7 @@ namespace Sass {
   Selector_List_Ptr Eval::operator()(Complex_Selector_Ptr s)
   {
     bool implicit_parent = !exp.old_at_root_without_rule;
-    return s->resolve_parent_refs(ctx, exp.selector_stack, implicit_parent);
+    return s->resolve_parent_refs(exp.selector_stack, implicit_parent);
   }
 
   // XXX: this is never hit via spec tests

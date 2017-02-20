@@ -7,8 +7,13 @@ environment:
   matrix:
   - Compiler: msvc
     Config: Release
+    Platform: Win32
   - Compiler: msvc
     Config: Debug
+    Platform: Win32
+  - Compiler: msvc
+    Config: Release
+    Platform: Win64
   - Compiler: mingw
     Build: static
   - Compiler: mingw
@@ -38,7 +43,7 @@ build_script:
       if ($env:Compiler -eq "mingw") {
         mingw32-make -j4 sassc
       } else {
-        msbuild /m:4 /p:Configuration=$env:Config sassc\win\sassc.sln
+        msbuild /m:4 /p:"Configuration=$env:Config;Platform=$env:Platform" sassc\win\sassc.sln
       }
 
       # print the branding art
@@ -84,4 +89,3 @@ test_script:
       } else {
         echo "Success!"
       }
-

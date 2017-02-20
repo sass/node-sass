@@ -221,6 +221,7 @@ extern "C" {
         case SASS_WARNING: {
                 free(val->error.message);
         }   break;
+        default: break;
     }
 
     free(val);
@@ -236,26 +237,26 @@ extern "C" {
     switch(val->unknown.tag) {
         case SASS_NULL: {
                 return sass_make_null();
-        }   break;
+        }
         case SASS_BOOLEAN: {
                 return sass_make_boolean(val->boolean.value);
-        }   break;
+        }
         case SASS_NUMBER: {
                 return sass_make_number(val->number.value, val->number.unit);
-        }   break;
+        }
         case SASS_COLOR: {
                 return sass_make_color(val->color.r, val->color.g, val->color.b, val->color.a);
-        }   break;
+        }
         case SASS_STRING: {
                 return sass_string_is_quoted(val) ? sass_make_qstring(val->string.value) : sass_make_string(val->string.value);
-        }   break;
+        }
         case SASS_LIST: {
                 union Sass_Value* list = sass_make_list(val->list.length, val->list.separator, val->list.is_bracketed);
                 for (i = 0; i < list->list.length; i++) {
                     list->list.values[i] = sass_clone_value(val->list.values[i]);
                 }
                 return list;
-        }   break;
+        }
         case SASS_MAP: {
                 union Sass_Value* map = sass_make_map(val->map.length);
                 for (i = 0; i < val->map.length; i++) {
@@ -263,13 +264,14 @@ extern "C" {
                     map->map.pairs[i].value = sass_clone_value(val->map.pairs[i].value);
                 }
                 return map;
-        }   break;
+        }
         case SASS_ERROR: {
                 return sass_make_error(val->error.message);
-        }   break;
+        }
         case SASS_WARNING: {
                 return sass_make_warning(val->warning.message);
-        }   break;
+        }
+        default: break;
     }
 
     return 0;
@@ -287,7 +289,7 @@ extern "C" {
   union Sass_Value* ADDCALL sass_value_op (enum Sass_OP op, const union Sass_Value* a, const union Sass_Value* b)
   {
 
-    Sass::Value_Ptr rv = 0;
+    Sass::Value_Ptr rv;
 
     try {
 
@@ -349,9 +351,6 @@ extern "C" {
     catch (std::string& e) { return sass_make_error(e.c_str()); }
     catch (const char* e) { return sass_make_error(e); }
     catch (...) { return sass_make_error("unknown"); }
-
-    return 0;
-
   }
 
 }

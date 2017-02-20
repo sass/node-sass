@@ -61,15 +61,15 @@ namespace Sass {
     static Node createCombinator(const Complex_Selector::Combinator& combinator);
 
     // This method will klone the selector, stripping off the tail and combinator
-    static Node createSelector(Complex_Selector_Ptr pSelector, Context& ctx);
+    static Node createSelector(const Complex_Selector& pSelector);
 
     static Node createCollection();
     static Node createCollection(const NodeDeque& values);
 
     static Node createNil();
-    static Node naiveTrim(Node& seqses, Context& ctx);
+    static Node naiveTrim(Node& seqses);
 
-    Node klone(Context& ctx) const;
+    Node klone() const;
 
     bool operator==(const Node& rhs) const;
     inline bool operator!=(const Node& rhs) const { return !(*this == rhs); }
@@ -91,7 +91,7 @@ namespace Sass {
     // potentialChild must be a node collection of selectors/combinators. this must be a collection
     // of collections of nodes/combinators. This method checks if potentialChild is a child of this
     // Node.
-    bool contains(const Node& potentialChild, bool simpleSelectorOrderDependent) const;
+    bool contains(const Node& potentialChild) const;
 
   private:
     // Private constructor; Use the static methods (like createCombinator and createSelector)
@@ -110,8 +110,8 @@ namespace Sass {
 #ifdef DEBUG
   std::ostream& operator<<(std::ostream& os, const Node& node);
 #endif
-  Node complexSelectorToNode(Complex_Selector_Ptr pToConvert, Context& ctx);
-  Complex_Selector_Ptr nodeToComplexSelector(const Node& toConvert, Context& ctx);
+  Node complexSelectorToNode(Complex_Selector_Ptr pToConvert);
+  Complex_Selector_Ptr nodeToComplexSelector(const Node& toConvert);
 
 }
 

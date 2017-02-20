@@ -199,7 +199,6 @@ namespace Sass {
   static int handle_errors(Sass_Context* c_ctx) {
     try { return handle_error(c_ctx); }
     catch (...) { return handle_error(c_ctx); }
-    return c_ctx->error_status;
   }
 
   static Block_Obj sass_parse_block(Sass_Compiler* compiler) throw()
@@ -331,7 +330,9 @@ extern "C" {
       c_ctx->error_column = std::string::npos;
 
       // allocate a new compiler instance
-      Sass_Compiler* compiler = (struct Sass_Compiler*) calloc(1, sizeof(struct Sass_Compiler));
+      void* ctxmem = calloc(1, sizeof(struct Sass_Compiler));
+      if (ctxmem == 0) { std::cerr << "Error allocating memory for context" << std::endl; return 0; }
+      Sass_Compiler* compiler = (struct Sass_Compiler*) ctxmem;
       compiler->state = SASS_COMPILER_CREATED;
 
       // store in sass compiler

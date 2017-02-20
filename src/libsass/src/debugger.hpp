@@ -492,10 +492,10 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     Textual_Ptr expression = Cast<Textual>(node);
     std::cerr << ind << "Textual " << expression;
     std::cerr << " (" << pstate_source_position(node) << ")";
-    if (expression->type() == Textual::NUMBER) std::cerr << " [NUMBER]";
-    else if (expression->type() == Textual::PERCENTAGE) std::cerr << " [PERCENTAGE]";
-    else if (expression->type() == Textual::DIMENSION) std::cerr << " [DIMENSION]";
-    else if (expression->type() == Textual::HEX) std::cerr << " [HEX]";
+    if (expression->valtype() == Textual::NUMBER) std::cerr << " [NUMBER]";
+    else if (expression->valtype() == Textual::PERCENTAGE) std::cerr << " [PERCENTAGE]";
+    else if (expression->valtype() == Textual::DIMENSION) std::cerr << " [DIMENSION]";
+    else if (expression->valtype() == Textual::HEX) std::cerr << " [HEX]";
     std::cerr << " [" << expression->value() << "]";
     std::cerr << " [interpolant: " << expression->is_interpolant() << "] ";
     if (expression->is_delayed()) std::cerr << " [delayed]";
