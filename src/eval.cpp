@@ -52,7 +52,10 @@ namespace Sass {
     ctx(exp.ctx),
     force(false),
     is_in_comment(false)
-  { }
+  {
+    bool_true = SASS_MEMORY_NEW(Boolean, "[NA]", true);
+    bool_false = SASS_MEMORY_NEW(Boolean, "[NA]", false);
+  }
   Eval::~Eval() { }
 
   Env* Eval::environment()
@@ -535,9 +538,138 @@ namespace Sass {
   Expression_Ptr Eval::operator()(Binary_Expression_Ptr b_in)
   {
 
-    String_Schema_Obj ret_schema;
+    Expression_Obj lhs = b_in->left();
+    Expression_Obj rhs = b_in->right();
+    enum Sass_OP op_type = b_in->optype();
+
+    if (op_type == Sass_OP::AND) {
+      // LOCAL_FLAG(force, true);
+      lhs = lhs->perform(this);
+      if (!*lhs) return lhs.detach();
+      return rhs->perform(this);
+    }
+    else if (op_type == Sass_OP::OR) {
+      // LOCAL_FLAG(force, true);
+      lhs = lhs->perform(this);
+      if (*lhs) return lhs.detach();
+      return rhs->perform(this);
+    }
+
+    // Evaluate variables as early o
+    while (Variable_Ptr l_v = Cast<Variable>(lhs)) {
+      lhs = operator()(l_v);
+    }
+    while (Variable_Ptr r_v = Cast<Variable>(rhs)) {
+      rhs = operator()(r_v);
+    }
+
     Binary_Expression_Obj b = b_in;
-    enum Sass_OP op_type = b->optype();
+
+    // Evaluate sub-expressions early on
+    while (Binary_Expression_Ptr l_b = Cast<Binary_Expression>(lhs)) {
+      if (!force && l_b->is_delayed()) break;
+      lhs = operator()(l_b);
+    }
+    while (Binary_Expression_Ptr r_b = Cast<Binary_Expression>(rhs)) {
+      if (!force && r_b->is_delayed()) break;
+      rhs = operator()(r_b);
+    }
+
+    // don't eval delayed expressions (the '/' when used as a separator)
+    if (!force && op_type == Sass_OP::DIV && b->is_delayed()) {
+      b->right(b->right()->perform(this));
+      b->left(b->left()->perform(this));
+      return b.detach();
+    }
+
+    // specific types we know are final
+    // handle them early to avoid overhead
+    if (Number_Ptr l_n = Cast<Number>(lhs)) {
+      // lhs is number and rhs is number
+      if (Number_Ptr r_n = Cast<Number>(rhs)) {
+        try {
+          switch (op_type) {
+            case Sass_OP::EQ: return *l_n == *r_n ? bool_true : bool_false;
+            case Sass_OP::NEQ: return *l_n == *r_n ? bool_false : bool_true;
+            case Sass_OP::LT: return *l_n < *r_n ? bool_true : bool_false;
+            case Sass_OP::GTE: return *l_n < *r_n ? bool_false : bool_true;
+            case Sass_OP::LTE: return *l_n < *r_n || *l_n == *r_n ? bool_true : bool_false;
+            case Sass_OP::GT: return *l_n < *r_n || *l_n == *r_n ? bool_false : bool_true;
+            case Sass_OP::ADD: case Sass_OP::SUB: case Sass_OP::MUL: case Sass_OP::DIV: case Sass_OP::MOD:
+              return op_numbers(op_type, *l_n, *r_n, ctx.c_options, b_in->pstate());
+            default: break;
+          }
+        }
+        catch (Exception::OperationError& err)
+        {
+          throw Exception::SassValueError(b_in->pstate(), err);
+        }
+      }
+      // lhs is number and rhs is color
+      else if (Color_Ptr r_c = Cast<Color>(rhs)) {
+        try {
+          switch (op_type) {
+            case Sass_OP::EQ: return *l_n == *r_c ? bool_true : bool_false;
+            case Sass_OP::NEQ: return *l_n == *r_c ? bool_false : bool_true;
+            case Sass_OP::LT: return *l_n < *r_c ? bool_true : bool_false;
+            case Sass_OP::GTE: return *l_n < *r_c ? bool_false : bool_true;
+            case Sass_OP::LTE: return *l_n < *r_c || *l_n == *r_c ? bool_true : bool_false;
+            case Sass_OP::GT: return *l_n < *r_c || *l_n == *r_c ? bool_false : bool_true;
+            case Sass_OP::ADD: case Sass_OP::SUB: case Sass_OP::MUL: case Sass_OP::DIV: case Sass_OP::MOD:
+              return op_number_color(op_type, *l_n, *r_c, ctx.c_options, b_in->pstate());
+            default: break;
+          }
+        }
+        catch (Exception::OperationError& err)
+        {
+          throw Exception::SassValueError(b_in->pstate(), err);
+        }
+      }
+    }
+    else if (Color_Ptr l_c = Cast<Color>(lhs)) {
+      // lhs is color and rhs is color
+      if (Color_Ptr r_c = Cast<Color>(rhs)) {
+        try {
+          switch (op_type) {
+            case Sass_OP::EQ: return *l_c == *r_c ? bool_true : bool_false;
+            case Sass_OP::NEQ: return *l_c == *r_c ? bool_false : bool_true;
+            case Sass_OP::LT: return *l_c < *r_c ? bool_true : bool_false;
+            case Sass_OP::GTE: return *l_c < *r_c ? bool_false : bool_true;
+            case Sass_OP::LTE: return *l_c < *r_c || *l_c == *r_c ? bool_true : bool_false;
+            case Sass_OP::GT: return *l_c < *r_c || *l_c == *r_c ? bool_false : bool_true;
+            case Sass_OP::ADD: case Sass_OP::SUB: case Sass_OP::MUL: case Sass_OP::DIV: case Sass_OP::MOD:
+              return op_colors(op_type, *l_c, *r_c, ctx.c_options, b_in->pstate());
+            default: break;
+          }
+        }
+        catch (Exception::OperationError& err)
+        {
+          throw Exception::SassValueError(b_in->pstate(), err);
+        }
+      }
+      // lhs is color and rhs is number
+      else if (Number_Ptr r_n = Cast<Number>(rhs)) {
+        try {
+          switch (op_type) {
+            case Sass_OP::EQ: return *l_c == *r_n ? bool_true : bool_false;
+            case Sass_OP::NEQ: return *l_c == *r_n ? bool_false : bool_true;
+            case Sass_OP::LT: return *l_c < *r_n ? bool_true : bool_false;
+            case Sass_OP::GTE: return *l_c < *r_n ? bool_false : bool_true;
+            case Sass_OP::LTE: return *l_c < *r_n || *l_c == *r_n ? bool_true : bool_false;
+            case Sass_OP::GT: return *l_c < *r_n || *l_c == *r_n ? bool_false : bool_true;
+            case Sass_OP::ADD: case Sass_OP::SUB: case Sass_OP::MUL: case Sass_OP::DIV: case Sass_OP::MOD:
+              return op_color_number(op_type, *l_c, *r_n, ctx.c_options, b_in->pstate());
+            default: break;
+          }
+        }
+        catch (Exception::OperationError& err)
+        {
+          throw Exception::SassValueError(b_in->pstate(), err);
+        }
+      }
+    }
+
+    String_Schema_Obj ret_schema;
 
     // only the last item will be used to eval the binary expression
     if (String_Schema_Ptr s_l = Cast<String_Schema>(b->left())) {
@@ -568,16 +700,6 @@ namespace Sass {
       }
     }
 
-    // don't eval delayed expressions (the '/' when used as a separator)
-    if (!force && op_type == Sass_OP::DIV && b->is_delayed()) {
-      b->right(b->right()->perform(this));
-      b->left(b->left()->perform(this));
-      return b.detach();
-    }
-
-    Expression_Obj lhs = b->left();
-    Expression_Obj rhs = b->right();
-
     // fully evaluate their values
     if (op_type == Sass_OP::EQ ||
         op_type == Sass_OP::NEQ ||
@@ -598,19 +720,6 @@ namespace Sass {
       lhs = lhs->perform(this);
     }
 
-    Binary_Expression_Obj u3 = b;
-    switch (op_type) {
-      case Sass_OP::AND: {
-        return *lhs ? b->right()->perform(this) : lhs.detach();
-      }
-
-      case Sass_OP::OR: {
-        return *lhs ? lhs.detach() : b->right()->perform(this);
-      }
-
-      default:
-        break;
-    }
     // not a logical connective, so go ahead and eval the rhs
     rhs = rhs->perform(this);
     AST_Node_Obj lu = lhs;
@@ -1383,6 +1492,23 @@ namespace Sass {
     if (op == Sass_OP::MOD && !rv) {
       // XXX: this is never hit via spec tests
       throw Exception::ZeroDivisionError(l, r);
+    }
+
+    size_t l_n_units = l.numerator_units().size();
+    size_t l_d_units = l.numerator_units().size();
+    size_t r_n_units = r.denominator_units().size();
+    size_t r_d_units = r.denominator_units().size();
+    // optimize out the most common and simplest case
+    if (l_n_units == r_n_units && l_d_units == r_d_units) {
+      if (l_n_units + l_d_units <= 1 && r_n_units + r_d_units <= 1) {
+        if (l.numerator_units() == r.numerator_units()) {
+          if (l.denominator_units() == r.denominator_units()) {
+            Number_Ptr v = SASS_MEMORY_COPY(&l);
+            v->value(ops[op](lv, rv));
+            return v;
+          }
+        }
+      }
     }
 
     Number tmp(&r); // copy

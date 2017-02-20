@@ -26,6 +26,9 @@ namespace Sass {
     bool force;
     bool is_in_comment;
 
+    Boolean_Obj bool_true;
+    Boolean_Obj bool_false;
+
     Env* environment();
     Backtrace* backtrace();
     Selector_List_Obj selector();
