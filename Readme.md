@@ -28,6 +28,7 @@ CLI tool built by the same people as LibSass.
 - https://github.com/sass/sassc-ruby (Ruby)
 - https://github.com/sass/libsass-net (C#)
 - https://github.com/medialize/sass.js (JS)
+- https://github.com/dahlia/libsass-python (Python)
 
 This list does not say anything about the quality of either the listed or not listed [implementations](docs/implementations.md)!  
 The authors of the listed projects above are just known to work regularly together with LibSass developers.
