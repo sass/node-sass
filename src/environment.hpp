@@ -2,8 +2,6 @@
 #define SASS_ENVIRONMENT_H
 
 #include <string>
-#include <map>
-
 #include "ast_fwd_decl.hpp"
 #include "ast_def_macros.hpp"
 
@@ -12,7 +10,7 @@ namespace Sass {
   template <typename T>
   class Environment {
     // TODO: test with map
-    std::map<std::string, T> local_frame_;
+    environment_map<std::string, T> local_frame_;
     ADD_PROPERTY(Environment*, parent)
     ADD_PROPERTY(bool, is_shadow)
 
@@ -37,7 +35,7 @@ namespace Sass {
 
     // scope operates on the current frame
 
-    std::map<std::string, T>& local_frame();
+    environment_map<std::string, T>& local_frame();
 
     bool has_local(const std::string& key) const;
 

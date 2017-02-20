@@ -414,6 +414,9 @@ namespace Sass {
   typedef std::set<Compound_Selector_Obj, OrderNodes> CompoundSelectorSet;
   typedef std::unordered_set<Simple_Selector_Obj, HashNodes, CompareNodes> SimpleSelectorDict;
 
+  // only to switch implementations for testing
+  #define environment_map std::map
+
   // ###########################################################################
   // explicit type conversion functions
   // ###########################################################################

@@ -6,17 +6,17 @@ namespace Sass {
 
   template <typename T>
   Environment<T>::Environment(bool is_shadow)
-  : local_frame_(std::map<std::string, T>()),
+  : local_frame_(environment_map<std::string, T>()),
     parent_(0), is_shadow_(false)
   { }
   template <typename T>
   Environment<T>::Environment(Environment<T>* env, bool is_shadow)
-  : local_frame_(std::map<std::string, T>()),
+  : local_frame_(environment_map<std::string, T>()),
     parent_(env), is_shadow_(is_shadow)
   { }
   template <typename T>
   Environment<T>::Environment(Environment<T>& env, bool is_shadow)
-  : local_frame_(std::map<std::string, T>()),
+  : local_frame_(environment_map<std::string, T>()),
     parent_(&env), is_shadow_(is_shadow)
   { }
 
@@ -45,7 +45,7 @@ namespace Sass {
   }
 
   template <typename T>
-  std::map<std::string, T>& Environment<T>::local_frame() {
+  environment_map<std::string, T>& Environment<T>::local_frame() {
     return local_frame_;
   }
 
@@ -177,7 +177,7 @@ namespace Sass {
     size_t indent = 0;
     if (parent_) indent = parent_->print(prefix) + 1;
     std::cerr << prefix << std::string(indent, ' ') << "== " << this << std::endl;
-    for (typename std::map<std::string, T>::iterator i = local_frame_.begin(); i != local_frame_.end(); ++i) {
+    for (typename environment_map<std::string, T>::iterator i = local_frame_.begin(); i != local_frame_.end(); ++i) {
       if (!ends_with(i->first, "[f]") && !ends_with(i->first, "[f]4") && !ends_with(i->first, "[f]2")) {
         std::cerr << prefix << std::string(indent, ' ') << i->first << " " << i->second;
         if (Value_Ptr val = Cast<Value>(i->second))
