@@ -72,6 +72,8 @@ namespace Sass {
     sheets(),
     subset_map(),
     import_stack(),
+    callee_stack(),
+    c_compiler(NULL),
 
     c_headers               (std::vector<Sass_Importer_Entry>()),
     c_importers             (std::vector<Sass_Importer_Entry>()),
@@ -416,12 +418,12 @@ namespace Sass {
     // need one correct import
     bool has_import = false;
     // process all custom importers (or custom headers)
-    for (Sass_Importer_Entry& importer : importers) {
+    for (Sass_Importer_Entry& importer_ent : importers) {
       // int priority = sass_importer_get_priority(importer);
-      Sass_Importer_Fn fn = sass_importer_get_function(importer);
+      Sass_Importer_Fn fn = sass_importer_get_function(importer_ent);
       // skip importer if it returns NULL
       if (Sass_Import_List includes =
-          fn(load_path.c_str(), importer, c_compiler)
+          fn(load_path.c_str(), importer_ent, c_compiler)
       ) {
         // get c pointer copy to iterate over
         Sass_Import_List it_includes = includes;
@@ -436,15 +438,15 @@ namespace Sass {
           // create the importer struct
           Importer importer(uniq_path, ctx_path);
           // query data from the current include
-          Sass_Import_Entry include = *it_includes;
-          char* source = sass_import_take_source(include);
-          char* srcmap = sass_import_take_srcmap(include);
-          size_t line = sass_import_get_error_line(include);
-          size_t column = sass_import_get_error_column(include);
-          const char *abs_path = sass_import_get_abs_path(include);
+          Sass_Import_Entry include_ent = *it_includes;
+          char* source = sass_import_take_source(include_ent);
+          char* srcmap = sass_import_take_srcmap(include_ent);
+          size_t line = sass_import_get_error_line(include_ent);
+          size_t column = sass_import_get_error_column(include_ent);
+          const char *abs_path = sass_import_get_abs_path(include_ent);
           // handle error message passed back from custom importer
           // it may (or may not) override the line and column info
-          if (const char* err_message = sass_import_get_error_message(include)) {
+          if (const char* err_message = sass_import_get_error_message(include_ent)) {
             if (source || srcmap) register_resource({ importer, uniq_path }, { source, srcmap }, &pstate);
             if (line == std::string::npos && column == std::string::npos) error(err_message, pstate);
             else error(err_message, ParserState(ctx_path, source, Position(line, column)));
@@ -661,7 +663,7 @@ namespace Sass {
     // should we extend something?
     if (!subset_map.empty()) {
       // create crtp visitor object
-      Extend extend(*this, subset_map);
+      Extend extend(subset_map);
       // extend tree nodes
       extend(root);
     }
@@ -696,10 +698,8 @@ namespace Sass {
   char* Context::render_srcmap()
   {
     if (source_map_file == "") return 0;
-    char* result = 0;
     std::string map = emitter.render_srcmap(*this);
-    result = sass_copy_c_string(map.c_str());
-    return result;
+    return sass_copy_c_string(map.c_str());
   }
 
 

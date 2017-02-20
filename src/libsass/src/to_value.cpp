@@ -9,8 +9,6 @@ namespace Sass {
     // throw a runtime error if this happens
     // we want a well defined set of possible nodes
     throw std::runtime_error("invalid node for to_value");
-    // mute warning
-    return 0;
   }
 
   // Custom_Error is a valid value

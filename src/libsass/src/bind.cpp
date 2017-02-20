@@ -95,11 +95,11 @@ namespace Sass {
           env->local_frame()[p->name()] = arglist;
           Map_Obj argmap = Cast<Map>(a->value());
           for (auto key : argmap->keys()) {
-            std::string name = unquote(Cast<String_Constant>(key)->value());
+            std::string param = unquote(Cast<String_Constant>(key)->value());
             arglist->append(SASS_MEMORY_NEW(Argument,
                                             key->pstate(),
                                             argmap->at(key),
-                                            "$" + name,
+                                            "$" + param,
                                             false,
                                             false));
           }
@@ -167,8 +167,15 @@ namespace Sass {
       else if (a->is_rest_argument()) {
         // normal param and rest arg
         List_Obj arglist = Cast<List>(a->value());
+        if (!arglist) {
+          if (Expression_Obj arg = Cast<Expression>(a->value())) {
+            arglist = SASS_MEMORY_NEW(List, a->pstate(), 1);
+            arglist->append(arg);
+          }
+        }
+
         // empty rest arg - treat all args as default values
-        if (!arglist->length()) {
+        if (!arglist || !arglist->length()) {
           break;
         } else {
           if (arglist->length() > LP - ip && !ps->has_rest_parameter()) {
@@ -205,14 +212,14 @@ namespace Sass {
         Map_Obj argmap = Cast<Map>(a->value());
 
         for (auto key : argmap->keys()) {
-          std::string name = "$" + unquote(Cast<String_Constant>(key)->value());
+          std::string param = "$" + unquote(Cast<String_Constant>(key)->value());
 
-          if (!param_map.count(name)) {
+          if (!param_map.count(param)) {
             std::stringstream msg;
-            msg << callee << " has no parameter named " << name;
+            msg << callee << " has no parameter named " << param;
             error(msg.str(), a->pstate());
           }
-          env->local_frame()[name] = argmap->at(key);
+          env->local_frame()[param] = argmap->at(key);
         }
         ++ia;
         continue;
