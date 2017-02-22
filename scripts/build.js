@@ -93,7 +93,8 @@ function build(options) {
 function parseArgs(args) {
   var options = {
     arch: process.arch,
-    platform: process.platform
+    platform: process.platform,
+    force: process.env.npm_config_force === 'true',
   };
 
   options.args = args.filter(function(arg) {
