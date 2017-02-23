@@ -1,4 +1,3 @@
-#include <nan.h>
 #include "factory.h"
 #include "value.h"
 #include "number.h"
@@ -19,7 +18,7 @@ namespace SassTypes
       return new Number(env, v);
 
     case SASS_STRING:
-      return new String(v);
+      return new String(env, v);
 
     case SASS_COLOR:
       return new Color(v);
@@ -37,12 +36,12 @@ namespace SassTypes
       return &Null::get_singleton();
 
     case SASS_ERROR:
-      return new Error(v);
+      return new Error(env, v);
 
     default:
       const char *msg = "Unknown type encountered.";
       CHECK_NAPI_RESULT(napi_throw_type_error(env, msg));
-      return new Error(sass_make_error(msg));
+      return new Error(env, sass_make_error(msg));
     }
   }
 

@@ -1,27 +1,25 @@
 #ifndef SASS_TYPES_COLOR_H
 #define SASS_TYPES_COLOR_H
 
-#include <nan.h>
 #include "sass_value_wrapper.h"
 
 namespace SassTypes
 {
   class Color : public SassValueWrapper<Color> {
     public:
-      Color(Sass_Value*);
+      Color(napi_env, Sass_Value*);
       static char const* get_constructor_name() { return "SassColor"; }
-      static Sass_Value* construct(const std::vector<v8::Local<v8::Value>>, Sass_Value **);
+      static Sass_Value* construct(napi_env, const std::vector<napi_value>, Sass_Value **);
+      static napi_value getConstructor(napi_env, napi_callback);
 
-      static void initPrototype(v8::Local<v8::FunctionTemplate>);
-
-      static NAN_METHOD(GetR);
-      static NAN_METHOD(GetG);
-      static NAN_METHOD(GetB);
-      static NAN_METHOD(GetA);
-      static NAN_METHOD(SetR);
-      static NAN_METHOD(SetG);
-      static NAN_METHOD(SetB);
-      static NAN_METHOD(SetA);
+      static NAPI_METHOD(GetR);
+      static NAPI_METHOD(GetG);
+      static NAPI_METHOD(GetB);
+      static NAPI_METHOD(GetA);
+      static NAPI_METHOD(SetR);
+      static NAPI_METHOD(SetG);
+      static NAPI_METHOD(SetB);
+      static NAPI_METHOD(SetA);
   };
 }
 

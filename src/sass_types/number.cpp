@@ -47,14 +47,7 @@ namespace SassTypes
   }
 
   NAPI_METHOD(Number::GetValue) {
-    napi_value _this;
-    CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
-
-    double v = sass_number_get_value(unwrap(env, _this)->value);
-
-    napi_value d;
-    CHECK_NAPI_RESULT(napi_create_number(env, v, &d));
-    CHECK_NAPI_RESULT(napi_set_return_value(env, info, d));
+    CommonGetNumber(env, info, sass_number_get_value);
   }
 
   NAPI_METHOD(Number::GetUnit) {

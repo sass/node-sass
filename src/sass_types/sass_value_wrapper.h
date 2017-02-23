@@ -31,6 +31,9 @@ namespace SassTypes
       Sass_Value* value;
       static T* unwrap(napi_env, napi_value);
 
+      static void CommonGetNumber(napi_env env, napi_callback_info info, double(fnc)(const Sass_Value*));
+      static void CommonSetNumber(napi_env env, napi_callback_info info, void(fnc)(Sass_Value*, double));
+
     private:
       static napi_ref constructor;
       napi_ref js_object;
@@ -52,6 +55,47 @@ namespace SassTypes
     int unused;
     CHECK_NAPI_RESULT(napi_reference_release(this->e, this->js_object, &unused));
     sass_delete_value(this->value);
+  }
+
+  template <class T>
+  void SassValueWrapper<T>::CommonGetNumber(napi_env env, napi_callback_info info, double(fnc)(const Sass_Value*)) {
+      napi_value _this;
+      CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
+
+      double d = fnc(unwrap(env, _this)->value);
+
+      napi_value ret;
+      CHECK_NAPI_RESULT(napi_create_number(env, d, &ret));
+      CHECK_NAPI_RESULT(napi_set_return_value(env, info, ret));
+  }
+
+  template <class T>
+  void SassValueWrapper<T>::CommonSetNumber(napi_env env, napi_callback_info info, void(fnc)(Sass_Value*, double)) {
+      int argLength;
+      CHECK_NAPI_RESULT(napi_get_cb_args_length(env, info, &argLength));
+
+      if (argLength != 1) {
+          CHECK_NAPI_RESULT(napi_throw_type_error(env, "Expected just one argument"));
+          return;
+      }
+
+      napi_value argv;
+      CHECK_NAPI_RESULT(napi_get_cb_args(env, info, &argv, 1));
+      napi_valuetype t;
+      CHECK_NAPI_RESULT(napi_get_type_of_value(env, argv, &t));
+
+      if (t != napi_number) {
+          CHECK_NAPI_RESULT(napi_throw_type_error(env, "Supplied value should be a number"));
+          return;
+      }
+
+      napi_value _this;
+      CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
+
+      double d;
+      CHECK_NAPI_RESULT(napi_get_value_double(env, argv, &d));
+
+      fnc(unwrap(env, _this)->value, d);
   }
 
   template <class T>
