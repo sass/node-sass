@@ -1,7 +1,6 @@
 #ifndef CUSTOM_FUNCTION_BRIDGE_H
 #define CUSTOM_FUNCTION_BRIDGE_H
 
-#include <nan.h>
 #include <sass/values.h>
 #include <sass/functions.h>
 #include "callback_bridge.h"

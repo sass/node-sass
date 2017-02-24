@@ -1,9 +1,9 @@
 #ifndef SASS_TYPES_FACTORY_H
 #define SASS_TYPES_FACTORY_H
 
-#include <nan.h>
 #include <sass/values.h>
 #include "value.h"
+#include <node_jsvmapi_types.h>
 
 namespace SassTypes
 {

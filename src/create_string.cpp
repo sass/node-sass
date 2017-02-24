@@ -2,6 +2,11 @@
 #include <string.h>
 #include "create_string.h"
 
+// node-sass only builds with MSVC 2013 which doesn't appear to have char16_t defined
+#define char16_t wchar_t
+
+#include <node_jsvmapi.h>
+
 #define CHECK_NAPI_RESULT(condition) do { if((condition) != napi_ok) { return nullptr; } } while(0)
 
 char* create_string(napi_env e, napi_value v) {

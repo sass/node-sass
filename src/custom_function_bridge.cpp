@@ -1,4 +1,3 @@
-#include <nan.h>
 #include <stdexcept>
 #include "custom_function_bridge.h"
 #include "sass_types/factory.h"
@@ -18,7 +17,7 @@ std::vector<napi_value> CustomFunctionBridge::pre_process_args(napi_env env, std
   std::vector<napi_value> argv = std::vector<napi_value>();
 
   for (void* value : in) {
-    argv.push_back(SassTypes::Factory::create(static_cast<Sass_Value*>(value))->get_js_object(env));
+    argv.push_back(SassTypes::Factory::create(env, static_cast<Sass_Value*>(value))->get_js_object(env));
   }
 
   return argv;

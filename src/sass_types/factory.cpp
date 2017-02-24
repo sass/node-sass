@@ -21,16 +21,16 @@ namespace SassTypes
       return new String(env, v);
 
     case SASS_COLOR:
-      return new Color(v);
+      return new Color(env, v);
 
     case SASS_BOOLEAN:
       return &Boolean::get_singleton(sass_boolean_get_value(v));
 
     case SASS_LIST:
-      return new List(v);
+      return new List(env, v);
 
     case SASS_MAP:
-      return new Map(v);
+      return new Map(env, v);
 
     case SASS_NULL:
       return &Null::get_singleton();

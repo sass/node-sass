@@ -37,7 +37,6 @@ namespace SassTypes
       CHECK_NAPI_RESULT(napi_set_property(env, ctor, falseName, instance));
 
       Boolean& trueSingleton = get_singleton(true);
-      napi_value instance;
       CHECK_NAPI_RESULT(napi_new_instance(env, ctor, 0, nullptr, &instance));
       CHECK_NAPI_RESULT(napi_wrap(env, instance, &trueSingleton, nullptr, nullptr));
       CHECK_NAPI_RESULT(napi_create_reference(env, instance, 1, &trueSingleton.js_object));

@@ -1,4 +1,3 @@
-#include <nan.h>
 #include <stdexcept>
 #include "custom_importer_bridge.h"
 #include "create_string.h"

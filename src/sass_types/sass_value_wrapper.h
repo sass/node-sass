@@ -3,10 +3,10 @@
 
 #include <stdexcept>
 #include <vector>
-#include <nan.h>
 #include "value.h"
 #include "factory.h"
 #include <node_api_helpers.h>
+#include <node_jsvmapi_types.h>
 
 namespace SassTypes
 {
@@ -34,6 +34,12 @@ namespace SassTypes
       static void CommonGetNumber(napi_env env, napi_callback_info info, double(fnc)(const Sass_Value*));
       static void CommonSetNumber(napi_env env, napi_callback_info info, void(fnc)(Sass_Value*, double));
 
+      static void CommonGetString(napi_env env, napi_callback_info info, const char*(fnc)(const Sass_Value*));
+      static void CommonSetString(napi_env env, napi_callback_info info, void(fnc)(Sass_Value*, char*));
+
+      static void CommonGetIndexedValue(napi_env env, napi_callback_info info, size_t(lenfnc)(const Sass_Value*), Sass_Value*(getfnc)(const Sass_Value*, size_t));
+      static void CommonSetIndexedValue(napi_env env, napi_callback_info info, void(setfnc)(Sass_Value*, size_t, Sass_Value*));
+
     private:
       static napi_ref constructor;
       napi_ref js_object;
@@ -59,43 +65,161 @@ namespace SassTypes
 
   template <class T>
   void SassValueWrapper<T>::CommonGetNumber(napi_env env, napi_callback_info info, double(fnc)(const Sass_Value*)) {
-      napi_value _this;
-      CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
+    napi_value _this;
+    CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
 
-      double d = fnc(unwrap(env, _this)->value);
+    double d = fnc(unwrap(env, _this)->value);
 
-      napi_value ret;
-      CHECK_NAPI_RESULT(napi_create_number(env, d, &ret));
-      CHECK_NAPI_RESULT(napi_set_return_value(env, info, ret));
+    napi_value ret;
+    CHECK_NAPI_RESULT(napi_create_number(env, d, &ret));
+    CHECK_NAPI_RESULT(napi_set_return_value(env, info, ret));
   }
 
   template <class T>
   void SassValueWrapper<T>::CommonSetNumber(napi_env env, napi_callback_info info, void(fnc)(Sass_Value*, double)) {
-      int argLength;
-      CHECK_NAPI_RESULT(napi_get_cb_args_length(env, info, &argLength));
+    int argLength;
+    CHECK_NAPI_RESULT(napi_get_cb_args_length(env, info, &argLength));
 
-      if (argLength != 1) {
-          CHECK_NAPI_RESULT(napi_throw_type_error(env, "Expected just one argument"));
-          return;
-      }
+    if (argLength != 1) {
+      CHECK_NAPI_RESULT(napi_throw_type_error(env, "Expected just one argument"));
+      return;
+    }
 
-      napi_value argv;
-      CHECK_NAPI_RESULT(napi_get_cb_args(env, info, &argv, 1));
-      napi_valuetype t;
-      CHECK_NAPI_RESULT(napi_get_type_of_value(env, argv, &t));
+    napi_value argv;
+    CHECK_NAPI_RESULT(napi_get_cb_args(env, info, &argv, 1));
+    napi_valuetype t;
+    CHECK_NAPI_RESULT(napi_get_type_of_value(env, argv, &t));
 
-      if (t != napi_number) {
-          CHECK_NAPI_RESULT(napi_throw_type_error(env, "Supplied value should be a number"));
-          return;
-      }
+    if (t != napi_number) {
+      CHECK_NAPI_RESULT(napi_throw_type_error(env, "Supplied value should be a number"));
+      return;
+    }
 
-      napi_value _this;
-      CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
+    napi_value _this;
+    CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
 
-      double d;
-      CHECK_NAPI_RESULT(napi_get_value_double(env, argv, &d));
+    double d;
+    CHECK_NAPI_RESULT(napi_get_value_double(env, argv, &d));
 
-      fnc(unwrap(env, _this)->value, d);
+    fnc(unwrap(env, _this)->value, d);
+  }
+
+  template <class T>
+  void SassValueWrapper<T>::CommonGetString(napi_env env, napi_callback_info info, const char*(fnc)(const Sass_Value*)) {
+    napi_value _this;
+    CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
+
+    const char* v = fnc(unwrap(env, _this)->value);
+    int len = (int)strlen(v);
+
+    napi_value str;
+    CHECK_NAPI_RESULT(napi_create_string_utf8(env, v, len, &str));
+    CHECK_NAPI_RESULT(napi_set_return_value(env, info, str));
+  }
+
+  template <class T>
+  void SassValueWrapper<T>::CommonSetString(napi_env env, napi_callback_info info, void(fnc)(Sass_Value*, char*)) {
+    int argLength;
+    CHECK_NAPI_RESULT(napi_get_cb_args_length(env, info, &argLength));
+
+    if (argLength != 1) {
+      CHECK_NAPI_RESULT(napi_throw_type_error(env, "Expected just one argument"));
+      return;
+    }
+
+    napi_value argv;
+    CHECK_NAPI_RESULT(napi_get_cb_args(env, info, &argv, 1));
+    napi_valuetype t;
+    CHECK_NAPI_RESULT(napi_get_type_of_value(env, argv, &t));
+
+    if (t != napi_string) {
+      CHECK_NAPI_RESULT(napi_throw_type_error(env, "Supplied value should be a string"));
+      return;
+    }
+
+    napi_value _this;
+    CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
+
+    char* s = create_string(env, argv);
+
+    fnc(unwrap(env, _this)->value, s);
+  }
+
+  template <class T>
+  void SassValueWrapper<T>::CommonGetIndexedValue(napi_env env, napi_callback_info info, size_t(lenfnc)(const Sass_Value*), Sass_Value*(getfnc)(const Sass_Value*,size_t)) {
+    int argLength;
+    CHECK_NAPI_RESULT(napi_get_cb_args_length(env, info, &argLength));
+
+    if (argLength != 1) {
+      CHECK_NAPI_RESULT(napi_throw_type_error(env, "Expected just one argument"));
+      return;
+    }
+
+    napi_value argv;
+    CHECK_NAPI_RESULT(napi_get_cb_args(env, info, &argv, 1));
+    napi_valuetype t;
+    CHECK_NAPI_RESULT(napi_get_type_of_value(env, argv, &t));
+
+    if (t != napi_number) {
+      CHECK_NAPI_RESULT(napi_throw_type_error(env, "Supplied index should be an integer"));
+      return;
+    }
+
+    napi_value _this;
+    uint32_t index;
+    CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
+    CHECK_NAPI_RESULT(napi_get_value_uint32(env, argv, &index));
+
+    Sass_Value* collection = unwrap(env, _this)->value;
+
+    if (index >= lenfnc(collection)) {
+      CHECK_NAPI_RESULT(napi_throw_range_error(env, "Out of bound index"));
+      return;
+    }
+
+    napi_value ret = Factory::create(env, getfnc(collection, index))->get_js_object(env);
+    CHECK_NAPI_RESULT(napi_set_return_value(env, info, ret));
+  }
+
+  template <class T>
+  void SassValueWrapper<T>::CommonSetIndexedValue(napi_env env, napi_callback_info info, void(setfnc)(Sass_Value*, size_t, Sass_Value*)) {
+    int argLength;
+    CHECK_NAPI_RESULT(napi_get_cb_args_length(env, info, &argLength));
+
+    if (argLength != 2) {
+      CHECK_NAPI_RESULT(napi_throw_type_error(env, "Expected two arguments"));
+      return;
+    }
+
+    napi_value argv[2];
+    CHECK_NAPI_RESULT(napi_get_cb_args(env, info, argv, 2));
+    napi_valuetype t;
+    CHECK_NAPI_RESULT(napi_get_type_of_value(env, argv[0], &t));
+
+    if (t != napi_number) {
+      CHECK_NAPI_RESULT(napi_throw_type_error(env, "Supplied index should be an integer"));
+      return;
+    }
+
+    CHECK_NAPI_RESULT(napi_get_type_of_value(env, argv[1], &t));
+
+    if (t != napi_object) {
+      CHECK_NAPI_RESULT(napi_throw_type_error(env, "Supplied value should be a SassValue object"));
+      return;
+    }
+
+    napi_value _this;
+    uint32_t v;
+    CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
+    CHECK_NAPI_RESULT(napi_get_value_uint32(env, argv[0], &v));
+
+    Value* sass_value = Factory::unwrap(env, argv[1]);
+    if (sass_value) {
+        setfnc(unwrap(env, _this)->value, v, sass_value->get_sass_value());
+    }
+    else {
+      CHECK_NAPI_RESULT(napi_throw_type_error(env, "A SassValue is expected as the list item"));
+    }
   }
 
   template <class T>
@@ -142,12 +266,13 @@ namespace SassTypes
     int argsLength;
     CHECK_NAPI_RESULT(napi_get_cb_args_length(env, info, &argsLength));
     std::vector<napi_value> localArgs(argsLength);
-    napi_value argv[argsLength];
+    napi_value* argv = (napi_value*)malloc(sizeof(napi_value)*argsLength);
     CHECK_NAPI_RESULT(napi_get_cb_args(env, info, argv, argsLength));
     
     for (auto i = 0; i < argsLength; ++i) {
       localArgs[i] = argv[i];
     }
+    free(argv);
     
     bool r;
     CHECK_NAPI_RESULT(napi_is_construct_call(env, info, &r));
@@ -155,15 +280,15 @@ namespace SassTypes
     if (r) {
       Sass_Value* value;
       if (T::construct(env, localArgs, &value) != NULL) {
-        T* obj = new T(value);
+        T* obj = new T(env, value);
         sass_delete_value(value);
 
         napi_value _this;
         CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
         CHECK_NAPI_RESULT(napi_wrap(env, _this, obj, nullptr, nullptr));
-        CHECK_NAPI_RESULT(napi_create_reference(env, _this, &obj->js_object));
+        CHECK_NAPI_RESULT(napi_create_reference(env, _this, 1, &obj->js_object));
       } else {
-        CHECK_NAPI_RESULT(napi_throw_error(sass_error_get_message(value)));
+        CHECK_NAPI_RESULT(napi_throw_error(env, sass_error_get_message(value)));
         return;
       }
     } else {

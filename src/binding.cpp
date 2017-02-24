@@ -1,4 +1,3 @@
-#include <nan.h>
 #include <vector>
 #include <node_api_helpers.h>
 #include "sass_context_wrapper.h"
@@ -50,7 +49,7 @@ int ExtractOptions(napi_env e, napi_value options, void* cptr, sass_context_wrap
     return -1;
   }
 
-  CHECK_NAPI_RESULT(napi_create_persistent(e, result_, &ctx_w->result));
+  CHECK_NAPI_RESULT(napi_create_reference(e, result_, 1, &ctx_w->result));
   
   if (is_file) {
     ctx_w->fctx = (struct Sass_File_Context*) cptr;
@@ -284,7 +283,7 @@ void GetStats(napi_env env, sass_context_wrapper* ctx_w, Sass_Context* ctx) {
   }
 
   napi_value result;
-  CHECK_NAPI_RESULT(napi_get_persistent_value(env, ctx_w->result, &result));
+  CHECK_NAPI_RESULT(napi_get_reference_value(env, ctx_w->result, &result));
   napi_propertyname nameStats;
   CHECK_NAPI_RESULT(napi_property_name(env, "stats", &nameStats));
   napi_value propertyStats;
@@ -306,7 +305,7 @@ int GetResult(napi_env env, sass_context_wrapper* ctx_w, Sass_Context* ctx, bool
 
   int status = sass_context_get_error_status(ctx);
   napi_value result;
-  CHECK_NAPI_RESULT(napi_get_persistent_value(env, ctx_w->result, &result));
+  CHECK_NAPI_RESULT(napi_get_reference_value(env, ctx_w->result, &result));
 
   if (status == 0) {
     const char* css = sass_context_get_output_string(ctx);
@@ -316,7 +315,7 @@ int GetResult(napi_env env, sass_context_wrapper* ctx_w, Sass_Context* ctx, bool
     napi_propertyname nameCss;
     CHECK_NAPI_RESULT(napi_property_name(env, "css", &nameCss));
     napi_value cssBuffer;
-    CHECK_NAPI_RESULT(napi_buffer_copy(env, css, css_len, &cssBuffer));
+    CHECK_NAPI_RESULT(napi_create_buffer_copy(env, css, css_len, &cssBuffer));
     CHECK_NAPI_RESULT(napi_set_property(env, result, nameCss, cssBuffer));
 
     GetStats(env, ctx_w, ctx);
@@ -326,7 +325,7 @@ int GetResult(napi_env env, sass_context_wrapper* ctx_w, Sass_Context* ctx, bool
       napi_propertyname nameMap;
       CHECK_NAPI_RESULT(napi_property_name(env, "map", &nameMap));
       napi_value mapBuffer;
-      CHECK_NAPI_RESULT(napi_buffer_copy(env, map, map_len, &mapBuffer));
+      CHECK_NAPI_RESULT(napi_create_buffer_copy(env, map, map_len, &mapBuffer));
       CHECK_NAPI_RESULT(napi_set_property(env, result, nameMap, mapBuffer));
     }
   } else if (is_sync) {
@@ -401,7 +400,7 @@ NAPI_METHOD(render) {
   char* source_string = create_string(env, propertyData);
 
   struct Sass_Data_Context* dctx = sass_make_data_context(source_string);
-  sass_context_wrapper* ctx_w = sass_make_context_wrapper();
+  sass_context_wrapper* ctx_w = sass_make_context_wrapper(env);
 
   if (ExtractOptions(env, options, dctx, ctx_w, false, false) >= 0) {
     int status = uv_queue_work(uv_default_loop(), &ctx_w->request, compile_it, (uv_after_work_cb)MakeCallback);
@@ -423,7 +422,7 @@ NAPI_METHOD(render_sync) {
 
   struct Sass_Data_Context* dctx = sass_make_data_context(source_string);
   struct Sass_Context* ctx = sass_data_context_get_context(dctx);
-  sass_context_wrapper* ctx_w = sass_make_context_wrapper();
+  sass_context_wrapper* ctx_w = sass_make_context_wrapper(env);
   int result = -1;
 
   if ((result = ExtractOptions(env, options, dctx, ctx_w, false, true)) >= 0) {
@@ -448,7 +447,7 @@ NAPI_METHOD(render_file) {
   char* input_path = create_string(env, propertyFile);
 
   struct Sass_File_Context* fctx = sass_make_file_context(input_path);
-  sass_context_wrapper* ctx_w = sass_make_context_wrapper();
+  sass_context_wrapper* ctx_w = sass_make_context_wrapper(env);
 
   if (ExtractOptions(env, options, fctx, ctx_w, true, false) >= 0) {
     int status = uv_queue_work(uv_default_loop(), &ctx_w->request, compile_it, (uv_after_work_cb)MakeCallback);
@@ -467,7 +466,7 @@ NAPI_METHOD(render_file_sync) {
 
   struct Sass_File_Context* fctx = sass_make_file_context(input_path);
   struct Sass_Context* ctx = sass_file_context_get_context(fctx);
-  sass_context_wrapper* ctx_w = sass_make_context_wrapper();
+  sass_context_wrapper* ctx_w = sass_make_context_wrapper(env);
   int result = -1;
 
   if ((result = ExtractOptions(env, options, fctx, ctx_w, true, true)) >= 0) {

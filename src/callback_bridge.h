@@ -2,10 +2,9 @@
 #define CALLBACK_BRIDGE_H
 
 #include <vector>
-#include <nan.h>
 #include <algorithm>
 #include <uv.h>
-#include <node_jsvmapi.h>
+#include <node_jsvmapi_types.h>
 #include <node_api_helpers.h>
 #include "common.h"
 
@@ -21,7 +20,6 @@ class CallbackBridge {
     T operator()(std::vector<void*>);
 
     // Needed for napi_wrap
-    void Destructor(void* obj);
     napi_value NewInstance(napi_env env);
 
   protected:
@@ -29,8 +27,8 @@ class CallbackBridge {
     // This is the V8 constructor for such objects.
     static napi_ref get_wrapper_constructor(napi_env env);
     static void async_gone(uv_handle_t *handle);
-    static NAPI_METHOD(New);
-    static NAPI_METHOD(ReturnCallback);
+    static void New(napi_env env, napi_callback_info info);
+    static void ReturnCallback(napi_env env, napi_callback_info info);
     static napi_ref wrapper_constructor;
     napi_ref wrapper;
 
@@ -61,8 +59,8 @@ template <typename T, typename L>
 napi_ref CallbackBridge<T, L>::wrapper_constructor = nullptr;
 
 template <typename T, typename L>
-void CallbackBridge<T, L>::Destructor(void* obj) {
-  CallbackBridge* bridge = static_cast<CallbackBridge*>(obj);
+void CallbackBridge_Destructor(void* obj) {
+  CallbackBridge<T, L>* bridge = static_cast<CallbackBridge<T, L>*>(obj);
   delete bridge;
 }
 
@@ -79,7 +77,7 @@ napi_value CallbackBridge<T, L>::NewInstance(napi_env env) {
 }
 
 template <typename T, typename L>
-NAPI_METHOD(CallbackBridge<T COMMA L>::New) {
+void CallbackBridge<T, L>::New(napi_env env, napi_callback_info info) {
   napi_value _this;
   CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
   CHECK_NAPI_RESULT(napi_set_return_value(env, info, _this));
@@ -98,19 +96,15 @@ CallbackBridge<T, L>::CallbackBridge(napi_env env, napi_value callback, bool is_
     this->async->data = (void*) this;
     uv_async_init(uv_default_loop(), this->async, (uv_async_cb) dispatched_async_uv_callback);
   }
-
+  
   napi_value instance = CallbackBridge::NewInstance(env);
-  napi_value externalObj;
-  CHECK_NAPI_RESULT(napi_make_external(env, instance, &externalObj));
-  CHECK_NAPI_RESULT(napi_wrap(env, externalObj, this, CallbackBridge::Destructor, nullptr));
-  CHECK_NAPI_RESULT(napi_create_persistent(env, externalObj, &this->wrapper));
-
-  return externalObj;
+  CHECK_NAPI_RESULT(napi_wrap(env, instance, this, CallbackBridge_Destructor<T,L>, nullptr));
+  CHECK_NAPI_RESULT(napi_create_reference(env, instance, 1, &this->wrapper));
 }
 
 template <typename T, typename L>
 CallbackBridge<T, L>::~CallbackBridge() {
-  CHECK_NAPI_RESULT(napi_release_persistent(e, this->wrapper));
+  CHECK_NAPI_RESULT(napi_reference_release(e, this->wrapper, nullptr));
 
   uv_cond_destroy(&this->condition_variable);
   uv_mutex_destroy(&this->cv_mutex);
@@ -207,7 +201,7 @@ void CallbackBridge<T, L>::dispatched_async_uv_callback(uv_async_t *req) {
   }
 
   napi_value _this;
-  CHECK_NAPI_RESULT(napi_get_persistent_value(bridge->e, bridge->wrapper, &_this));
+  CHECK_NAPI_RESULT(napi_get_reference_value(bridge->e, bridge->wrapper, &_this));
   argv_v8.push_back(_this);
 
   napi_value result;
@@ -222,7 +216,7 @@ void CallbackBridge<T, L>::dispatched_async_uv_callback(uv_async_t *req) {
 }
 
 template <typename T, typename L>
-NAPI_METHOD(CallbackBridge<T COMMA L>::ReturnCallback) {
+void CallbackBridge<T, L>::ReturnCallback(napi_env env, napi_callback_info info) {
   napi_value args[1];
   CHECK_NAPI_RESULT(napi_get_cb_args(env, info, args, 1));
   void* unwrapped;

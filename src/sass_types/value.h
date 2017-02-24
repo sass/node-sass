@@ -1,9 +1,9 @@
 #ifndef SASS_TYPES_VALUE_H
 #define SASS_TYPES_VALUE_H
 
-#include <nan.h>
 #include <sass/values.h>
 #include "..\common.h"
+#include <node_jsvmapi_types.h>
 
 namespace SassTypes
 {

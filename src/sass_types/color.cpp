@@ -1,4 +1,3 @@
-#include <nan.h>
 #include "color.h"
 
 namespace SassTypes

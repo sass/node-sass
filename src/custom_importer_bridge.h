@@ -1,7 +1,6 @@
 #ifndef CUSTOM_IMPORTER_BRIDGE_H
 #define CUSTOM_IMPORTER_BRIDGE_H
 
-#include <nan.h>
 #include <sass/functions.h>
 #include <sass/values.h>
 #include "callback_bridge.h"

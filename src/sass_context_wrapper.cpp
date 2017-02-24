@@ -22,8 +22,10 @@ extern "C" {
     sass_compile_file_context(fctx);
   }
 
-  sass_context_wrapper* sass_make_context_wrapper() {
-    return (sass_context_wrapper*)calloc(1, sizeof(sass_context_wrapper));
+  sass_context_wrapper* sass_make_context_wrapper(napi_env env) {
+    auto ret = (sass_context_wrapper*)calloc(1, sizeof(sass_context_wrapper));
+    ret->env = env;
+    return ret;
   }
 
   void sass_free_context_wrapper(sass_context_wrapper* ctx_w) {
@@ -37,7 +39,7 @@ extern "C" {
     delete ctx_w->error_callback;
     delete ctx_w->success_callback;
 
-    ctx_w->result.Reset();
+    CHECK_NAPI_RESULT(napi_reference_release(ctx_w->env, ctx_w->result, nullptr));
 
     free(ctx_w->include_path);
     free(ctx_w->linefeed);
