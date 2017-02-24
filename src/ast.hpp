@@ -1540,56 +1540,6 @@ namespace Sass {
     ATTACH_OPERATIONS()
   };
 
-  ////////////////////////////////////////////////////////////////////////////
-  // Textual (i.e., unevaluated) numeric data. Variants are distinguished with
-  // a type tag.
-  ////////////////////////////////////////////////////////////////////////////
-  class Textual : public Expression {
-  public:
-    enum Type { NUMBER, PERCENTAGE, DIMENSION, HEX };
-  private:
-    HASH_PROPERTY(Type, valtype)
-    HASH_CONSTREF(std::string, value)
-    size_t hash_;
-  public:
-    Textual(ParserState pstate, Type t, std::string val)
-    : Expression(pstate, DELAYED), valtype_(t), value_(val),
-      hash_(0)
-    { }
-    Textual(const Textual* ptr)
-    : Expression(ptr),
-      valtype_(ptr->valtype_),
-      value_(ptr->value_),
-      hash_(ptr->hash_)
-    { }
-
-    virtual bool operator==(const Expression& rhs) const
-    {
-      try
-      {
-        Textual_Ptr_Const e = Cast<Textual>(&rhs);
-        return e && value() == e->value() && type() == e->type();
-      }
-      catch (std::bad_cast&)
-      {
-        return false;
-      }
-      catch (...) { throw; }
-    }
-
-    virtual size_t hash()
-    {
-      if (hash_ == 0) {
-        hash_ = std::hash<std::string>()(value_);
-        hash_combine(hash_, std::hash<int>()(valtype_));
-      }
-      return hash_;
-    }
-
-    ATTACH_AST_OPERATIONS(Textual)
-    ATTACH_OPERATIONS()
-  };
-
   ////////////////////////////////////////////////
   // Numbers, percentages, dimensions, and colors.
   ////////////////////////////////////////////////

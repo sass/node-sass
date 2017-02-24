@@ -1442,6 +1442,109 @@ namespace Sass {
     }
   }
 
+  Number_Ptr Parser::lexed_number(const ParserState& pstate, const std::string& parsed)
+  {
+    size_t L = parsed.length();
+    bool zero = !( (L > 0 && parsed.substr(0, 1) == ".") ||
+                   (L > 1 && parsed.substr(0, 2) == "0.") ||
+                   (L > 1 && parsed.substr(0, 2) == "-.")  ||
+                   (L > 2 && parsed.substr(0, 3) == "-0.")
+                 );
+    Number_Ptr nr = SASS_MEMORY_NEW(Number,
+                                    pstate,
+                                    sass_atof(parsed.c_str()),
+                                    "",
+                                    zero);
+    nr->is_interpolant(false);
+    nr->is_delayed(true);
+    return nr;
+  }
+
+  Number_Ptr Parser::lexed_percentage(const ParserState& pstate, const std::string& parsed)
+  {
+    Number_Ptr nr = SASS_MEMORY_NEW(Number,
+                                    pstate,
+                                    sass_atof(parsed.c_str()),
+                                    "%",
+                                    true);
+    nr->is_interpolant(false);
+    nr->is_delayed(true);
+    return nr;
+  }
+
+  Number_Ptr Parser::lexed_dimension(const ParserState& pstate, const std::string& parsed)
+  {
+    size_t L = parsed.length();
+    bool zero = !( (L > 0 && parsed.substr(0, 1) == ".") ||
+                   (L > 1 && parsed.substr(0, 2) == "0.") ||
+                   (L > 1 && parsed.substr(0, 2) == "-.")  ||
+                   (L > 2 && parsed.substr(0, 3) == "-0.")
+                 );
+    size_t num_pos = parsed.find_first_not_of(" \n\r\t");
+    if (num_pos == std::string::npos) num_pos = L;
+    size_t unit_pos = parsed.find_first_not_of("-+0123456789.", num_pos);
+    if (unit_pos == std::string::npos) unit_pos = L;
+    const std::string& num = parsed.substr(num_pos, unit_pos - num_pos);
+    Number_Ptr nr = SASS_MEMORY_NEW(Number,
+                                    pstate,
+                                    sass_atof(num.c_str()),
+                                    Token(number(parsed.c_str())),
+                                    zero);
+    nr->is_interpolant(false);
+    nr->is_delayed(true);
+    return nr;
+  }
+
+  Expression_Ptr Parser::lexed_hex_color(const ParserState& pstate, const std::string& parsed)
+  {
+    Color_Ptr color = NULL;
+    if (parsed[0] != '#') {
+      return SASS_MEMORY_NEW(String_Quoted, pstate, parsed);
+    }
+    // chop off the '#'
+    std::string hext(parsed.substr(1));
+    if (parsed.length() == 4) {
+      std::string r(2, parsed[1]);
+      std::string g(2, parsed[2]);
+      std::string b(2, parsed[3]);
+      color = SASS_MEMORY_NEW(Color,
+                               pstate,
+                               static_cast<double>(strtol(r.c_str(), NULL, 16)),
+                               static_cast<double>(strtol(g.c_str(), NULL, 16)),
+                               static_cast<double>(strtol(b.c_str(), NULL, 16)),
+                               1, // alpha channel
+                               parsed);
+    }
+    else if (parsed.length() == 7) {
+      std::string r(parsed.substr(1,2));
+      std::string g(parsed.substr(3,2));
+      std::string b(parsed.substr(5,2));
+      color = SASS_MEMORY_NEW(Color,
+                               pstate,
+                               static_cast<double>(strtol(r.c_str(), NULL, 16)),
+                               static_cast<double>(strtol(g.c_str(), NULL, 16)),
+                               static_cast<double>(strtol(b.c_str(), NULL, 16)),
+                               1, // alpha channel
+                               parsed);
+    }
+    else if (parsed.length() == 9) {
+      std::string r(parsed.substr(1,2));
+      std::string g(parsed.substr(3,2));
+      std::string b(parsed.substr(5,2));
+      std::string a(parsed.substr(7,2));
+      color = SASS_MEMORY_NEW(Color,
+                               pstate,
+                               static_cast<double>(strtol(r.c_str(), NULL, 16)),
+                               static_cast<double>(strtol(g.c_str(), NULL, 16)),
+                               static_cast<double>(strtol(b.c_str(), NULL, 16)),
+                               static_cast<double>(strtol(a.c_str(), NULL, 16)) / 255,
+                               parsed);
+    }
+    color->is_interpolant(false);
+    color->is_delayed(false);
+    return color;
+  }
+
   // parse one value for a list
   Expression_Obj Parser::parse_value()
   {
@@ -1455,10 +1558,10 @@ namespace Sass {
 
     // parse `10%4px` into separated items and not a schema
     if (lex< sequence < percentage, lookahead < number > > >())
-    { return SASS_MEMORY_NEW(Textual, pstate, Textual::PERCENTAGE, lexed); }
+    { return lexed_percentage(lexed); }
 
     if (lex< sequence < number, lookahead< sequence < op, number > > > >())
-    { return SASS_MEMORY_NEW(Textual, pstate, Textual::NUMBER, lexed); }
+    { return lexed_number(lexed); }
 
     // string may be interpolated
     if (lex< sequence < quoted_string, lookahead < exactly <'-'> > > >())
@@ -1485,11 +1588,11 @@ namespace Sass {
     }
 
     if (lex< percentage >())
-    { return SASS_MEMORY_NEW(Textual, pstate, Textual::PERCENTAGE, lexed); }
+    { return lexed_percentage(lexed); }
 
     // match hex number first because 0x000 looks like a number followed by an identifier
     if (lex< sequence < alternatives< hex, hex0 >, negate < exactly<'-'> > > >())
-    { return SASS_MEMORY_NEW(Textual, pstate, Textual::HEX, lexed); }
+    { return lexed_hex_color(lexed); }
 
     if (lex< sequence < exactly <'#'>, identifier > >())
     { return SASS_MEMORY_NEW(String_Quoted, pstate, lexed); }
@@ -1497,13 +1600,13 @@ namespace Sass {
     // also handle the 10em- foo special case
     // alternatives < exactly < '.' >, .. > -- `1.5em-.75em` is split into a list, not a binary expression
     if (lex< sequence< dimension, optional< sequence< exactly<'-'>, lookahead< alternatives < space > > > > > >())
-    { return SASS_MEMORY_NEW(Textual, pstate, Textual::DIMENSION, lexed); }
+    { return lexed_dimension(lexed); }
 
     if (lex< sequence< static_component, one_plus< strict_identifier > > >())
     { return SASS_MEMORY_NEW(String_Constant, pstate, lexed); }
 
     if (lex< number >())
-    { return SASS_MEMORY_NEW(Textual, pstate, Textual::NUMBER, lexed); }
+    { return lexed_number(lexed); }
 
     if (lex< variable >())
     { return SASS_MEMORY_NEW(Variable, pstate, Util::normalize_underscores(lexed)); }
@@ -1647,7 +1750,11 @@ namespace Sass {
     lex< exactly<'='> >();
     kwd_arg->append(SASS_MEMORY_NEW(String_Constant, pstate, lexed));
     if (peek< variable >()) kwd_arg->append(parse_list());
-    else if (lex< number >()) kwd_arg->append(SASS_MEMORY_NEW(Textual, pstate, Textual::NUMBER, Util::normalize_decimals(lexed)));
+    else if (lex< number >()) {
+      std::string parsed(lexed);
+      Util::normalize_decimals(parsed);
+      kwd_arg->append(lexed_number(parsed));
+    }
     else if (peek < ie_keyword_arg_value >()) { kwd_arg->append(parse_list()); }
     return kwd_arg;
   }
@@ -1725,19 +1832,19 @@ namespace Sass {
       }
       // lex percentage value
       else if (lex< percentage >()) {
-        schema->append(SASS_MEMORY_NEW(Textual, pstate, Textual::PERCENTAGE, lexed));
+        schema->append(lexed_percentage(lexed));
       }
       // lex dimension value
       else if (lex< dimension >()) {
-        schema->append(SASS_MEMORY_NEW(Textual, pstate, Textual::DIMENSION, lexed));
+        schema->append(lexed_dimension(lexed));
       }
       // lex number value
       else if (lex< number >()) {
-        schema->append( SASS_MEMORY_NEW(Textual, pstate, Textual::NUMBER, lexed));
+        schema->append(lexed_number(lexed));
       }
       // lex hex color value
       else if (lex< sequence < hex, negate < exactly < '-' > > > >()) {
-        schema->append(SASS_MEMORY_NEW(Textual, pstate, Textual::HEX, lexed));
+        schema->append(lexed_hex_color(lexed));
       }
       else if (lex< sequence < exactly <'#'>, identifier > >()) {
         schema->append(SASS_MEMORY_NEW(String_Quoted, pstate, lexed));

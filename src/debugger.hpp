@@ -488,18 +488,6 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     std::cerr << (block->is_invisible() ? " [INVISIBLE]" : "");
     std::cerr << " [indent: " << block->tabs() << "]" << std::endl;
     for(const Statement_Obj& i : block->elements()) { debug_ast(i, ind + " ", env); }
-  } else if (Cast<Textual>(node)) {
-    Textual_Ptr expression = Cast<Textual>(node);
-    std::cerr << ind << "Textual " << expression;
-    std::cerr << " (" << pstate_source_position(node) << ")";
-    if (expression->valtype() == Textual::NUMBER) std::cerr << " [NUMBER]";
-    else if (expression->valtype() == Textual::PERCENTAGE) std::cerr << " [PERCENTAGE]";
-    else if (expression->valtype() == Textual::DIMENSION) std::cerr << " [DIMENSION]";
-    else if (expression->valtype() == Textual::HEX) std::cerr << " [HEX]";
-    std::cerr << " [" << expression->value() << "]";
-    std::cerr << " [interpolant: " << expression->is_interpolant() << "] ";
-    if (expression->is_delayed()) std::cerr << " [delayed]";
-    std::cerr << std::endl;
   } else if (Cast<Variable>(node)) {
     Variable_Ptr expression = Cast<Variable>(node);
     std::cerr << ind << "Variable " << expression;
