@@ -1329,7 +1329,7 @@ namespace Sass {
     return ee;
   }
 
-  Expression_Ptr Eval::operator()(Media_Query_Ptr q)
+  Media_Query_Ptr Eval::operator()(Media_Query_Ptr q)
   {
     String_Obj t = q->media_type();
     t = static_cast<String_Ptr>(t.isNull() ? 0 : t->perform(this));
