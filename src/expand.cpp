@@ -176,18 +176,19 @@ namespace Sass {
 
   Statement_Ptr Expand::operator()(Media_Block_Ptr m)
   {
-    media_block_stack.push_back(m);
-    Expression_Obj mq = m->media_queries()->perform(&eval);
+    Media_Block_Ptr cpy = m->copy();
+    Expression_Obj mq = eval(m->media_queries());
     std::string str_mq(mq->to_string(ctx.c_options));
     char* str = sass_copy_c_string(str_mq.c_str());
     ctx.strings.push_back(str);
     Parser p(Parser::from_c_str(str, ctx, mq->pstate()));
     mq = p.parse_media_queries(); // re-assign now
-    List_Obj ls = Cast<List>(mq->perform(&eval));
+    cpy->media_queries(mq);
+    media_block_stack.push_back(cpy);
     Block_Obj blk = operator()(m->block());
     Media_Block_Ptr mm = SASS_MEMORY_NEW(Media_Block,
                                       m->pstate(),
-                                      ls,
+                                      mq,
                                       blk);
     media_block_stack.pop_back();
     mm->tabs(m->tabs());
