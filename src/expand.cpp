@@ -264,7 +264,7 @@ namespace Sass {
   Statement_Ptr Expand::operator()(Assignment_Ptr a)
   {
     Env* env = environment();
-    std::string var(a->variable());
+    const std::string& var(a->variable());
     if (a->is_global()) {
       if (a->is_default()) {
         if (env->has_global(var)) {

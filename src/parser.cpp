@@ -1442,19 +1442,22 @@ namespace Sass {
     }
   }
 
-  Number_Ptr Parser::lexed_number(const ParserState& pstate, const std::string& parsed)
+  bool number_has_zero(const std::string& parsed)
   {
     size_t L = parsed.length();
-    bool zero = !( (L > 0 && parsed.substr(0, 1) == ".") ||
-                   (L > 1 && parsed.substr(0, 2) == "0.") ||
-                   (L > 1 && parsed.substr(0, 2) == "-.")  ||
-                   (L > 2 && parsed.substr(0, 3) == "-0.")
-                 );
+    return !( (L > 0 && parsed.substr(0, 1) == ".") ||
+              (L > 1 && parsed.substr(0, 2) == "0.") ||
+              (L > 1 && parsed.substr(0, 2) == "-.")  ||
+              (L > 2 && parsed.substr(0, 3) == "-0.") );
+  }
+
+  Number_Ptr Parser::lexed_number(const ParserState& pstate, const std::string& parsed)
+  {
     Number_Ptr nr = SASS_MEMORY_NEW(Number,
                                     pstate,
                                     sass_atof(parsed.c_str()),
                                     "",
-                                    zero);
+                                    number_has_zero(parsed));
     nr->is_interpolant(false);
     nr->is_delayed(true);
     return nr;
@@ -1475,11 +1478,6 @@ namespace Sass {
   Number_Ptr Parser::lexed_dimension(const ParserState& pstate, const std::string& parsed)
   {
     size_t L = parsed.length();
-    bool zero = !( (L > 0 && parsed.substr(0, 1) == ".") ||
-                   (L > 1 && parsed.substr(0, 2) == "0.") ||
-                   (L > 1 && parsed.substr(0, 2) == "-.")  ||
-                   (L > 2 && parsed.substr(0, 3) == "-0.")
-                 );
     size_t num_pos = parsed.find_first_not_of(" \n\r\t");
     if (num_pos == std::string::npos) num_pos = L;
     size_t unit_pos = parsed.find_first_not_of("-+0123456789.", num_pos);
@@ -1489,7 +1487,7 @@ namespace Sass {
                                     pstate,
                                     sass_atof(num.c_str()),
                                     Token(number(parsed.c_str())),
-                                    zero);
+                                    number_has_zero(parsed));
     nr->is_interpolant(false);
     nr->is_delayed(true);
     return nr;

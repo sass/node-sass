@@ -169,6 +169,7 @@ namespace Sass {
       C_WARNING,
       C_ERROR,
       FUNCTION,
+      VARIABLE,
       NUM_TYPES
     };
     enum Simple_Type {
@@ -1512,10 +1513,10 @@ namespace Sass {
   public:
     Variable(ParserState pstate, std::string n)
     : PreValue(pstate), name_(n)
-    { }
+    { concrete_type(VARIABLE); }
     Variable(const Variable* ptr)
     : PreValue(ptr), name_(ptr->name_)
-    { }
+    { concrete_type(VARIABLE); }
 
     virtual bool operator==(const Expression& rhs) const
     {
