@@ -348,8 +348,6 @@ int GetResult(napi_env env, sass_context_wrapper* ctx_w, Sass_Context* ctx, bool
 
 void MakeCallback(uv_work_t* req) {
   Napi::HandleScope scope;
-  napi_env env;
-  CHECK_NAPI_RESULT(napi_get_current_env(&env));
 
   sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(req->data);
   struct Sass_Context* ctx;
@@ -361,30 +359,30 @@ void MakeCallback(uv_work_t* req) {
     ctx = sass_file_context_get_context(ctx_w->fctx);
   }
 
-  int status = GetResult(env, ctx_w, ctx);
+  int status = GetResult(ctx_w->env, ctx_w, ctx);
 
   if (status == 0 && ctx_w->success_callback) {
     // if no error, do callback(null, result)
     napi_value unused;
-    CHECK_NAPI_RESULT(napi_make_callback(env, ctx_w->success_callback, ctx_w->success_callback, 0, nullptr, &unused));
+    CHECK_NAPI_RESULT(napi_make_callback(ctx_w->env, ctx_w->success_callback, ctx_w->success_callback, 0, nullptr, &unused));
   }
   else if (ctx_w->error_callback) {
     // if error, do callback(error)
     const char* err = sass_context_get_error_json(ctx);
     int len = (int)strlen(err);
     napi_value str;
-    CHECK_NAPI_RESULT(napi_create_string_utf8(env, err, len, &str));
+    CHECK_NAPI_RESULT(napi_create_string_utf8(ctx_w->env, err, len, &str));
 
     napi_value argv[] = {
       str
     };
 
     napi_value unused;
-    CHECK_NAPI_RESULT(napi_make_callback(env, ctx_w->error_callback, ctx_w->error_callback, 1, argv, &unused));
+    CHECK_NAPI_RESULT(napi_make_callback(ctx_w->env, ctx_w->error_callback, ctx_w->error_callback, 1, argv, &unused));
   }
 
   bool r;
-  CHECK_NAPI_RESULT(napi_is_exception_pending(env, &r));
+  CHECK_NAPI_RESULT(napi_is_exception_pending(ctx_w->env, &r));
   if (r) {
     // TODO: FatalException
     return;
