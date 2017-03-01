@@ -12,6 +12,17 @@ namespace SassTypes
     return v ? instance_true : instance_false;
   }
 
+  napi_value Boolean::construct_and_wrap_instance(napi_env env, napi_value ctor, Boolean* b) {
+    Napi::EscapableHandleScope scope;
+
+    napi_value instance;
+    CHECK_NAPI_RESULT(napi_new_instance(env, ctor, 0, nullptr, &instance));
+    CHECK_NAPI_RESULT(napi_wrap(env, instance, b, nullptr, nullptr));
+    CHECK_NAPI_RESULT(napi_create_reference(env, instance, 1, &(b->js_object)));
+
+    return scope.Escape(instance);
+  }
+
   napi_value Boolean::get_constructor(napi_env env) {
     Napi::EscapableHandleScope scope;
     napi_value ctor;
@@ -27,19 +38,14 @@ namespace SassTypes
       CHECK_NAPI_RESULT(napi_create_reference(env, ctor, 1, &Boolean::constructor));
 
       Boolean& falseSingleton = get_singleton(false);
-      napi_value instance;
-      CHECK_NAPI_RESULT(napi_new_instance(env, ctor, 0, nullptr, &instance));
-      CHECK_NAPI_RESULT(napi_wrap(env, instance, &falseSingleton, nullptr, nullptr));
-      CHECK_NAPI_RESULT(napi_create_reference(env, instance, 1, &falseSingleton.js_object));
+      napi_value instance = construct_and_wrap_instance(env, ctor, &falseSingleton);
 
       napi_propertyname falseName;
       CHECK_NAPI_RESULT(napi_property_name(env, "FALSE", &falseName));
       CHECK_NAPI_RESULT(napi_set_property(env, ctor, falseName, instance));
 
       Boolean& trueSingleton = get_singleton(true);
-      CHECK_NAPI_RESULT(napi_new_instance(env, ctor, 0, nullptr, &instance));
-      CHECK_NAPI_RESULT(napi_wrap(env, instance, &trueSingleton, nullptr, nullptr));
-      CHECK_NAPI_RESULT(napi_create_reference(env, instance, 1, &trueSingleton.js_object));
+      instance = construct_and_wrap_instance(env, ctor, &trueSingleton);
 
       napi_propertyname trueName;
       CHECK_NAPI_RESULT(napi_property_name(env, "TRUE", &trueName));

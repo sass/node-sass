@@ -23,6 +23,8 @@ namespace SassTypes
     private:
       Null();
 
+      static napi_value construct_and_wrap_instance(napi_env env, napi_value ctor, Null* n);
+
       napi_ref js_object;
 
       static napi_ref constructor;

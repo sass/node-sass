@@ -140,7 +140,7 @@ T CallbackBridge<T, L>::operator()(std::vector<void*> argv) {
     }
 
     napi_value _this;
-    CHECK_NAPI_RESULT(napi_get_persistent_value(this->e, this->wrapper, &_this));
+    CHECK_NAPI_RESULT(napi_get_reference_value(this->e, this->wrapper, &_this));
     argv_v8.push_back(_this);
 
     napi_value result;

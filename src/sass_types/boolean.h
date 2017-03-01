@@ -21,6 +21,8 @@ namespace SassTypes
     private:
       Boolean(bool);
 
+      static napi_value construct_and_wrap_instance(napi_env env, napi_value ctor, Boolean* b);
+
       bool value;
       napi_ref js_object;
 

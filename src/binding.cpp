@@ -250,8 +250,13 @@ int ExtractOptions(napi_env e, napi_value options, void* cptr, sass_context_wrap
     for (uint32_t i = 0; i < num_signatures; i++) {
       napi_value signature;
       CHECK_NAPI_RESULT(napi_get_element(e, signatures, i, &signature));
+      // TODO: we should use the signature as the property key directly instead of coercing to string here
+      char* s = create_string(e, signature);
+      napi_propertyname name;
+      CHECK_NAPI_RESULT(napi_property_name(e, s, &name));
+      free(s);
       napi_value callback;
-      CHECK_NAPI_RESULT(napi_get_property(e, propertyFunctions, signature, &callback));
+      CHECK_NAPI_RESULT(napi_get_property(e, propertyFunctions, name, &callback));
 
       CustomFunctionBridge *bridge = new CustomFunctionBridge(e, callback, ctx_w->is_sync);
       ctx_w->function_bridges.push_back(bridge);

@@ -46,8 +46,7 @@ namespace SassTypes
   }
 
   void Factory::initExports(napi_env env, napi_value target) {
-    napi_handle_scope scope;
-    CHECK_NAPI_RESULT(napi_open_handle_scope(env, &scope));
+    Napi::HandleScope scope;
 
     napi_value types;
     CHECK_NAPI_RESULT(napi_create_object(env, &types));
