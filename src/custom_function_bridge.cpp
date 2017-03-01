@@ -14,7 +14,7 @@ Sass_Value* CustomFunctionBridge::post_process_return_value(napi_env env, napi_v
 }
 
 std::vector<napi_value> CustomFunctionBridge::pre_process_args(napi_env env, std::vector<void*> in) const {
-  std::vector<napi_value> argv = std::vector<napi_value>();
+  std::vector<napi_value> argv;
 
   for (void* value : in) {
     argv.push_back(SassTypes::Factory::create(env, static_cast<Sass_Value*>(value))->get_js_object(env));

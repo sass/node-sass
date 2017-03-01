@@ -8,8 +8,6 @@
 #include <node_api_helpers.h>
 #include "common.h"
 
-#define COMMA ,
-
 template <typename T, typename L = void*>
 class CallbackBridge {
   public:
