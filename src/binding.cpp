@@ -1,4 +1,4 @@
-#include <vector>
+﻿#include <vector>
 #include <node_api_helpers.h>
 #include "sass_context_wrapper.h"
 #include "custom_function_bridge.h"
@@ -72,8 +72,20 @@ int ExtractOptions(napi_env e, napi_value options, void* cptr, sass_context_wrap
     napi_propertyname nameError;
     CHECK_NAPI_RESULT(napi_property_name(e, "error", &nameError));
 
-    CHECK_NAPI_RESULT(napi_get_property(e, options, nameSuccess, &ctx_w->success_callback));
-    CHECK_NAPI_RESULT(napi_get_property(e, options, nameError, &ctx_w->error_callback));
+    napi_value success_cb;
+    CHECK_NAPI_RESULT(napi_get_property(e, options, nameSuccess, &success_cb));
+    napi_valuetype cb_type;
+    CHECK_NAPI_RESULT(napi_get_type_of_value(e, success_cb, &cb_type));
+    if (cb_type == napi_function) {
+      CHECK_NAPI_RESULT(napi_create_reference(e, success_cb, 1, &ctx_w->success_callback));
+    }
+
+    napi_value error_cb;
+    CHECK_NAPI_RESULT(napi_get_property(e, options, nameError, &error_cb));
+    CHECK_NAPI_RESULT(napi_get_type_of_value(e, error_cb, &cb_type));
+    if (cb_type == napi_function) {
+      CHECK_NAPI_RESULT(napi_create_reference(e, error_cb, 1, &ctx_w->error_callback));
+    }
   }
 
   if (!is_file) {
@@ -369,10 +381,17 @@ void MakeCallback(uv_work_t* req) {
 
   int status = GetResult(ctx_w->env, ctx_w, ctx);
 
+  napi_value global;
+  CHECK_NAPI_RESULT(napi_get_global(ctx_w->env, &global));
+
   if (status == 0 && ctx_w->success_callback) {
     // if no error, do callback(null, result)
+    napi_value success_cb;
+    CHECK_NAPI_RESULT(napi_get_reference_value(ctx_w->env, ctx_w->success_callback, &success_cb));
+    assert(success_cb != nullptr);
+
     napi_value unused;
-    CHECK_NAPI_RESULT(napi_make_callback(ctx_w->env, ctx_w->success_callback, ctx_w->success_callback, 0, nullptr, &unused));
+    CHECK_NAPI_RESULT(napi_make_callback(ctx_w->env, global, success_cb, 0, nullptr, &unused));
   }
   else if (ctx_w->error_callback) {
     // if error, do callback(error)
@@ -385,8 +404,12 @@ void MakeCallback(uv_work_t* req) {
       str
     };
 
+    napi_value error_cb;
+    CHECK_NAPI_RESULT(napi_get_reference_value(ctx_w->env, ctx_w->error_callback, &error_cb));
+    assert(error_cb != nullptr);
+
     napi_value unused;
-    CHECK_NAPI_RESULT(napi_make_callback(ctx_w->env, ctx_w->error_callback, ctx_w->error_callback, 1, argv, &unused));
+    CHECK_NAPI_RESULT(napi_make_callback(ctx_w->env, global, error_cb, 1, argv, &unused));
   }
 
   bool r;
@@ -443,9 +466,13 @@ NAPI_METHOD(render_sync) {
 
   sass_free_context_wrapper(ctx_w);
 
-  napi_value boolResult;
-  CHECK_NAPI_RESULT(napi_create_boolean(env, result == 0, &boolResult));
-  CHECK_NAPI_RESULT(napi_set_return_value(env, info, boolResult));
+  bool isExceptionPending;
+  CHECK_NAPI_RESULT(napi_is_exception_pending(env, &isExceptionPending));
+  if (!isExceptionPending) {
+    napi_value boolResult;
+    CHECK_NAPI_RESULT(napi_create_boolean(env, result == 0, &boolResult));
+    CHECK_NAPI_RESULT(napi_set_return_value(env, info, boolResult));
+  }
 }
 
 NAPI_METHOD(render_file) {

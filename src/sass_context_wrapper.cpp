@@ -1,4 +1,4 @@
-#include "sass_context_wrapper.h"
+﻿#include "sass_context_wrapper.h"
 
 extern "C" {
   using namespace std;
@@ -36,10 +36,15 @@ extern "C" {
       sass_delete_file_context(ctx_w->fctx);
     }
 
-    delete ctx_w->error_callback;
-    delete ctx_w->success_callback;
-
-    CHECK_NAPI_RESULT(napi_delete_reference(ctx_w->env, ctx_w->result));
+    if (ctx_w->error_callback != nullptr) {
+      CHECK_NAPI_RESULT(napi_delete_reference(ctx_w->env, ctx_w->error_callback));
+    }
+    if (ctx_w->success_callback != nullptr) {
+      CHECK_NAPI_RESULT(napi_delete_reference(ctx_w->env, ctx_w->success_callback));
+    }
+    if (ctx_w->result != nullptr) {
+      CHECK_NAPI_RESULT(napi_delete_reference(ctx_w->env, ctx_w->result));
+    }
 
     free(ctx_w->include_path);
     free(ctx_w->linefeed);

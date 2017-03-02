@@ -1,4 +1,4 @@
-#ifndef SASS_CONTEXT_WRAPPER
+﻿#ifndef SASS_CONTEXT_WRAPPER
 #define SASS_CONTEXT_WRAPPER
 
 #include <vector>
@@ -39,8 +39,8 @@ extern "C" {
     // v8 and nan related
     napi_env env;
     napi_ref result;
-    napi_value error_callback;
-    napi_value success_callback;
+    napi_ref error_callback;
+    napi_ref success_callback;
 
     std::vector<CustomFunctionBridge *> function_bridges;
     std::vector<CustomImporterBridge *> importer_bridges;
