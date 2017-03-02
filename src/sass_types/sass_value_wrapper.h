@@ -58,8 +58,7 @@ namespace SassTypes
 
   template <class T>
   SassValueWrapper<T>::~SassValueWrapper() {
-    int unused;
-    CHECK_NAPI_RESULT(napi_reference_release(this->e, this->js_object, &unused));
+    CHECK_NAPI_RESULT(napi_delete_reference(this->e, this->js_object));
     sass_delete_value(this->value);
   }
 
@@ -244,7 +243,7 @@ namespace SassTypes
     CHECK_NAPI_RESULT(napi_get_reference_value(env, this->js_object, &v));
     return v;
   }
-  
+
   template <class T>
   napi_value SassValueWrapper<T>::get_constructor(napi_env env) {
     Napi::EscapableHandleScope scope;
@@ -268,12 +267,12 @@ namespace SassTypes
     std::vector<napi_value> localArgs(argsLength);
     napi_value* argv = (napi_value*)malloc(sizeof(napi_value)*argsLength);
     CHECK_NAPI_RESULT(napi_get_cb_args(env, info, argv, argsLength));
-    
+
     for (auto i = 0; i < argsLength; ++i) {
       localArgs[i] = argv[i];
     }
     free(argv);
-    
+
     bool r;
     CHECK_NAPI_RESULT(napi_is_construct_call(env, info, &r));
 

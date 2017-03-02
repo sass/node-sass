@@ -83,7 +83,7 @@ void CallbackBridge<T, L>::New(napi_env env, napi_callback_info info) {
 
 template <typename T, typename L>
 CallbackBridge<T, L>::CallbackBridge(napi_env env, napi_value callback, bool is_sync) : e(env), callback(callback), is_sync(is_sync) {
-  /* 
+  /*
    * This is invoked from the main JavaScript thread.
    * V8 context is available.
    */
@@ -94,7 +94,7 @@ CallbackBridge<T, L>::CallbackBridge(napi_env env, napi_value callback, bool is_
     this->async->data = (void*) this;
     uv_async_init(uv_default_loop(), this->async, (uv_async_cb) dispatched_async_uv_callback);
   }
-  
+
   napi_value instance = CallbackBridge::NewInstance(env);
   CHECK_NAPI_RESULT(napi_wrap(env, instance, this, CallbackBridge_Destructor<T,L>, nullptr));
   CHECK_NAPI_RESULT(napi_create_reference(env, instance, 1, &this->wrapper));
@@ -102,7 +102,7 @@ CallbackBridge<T, L>::CallbackBridge(napi_env env, napi_value callback, bool is_
 
 template <typename T, typename L>
 CallbackBridge<T, L>::~CallbackBridge() {
-  CHECK_NAPI_RESULT(napi_reference_release(e, this->wrapper, nullptr));
+  CHECK_NAPI_RESULT(napi_delete_reference(e, this->wrapper));
 
   uv_cond_destroy(&this->condition_variable);
   uv_mutex_destroy(&this->cv_mutex);
@@ -116,7 +116,7 @@ template <typename T, typename L>
 T CallbackBridge<T, L>::operator()(std::vector<void*> argv) {
   // argv.push_back(wrapper);
   if (this->is_sync) {
-    /* 
+    /*
      * This is invoked from the main JavaScript thread.
      * V8 context is available.
      *
@@ -147,7 +147,7 @@ T CallbackBridge<T, L>::operator()(std::vector<void*> argv) {
 
     return this->post_process_return_value(this->e, result);
   } else {
-    /* 
+    /*
      * This is invoked from the worker thread.
      * No V8 context and functions available.
      * Just wait for response from asynchronously
@@ -178,7 +178,7 @@ template <typename T, typename L>
 void CallbackBridge<T, L>::dispatched_async_uv_callback(uv_async_t *req) {
   CallbackBridge* bridge = static_cast<CallbackBridge*>(req->data);
 
-  /* 
+  /*
    * Function scheduled via uv_async mechanism, therefore
    * it is invoked from the main JavaScript thread.
    * V8 context is available.
@@ -194,7 +194,7 @@ void CallbackBridge<T, L>::dispatched_async_uv_callback(uv_async_t *req) {
   CHECK_NAPI_RESULT(napi_is_exception_pending(bridge->e, &isPending));
   if (isPending) {
       CHECK_NAPI_RESULT(napi_throw_error(bridge->e, "Error processing arguments"));
-      // This should be a FatalException 
+      // This should be a FatalException
       return;
   }
 
@@ -208,7 +208,7 @@ void CallbackBridge<T, L>::dispatched_async_uv_callback(uv_async_t *req) {
   CHECK_NAPI_RESULT(napi_is_exception_pending(bridge->e, &isPending));
   if (isPending) {
       CHECK_NAPI_RESULT(napi_throw_error(bridge->e, "Error thrown in callback"));
-      // This should be a FatalException 
+      // This should be a FatalException
       return;
   }
 }
@@ -221,7 +221,7 @@ void CallbackBridge<T, L>::ReturnCallback(napi_env env, napi_callback_info info)
   CHECK_NAPI_RESULT(napi_unwrap(env, args[0], &unwrapped));
   CallbackBridge* bridge = static_cast<CallbackBridge*>(unwrapped);
 
-  /* 
+  /*
    * Callback function invoked by the user code.
    * It is invoked from the main JavaScript thread.
    * V8 context is available.
@@ -238,7 +238,7 @@ void CallbackBridge<T, L>::ReturnCallback(napi_env env, napi_callback_info info)
   }
 
   uv_cond_broadcast(&bridge->condition_variable);
-  
+
   bool isPending;
   CHECK_NAPI_RESULT(napi_is_exception_pending(env, &isPending));
 

@@ -50,7 +50,7 @@ int ExtractOptions(napi_env e, napi_value options, void* cptr, sass_context_wrap
   }
 
   CHECK_NAPI_RESULT(napi_create_reference(e, result_, 1, &ctx_w->result));
-  
+
   if (is_file) {
     ctx_w->fctx = (struct Sass_File_Context*) cptr;
     ctx = sass_file_context_get_context(ctx_w->fctx);
@@ -236,7 +236,7 @@ int ExtractOptions(napi_env e, napi_value options, void* cptr, sass_context_wrap
 
         c_importers[i] = sass_make_importer(sass_importer, len - i - 1, bridge);
       }
-      
+
       sass_option_set_c_importers(sass_options, c_importers);
     }
   }
@@ -294,6 +294,8 @@ void GetStats(napi_env env, sass_context_wrapper* ctx_w, Sass_Context* ctx) {
 
   napi_value result;
   CHECK_NAPI_RESULT(napi_get_reference_value(env, ctx_w->result, &result));
+  assert(result != nullptr);
+
   napi_propertyname nameStats;
   CHECK_NAPI_RESULT(napi_property_name(env, "stats", &nameStats));
   napi_value propertyStats;
@@ -316,6 +318,7 @@ int GetResult(napi_env env, sass_context_wrapper* ctx_w, Sass_Context* ctx, bool
   int status = sass_context_get_error_status(ctx);
   napi_value result;
   CHECK_NAPI_RESULT(napi_get_reference_value(env, ctx_w->result, &result));
+  assert(result != nullptr);
 
   if (status == 0) {
     const char* css = sass_context_get_output_string(ctx);
@@ -494,7 +497,7 @@ NAPI_METHOD(libsass_version) {
   const char* ver = libsass_version();
   int len = (int)strlen(ver);
   napi_value str;
-  
+
   CHECK_NAPI_RESULT(napi_create_string_utf8(env, ver, len, &str));
   CHECK_NAPI_RESULT(napi_set_return_value(env, info, str));
 }

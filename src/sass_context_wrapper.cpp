@@ -39,7 +39,7 @@ extern "C" {
     delete ctx_w->error_callback;
     delete ctx_w->success_callback;
 
-    CHECK_NAPI_RESULT(napi_reference_release(ctx_w->env, ctx_w->result, nullptr));
+    CHECK_NAPI_RESULT(napi_delete_reference(ctx_w->env, ctx_w->result));
 
     free(ctx_w->include_path);
     free(ctx_w->linefeed);
