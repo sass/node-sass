@@ -33,7 +33,8 @@ union Sass_Value* sass_custom_function(const union Sass_Value* s_args, Sass_Func
 }
 
 int ExtractOptions(napi_env e, napi_value options, void* cptr, sass_context_wrapper* ctx_w, bool is_file, bool is_sync) {
-  Napi::HandleScope scope;
+  // TODO: Enable napi_close_handle_scope during a pending exception state.
+  //Napi::HandleScope scope;
 
   struct Sass_Context* ctx;
 
@@ -102,8 +103,12 @@ int ExtractOptions(napi_env e, napi_value options, void* cptr, sass_context_wrap
   CHECK_NAPI_RESULT(napi_property_name(e, "indentWidth", &nameIndentWidth));
   napi_value propertyIndentWidth;
   CHECK_NAPI_RESULT(napi_get_property(e, options, nameIndentWidth, &propertyIndentWidth));
+  CHECK_NAPI_RESULT(napi_coerce_to_number(e, propertyIndentWidth, &propertyIndentWidth));
   int32_t indent_width_len;
   CHECK_NAPI_RESULT(napi_get_value_int32(e, propertyIndentWidth, &indent_width_len));
+
+  // TODO: Fix napi_coerce_to_number to coerce undefined to 0?
+  if (indent_width_len < 0) indent_width_len = 0;
 
   ctx_w->indent = (char*)malloc(indent_width_len + 1);
 
@@ -111,8 +116,12 @@ int ExtractOptions(napi_env e, napi_value options, void* cptr, sass_context_wrap
   CHECK_NAPI_RESULT(napi_property_name(e, "indentType", &nameIndentType));
   napi_value propertyIndentType;
   CHECK_NAPI_RESULT(napi_get_property(e, options, nameIndentType, &propertyIndentType));
+  CHECK_NAPI_RESULT(napi_coerce_to_number(e, propertyIndentType, &propertyIndentType));
   int32_t indent_type_len;
   CHECK_NAPI_RESULT(napi_get_value_int32(e, propertyIndentType, &indent_type_len));
+
+  // TODO: Fix napi_coerce_to_number to coerce undefined to 0?
+  if (indent_type_len < 0) indent_type_len = 0;
 
   strcpy(ctx_w->indent, std::string(
     indent_width_len,
@@ -283,7 +292,8 @@ int ExtractOptions(napi_env e, napi_value options, void* cptr, sass_context_wrap
 }
 
 void GetStats(napi_env env, sass_context_wrapper* ctx_w, Sass_Context* ctx) {
-  Napi::HandleScope scope;
+  // TODO: Enable napi_close_handle_scope during a pending exception state.
+  //Napi::HandleScope scope;
 
   char** included_files = sass_context_get_included_files(ctx);
   napi_value arr;
@@ -320,7 +330,8 @@ void GetStats(napi_env env, sass_context_wrapper* ctx_w, Sass_Context* ctx) {
 }
 
 int GetResult(napi_env env, sass_context_wrapper* ctx_w, Sass_Context* ctx, bool is_sync = false) {
-  Napi::HandleScope scope;
+  // TODO: Enable napi_close_handle_scope during a pending exception state.
+  //Napi::HandleScope scope;
 
   int status = sass_context_get_error_status(ctx);
   napi_value result;
