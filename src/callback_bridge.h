@@ -1,4 +1,4 @@
-#ifndef CALLBACK_BRIDGE_H
+﻿#ifndef CALLBACK_BRIDGE_H
 #define CALLBACK_BRIDGE_H
 
 #include <vector>
@@ -42,7 +42,7 @@ class CallbackBridge {
     virtual std::vector<napi_value> pre_process_args(napi_env, std::vector<L>) const = 0;
 
     napi_env e;
-    napi_value callback;
+    napi_ref callback;
     bool is_sync;
 
     uv_mutex_t cv_mutex;
@@ -82,7 +82,7 @@ void CallbackBridge<T, L>::New(napi_env env, napi_callback_info info) {
 }
 
 template <typename T, typename L>
-CallbackBridge<T, L>::CallbackBridge(napi_env env, napi_value callback, bool is_sync) : e(env), callback(callback), is_sync(is_sync) {
+CallbackBridge<T, L>::CallbackBridge(napi_env env, napi_value callback, bool is_sync) : e(env), is_sync(is_sync) {
   /*
    * This is invoked from the main JavaScript thread.
    * V8 context is available.
@@ -95,6 +95,8 @@ CallbackBridge<T, L>::CallbackBridge(napi_env env, napi_value callback, bool is_
     uv_async_init(uv_default_loop(), this->async, (uv_async_cb) dispatched_async_uv_callback);
   }
 
+  CHECK_NAPI_RESULT(napi_create_reference(env, callback, 1, &this->callback));
+
   napi_value instance = CallbackBridge::NewInstance(env);
   CHECK_NAPI_RESULT(napi_wrap(env, instance, this, CallbackBridge_Destructor<T,L>, nullptr));
   CHECK_NAPI_RESULT(napi_create_reference(env, instance, 1, &this->wrapper));
@@ -102,6 +104,7 @@ CallbackBridge<T, L>::CallbackBridge(napi_env env, napi_value callback, bool is_
 
 template <typename T, typename L>
 CallbackBridge<T, L>::~CallbackBridge() {
+  CHECK_NAPI_RESULT(napi_delete_reference(e, this->callback));
   CHECK_NAPI_RESULT(napi_delete_reference(e, this->wrapper));
 
   uv_cond_destroy(&this->condition_variable);
@@ -141,9 +144,13 @@ T CallbackBridge<T, L>::operator()(std::vector<void*> argv) {
     CHECK_NAPI_RESULT(napi_get_reference_value(this->e, this->wrapper, &_this));
     argv_v8.push_back(_this);
 
+    napi_value cb;
+    CHECK_NAPI_RESULT(napi_get_reference_value(this->e, this->callback, &cb));
+    assert(cb != nullptr);
+
     napi_value result;
     // TODO: Is receiver set correctly ?
-    CHECK_NAPI_RESULT(napi_make_callback(this->e, _this, this->callback, argv_v8.size(), &argv_v8[0], &result));
+    CHECK_NAPI_RESULT(napi_make_callback(this->e, _this, cb, argv_v8.size(), &argv_v8[0], &result));
 
     return this->post_process_return_value(this->e, result);
   } else {
@@ -202,9 +209,13 @@ void CallbackBridge<T, L>::dispatched_async_uv_callback(uv_async_t *req) {
   CHECK_NAPI_RESULT(napi_get_reference_value(bridge->e, bridge->wrapper, &_this));
   argv_v8.push_back(_this);
 
+  napi_value cb;
+  CHECK_NAPI_RESULT(napi_get_reference_value(bridge->e, bridge->callback, &cb));
+  assert(cb != nullptr);
+
   napi_value result;
   // TODO: Is receiver set correctly ?
-  CHECK_NAPI_RESULT(napi_make_callback(bridge->e, _this, bridge->callback, argv_v8.size(), &argv_v8[0], &result));
+  CHECK_NAPI_RESULT(napi_make_callback(bridge->e, _this, cb, argv_v8.size(), &argv_v8[0], &result));
   CHECK_NAPI_RESULT(napi_is_exception_pending(bridge->e, &isPending));
   if (isPending) {
       CHECK_NAPI_RESULT(napi_throw_error(bridge->e, "Error thrown in callback"));
@@ -215,11 +226,14 @@ void CallbackBridge<T, L>::dispatched_async_uv_callback(uv_async_t *req) {
 
 template <typename T, typename L>
 void CallbackBridge<T, L>::ReturnCallback(napi_env env, napi_callback_info info) {
+  napi_value _this;
+  CHECK_NAPI_RESULT(napi_get_cb_this(env, info, &_this));
+  void* unwrapped;
+  CHECK_NAPI_RESULT(napi_unwrap(env, _this, &unwrapped));
+  CallbackBridge* bridge = static_cast<CallbackBridge*>(unwrapped);
+
   napi_value args[1];
   CHECK_NAPI_RESULT(napi_get_cb_args(env, info, args, 1));
-  void* unwrapped;
-  CHECK_NAPI_RESULT(napi_unwrap(env, args[0], &unwrapped));
-  CallbackBridge* bridge = static_cast<CallbackBridge*>(unwrapped);
 
   /*
    * Callback function invoked by the user code.

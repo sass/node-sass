@@ -1,4 +1,4 @@
-#ifndef SASS_TYPES_SASS_VALUE_WRAPPER_H
+﻿#ifndef SASS_TYPES_SASS_VALUE_WRAPPER_H
 #define SASS_TYPES_SASS_VALUE_WRAPPER_H
 
 #include <stdexcept>
@@ -293,10 +293,15 @@ namespace SassTypes
     } else {
       napi_value ctor = T::get_constructor(env);
       napi_value instance;
-      CHECK_NAPI_RESULT(napi_new_instance(env, ctor, argsLength, &localArgs[0], &instance));
-      CHECK_NAPI_RESULT(napi_set_return_value(env, info, instance));
-
-      // TODO: If new instance fails, return undefined
+      napi_status status = napi_new_instance(env, ctor, argsLength, &localArgs[0], &instance);
+      if (status == napi_ok) {
+        CHECK_NAPI_RESULT(napi_set_return_value(env, info, instance));
+      }
+      else {
+        napi_value undef;
+        CHECK_NAPI_RESULT(napi_get_undefined(env, &undef));
+        CHECK_NAPI_RESULT(napi_set_return_value(env, info, undef));
+      }
     }
   }
 

@@ -41,9 +41,6 @@ extern "C" {
     napi_ref result;
     napi_ref error_callback;
     napi_ref success_callback;
-
-    std::vector<CustomFunctionBridge *> function_bridges;
-    std::vector<CustomImporterBridge *> importer_bridges;
   };
 
   struct sass_context_wrapper* sass_make_context_wrapper(napi_env);

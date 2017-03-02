@@ -223,7 +223,6 @@ int ExtractOptions(napi_env e, napi_value options, void* cptr, sass_context_wrap
 
   if (t == napi_function) {
     CustomImporterBridge *bridge = new CustomImporterBridge(e, propertyImporter, ctx_w->is_sync);
-    ctx_w->importer_bridges.push_back(bridge);
 
     Sass_Importer_List c_importers = sass_make_importer_list(1);
     c_importers[0] = sass_make_importer(sass_importer, 0, bridge);
@@ -244,8 +243,6 @@ int ExtractOptions(napi_env e, napi_value options, void* cptr, sass_context_wrap
         CHECK_NAPI_RESULT(napi_get_element(e, propertyImporter, i, &callback));
 
         CustomImporterBridge *bridge = new CustomImporterBridge(e, callback, ctx_w->is_sync);
-        ctx_w->importer_bridges.push_back(bridge);
-
         c_importers[i] = sass_make_importer(sass_importer, len - i - 1, bridge);
       }
 
@@ -276,8 +273,6 @@ int ExtractOptions(napi_env e, napi_value options, void* cptr, sass_context_wrap
       CHECK_NAPI_RESULT(napi_get_property(e, propertyFunctions, name, &callback));
 
       CustomFunctionBridge *bridge = new CustomFunctionBridge(e, callback, ctx_w->is_sync);
-      ctx_w->function_bridges.push_back(bridge);
-
       Sass_Function_Entry fn = sass_make_function(create_string(e, signature), sass_custom_function, bridge);
       sass_function_set_list_entry(fn_list, i, fn);
     }
@@ -410,13 +405,6 @@ void MakeCallback(uv_work_t* req) {
 
     napi_value unused;
     CHECK_NAPI_RESULT(napi_make_callback(ctx_w->env, global, error_cb, 1, argv, &unused));
-  }
-
-  bool r;
-  CHECK_NAPI_RESULT(napi_is_exception_pending(ctx_w->env, &r));
-  if (r) {
-    // TODO: FatalException
-    return;
   }
 
   sass_free_context_wrapper(ctx_w);

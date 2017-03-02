@@ -1,4 +1,4 @@
-#include "factory.h"
+﻿#include "factory.h"
 #include "value.h"
 #include "number.h"
 #include "string.h"
@@ -84,7 +84,10 @@ namespace SassTypes
 
   Value* Factory::unwrap(napi_env env, napi_value obj) {
     void* wrapped;
-    CHECK_NAPI_RESULT(napi_unwrap(env, obj, &wrapped));
+    napi_status status = napi_unwrap(env, obj, &wrapped);
+    if (status != napi_ok) {
+      wrapped = nullptr;
+    }
     return static_cast<Value*>(wrapped);
   }
 }
