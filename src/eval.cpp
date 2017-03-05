@@ -353,7 +353,7 @@ namespace Sass {
       Sass_Function_Fn c_func = sass_function_get_function(c_function);
 
       To_C to_c;
-      union Sass_Value* c_args = sass_make_list(1, SASS_COMMA, false);
+      union Sass_Value* c_args = sass_make_list(1, SASS_COMMA);
       sass_list_set_value(c_args, 0, message->perform(&to_c));
       union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_compiler);
       ctx.c_options.output_style = outstyle;
@@ -400,7 +400,7 @@ namespace Sass {
       Sass_Function_Fn c_func = sass_function_get_function(c_function);
 
       To_C to_c;
-      union Sass_Value* c_args = sass_make_list(1, SASS_COMMA, false);
+      union Sass_Value* c_args = sass_make_list(1, SASS_COMMA);
       sass_list_set_value(c_args, 0, message->perform(&to_c));
       union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_compiler);
       ctx.c_options.output_style = outstyle;
@@ -444,7 +444,7 @@ namespace Sass {
       Sass_Function_Fn c_func = sass_function_get_function(c_function);
 
       To_C to_c;
-      union Sass_Value* c_args = sass_make_list(1, SASS_COMMA, false);
+      union Sass_Value* c_args = sass_make_list(1, SASS_COMMA);
       sass_list_set_value(c_args, 0, message->perform(&to_c));
       union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_compiler);
       ctx.c_options.output_style = outstyle;
@@ -1052,7 +1052,7 @@ namespace Sass {
       });
 
       To_C to_c;
-      union Sass_Value* c_args = sass_make_list(params->length(), SASS_COMMA, false);
+      union Sass_Value* c_args = sass_make_list(params->length(), SASS_COMMA);
       for(size_t i = 0; i < params->length(); i++) {
         Parameter_Obj param = params->at(i);
         std::string key = param->name();
@@ -1690,7 +1690,6 @@ namespace Sass {
         for (size_t i = 0, L = sass_list_get_length(v); i < L; ++i) {
           l->append(cval_to_astnode(sass_list_get_value(v, i), backtrace, pstate));
         }
-        l->is_bracketed(sass_list_get_is_bracketed(v));
         e = l;
       } break;
       case SASS_MAP: {
