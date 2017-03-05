@@ -1309,7 +1309,7 @@ namespace Sass {
       if (l->empty()) error("argument `$list` of `" + std::string(sig) + "` must not be empty", pstate);
       double index = std::floor(n->value() < 0 ? l->length() + n->value() : n->value() - 1);
       if (index < 0 || index > l->length() - 1) error("index out of bounds for `" + std::string(sig) + "`", pstate);
-      List_Ptr result = SASS_MEMORY_NEW(List, pstate, l->length(), l->separator(), false, l->delimiter());
+      List_Ptr result = SASS_MEMORY_NEW(List, pstate, l->length(), l->separator());
       for (size_t i = 0, L = l->length(); i < L; ++i) {
         result->append(((i == index) ? v : (*l)[i]));
       }
@@ -1335,7 +1335,7 @@ namespace Sass {
       return SASS_MEMORY_NEW(Null, pstate);
     }
 
-    Signature join_sig = "join($list1, $list2, $separator: auto, $bracketed: auto)";
+    Signature join_sig = "join($list1, $list2, $separator: auto)";
     BUILT_IN(join)
     {
       Map_Obj m1 = Cast<Map>(env["$list1"]);
@@ -1344,13 +1344,10 @@ namespace Sass {
       List_Obj l2 = Cast<List>(env["$list2"]);
       String_Constant_Obj sep = ARG("$separator", String_Constant);
       enum Sass_Separator sep_val = (l1 ? l1->separator() : SASS_SPACE);
-      Value* bracketed = ARG("$bracketed", Value);
-      enum Sass_List_Delimiter delimiter = (l1 ? l1->delimiter() : SASS_NO_DELIMITER);
       if (!l1) {
         l1 = SASS_MEMORY_NEW(List, pstate, 1);
         l1->append(ARG("$list1", Expression));
         sep_val = (l2 ? l2->separator() : SASS_SPACE);
-        delimiter = (l2 ? l2->delimiter() : SASS_NO_DELIMITER);
       }
       if (!l2) {
         l2 = SASS_MEMORY_NEW(List, pstate, 1);
@@ -1368,12 +1365,7 @@ namespace Sass {
       if (sep_str == "space") sep_val = SASS_SPACE;
       else if (sep_str == "comma") sep_val = SASS_COMMA;
       else if (sep_str != "auto") error("argument `$separator` of `" + std::string(sig) + "` must be `space`, `comma`, or `auto`", pstate);
-      String_Constant_Obj bracketed_as_str = Cast<String_Constant>(bracketed);
-      bool bracketed_is_auto = bracketed_as_str && unquote(bracketed_as_str->value()) == "auto";
-      if (!bracketed_is_auto) {
-        delimiter = bracketed->is_false() ? SASS_NO_DELIMITER : SASS_BRACKETS;
-      }
-      List_Obj result = SASS_MEMORY_NEW(List, pstate, len, sep_val, false, delimiter);
+      List_Obj result = SASS_MEMORY_NEW(List, pstate, len, sep_val);
       result->concat(l1);
       result->concat(l2);
       return result.detach();
@@ -1993,6 +1985,7 @@ namespace Sass {
       return SASS_MEMORY_NEW(String_Quoted, pstate, ss.str());
     }
 
+<<<<<<< HEAD
     Signature is_bracketed_sig = "is-bracketed($list)";
     BUILT_IN(is_bracketed)
     {
@@ -2000,5 +1993,7 @@ namespace Sass {
       List_Obj list = Cast<List>(value);
       return SASS_MEMORY_NEW(Boolean, pstate, list && list->is_bracketed());
     }
+=======
+>>>>>>> parent of 46f5244... Merge pull request #2279 from xzyfer/bracked-lists
   }
 }

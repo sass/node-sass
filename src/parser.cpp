@@ -1012,7 +1012,7 @@ namespace Sass {
       else {
         value = parse_list(DELAYED);
         if (List_Ptr list = Cast<List>(value)) {
-          if (!list->is_bracketed() && list->length() == 0 && !peek< exactly <'{'> >()) {
+          if (list->length() == 0 && !peek< exactly <'{'> >()) {
             css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
           }
         }
@@ -1048,13 +1048,8 @@ namespace Sass {
     List_Obj map = SASS_MEMORY_NEW(List, pstate, 0, SASS_HASH);
 
     // it's not a map so return the lexed value as a list value
-    if (!lex_css< exactly<':'> >()) {
-      List_Obj list = SASS_MEMORY_CAST(List, key);
-      if (list && list->delimiter() == SASS_NO_DELIMITER) {
-        list->delimiter(SASS_PARENTHESIS);
-      }
-      return key;
-    }
+    if (!lex_css< exactly<':'> >())
+    { return key; }
 
     Expression_Obj value = parse_space_list();
 
@@ -1104,7 +1099,6 @@ namespace Sass {
           exactly<'}'>,
           exactly<'{'>,
           exactly<')'>,
-          exactly<']'>,
           exactly<':'>,
           end_of_file,
           exactly<ellipsis>,
@@ -1139,7 +1133,6 @@ namespace Sass {
             exactly<'}'>,
             exactly<'{'>,
             exactly<')'>,
-            exactly<']'>,
             exactly<':'>,
             end_of_file,
             exactly<ellipsis>,
@@ -1166,7 +1159,6 @@ namespace Sass {
           exactly<'}'>,
           exactly<'{'>,
           exactly<')'>,
-          exactly<']'>,
           exactly<','>,
           exactly<':'>,
           end_of_file,
@@ -1185,7 +1177,6 @@ namespace Sass {
                exactly<'}'>,
                exactly<'{'>,
                exactly<')'>,
-               exactly<']'>,
                exactly<','>,
                exactly<':'>,
                end_of_file,
@@ -1382,24 +1373,6 @@ namespace Sass {
       // lex the expected closing parenthesis
       if (!lex_css< exactly<')'> >()) error("unclosed parenthesis", pstate);
       // expression can be evaluated
-      return value;
-    }
-    else if (lex_css< exactly<'['> >()) {
-      // explicit bracketed
-      Expression_Obj value = parse_list();
-      // lex the expected closing square bracket
-      if (!lex_css< exactly<']'> >()) error("unclosed squared bracket", pstate);
-<<<<<<< HEAD
-=======
-      // fix delimiter
-      List_Obj list = SASS_MEMORY_CAST(List, value);
-      if (!list || list->delimiter() != SASS_NO_DELIMITER) {
-        List_Ptr outer_list = SASS_MEMORY_NEW(List, pstate, 1, SASS_SPACE, false, SASS_BRACKETS);
-        outer_list->append(&value);
-        return outer_list;
-      }
-      list->delimiter(SASS_BRACKETS);
->>>>>>> parent of 9ab7daa... Merge pull request #2284 from xzyfer/remove-list-delimiter
       return value;
     }
     // string may be interpolated
