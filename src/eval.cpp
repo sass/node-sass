@@ -497,7 +497,7 @@ namespace Sass {
                                l->length(),
                                l->separator(),
                                l->is_arglist(),
-                               l->is_bracketed());
+                               l->delimiter());
     for (size_t i = 0, L = l->length(); i < L; ++i) {
       ll->append((*l)[i]->perform(this));
     }

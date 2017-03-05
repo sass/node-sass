@@ -585,11 +585,11 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " (" << expression->length() << ") " <<
       (expression->separator() == SASS_COMMA ? "Comma " : expression->separator() == SASS_HASH ? "Map " : "Space ") <<
+      (expression->delimiter() == SASS_PARENTHESIS ? "Parenthesis " : expression->delimiter() == SASS_BRACKETS ? "Bracket " : "None ") <<
       " [delayed: " << expression->is_delayed() << "] " <<
       " [interpolant: " << expression->is_interpolant() << "] " <<
       " [listized: " << expression->from_selector() << "] " <<
       " [arglist: " << expression->is_arglist() << "] " <<
-      " [bracketed: " << expression->is_bracketed() << "] " <<
       " [expanded: " << expression->is_expanded() << "] " <<
       " [hash: " << expression->hash() << "] " <<
       std::endl;

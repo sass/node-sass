@@ -1048,8 +1048,13 @@ namespace Sass {
     List_Obj map = SASS_MEMORY_NEW(List, pstate, 0, SASS_HASH);
 
     // it's not a map so return the lexed value as a list value
-    if (!lex_css< exactly<':'> >())
-    { return key; }
+    if (!lex_css< exactly<':'> >()) {
+      List_Obj list = SASS_MEMORY_CAST(List, key);
+      if (list && list->delimiter() == SASS_NO_DELIMITER) {
+        list->delimiter(SASS_PARENTHESIS);
+      }
+      return key;
+    }
 
     Expression_Obj value = parse_space_list();
 
@@ -1080,49 +1085,6 @@ namespace Sass {
     return map;
   }
 
-  Expression_Obj Parser::parse_bracket_list()
-  {
-    // check if we have an empty list
-    // return the empty list as such
-    if (peek_css< list_terminator >(position))
-    {
-      // return an empty list (nothing to delay)
-      return SASS_MEMORY_NEW(List, pstate, 0, SASS_SPACE, false, true);
-    }
-
-    bool has_paren = peek_css< exactly<'('> >() != NULL;
-
-    // now try to parse a space list
-    Expression_Obj list = parse_space_list();
-    // if it's a singleton, return it (don't wrap it)
-    if (!peek_css< exactly<','> >(position)) {
-      List_Obj l = Cast<List>(list);
-      if (!l || l->is_bracketed() || has_paren) {
-        List_Obj bracketed_list = SASS_MEMORY_NEW(List, pstate, 1, SASS_SPACE, false, true);
-        bracketed_list->append(list);
-        return bracketed_list;
-      }
-      l->is_bracketed(true);
-      return l;
-    }
-
-    // if we got so far, we actually do have a comma list
-    List_Obj bracketed_list = SASS_MEMORY_NEW(List, pstate, 2, SASS_COMMA, false, true);
-    // wrap the first expression
-    bracketed_list->append(list);
-
-    while (lex_css< exactly<','> >())
-    {
-      // check for abort condition
-      if (peek_css< list_terminator >(position)
-      ) { break; }
-      // otherwise add another expression
-      bracketed_list->append(parse_space_list());
-    }
-    // return the list
-    return bracketed_list;
-  }
-
   // parse list returns either a space separated list,
   // a comma separated list or any bare expression found.
   // so to speak: we unwrap items from lists if possible here!
@@ -1136,7 +1098,19 @@ namespace Sass {
   {
     // check if we have an empty list
     // return the empty list as such
-    if (peek_css< list_terminator >(position))
+    if (peek_css< alternatives <
+          // exactly<'!'>,
+          exactly<';'>,
+          exactly<'}'>,
+          exactly<'{'>,
+          exactly<')'>,
+          exactly<']'>,
+          exactly<':'>,
+          end_of_file,
+          exactly<ellipsis>,
+          default_flag,
+          global_flag
+        > >(position))
     {
       // return an empty list (nothing to delay)
       return SASS_MEMORY_NEW(List, pstate, 0);
@@ -1160,7 +1134,18 @@ namespace Sass {
     while (lex_css< exactly<','> >())
     {
       // check for abort condition
-      if (peek_css< list_terminator >(position)
+      if (peek_css< alternatives <
+            exactly<';'>,
+            exactly<'}'>,
+            exactly<'{'>,
+            exactly<')'>,
+            exactly<']'>,
+            exactly<':'>,
+            end_of_file,
+            exactly<ellipsis>,
+            default_flag,
+            global_flag
+          > >(position)
       ) { break; }
       // otherwise add another expression
       comma_list->append(parse_space_list());
@@ -1175,16 +1160,39 @@ namespace Sass {
   {
     Expression_Obj disj1 = parse_disjunction();
     // if it's a singleton, return it (don't wrap it)
-    if (peek_css< space_list_terminator >(position)
-    ) {
-      return disj1; }
+    if (peek_css< alternatives <
+          // exactly<'!'>,
+          exactly<';'>,
+          exactly<'}'>,
+          exactly<'{'>,
+          exactly<')'>,
+          exactly<']'>,
+          exactly<','>,
+          exactly<':'>,
+          end_of_file,
+          exactly<ellipsis>,
+          default_flag,
+          global_flag
+        > >(position)
+    ) { return disj1; }
 
     List_Obj space_list = SASS_MEMORY_NEW(List, pstate, 2, SASS_SPACE);
     space_list->append(disj1);
 
-    while (
-      !(peek_css< space_list_terminator >(position)) &&
-      peek_css< optional_css_whitespace >() != end
+    while (!(peek_css< alternatives <
+               // exactly<'!'>,
+               exactly<';'>,
+               exactly<'}'>,
+               exactly<'{'>,
+               exactly<')'>,
+               exactly<']'>,
+               exactly<','>,
+               exactly<':'>,
+               end_of_file,
+               exactly<ellipsis>,
+               default_flag,
+               global_flag
+           > >(position)) && peek_css< optional_css_whitespace >() != end
     ) {
       // the space is parsed implicitly?
       space_list->append(parse_disjunction());
@@ -1378,9 +1386,20 @@ namespace Sass {
     }
     else if (lex_css< exactly<'['> >()) {
       // explicit bracketed
-      Expression_Obj value = parse_bracket_list();
+      Expression_Obj value = parse_list();
       // lex the expected closing square bracket
       if (!lex_css< exactly<']'> >()) error("unclosed squared bracket", pstate);
+<<<<<<< HEAD
+=======
+      // fix delimiter
+      List_Obj list = SASS_MEMORY_CAST(List, value);
+      if (!list || list->delimiter() != SASS_NO_DELIMITER) {
+        List_Ptr outer_list = SASS_MEMORY_NEW(List, pstate, 1, SASS_SPACE, false, SASS_BRACKETS);
+        outer_list->append(&value);
+        return outer_list;
+      }
+      list->delimiter(SASS_BRACKETS);
+>>>>>>> parent of 9ab7daa... Merge pull request #2284 from xzyfer/remove-list-delimiter
       return value;
     }
     // string may be interpolated

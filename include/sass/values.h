@@ -35,6 +35,13 @@ enum Sass_Separator {
   SASS_HASH
 };
 
+  // Tags for denoting Sass list delimiters
+enum Sass_List_Delimiter {
+  SASS_NO_DELIMITER,
+  SASS_PARENTHESIS,
+  SASS_BRACKETS
+};
+
 // Value Operators
 enum Sass_OP {
   AND, OR,                   // logical connectives
