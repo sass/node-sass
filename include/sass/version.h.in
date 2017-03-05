@@ -6,7 +6,7 @@
 #endif
 
 #ifndef LIBSASS_LANGUAGE_VERSION
-#define LIBSASS_LANGUAGE_VERSION "3.5"
+#define LIBSASS_LANGUAGE_VERSION "3.4"
 #endif
 
 #endif
