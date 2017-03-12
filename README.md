@@ -40,7 +40,7 @@ npm install node-sass
 
 Some users have reported issues installing on Ubuntu due to `node` being registered to another package. [Follow the official NodeJS docs](https://github.com/nodejs/node-v0.x-archive/wiki/Installing-Node.js-via-package-manager) to install NodeJS so that `#!/usr/bin/env node` correctly resolved.
 
-Compiling versions 0.9.4 and above on Windows machines requires [Visual Studio 2013 WD](https://www.visualstudio.com/downloads/download-visual-studio-vs#d-express-windows-desktop). If you have multiple VS versions, use ```npm install``` with the ```--msvs_version=2013``` flag also use this flag when rebuilding the module with node-gyp or nw-gyp.
+Compiling versions 0.9.4 and above on Windows machines requires [Visual Studio 2013 WD](https://www.microsoft.com/en-us/download/details.aspx?id=44914). If you have multiple VS versions, use ```npm install``` with the ```--msvs_version=2013``` flag also use this flag when rebuilding the module with node-gyp or nw-gyp.
 
 **Having installation troubles? Check out our [Troubleshooting guide](/TROUBLESHOOTING.md).**
 
