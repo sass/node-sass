@@ -401,6 +401,10 @@ Since node-sass >=v3.0.0 LibSass version is determined at run time.
 
 Listing of community uses of node-sass in build tools and frameworks.
 
+### Webpack plugin
+
+[Webpack scss/sass plugin](https://github.com/jalkoby/sass-webpack-plugin) - easy to use webpack 2+ plugin
+
 ### Brackets extension
 
 [@jasonsanjose](https://github.com/jasonsanjose) has created a [Brackets](http://brackets.io) extension based on node-sass: <https://github.com/jasonsanjose/brackets-sass>. When editing Sass files, the extension compiles changes on save. The extension also integrates with Live Preview to show Sass changes in the browser without saving or compiling.
