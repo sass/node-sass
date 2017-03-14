@@ -274,7 +274,8 @@ function watch(options, emitter) {
       }
     });
     files.forEach(function(file) {
-      if (path.basename(file)[0] !== '_') {
+      var fileName = path.basename(file);
+      if (fileName[0] !== '_' && (!options.sameInputAsOutput || fileName.slice(-4) !== '.css')) {
         renderFile(file, options, emitter);
       }
     });
@@ -309,6 +310,8 @@ function run(options, emitter) {
     if (!isDirectory(options.output)) {
       emitter.emit('error', 'An output directory must be specified when compiling a directory');
     }
+
+    options.sameInputAsOutput = path.resolve(options.directory) === path.resolve(options.output);
   }
 
   if (options.sourceMapOriginal && options.directory && !isDirectory(options.sourceMapOriginal) && options.sourceMapOriginal !== 'true') {
