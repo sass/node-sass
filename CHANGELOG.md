@@ -1,3 +1,79 @@
+## v4.5.0
+
+https://github.com/sass/node-sass/releases/tag/v4.5.0
+
+## v4.4.0
+
+https://github.com/sass/node-sass/releases/tag/v4.4.0
+
+## v4.3.0
+
+https://github.com/sass/node-sass/releases/tag/v4.3.0
+
+## v4.2.0
+
+https://github.com/sass/node-sass/releases/tag/v4.2.0
+
+## v4.1.1
+
+https://github.com/sass/node-sass/releases/tag/v4.1.1
+
+## v4.1.0
+
+https://github.com/sass/node-sass/releases/tag/v4.1.0
+
+## v4.0.0
+
+https://github.com/sass/node-sass/releases/tag/v4.0.0
+
+## v3.13.1
+
+https://github.com/sass/node-sass/releases/tag/v3.13.1
+
+## v3.13.0
+
+https://github.com/sass/node-sass/releases/tag/v3.13.0
+
+## v3.12.5
+
+https://github.com/sass/node-sass/releases/tag/v3.12.5
+
+## v3.12.4
+
+https://github.com/sass/node-sass/releases/tag/v3.12.4
+
+## v3.12.3
+
+https://github.com/sass/node-sass/releases/tag/v3.12.3
+
+## v3.12.2
+
+https://github.com/sass/node-sass/releases/tag/v3.12.2
+
+## v3.12.1
+
+https://github.com/sass/node-sass/releases/tag/v3.12.1
+
+## v3.12.0
+
+https://github.com/sass/node-sass/releases/tag/v3.12.0
+
+## v3.11.3
+
+https://github.com/sass/node-sass/releases/tag/v3.11.3
+
+## v3.11.2
+
+https://github.com/sass/node-sass/releases/tag/v3.11.2
+
+## v3.11.1
+
+https://github.com/sass/node-sass/releases/tag/v3.11.1
+
+## v3.11.0
+
+https://github.com/sass/node-sass/releases/tag/v3.11.0
+
 ## v3.10.1
 
 https://github.com/sass/node-sass/releases/tag/v3.10.1
