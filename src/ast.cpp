@@ -661,10 +661,11 @@ namespace Sass {
   {
     if (Attribute_Selector_Ptr_Const w = Cast<Attribute_Selector>(&rhs))
     {
-      return *this == *w;
+      return is_ns_eq(rhs) &&
+             name() == rhs.name() &&
+             *this == *w;
     }
-    return is_ns_eq(rhs) &&
-           name() == rhs.name();
+    return false;
   }
 
   bool Pseudo_Selector::operator== (const Pseudo_Selector& rhs) const
