@@ -158,6 +158,8 @@ function getEmitter() {
   emitter.on('warn', function(data) {
     if (!options.quiet) {
       console.warn(data);
+    } else if (process.env.NODE_ENV) {
+      console.warn('TESTING', data);
     }
   });
 
@@ -291,9 +293,13 @@ function watch(options, emitter) {
     graph = buildGraph(options);
   });
 
-  if (!options.quiet) {
-    emitter.emit('warn', util.format('Watching %s', options.directory || options.src));
-  }
+  gaze.on('ready', function() {
+    if (process.env.NODE_ENV === 'test') {
+      setTimeout(function() {
+        console.warn('TESTING');
+      }, 1000);
+    }
+  });
 }
 
 /**
