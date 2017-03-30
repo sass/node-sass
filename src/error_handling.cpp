@@ -31,6 +31,13 @@ namespace Sass {
       msg += "\"";
     }
 
+    InvalidVarKwdType::InvalidVarKwdType(ParserState pstate, std::string name, const Argument_Ptr arg)
+    : Base(pstate), name(name), arg(arg)
+    {
+      msg = "Variable keyword argument map must have string keys.\n";
+      msg += name + " is not a string in " + arg->to_string() + ".";
+    }
+
     InvalidArgumentType::InvalidArgumentType(ParserState pstate, std::string fn, std::string arg, std::string type, const Value_Ptr value)
     : Base(pstate), fn(fn), arg(arg), type(type), value(value)
     {

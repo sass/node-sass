@@ -68,6 +68,15 @@ namespace Sass {
         virtual ~InvalidArgumentType() throw() {};
     };
 
+    class InvalidVarKwdType : public Base {
+      protected:
+        std::string name;
+        const Argument_Ptr arg;
+      public:
+        InvalidVarKwdType(ParserState pstate, std::string name, const Argument_Ptr arg = 0);
+        virtual ~InvalidVarKwdType() throw() {};
+    };
+
     class InvalidSyntax : public Base {
       public:
         InvalidSyntax(ParserState pstate, std::string msg, std::vector<Sass_Import_Entry>* import_stack = 0);

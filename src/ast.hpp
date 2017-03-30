@@ -2473,6 +2473,10 @@ namespace Sass {
     }
     virtual Simple_Selector_Ptr unify_with(Simple_Selector_Ptr);
     virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr);
+    virtual bool operator==(const Simple_Selector& rhs) const;
+    virtual bool operator==(const Element_Selector& rhs) const;
+    virtual bool operator<(const Simple_Selector& rhs) const;
+    virtual bool operator<(const Element_Selector& rhs) const;
     ATTACH_AST_OPERATIONS(Element_Selector)
     ATTACH_OPERATIONS()
   };
