@@ -95,13 +95,17 @@ namespace Sass {
           env->local_frame()[p->name()] = arglist;
           Map_Obj argmap = Cast<Map>(a->value());
           for (auto key : argmap->keys()) {
-            std::string param = unquote(Cast<String_Constant>(key)->value());
-            arglist->append(SASS_MEMORY_NEW(Argument,
-                                            key->pstate(),
-                                            argmap->at(key),
-                                            "$" + param,
-                                            false,
-                                            false));
+            if (String_Constant_Obj str = Cast<String_Constant>(key)) {
+              std::string param = unquote(str->value());
+              arglist->append(SASS_MEMORY_NEW(Argument,
+                                              key->pstate(),
+                                              argmap->at(key),
+                                              "$" + param,
+                                              false,
+                                              false));
+            } else {
+              throw Exception::InvalidVarKwdType(key->pstate(), key->inspect(), a);
+            }
           }
 
         } else {
