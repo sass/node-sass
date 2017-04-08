@@ -292,7 +292,7 @@ namespace Sass {
           // convert the whole output from string to a stream!?
           // allocate memory for utf8 char and convert to utf8
           unsigned char u[5] = {0,0,0,0,0}; utf8::append(cp, u);
-          for(size_t m = 0; u[m] && m < 5; m++) unq.push_back(u[m]);
+          for(size_t m = 0; m < 5 && u[m]; m++) unq.push_back(u[m]);
 
           // skip some more chars?
           i += len - 1; skipped = false;
