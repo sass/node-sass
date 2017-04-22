@@ -1036,7 +1036,7 @@ namespace Sass {
     const char* hexa(const char* src) {
       const char* p = sequence< exactly<'#'>, one_plus<xdigit> >(src);
       ptrdiff_t len = p - src;
-      return (len != 4 && len != 7 && len != 9) ? 0 : p;
+      return (len != 5 && len != 9) ? 0 : p;
     }
     const char* hex0(const char* src) {
       const char* p = sequence< exactly<'0'>, exactly<'x'>, one_plus<xdigit> >(src);
@@ -1268,7 +1268,7 @@ namespace Sass {
             optional_css_whitespace,
             exactly<'='>,
             optional_css_whitespace,
-            alternatives< variable, identifier_schema, identifier, quoted_string, number, hexa >,
+            alternatives< variable, identifier_schema, identifier, quoted_string, number, hex, hexa >,
             zero_plus< sequence<
               optional_css_whitespace,
               exactly<','>,
@@ -1278,7 +1278,7 @@ namespace Sass {
                 optional_css_whitespace,
                 exactly<'='>,
                 optional_css_whitespace,
-                alternatives< variable, identifier_schema, identifier, quoted_string, number, hexa >
+                alternatives< variable, identifier_schema, identifier, quoted_string, number, hex, hexa >
               >
             > >
           > >,
@@ -1313,6 +1313,7 @@ namespace Sass {
           identifier,
           quoted_string,
           number,
+          hex,
           hexa,
           sequence <
             exactly < '(' >,

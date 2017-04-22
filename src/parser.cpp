@@ -1602,6 +1602,19 @@ namespace Sass {
     if (lex< sequence < alternatives< hex, hex0 >, negate < exactly<'-'> > > >())
     { return lexed_hex_color(lexed); }
 
+    if (lex< hexa >())
+    {
+      std::string s = lexed.to_string();
+
+      deprecated(
+        "The value \""+s+"\" is currently parsed as a string, but it will be parsed as a color in",
+        "future versions of Sass. Use \"unquote('"+s+"')\" to continue parsing it as a string.",
+        true, pstate
+      );
+
+      return SASS_MEMORY_NEW(String_Quoted, pstate, lexed);
+    }
+
     if (lex< sequence < exactly <'#'>, identifier > >())
     { return SASS_MEMORY_NEW(String_Quoted, pstate, lexed); }
 

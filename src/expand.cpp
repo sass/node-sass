@@ -666,9 +666,9 @@ namespace Sass {
       d->name() == "url"
     )) {
       deprecated(
-        "Naming a function \"" + d->name() + "\" is disallowed",
+        "Naming a function \"" + d->name() + "\" is disallowed and will be an error in future versions of Sass.",
         "This name conflicts with an existing CSS function with special parse rules.",
-         d->pstate()
+        false, d->pstate()
       );
     }
 

@@ -180,7 +180,7 @@ namespace Sass {
     std::cerr << "        on line " << pstate.line+1 << " of " << output_path << std::endl;
   }
 
-  void deprecated(std::string msg, std::string msg2, ParserState pstate)
+  void deprecated(std::string msg, std::string msg2, bool with_column, ParserState pstate)
   {
     std::string cwd(Sass::File::get_cwd());
     std::string abs_path(Sass::File::rel2abs(pstate.path, cwd, cwd));
@@ -188,9 +188,10 @@ namespace Sass {
     std::string output_path(Sass::File::path_for_console(rel_path, pstate.path, pstate.path));
 
     std::cerr << "DEPRECATION WARNING on line " << pstate.line + 1;
+    if (with_column) std::cerr << ", column " << pstate.column + pstate.offset.column + 1;
     if (output_path.length()) std::cerr << " of " << output_path;
     std::cerr << ":" << std::endl;
-    std::cerr << msg << " and will be an error in future versions of Sass." << std::endl;
+    std::cerr << msg << std::endl;
     if (msg2.length()) std::cerr << msg2 << std::endl;
     std::cerr << std::endl;
   }

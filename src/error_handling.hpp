@@ -195,7 +195,7 @@ namespace Sass {
   void warn(std::string msg, ParserState pstate, Backtrace* bt);
 
   void deprecated_function(std::string msg, ParserState pstate);
-  void deprecated(std::string msg, std::string msg2, ParserState pstate);
+  void deprecated(std::string msg, std::string msg2, bool with_column, ParserState pstate);
   void deprecated_bind(std::string msg, ParserState pstate);
   // void deprecated(std::string msg, ParserState pstate, Backtrace* bt);
 
