@@ -679,7 +679,6 @@ namespace Sass {
 
   Statement_Ptr Expand::operator()(Mixin_Call_Ptr c)
   {
-
     if (recursions > maxRecursion) {
       throw Exception::StackError(*c);
     }
@@ -730,13 +729,14 @@ namespace Sass {
     Block_Obj trace_block = SASS_MEMORY_NEW(Block, c->pstate());
     Trace_Obj trace = SASS_MEMORY_NEW(Trace, c->pstate(), c->name(), trace_block);
 
-
+    env->set_global("is_in_mixin", bool_true);
     block_stack.push_back(trace_block);
     for (auto bb : body->elements()) {
       Statement_Obj ith = bb->perform(this);
       if (ith) trace->block()->append(ith);
     }
     block_stack.pop_back();
+    env->del_global("is_in_mixin");
 
     env_stack.pop_back();
     backtrace_stack.pop_back();

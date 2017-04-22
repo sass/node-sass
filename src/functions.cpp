@@ -2000,5 +2000,14 @@ namespace Sass {
       List_Obj list = Cast<List>(value);
       return SASS_MEMORY_NEW(Boolean, pstate, list && list->is_bracketed());
     }
+
+    Signature content_exists_sig = "content-exists()";
+    BUILT_IN(content_exists)
+    {
+      if (!d_env.has_global("is_in_mixin")) {
+        error("Cannot call content-exists() except within a mixin.", pstate, backtrace);
+      }
+      return SASS_MEMORY_NEW(Boolean, pstate, d_env.has_lexical("@content[m]"));
+    }
   }
 }

@@ -37,7 +37,6 @@ namespace Sass {
     ParserState pstate;
     int indentation;
 
-
     Token lexed;
 
     Parser(Context& ctx, const ParserState& pstate)

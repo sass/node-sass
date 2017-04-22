@@ -37,6 +37,8 @@ namespace Sass {
     std::vector<Media_Block_Ptr>   media_block_stack;
     std::vector<Backtrace*>        backtrace_stack;
 
+    Boolean_Obj bool_true;
+
     Statement_Ptr fallback_impl(AST_Node_Ptr n);
 
   private:
