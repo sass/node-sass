@@ -245,9 +245,35 @@ namespace Sass {
       }
     }
 
+    inline bool special_number(String_Constant_Ptr s) {
+      if (s) {
+        std::string calc("calc");
+        std::string var("var");
+        std::string ss(s->value());
+        return std::equal(calc.begin(), calc.end(), ss.begin()) ||
+               std::equal(var.begin(), var.end(), ss.begin());
+      }
+      return false;
+    }
+
     Signature rgb_sig = "rgb($red, $green, $blue)";
     BUILT_IN(rgb)
     {
+      if (
+        special_number(Cast<String_Constant>(env["$red"])) ||
+        special_number(Cast<String_Constant>(env["$green"])) ||
+        special_number(Cast<String_Constant>(env["$blue"]))
+      ) {
+        return SASS_MEMORY_NEW(String_Constant, pstate, "rgb("
+                                                        + env["$red"]->to_string()
+                                                        + ", "
+                                                        + env["$green"]->to_string()
+                                                        + ", "
+                                                        + env["$blue"]->to_string()
+                                                        + ")"
+        );
+      }
+
       return SASS_MEMORY_NEW(Color,
                              pstate,
                              color_num(ARG("$red",   Number)),
@@ -258,6 +284,24 @@ namespace Sass {
     Signature rgba_4_sig = "rgba($red, $green, $blue, $alpha)";
     BUILT_IN(rgba_4)
     {
+      if (
+        special_number(Cast<String_Constant>(env["$red"])) ||
+        special_number(Cast<String_Constant>(env["$green"])) ||
+        special_number(Cast<String_Constant>(env["$blue"])) ||
+        special_number(Cast<String_Constant>(env["$alpha"]))
+      ) {
+        return SASS_MEMORY_NEW(String_Constant, pstate, "rgba("
+                                                        + env["$red"]->to_string()
+                                                        + ", "
+                                                        + env["$green"]->to_string()
+                                                        + ", "
+                                                        + env["$blue"]->to_string()
+                                                        + ", "
+                                                        + env["$alpha"]->to_string()
+                                                        + ")"
+        );
+      }
+
       return SASS_MEMORY_NEW(Color,
                              pstate,
                              color_num(ARG("$red",   Number)),
@@ -270,6 +314,22 @@ namespace Sass {
     BUILT_IN(rgba_2)
     {
       Color_Ptr c_arg = ARG("$color", Color);
+
+      if (
+        special_number(Cast<String_Constant>(env["$alpha"]))
+      ) {
+        return SASS_MEMORY_NEW(String_Constant, pstate, "rgba("
+                                                        + std::to_string((int)c_arg->r())
+                                                        + ", "
+                                                        + std::to_string((int)c_arg->g())
+                                                        + ", "
+                                                        + std::to_string((int)c_arg->b())
+                                                        + ", "
+                                                        + env["$alpha"]->to_string()
+                                                        + ")"
+        );
+      }
+
       Color_Ptr new_c = SASS_MEMORY_COPY(c_arg);
       new_c->a(alpha_num(ARG("$alpha", Number)));
       new_c->disp("");
@@ -399,6 +459,21 @@ namespace Sass {
     Signature hsl_sig = "hsl($hue, $saturation, $lightness)";
     BUILT_IN(hsl)
     {
+      if (
+        special_number(Cast<String_Constant>(env["$hue"])) ||
+        special_number(Cast<String_Constant>(env["$saturation"])) ||
+        special_number(Cast<String_Constant>(env["$lightness"]))
+      ) {
+        return SASS_MEMORY_NEW(String_Constant, pstate, "hsl("
+                                                        + env["$hue"]->to_string()
+                                                        + ", "
+                                                        + env["$saturation"]->to_string()
+                                                        + ", "
+                                                        + env["$lightness"]->to_string()
+                                                        + ")"
+        );
+      }
+
       return hsla_impl(ARG("$hue", Number)->value(),
                        ARG("$saturation", Number)->value(),
                        ARG("$lightness",  Number)->value(),
@@ -410,6 +485,24 @@ namespace Sass {
     Signature hsla_sig = "hsla($hue, $saturation, $lightness, $alpha)";
     BUILT_IN(hsla)
     {
+      if (
+        special_number(Cast<String_Constant>(env["$hue"])) ||
+        special_number(Cast<String_Constant>(env["$saturation"])) ||
+        special_number(Cast<String_Constant>(env["$lightness"])) ||
+        special_number(Cast<String_Constant>(env["$alpha"]))
+      ) {
+        return SASS_MEMORY_NEW(String_Constant, pstate, "hsla("
+                                                        + env["$hue"]->to_string()
+                                                        + ", "
+                                                        + env["$saturation"]->to_string()
+                                                        + ", "
+                                                        + env["$lightness"]->to_string()
+                                                        + ", "
+                                                        + env["$alpha"]->to_string()
+                                                        + ")"
+        );
+      }
+
       return hsla_impl(ARG("$hue", Number)->value(),
                        ARG("$saturation", Number)->value(),
                        ARG("$lightness",  Number)->value(),
