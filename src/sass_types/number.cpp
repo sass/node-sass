@@ -47,11 +47,11 @@ namespace SassTypes
   NAN_METHOD(Number::SetValue) {
 
     if (info.Length() != 1) {
-      return Nan::ThrowTypeError(Nan::New("Expected just one argument").ToLocalChecked());
+      return Nan::ThrowTypeError("Expected just one argument");
     }
 
     if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError(Nan::New("Supplied value should be a number").ToLocalChecked());
+      return Nan::ThrowTypeError("Supplied value should be a number");
     }
 
     sass_number_set_value(unwrap(info.This())->value, Nan::To<double>(info[0]).FromJust());
@@ -59,11 +59,11 @@ namespace SassTypes
 
   NAN_METHOD(Number::SetUnit) {
     if (info.Length() != 1) {
-      return Nan::ThrowTypeError(Nan::New("Expected just one argument").ToLocalChecked());
+      return Nan::ThrowTypeError("Expected just one argument");
     }
 
     if (!info[0]->IsString()) {
-      return Nan::ThrowTypeError(Nan::New("Supplied value should be a string").ToLocalChecked());
+      return Nan::ThrowTypeError("Supplied value should be a string");
     }
 
     sass_number_set_unit(unwrap(info.This())->value, create_string(info[0]));

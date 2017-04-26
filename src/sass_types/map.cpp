@@ -30,11 +30,11 @@ namespace SassTypes
   NAN_METHOD(Map::GetValue) {
 
     if (info.Length() != 1) {
-      return Nan::ThrowTypeError(Nan::New("Expected just one argument").ToLocalChecked());
+      return Nan::ThrowTypeError("Expected just one argument");
     }
 
     if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError(Nan::New("Supplied index should be an integer").ToLocalChecked());
+      return Nan::ThrowTypeError("Supplied index should be an integer");
     }
 
     Sass_Value* map = unwrap(info.This())->value;
@@ -50,33 +50,33 @@ namespace SassTypes
 
   NAN_METHOD(Map::SetValue) {
     if (info.Length() != 2) {
-      return Nan::ThrowTypeError(Nan::New("Expected two arguments").ToLocalChecked());
+      return Nan::ThrowTypeError("Expected two arguments");
     }
 
     if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError(Nan::New("Supplied index should be an integer").ToLocalChecked());
+      return Nan::ThrowTypeError("Supplied index should be an integer");
     }
 
     if (!info[1]->IsObject()) {
-      return Nan::ThrowTypeError(Nan::New("Supplied value should be a SassValue object").ToLocalChecked());
+      return Nan::ThrowTypeError("Supplied value should be a SassValue object");
     }
 
     Value* sass_value = Factory::unwrap(info[1]);
     if (sass_value) {
       sass_map_set_value(unwrap(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
     } else {
-      Nan::ThrowTypeError(Nan::New<v8::String>("A SassValue is expected as a map value").ToLocalChecked());
+      Nan::ThrowTypeError("A SassValue is expected as a map value");
     }
   }
 
   NAN_METHOD(Map::GetKey) {
 
     if (info.Length() != 1) {
-      return Nan::ThrowTypeError(Nan::New("Expected just one argument").ToLocalChecked());
+      return Nan::ThrowTypeError("Expected just one argument");
     }
 
     if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError(Nan::New("Supplied index should be an integer").ToLocalChecked());
+      return Nan::ThrowTypeError("Supplied index should be an integer");
     }
 
     Sass_Value* map = unwrap(info.This())->value;
@@ -92,22 +92,22 @@ namespace SassTypes
 
   NAN_METHOD(Map::SetKey) {
     if (info.Length() != 2) {
-      return Nan::ThrowTypeError(Nan::New("Expected two arguments").ToLocalChecked());
+      return Nan::ThrowTypeError("Expected two arguments");
     }
 
     if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError(Nan::New("Supplied index should be an integer").ToLocalChecked());
+      return Nan::ThrowTypeError("Supplied index should be an integer");
     }
 
     if (!info[1]->IsObject()) {
-      return Nan::ThrowTypeError(Nan::New("Supplied value should be a SassValue object").ToLocalChecked());
+      return Nan::ThrowTypeError("Supplied value should be a SassValue object");
     }
 
     Value* sass_value = Factory::unwrap(info[1]);
     if (sass_value) {
       sass_map_set_key(unwrap(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
     } else {
-      Nan::ThrowTypeError(Nan::New<v8::String>("A SassValue is expected as a map key").ToLocalChecked());
+      Nan::ThrowTypeError("A SassValue is expected as a map key");
     }
   }
 

@@ -79,11 +79,11 @@ namespace SassTypes
 
   NAN_METHOD(Color::SetR) {
     if (info.Length() != 1) {
-      return Nan::ThrowTypeError(Nan::New("Expected just one argument").ToLocalChecked());
+      return Nan::ThrowTypeError("Expected just one argument");
     }
 
     if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError(Nan::New("Supplied value should be a number").ToLocalChecked());
+      return Nan::ThrowTypeError("Supplied value should be a number");
     }
 
     sass_color_set_r(unwrap(info.This())->value, Nan::To<double>(info[0]).FromJust());
@@ -91,11 +91,11 @@ namespace SassTypes
 
   NAN_METHOD(Color::SetG) {
     if (info.Length() != 1) {
-      return Nan::ThrowTypeError(Nan::New("Expected just one argument").ToLocalChecked());
+      return Nan::ThrowTypeError("Expected just one argument");
     }
 
     if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError(Nan::New("Supplied value should be a number").ToLocalChecked());
+      return Nan::ThrowTypeError("Supplied value should be a number");
     }
 
     sass_color_set_g(unwrap(info.This())->value, Nan::To<double>(info[0]).FromJust());
@@ -103,11 +103,11 @@ namespace SassTypes
 
   NAN_METHOD(Color::SetB) {
     if (info.Length() != 1) {
-      return Nan::ThrowTypeError(Nan::New("Expected just one argument").ToLocalChecked());
+      return Nan::ThrowTypeError("Expected just one argument");
     }
 
     if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError(Nan::New("Supplied value should be a number").ToLocalChecked());
+      return Nan::ThrowTypeError("Supplied value should be a number");
     }
 
     sass_color_set_b(unwrap(info.This())->value, Nan::To<double>(info[0]).FromJust());
@@ -115,11 +115,11 @@ namespace SassTypes
 
   NAN_METHOD(Color::SetA) {
     if (info.Length() != 1) {
-      return Nan::ThrowTypeError(Nan::New("Expected just one argument").ToLocalChecked());
+      return Nan::ThrowTypeError("Expected just one argument");
     }
 
     if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError(Nan::New("Supplied value should be a number").ToLocalChecked());
+      return Nan::ThrowTypeError("Supplied value should be a number");
     }
 
     sass_color_set_a(unwrap(info.This())->value, Nan::To<double>(info[0]).FromJust());
