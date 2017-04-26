@@ -1,13 +1,13 @@
 {
-  "name": "node-sass",
-  "version": "3.4.2",
+  "name": "@bigcommerce/node-sass",
+  "version": "3.4.3",
   "libsass": "3.3.2",
   "description": "Wrapper around libsass",
   "license": "MIT",
-  "homepage": "https://github.com/sass/node-sass",
+  "homepage": "https://github.com/bigcommerce-labs/node-sass",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sass/node-sass"
+    "url": "https://github.com/bigcommerce-labs/node-sass"
   },
   "author": {
     "name": "Andrew Nesbitt",
@@ -19,7 +19,7 @@
   },
   "main": "lib/index.js",
   "nodeSassConfig": {
-    "binarySite": "https://github.com/sass/node-sass/releases/download"
+    "binarySite": "https://github.com/bigcommerce-labs/node-sass/releases/download"
   },
   "bin": {
     "node-sass": "bin/node-sass"
