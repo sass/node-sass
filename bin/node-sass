@@ -233,7 +233,8 @@ function watch(options, emitter) {
     var graph;
     var graphOptions = {
       loadPaths: options.includePath,
-      extensions: ['scss', 'sass', 'css']
+      extensions: ['scss', 'sass', 'css'],
+      follow: options.follow
     };
 
     if (options.directory) {
