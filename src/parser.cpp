@@ -2142,6 +2142,10 @@ namespace Sass {
     While_Obj call = SASS_MEMORY_NEW(While, pstate, 0, 0);
     // parse mandatory predicate
     Expression_Obj predicate = parse_list();
+    List_Obj l = Cast<List>(predicate);
+    if (!predicate || (l && !l->length())) {
+      css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ", false);
+    }
     call->predicate(predicate);
     // parse mandatory block
     call->block(parse_block(root));
@@ -2233,6 +2237,9 @@ namespace Sass {
   Supports_Block_Obj Parser::parse_supports_directive()
   {
     Supports_Condition_Obj cond = parse_supports_condition();
+    if (!cond) {
+      css_error("Invalid CSS", " after ", ": expected @supports condition (e.g. (display: flexbox)), was ", false);
+    }
     // create the ast node object for the support queries
     Supports_Block_Obj query = SASS_MEMORY_NEW(Supports_Block, pstate, cond);
     // additional block is mandatory
@@ -2875,7 +2882,7 @@ namespace Sass {
   }
 
   // print a css parsing error with actual context information from parsed source
-  void Parser::css_error(const std::string& msg, const std::string& prefix, const std::string& middle)
+  void Parser::css_error(const std::string& msg, const std::string& prefix, const std::string& middle, const bool trim)
   {
     int max_len = 18;
     const char* end = this->end;
@@ -2887,7 +2894,7 @@ namespace Sass {
       utf8::prior(last_pos, source);
     }
     // backup position to last significant char
-    while (last_pos > source && last_pos < end) {
+    while (trim && last_pos > source && last_pos < end) {
       if (!Prelexer::is_space(*last_pos)) break;
       utf8::prior(last_pos, source);
     }

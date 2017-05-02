@@ -226,7 +226,8 @@ namespace Sass {
     // text before and in the middle are configurable
     void css_error(const std::string& msg,
                    const std::string& prefix = " after ",
-                   const std::string& middle = ", was: ");
+                   const std::string& middle = ", was: ",
+                   const bool trim = true);
     void read_bom();
 
     Block_Obj parse();
