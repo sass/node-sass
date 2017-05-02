@@ -1061,6 +1061,11 @@ namespace Sass {
     if (!lex_css< exactly<':'> >())
     { return key; }
 
+    List_Obj l = Cast<List>(key);
+    if (l && l->separator() == SASS_COMMA) {
+      css_error("Invalid CSS", " after ", ": expected \")\", was ");
+    }
+
     Expression_Obj value = parse_space_list();
 
     map->append(key);
