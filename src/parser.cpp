@@ -514,7 +514,7 @@ namespace Sass {
     if (lookahead.parsable) ruleset->selector(parse_selector_list(false));
     else {
       Selector_List_Obj list = SASS_MEMORY_NEW(Selector_List, pstate);
-      list->schema(parse_selector_schema(lookahead.found, false));
+      list->schema(parse_selector_schema(lookahead.position, false));
       ruleset->selector(list);
     }
     // then parse the inner block
