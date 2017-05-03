@@ -2893,6 +2893,7 @@ namespace Sass {
     const char* end = this->end;
     while (*end != 0) ++ end;
     const char* pos = peek < optional_spaces >();
+    if (!pos) pos = position;
 
     const char* last_pos(pos);
     if (last_pos > source) {
