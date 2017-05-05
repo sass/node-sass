@@ -1428,6 +1428,8 @@ describe('api', function() {
 
       assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
       module._load = originalLoad;
+
+      done();
     });
 
     it('should compile with include paths', function(done) {
