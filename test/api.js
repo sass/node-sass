@@ -87,22 +87,6 @@ describe('api', function() {
       });
     });
 
-    it('should NOT compile empty data string', function(done) {
-      sass.render({
-        data: ''
-      }, function(error) {
-        assert.equal(error.message, 'No input specified: provide a file name or a source string to process');
-        done();
-      });
-    });
-
-    it('should NOT compile without parameters', function(done) {
-      sass.render({ }, function(error) {
-        assert.equal(error.message, 'No input specified: provide a file name or a source string to process');
-        done();
-      });
-    });
-
     it('should compile sass to css using indented syntax', function(done) {
       var src = read(fixture('indent/index.sass'), 'utf8');
       var expected = read(fixture('indent/expected.css'), 'utf8').trim();
@@ -116,7 +100,23 @@ describe('api', function() {
       });
     });
 
-    it('should throw error status 1 for bad input', function(done) {
+    it('should NOT compile empty data string', function(done) {
+      sass.render({
+        data: ''
+      }, function(error) {
+        assert.equal(error.message, 'No input specified: provide a file name or a source string to process');
+        done();
+      });
+    });
+
+    it('should NOT compile without any input', function(done) {
+      sass.render({ }, function(error) {
+        assert.equal(error.message, 'No input specified: provide a file name or a source string to process');
+        done();
+      });
+    });
+
+    it('should returnn error status 1 for bad input', function(done) {
       sass.render({
         data: '#navbar width 80%;'
       }, function(error) {
@@ -138,6 +138,23 @@ describe('api', function() {
         ]
       }, function(error, result) {
         assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+        done();
+      });
+    });
+
+    it('should add cwd to the front on include paths', function(done) {
+      var src = fixture('cwd-include-path/root/index.scss');
+      var expected = read(fixture('cwd-include-path/expected.css'), 'utf8').trim();
+      var cwd = process.cwd();
+
+      process.chdir(fixture('cwd-include-path'));
+      sass.render({
+        file: src,
+        includePaths: []
+      }, function(error, result) {
+        assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+
+        process.chdir(cwd);
         done();
       });
     });
@@ -1411,6 +1428,142 @@ describe('api', function() {
 
       assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
       module._load = originalLoad;
+    });
+
+    it('should compile with include paths', function(done) {
+      var src = read(fixture('include-path/index.scss'), 'utf8');
+      var expected = read(fixture('include-path/expected.css'), 'utf8').trim();
+      var result = sass.renderSync({
+        data: src,
+        includePaths: [
+          fixture('include-path/functions'),
+          fixture('include-path/lib')
+        ]
+      });
+
+      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+      done();
+    });
+
+    it('should add cwd to the front on include paths', function(done) {
+      var src = fixture('cwd-include-path/root/index.scss');
+      var expected = read(fixture('cwd-include-path/expected.css'), 'utf8').trim();
+      var cwd = process.cwd();
+
+      process.chdir(fixture('cwd-include-path'));
+      var result = sass.renderSync({
+        file: src,
+        includePaths: [
+          fixture('include-path/functions'),
+          fixture('include-path/lib')
+        ]
+      });
+      process.chdir(cwd);
+
+      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+      done();
+    });
+
+    it('should check SASS_PATH in the specified order', function(done) {
+      var src = read(fixture('sass-path/index.scss'), 'utf8');
+      var expectedRed = read(fixture('sass-path/expected-red.css'), 'utf8').trim();
+      var expectedOrange = read(fixture('sass-path/expected-orange.css'), 'utf8').trim();
+
+      var envIncludes = [
+        fixture('sass-path/red'),
+        fixture('sass-path/orange')
+      ];
+
+      process.env.SASS_PATH = envIncludes.join(path.delimiter);
+      var result = sass.renderSync({
+        data: src,
+        includePaths: []
+      });
+
+      assert.equal(result.css.toString().trim(), expectedRed.replace(/\r\n/g, '\n'));
+
+      process.env.SASS_PATH = envIncludes.reverse().join(path.delimiter);
+      result = sass.renderSync({
+        data: src,
+        includePaths: []
+      });
+
+      assert.equal(result.css.toString().trim(), expectedOrange.replace(/\r\n/g, '\n'));
+      done();
+    });
+
+    it('should prefer include path over SASS_PATH', function(done) {
+      var src = read(fixture('sass-path/index.scss'), 'utf8');
+      var expectedRed = read(fixture('sass-path/expected-red.css'), 'utf8').trim();
+      var expectedOrange = read(fixture('sass-path/expected-orange.css'), 'utf8').trim();
+
+      var envIncludes = [
+        fixture('sass-path/red')
+      ];
+      process.env.SASS_PATH = envIncludes.join(path.delimiter);
+
+      var result = sass.renderSync({
+        data: src,
+        includePaths: []
+      });
+
+      assert.equal(result.css.toString().trim(), expectedRed.replace(/\r\n/g, '\n'));
+
+      result = sass.renderSync({
+        data: src,
+        includePaths: [fixture('sass-path/orange')]
+      });
+
+      assert.equal(result.css.toString().trim(), expectedOrange.replace(/\r\n/g, '\n'));
+      done();
+    });
+
+    it('should render with precision option', function(done) {
+      var src = read(fixture('precision/index.scss'), 'utf8');
+      var expected = read(fixture('precision/expected.css'), 'utf8').trim();
+      var result = sass.renderSync({
+        data: src,
+        precision: 10
+      });
+
+      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+      done();
+    });
+
+    it('should contain all included files in stats when data is passed', function(done) {
+      var src = read(fixture('include-files/index.scss'), 'utf8');
+      var expected = [
+        fixture('include-files/bar.scss').replace(/\\/g, '/'),
+        fixture('include-files/foo.scss').replace(/\\/g, '/')
+      ];
+
+      var result = sass.renderSync({
+        data: src,
+        includePaths: [fixture('include-files')]
+      });
+
+      assert.deepEqual(result.stats.includedFiles, expected);
+      done();
+    });
+
+    it('should render with indentWidth and indentType options', function(done) {
+      var result = sass.renderSync({
+        data: 'div { color: transparent; }',
+        indentWidth: 7,
+        indentType: 'tab'
+      });
+
+      assert.equal(result.css.toString().trim(), 'div {\n\t\t\t\t\t\t\tcolor: transparent; }');
+      done();
+    });
+
+    it('should render with linefeed option', function(done) {
+      var result = sass.renderSync({
+        data: 'div { color: transparent; }',
+        linefeed: 'lfcr'
+      });
+
+      assert.equal(result.css.toString().trim(), 'div {\n\r  color: transparent; }');
       done();
     });
   });
@@ -1861,146 +2014,6 @@ describe('api', function() {
       assert(info.indexOf('[C/C++]') > 0);
 
       done();
-    });
-  });
-
-  describe('binding', function() {
-    beforeEach(function() {
-      delete require.cache[sassPath];
-    });
-
-    afterEach(function() {
-      delete require.cache[sassPath];
-    });
-
-    describe('missing error', function() {
-      beforeEach(function() {
-        process.env.SASS_BINARY_NAME = [
-          (process.platform === 'win32' ? 'Linux' : 'Windows'), '-',
-          process.arch, '-',
-          process.versions.modules
-        ].join('');
-      });
-
-      afterEach(function() {
-        delete process.env.SASS_BINARY_NAME;
-      });
-
-      it('should be useful', function() {
-        assert.throws(
-          function() { require(sassPath); },
-          new RegExp('Missing binding.*?\\' + path.sep + 'vendor\\' + path.sep)
-        );
-      });
-
-      it('should list currently installed bindings', function() {
-        assert.throws(
-          function() { require(sassPath); },
-          function(err) {
-            var etx = require('../lib/extensions');
-
-            delete process.env.SASS_BINARY_NAME;
-
-            if ((err instanceof Error)) {
-              return err.message.indexOf(
-                etx.getHumanEnvironment(etx.getBinaryName())
-              ) !== -1;
-            }
-          }
-        );
-      });
-    });
-
-    describe('on unsupported environment', function() {
-      describe('with an unsupported architecture', function() {
-        var prevValue;
-
-        beforeEach(function() {
-          prevValue = process.arch;
-
-          Object.defineProperty(process, 'arch', {
-            get: function () { return 'foo'; }
-          });
-        });
-
-        afterEach(function() {
-          process.arch = prevValue;
-        });
-
-        it('should error', function() {
-          assert.throws(
-            function() { require(sassPath); },
-            'Node Sass does not yet support your current environment'
-          );
-        });
-
-        it('should inform the user the architecture is unsupported', function() {
-          assert.throws(
-            function() { require(sassPath); },
-            'Unsupported architecture (foo)'
-          );
-        });
-      });
-
-      describe('with an unsupported platform', function() {
-        var prevValue;
-
-        beforeEach(function() {
-          prevValue = process.platform;
-
-          Object.defineProperty(process, 'platform', {
-            get: function () { return 'bar'; }
-          });
-        });
-
-        afterEach(function() {
-          process.platform = prevValue;
-        });
-
-        it('should error', function() {
-          assert.throws(
-            function() { require(sassPath); },
-            'Node Sass does not yet support your current environment'
-          );
-        });
-
-        it('should inform the user the platform is unsupported', function() {
-          assert.throws(
-            function() { require(sassPath); },
-            'Unsupported platform (bar)'
-          );
-        });
-      });
-
-      describe('with an unsupported platform', function() {
-        var prevValue;
-
-        beforeEach(function() {
-          prevValue = process.versions.modules;
-
-          Object.defineProperty(process.versions, 'modules', {
-            get: function () { return 'baz'; }
-          });
-        });
-
-        afterEach(function() {
-          process.versions.modules = prevValue;
-        });
-
-        it('should error', function() {
-          assert.throws(
-            function() { require(sassPath); },
-            'Node Sass does not yet support your current environment'
-          );
-        });
-
-        it('should inform the user the runtime is unsupported', function() {
-          assert.throws(
-            function() { require(sassPath); },
-            'Unsupported runtime (baz)'
-          );
-        });
-      });
     });
   });
 });

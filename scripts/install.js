@@ -9,7 +9,7 @@ var fs = require('fs'),
   sass = require('../lib/extensions'),
   request = require('request'),
   log = require('npmlog'),
-  pkg = require('../package.json');
+  downloadOptions = require('./util/downloadoptions');
 
 /**
  * Download file, if succeeds save, if not delete
@@ -48,30 +48,22 @@ function download(url, dest, cb) {
     return response.statusCode >= 200 && response.statusCode < 300;
   };
 
-  var options = {
-    rejectUnauthorized: false,
-    proxy: getProxy(),
-    timeout: 60000,
-    headers: {
-      'User-Agent': getUserAgent(),
-    }
-  };
-
-  console.log('Start downloading binary at', url);
+  console.log('Downloading binary from', url);
 
   try {
-    request(url, options, function(err, response) {
+    request(url, downloadOptions(), function(err, response) {
       if (err) {
         reportError(err);
       } else if (!successful(response)) {
         reportError(['HTTP error', response.statusCode, response.statusMessage].join(' '));
       } else {
+        console.log('Download complete');
         cb();
       }
     })
     .on('response', function(response) {
       var length = parseInt(response.headers['content-length'], 10);
-      var progress = log.newItem(url, length);
+      var progress = log.newItem('', length);
 
       if (successful(response)) {
         response.pipe(fs.createWriteStream(dest));
@@ -80,7 +72,7 @@ function download(url, dest, cb) {
       // The `progress` is true by default. However if it has not
       // been explicitly set it's `undefined` which is considered
       // as far as npm is concerned.
-      if (process.env.npm_config_progress !== false) {
+      if (process.env.npm_config_progress === 'true') {
         log.enableProgress();
 
         response.on('data', function(chunk) {
@@ -95,70 +87,64 @@ function download(url, dest, cb) {
 }
 
 /**
- * A custom user agent use for binary downloads.
- *
- * @api private
- */
-function getUserAgent() {
-  return [
-    'node/', process.version, ' ',
-    'node-sass-installer/', pkg.version
-  ].join('');
-}
-
-/**
- * Determine local proxy settings
- *
- * @param {Object} options
- * @param {Function} cb
- * @api private
- */
-
-function getProxy() {
-  return process.env.npm_config_https_proxy ||
-         process.env.npm_config_proxy ||
-         process.env.npm_config_http_proxy ||
-         process.env.HTTPS_PROXY ||
-         process.env.https_proxy ||
-         process.env.HTTP_PROXY ||
-         process.env.http_proxy;
-}
-
-/**
  * Check and download binary
  *
  * @api private
  */
 
 function checkAndDownloadBinary() {
-  if (sass.hasBinary(sass.getBinaryPath())) {
+  if (process.env.SKIP_SASS_BINARY_DOWNLOAD_FOR_CI) {
+    console.log('Skipping downloading binaries on CI builds');
     return;
   }
 
-  mkdir(path.dirname(sass.getBinaryPath()), function(err) {
+  var cachedBinary = sass.getCachedBinary(),
+    cachePath = sass.getBinaryCachePath(),
+    binaryPath = sass.getBinaryPath();
+
+  if (sass.hasBinary(binaryPath)) {
+    console.log('node-sass build', 'Binary found at', binaryPath);
+    return;
+  }
+
+  try {
+    mkdir.sync(path.dirname(binaryPath));
+  } catch (err) {
+    console.error('Unable to save binary', path.dirname(binaryPath), ':', err);
+    return;
+  }
+
+  if (cachedBinary) {
+    console.log('Cached binary found at', cachedBinary);
+    fs.createReadStream(cachedBinary).pipe(fs.createWriteStream(binaryPath));
+    return;
+  }
+
+  download(sass.getBinaryUrl(), binaryPath, function(err) {
     if (err) {
       console.error(err);
       return;
     }
 
-    download(sass.getBinaryUrl(), sass.getBinaryPath(), function(err) {
-      if (err) {
-        console.error(err);
-        return;
+    console.log('Binary saved to', binaryPath);
+
+    cachedBinary = path.join(cachePath, sass.getBinaryName());
+
+    if (cachePath) {
+      console.log('Caching binary to', cachedBinary);
+
+      try {
+        mkdir.sync(path.dirname(cachedBinary));
+        fs.createReadStream(binaryPath)
+          .pipe(fs.createWriteStream(cachedBinary))
+          .on('error', function (err) {
+            console.log('Failed to cache binary:', err);
+          });
+      } catch (err) {
+        console.log('Failed to cache binary:', err);
       }
-
-      console.log('Binary downloaded and installed at', sass.getBinaryPath());
-    });
+    }
   });
-}
-
-/**
- * Skip if CI
- */
-
-if (process.env.SKIP_SASS_BINARY_DOWNLOAD_FOR_CI) {
-  console.log('Skipping downloading binaries on CI builds');
-  return;
 }
 
 /**

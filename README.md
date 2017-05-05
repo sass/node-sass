@@ -1,6 +1,6 @@
 # node-sass
 
-#### Supported Node.js versions 0.10, 0.12, 1, 2, 3, 4, 5, and 6.
+#### Supported Node.js versions 0.10, 0.12, 1, 2, 3, 4, 5, 6 and 7.
 
 <table>
   <tr>
@@ -40,7 +40,7 @@ npm install node-sass
 
 Some users have reported issues installing on Ubuntu due to `node` being registered to another package. [Follow the official NodeJS docs](https://github.com/nodejs/node-v0.x-archive/wiki/Installing-Node.js-via-package-manager) to install NodeJS so that `#!/usr/bin/env node` correctly resolved.
 
-Compiling versions 0.9.4 and above on Windows machines requires [Visual Studio 2013 WD](https://www.visualstudio.com/downloads/download-visual-studio-vs#d-express-windows-desktop). If you have multiple VS versions, use ```npm install``` with the ```--msvs_version=2013``` flag also use this flag when rebuilding the module with node-gyp or nw-gyp.
+Compiling versions 0.9.4 and above on Windows machines requires [Visual Studio 2013 WD](https://www.microsoft.com/en-us/download/details.aspx?id=44914). If you have multiple VS versions, use ```npm install``` with the ```--msvs_version=2013``` flag also use this flag when rebuilding the module with node-gyp or nw-gyp.
 
 **Having installation troubles? Check out our [Troubleshooting guide](/TROUBLESHOOTING.md).**
 
@@ -263,7 +263,7 @@ Used to determine how many digits after the decimal will be allowed. For instanc
 Type: `Boolean`
 Default: `false`
 
-`true` enables additional debugging information in the output file as CSS comments
+`true` Enables the line number and file where a selector is defined to be emitted into the compiled CSS as a comment. Useful for debugging, especially when using imports and mixins.
 
 ### sourceMap
 Type: `Boolean | String | undefined`
@@ -467,7 +467,6 @@ Check out the project:
 ```bash
 git clone --recursive https://github.com/sass/node-sass.git
 cd node-sass
-git submodule update --init --recursive
 npm install
 node scripts/build -f  # use -d switch for debug release
 # if succeeded, it will generate and move
@@ -481,8 +480,8 @@ The interface for command-line usage is fairly simplistic at this stage, as seen
 Output will be sent to stdout if the `--output` flag is omitted.
 
 ### Usage
- `node-sass [options] <input> [output]`  
- Or:  
+ `node-sass [options] <input> [output]`
+ Or:
  `cat <input> | node-sass > output`
 
 Example:
@@ -545,7 +544,7 @@ As local or global [.npmrc](https://docs.npmjs.com/misc/config) configuration fi
 
 As a process argument:
 
-* E.g. `npm install node-sass --SASS_BINARY_SITE=http://example.com/`
+* E.g. `npm install node-sass --sass-binary-site=http://example.com/`
 
 ## Post-install Build
 

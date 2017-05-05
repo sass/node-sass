@@ -145,7 +145,7 @@ If the node-sass installation process produced an error, open the vendor folder.
 cd node_modules\node-sass\vendor
 ```
 
-Then, using the version number we gather at the beginning, go to https://github.com/sass/node-sass/releases/tag/v<your-version>.
+Then, using the version number we gather at the beginning, go to `https://github.com/sass/node-sass/releases/tag/v<your-version>`.
 
 There you should see a folder with same name as the one in the `vendor` folder. Download the `binding.node` file from that folder and replace your own with it.
 
@@ -213,7 +213,7 @@ If the node-sass installation process produced an error, open the vendor folder.
 cd node_modules/node-sass/vendor
 ```
 
-Then, using the version number we gather at the beginning, go to https://github.com/sass/node-sass/releases/tag/v<your-version>.
+Then, using the version number we gather at the beginning, go to `https://github.com/sass/node-sass/releases/tag/v<your-version>`.
 
 There you should see a folder with same name as the one in the `vendor` folder. Download the `binding.node` file from that folder and replace your own with it.
 

@@ -35,21 +35,41 @@
     SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
     matrix:
       - nodejs_version: 0.10
+        GYP_MSVS_VERSION: 2013
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 0.12
+        GYP_MSVS_VERSION: 2013
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 1.0
+        GYP_MSVS_VERSION: 2013
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 1
+        GYP_MSVS_VERSION: 2013
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 2
+        GYP_MSVS_VERSION: 2013
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 3
+        GYP_MSVS_VERSION: 2013
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 4
+        GYP_MSVS_VERSION: 2013
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 5
+        GYP_MSVS_VERSION: 2013
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 6
+        GYP_MSVS_VERSION: 2015
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      - nodejs_version: 7
+        GYP_MSVS_VERSION: 2015
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
 
   install:
     - ps: Install-Product node $env:nodejs_version $env:platform
     - node --version
     - npm --version
-    - git submodule update --init --recursive
-    - npm install --msvs_version=2013
+    - npm install
 
   test: off
 
@@ -63,7 +83,7 @@
                .{ process { (
                   @( $BindingName,
                        ( ( $_, "binding.node" ) -join '_' ) ),
-                  @( ".\build\Release\binding.pdb", 
+                  @( ".\build\Release\binding.pdb",
                        ( ( $_, "binding.pdb" ) -join '_' ) )
                ) } } | % { Push-AppveyorArtifact $_[0] -FileName $_[1] }
 
@@ -82,6 +102,7 @@
       - release
       - /v\d\.\d\.\d/
 
+  skip_branch_with_pr: true
   skip_tags: true
 
   os: Visual Studio 2013
@@ -110,17 +131,26 @@
     SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
     matrix:
       - nodejs_version: 0.10
+        GYP_MSVS_VERSION: 2013
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 0.12
+        GYP_MSVS_VERSION: 2013
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 4
-      - nodejs_version: 5
+        GYP_MSVS_VERSION: 2013
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 6
+        GYP_MSVS_VERSION: 2015
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      - nodejs_version: 7
+        GYP_MSVS_VERSION: 2015
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
 
   install:
     - ps: Install-Product node $env:nodejs_version $env:platform
     - node --version
     - npm --version
-    - git submodule update --init --recursive
-    - npm install --msvs_version=2013
+    - npm install
 
   test_script:
     - ps: set-location -path c:\projects\node_modules\node-sass

@@ -10,6 +10,7 @@ var Emitter = require('events').EventEmitter,
   glob = require('glob'),
   sass = require('../lib'),
   render = require('../lib/render'),
+  stdout = require('stdout-stream'),
   stdin = require('get-stdin'),
   fs = require('fs');
 
@@ -162,15 +163,7 @@ function getEmitter() {
     }
   });
 
-  emitter.on('log', function(data) {
-    console.log(data);
-  });
-
-  emitter.on('done', function() {
-    if (!options.watch && !options.directory) {
-      process.exit();
-    }
-  });
+  emitter.on('log', stdout.write.bind(stdout));
 
   return emitter;
 }
@@ -271,8 +264,19 @@ function watch(options, emitter) {
 
   gaze.on('changed', function(file) {
     var files = [file];
+
+    // descendents may be added, so we need a new graph
+    graph = buildGraph(options);
     graph.visitAncestors(file, function(parent) {
       files.push(parent);
+    });
+
+    // Add children to watcher
+    graph.visitDescendents(file, function(child) {
+      if (watch.indexOf(child) === -1) {
+        watch.push(child);
+        gaze.add(child);
+      }
     });
     files.forEach(function(file) {
       if (path.basename(file)[0] !== '_') {
@@ -425,5 +429,3 @@ if (options.src) {
     run(options, emitter);
   });
 }
-
-return emitter;
