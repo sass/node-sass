@@ -1441,6 +1441,11 @@ namespace Sass {
       if (ex && ex->operand()) ex->is_delayed(ex->operand()->is_delayed());
       return ex;
     }
+    else if (lex< exactly<'/'> >()) {
+      Unary_Expression_Ptr ex = SASS_MEMORY_NEW(Unary_Expression, pstate, Unary_Expression::SLASH, parse_factor());
+      if (ex && ex->operand()) ex->is_delayed(ex->operand()->is_delayed());
+      return ex;
+    }
     else if (lex< sequence< kwd_not > >()) {
       Unary_Expression_Ptr ex = SASS_MEMORY_NEW(Unary_Expression, pstate, Unary_Expression::NOT, parse_factor());
       if (ex && ex->operand()) ex->is_delayed(ex->operand()->is_delayed());

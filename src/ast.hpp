@@ -1285,7 +1285,7 @@ namespace Sass {
   ////////////////////////////////////////////////////////////////////////////
   class Unary_Expression : public Expression {
   public:
-    enum Type { PLUS, MINUS, NOT };
+    enum Type { PLUS, MINUS, NOT, SLASH };
   private:
     HASH_PROPERTY(Type, optype)
     HASH_PROPERTY(Expression_Obj, operand)
@@ -1304,6 +1304,7 @@ namespace Sass {
       switch (optype_) {
         case PLUS: return "plus";
         case MINUS: return "minus";
+        case SLASH: return "slash";
         case NOT: return "not";
         default: return "invalid";
       }
