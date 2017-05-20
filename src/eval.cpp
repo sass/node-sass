@@ -892,6 +892,10 @@ namespace Sass {
         cpy->value( - cpy->value() ); // negate value
         return cpy.detach(); // return the copy
       }
+      else if (u->optype() == Unary_Expression::SLASH) {
+        std::string str = '/' + nr->to_string(ctx.c_options);
+        return SASS_MEMORY_NEW(String_Constant, u->pstate(), str);
+      }
       // nothing for positive
       return nr.detach();
     }
