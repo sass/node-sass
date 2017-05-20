@@ -1603,7 +1603,11 @@ namespace Sass {
                 // class match
                 exactly <'.'>,
                 // single or double colon
-                optional < pseudo_prefix >
+                sequence <
+                  optional < pseudo_prefix >,
+                  // fix libsass issue 2376
+                  negate < exactly < url_kwd > >
+                >
               >,
               // accept hypens in token
               one_plus < sequence <
