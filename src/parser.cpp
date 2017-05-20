@@ -650,7 +650,7 @@ namespace Sass {
     Selector_List_Obj group = SASS_MEMORY_NEW(Selector_List, pstate);
     group->media_block(last_media_block);
 
-    if (peek_css< alternatives < end_of_file, exactly <'{'> > >()) {
+    if (peek_css< alternatives < end_of_file, exactly <'{'>, exactly <','> > >()) {
       css_error("Invalid CSS", " after ", ": expected selector, was ");
     }
 
