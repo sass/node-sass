@@ -1577,7 +1577,7 @@ namespace Sass {
             class_char < selector_lookahead_ops >,
             // match selector combinators /[>+~]/
             class_char < selector_combinator_ops >,
-            // match attribute compare operators
+            // match pseudo selectors
             sequence <
               exactly <'('>,
               optional_spaces,
@@ -1585,6 +1585,7 @@ namespace Sass {
               optional_spaces,
               exactly <')'>
             >,
+            // match attribute compare operators
             alternatives <
               exact_match, class_match, dash_match,
               prefix_match, suffix_match, substring_match
@@ -1612,7 +1613,12 @@ namespace Sass {
               // accept hypens in token
               one_plus < sequence <
                 // can start with hyphens
-                zero_plus < exactly<'-'> >,
+                zero_plus <
+                  sequence <
+                    exactly <'-'>,
+                    optional_spaces
+                  >
+                >,
                 // now the main token
                 alternatives <
                   kwd_optional,
