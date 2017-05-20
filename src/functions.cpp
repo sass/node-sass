@@ -318,16 +318,14 @@ namespace Sass {
       if (
         special_number(Cast<String_Constant>(env["$alpha"]))
       ) {
-        return SASS_MEMORY_NEW(String_Constant, pstate, "rgba("
-                                                        + std::to_string((int)c_arg->r())
-                                                        + ", "
-                                                        + std::to_string((int)c_arg->g())
-                                                        + ", "
-                                                        + std::to_string((int)c_arg->b())
-                                                        + ", "
-                                                        + env["$alpha"]->to_string()
-                                                        + ")"
-        );
+        std::stringstream strm;
+        strm << "rgba("
+                 << (int)c_arg->r() << ", "
+                 << (int)c_arg->g() << ", "
+                 << (int)c_arg->b() << ", "
+                 << env["$alpha"]->to_string()
+             << ")";
+        return SASS_MEMORY_NEW(String_Constant, pstate, strm.str());
       }
 
       Color_Ptr new_c = SASS_MEMORY_COPY(c_arg);
