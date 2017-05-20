@@ -1947,8 +1947,10 @@ namespace Sass {
                       Wrapped_Selector_Obj cpy_ws = SASS_MEMORY_COPY(ws);
                       Selector_List_Obj cpy_ws_sl = SASS_MEMORY_NEW(Selector_List, sl->pstate());
                       // remove parent selectors from inner selector
-                      if (ext_cs->first() && ext_cs->first()->head()->length() > 0) {
-                        Wrapped_Selector_Ptr ext_ws = Cast<Wrapped_Selector>(ext_cs->first()->head()->first());
+                      Compound_Selector_Obj ext_head = NULL;
+                      if (ext_cs->first()) ext_head = ext_cs->first()->head();
+                      if (ext_head && ext_head && ext_head->length() > 0) {
+                        Wrapped_Selector_Ptr ext_ws = Cast<Wrapped_Selector>(ext_head->first());
                         if (ext_ws/* && ext_cs->length() == 1*/) {
                           Selector_List_Obj ws_cs = Cast<Selector_List>(ext_ws->selector());
                           Compound_Selector_Obj ws_ss = ws_cs->first()->head();
