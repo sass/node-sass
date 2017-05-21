@@ -437,6 +437,10 @@ namespace Sass {
         optional <
           sequence <
           exactly <'/'>,
+          negate < sequence <
+            exactly < calc_fn_kwd >,
+            exactly < '(' >
+          > >,
           multiple_units
         > >
       >(src);
