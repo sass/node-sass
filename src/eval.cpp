@@ -1186,6 +1186,7 @@ namespace Sass {
       if (l->size() > 1) {
         // string_to_output would fail "#{'_\a' '_\a'}";
         std::string str(ll->to_string(ctx.c_options));
+        str = read_hex_escapes(str); // read escapes
         newline_to_space(str); // replace directly
         res += str; // append to result string
       } else {
@@ -1206,7 +1207,9 @@ namespace Sass {
       if (into_quotes && ex->is_interpolant()) {
         res += evacuate_escapes(ex ? ex->to_string(ctx.c_options) : "");
       } else {
-        res += ex ? ex->to_string(ctx.c_options) : "";
+        std::string str(ex ? ex->to_string(ctx.c_options) : "");
+        if (into_quotes) str = read_hex_escapes(str);
+        res += str; // append to result string
       }
     }
 
