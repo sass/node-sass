@@ -26,6 +26,7 @@ namespace Sass {
   std::string evacuate_escapes(const std::string& str);
   std::string string_to_output(const std::string& str);
   std::string comment_to_string(const std::string& text);
+  std::string read_hex_escapes(const std::string& str);
   void newline_to_space(std::string& str);
 
   std::string quote(const std::string&, char q = 0);
