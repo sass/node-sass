@@ -103,7 +103,7 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     std::cerr << (selector->has_line_break() ? " [line-break]": " -");
     std::cerr << (selector->has_line_feed() ? " [line-feed]": " -");
     std::cerr << std::endl;
-    debug_ast(selector->schema(), "#{} ");
+    debug_ast(selector->schema(), ind + "#{} ");
 
     for(const Complex_Selector_Obj& i : selector->elements()) { debug_ast(i, ind + " ", env); }
 
