@@ -19,6 +19,10 @@ class LocalOption {
       this->orig = var;
       *(this->var) = orig;
     }
+    void reset()
+    {
+      *(this->var) = this->orig;
+    }
     ~LocalOption() {
       *(this->var) = this->orig;
     }
