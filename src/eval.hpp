@@ -25,6 +25,7 @@ namespace Sass {
 
     bool force;
     bool is_in_comment;
+    bool is_in_selector_schema;
 
     Boolean_Obj bool_true;
     Boolean_Obj bool_false;

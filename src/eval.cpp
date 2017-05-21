@@ -51,7 +51,8 @@ namespace Sass {
   : exp(exp),
     ctx(exp.ctx),
     force(false),
-    is_in_comment(false)
+    is_in_comment(false),
+    is_in_selector_schema(false)
   {
     bool_true = SASS_MEMORY_NEW(Boolean, "[NA]", true);
     bool_false = SASS_MEMORY_NEW(Boolean, "[NA]", false);
@@ -1757,7 +1758,10 @@ namespace Sass {
   Selector_List_Ptr Eval::operator()(Complex_Selector_Ptr s)
   {
     bool implicit_parent = !exp.old_at_root_without_rule;
-    return s->resolve_parent_refs(exp.selector_stack, implicit_parent);
+    if (is_in_selector_schema) exp.selector_stack.push_back(0);
+    Selector_List_Obj resolved = s->resolve_parent_refs(exp.selector_stack, implicit_parent);
+    if (is_in_selector_schema) exp.selector_stack.pop_back();
+    return resolved.detach();
   }
 
   // XXX: this is never hit via spec tests
@@ -1772,6 +1776,7 @@ namespace Sass {
 
   Selector_List_Ptr Eval::operator()(Selector_Schema_Ptr s)
   {
+    LOCAL_FLAG(is_in_selector_schema, true);
     // the parser will look for a brace to end the selector
     Expression_Obj sel = s->contents()->perform(this);
     std::string result_str(sel->to_string(ctx.c_options));
@@ -1781,6 +1786,7 @@ namespace Sass {
     // a selector schema may or may not connect to parent?
     bool chroot = s->connect_parent() == false;
     Selector_List_Obj sl = p.parse_selector_list(chroot);
+    flag_is_in_selector_schema.reset();
     return operator()(sl);
   }
 
