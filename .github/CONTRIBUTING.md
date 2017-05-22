@@ -5,18 +5,18 @@
 The following is a set of guidelines for contributing to LibSass, which is hosted in the [Sass Organization](https://github.com/sass) on GitHub.
 These are just guidelines, not rules, use your best judgment and feel free to propose changes to this document in a pull request.
 
-LibSass is a library that implements a [sass language] [8] compiler. As such it does not directly interface with end users (frontend developers).
+LibSass is a library that implements a [sass language][8] compiler. As such it does not directly interface with end users (frontend developers).
 For direct contributions to the LibSass code base you will need to have at least a rough idea of C++, we will not lie about that.
 But there are other ways to contribute to the progress of LibSass. All contributions are done via github pull requests.
 
-You can also contribute to the LibSass [documentation] [9] or provide additional [spec tests] [10] (and we will gladly point you in the
+You can also contribute to the LibSass [documentation][9] or provide additional [spec tests][10] (and we will gladly point you in the
 direction for corners that lack test coverage). Foremost we rely on good and concise bug reports for issues the spec tests do not yet catch.
 
 ## Precheck: My Sass isn't compiling
-- [ ] Check if you can reproduce the issue via [SourceMap Inspector] [5] (updated regularly).
-- [ ] Validate official ruby sass compiler via [SassMeister] [6] produces your expected result.
-- [ ] Search for similar issue in [LibSass] [1] and [node-sass] [2] (include closed tickets)
-- [ ] Optionally test your code directly with [sass] [7] or [sassc] [3] ([installer] [4])
+- [ ] Check if you can reproduce the issue via [SourceMap Inspector][5] (updated regularly).
+- [ ] Validate official ruby sass compiler via [SassMeister][6] produces your expected result.
+- [ ] Search for similar issue in [LibSass][1] and [node-sass][2] (include closed tickets)
+- [ ] Optionally test your code directly with [sass][7] or [sassc][3] ([installer][4])
 
 ## Precheck: My build/install fails
 - [ ] Problems with building or installing libsass should be directed to implementors first!
@@ -47,7 +47,7 @@ direction for corners that lack test coverage). Foremost we rely on good and con
 ## What makes a code test case
 
 Important is that someone else can get the test case up and running to reproduce it locally. For this
-we urge you to verify that your sample yields the expected result by testing it via [SassMeister] [6]
+we urge you to verify that your sample yields the expected result by testing it via [SassMeister][6]
 or directly via ruby sass or node-sass (or any other libsass implementor) before submitting your bug
 report. Once you verified all of the above, you may use the template below to file your bug report.
 
