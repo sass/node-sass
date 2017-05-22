@@ -959,18 +959,31 @@ namespace Sass {
     }
   }
 
+  // hotfix to avoid invalid nested `:not` selectors
+  // probably the wrong place, but this should ultimatively
+  // be fixed by implement superselector correctly for `:not`
+  // first use of "find" (ATM only implemented for selectors)
+  bool hasNotSelector(AST_Node_Obj obj) {
+    if (Wrapped_Selector_Ptr w = Cast<Wrapped_Selector>(obj)) {
+      return w->name() == ":not";
+    }
+    return false;
+  }
+
   void Inspect::operator()(Wrapped_Selector_Ptr s)
   {
-    bool was = in_wrapped;
-    in_wrapped = true;
-    append_token(s->name(), s);
-    append_string("(");
-    bool was_comma_array = in_comma_array;
-    in_comma_array = false;
-    s->selector()->perform(this);
-    in_comma_array = was_comma_array;
-    append_string(")");
-    in_wrapped = was;
+    if (!s->selector()->find(hasNotSelector)) {
+      bool was = in_wrapped;
+      in_wrapped = true;
+      append_token(s->name(), s);
+      append_string("(");
+      bool was_comma_array = in_comma_array;
+      in_comma_array = false;
+      s->selector()->perform(this);
+      in_comma_array = was_comma_array;
+      append_string(")");
+      in_wrapped = was;
+    }
   }
 
   void Inspect::operator()(Compound_Selector_Ptr s)

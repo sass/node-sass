@@ -124,6 +124,9 @@ namespace Sass {
     virtual const std::string to_string(Sass_Inspect_Options opt) const;
     virtual const std::string to_string() const;
     virtual void cloneChildren() {};
+    // generic find function (not fully implemented yet)
+    // ToDo: add specific implementions to all children
+    virtual bool find ( bool (*f)(AST_Node_Obj) ) { return f(this); };
   public:
     void update_pstate(const ParserState& pstate);
   public:
@@ -2644,6 +2647,7 @@ namespace Sass {
     virtual bool has_parent_ref() const;
     virtual bool has_real_parent_ref() const;
     virtual unsigned long specificity() const;
+    virtual bool find ( bool (*f)(AST_Node_Obj) );
     virtual bool operator==(const Simple_Selector& rhs) const;
     virtual bool operator==(const Wrapped_Selector& rhs) const;
     virtual bool operator<(const Simple_Selector& rhs) const;
@@ -2741,6 +2745,7 @@ namespace Sass {
              Cast<Parent_Selector>((*this)[0]);
     }
 
+    virtual bool find ( bool (*f)(AST_Node_Obj) );
     virtual bool operator<(const Selector& rhs) const;
     virtual bool operator==(const Selector& rhs) const;
     virtual bool operator<(const Compound_Selector& rhs) const;
@@ -2862,6 +2867,7 @@ namespace Sass {
       if (tail_ && tail_->has_placeholder()) return true;
       return false;
     }
+    virtual bool find ( bool (*f)(AST_Node_Obj) );
     virtual bool operator<(const Selector& rhs) const;
     virtual bool operator==(const Selector& rhs) const;
     virtual bool operator<(const Complex_Selector& rhs) const;
@@ -2986,6 +2992,7 @@ namespace Sass {
       }
       return false;
     }
+    virtual bool find ( bool (*f)(AST_Node_Obj) );
     virtual bool operator<(const Selector& rhs) const;
     virtual bool operator==(const Selector& rhs) const;
     virtual bool operator<(const Selector_List& rhs) const;
