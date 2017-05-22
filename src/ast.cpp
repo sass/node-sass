@@ -19,6 +19,45 @@ namespace Sass {
 
   static Null sass_null(ParserState("null"));
 
+  bool Wrapped_Selector::find ( bool (*f)(AST_Node_Obj) )
+  {
+    // check children first
+    if (selector_) {
+      if (selector_->find(f)) return true;
+    }
+    // execute last
+    return f(this);
+  }
+
+  bool Selector_List::find ( bool (*f)(AST_Node_Obj) )
+  {
+    // check children first
+    for (Complex_Selector_Obj sel : elements()) {
+      if (sel->find(f)) return true;
+    }
+    // execute last
+    return f(this);
+  }
+
+  bool Compound_Selector::find ( bool (*f)(AST_Node_Obj) )
+  {
+    // check children first
+    for (Simple_Selector_Obj sel : elements()) {
+      if (sel->find(f)) return true;
+    }
+    // execute last
+    return f(this);
+  }
+
+  bool Complex_Selector::find ( bool (*f)(AST_Node_Obj) )
+  {
+    // check children first
+    if (head_ && head_->find(f)) return true;
+    if (tail_ && tail_->find(f)) return true;
+    // execute last
+    return f(this);
+  }
+
   bool Supports_Operator::needs_parens(Supports_Condition_Obj cond) const {
     if (Supports_Operator_Obj op = Cast<Supports_Operator>(cond)) {
       return op->operand() != operand();
