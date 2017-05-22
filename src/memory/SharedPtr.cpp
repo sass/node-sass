@@ -17,8 +17,8 @@ namespace Sass {
       std::cerr << "###################################\n";
       std::cerr << "# REPORTING MISSING DEALLOCATIONS #\n";
       std::cerr << "###################################\n";
-      for (auto var : all) {
-        if (AST_Node_Ptr ast = Cast<AST_Node>(var)) {
+      for (SharedObj* var : all) {
+        if (AST_Node_Ptr ast = dynamic_cast<AST_Node*>(var)) {
           debug_ast(ast);
         } else {
           std::cerr << "LEAKED " << var << "\n";
@@ -60,7 +60,7 @@ namespace Sass {
       #endif
       if (node->refcounter == 0) {
         #ifdef DEBUG_SHARED_PTR
-          AST_Node_Ptr ptr = Cast<AST_Node>(node);
+          // AST_Node_Ptr ast = dynamic_cast<AST_Node*>(node);
           if (node->dbg) std::cerr << "DELETE NODE " << node << "\n";
         #endif
         if (!node->detached) {

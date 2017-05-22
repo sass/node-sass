@@ -541,7 +541,7 @@ namespace Sass {
     // selector schema re-uses string schema implementation
     String_Schema_Ptr schema = SASS_MEMORY_NEW(String_Schema, pstate);
     // the selector schema is pretty much just a wrapper for the string schema
-    Selector_Schema_Ptr selector_schema = SASS_MEMORY_NEW(Selector_Schema, pstate, schema);
+    Selector_Schema_Obj selector_schema = SASS_MEMORY_NEW(Selector_Schema, pstate, schema);
     selector_schema->connect_parent(chroot == false);
     selector_schema->media_block(last_media_block);
 
@@ -605,7 +605,7 @@ namespace Sass {
     after_token = before_token = pstate;
 
     // return parsed result
-    return selector_schema;
+    return selector_schema.detach();
   }
   // EO parse_selector_schema
 
@@ -1647,7 +1647,7 @@ namespace Sass {
       return str_quoted;
     }
 
-    String_Schema_Ptr schema = SASS_MEMORY_NEW(String_Schema, pstate);
+    String_Schema_Obj schema = SASS_MEMORY_NEW(String_Schema, pstate);
     schema->is_interpolant(true);
     while (i < chunk.end) {
       p = constant ? find_first_in_interval< exactly<hash_lbrace> >(i, chunk.end) :
@@ -1683,7 +1683,7 @@ namespace Sass {
       ++ i;
     }
 
-    return schema;
+    return schema.detach();
   }
 
   String_Constant_Obj Parser::parse_static_value()
