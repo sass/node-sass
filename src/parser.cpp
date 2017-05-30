@@ -2957,6 +2957,8 @@ namespace Sass {
     size_t right_subpos = right.size() > 15 ? right.size() - 15 : 0;
     if (left_subpos && ellipsis_left) left = ellipsis + left.substr(left_subpos);
     if (right_subpos && ellipsis_right) right = right.substr(right_subpos) + ellipsis;
+    // Hotfix when source is null, probably due to interpolation parsing!?
+    if (source == NULL || *source == 0) source = pstate.src;
     // now pass new message to the more generic error function
     error(msg + prefix + quote(left) + middle + quote(right), pstate);
   }
