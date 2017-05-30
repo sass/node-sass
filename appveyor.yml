@@ -29,7 +29,6 @@
 
   cache:
     - '%userprofile%\.node-gyp'
-    - '%AppData%\npm-cache'
 
   environment:
     SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
@@ -125,7 +124,6 @@
 
   cache:
     - '%userprofile%\.node-gyp'
-    - '%AppData%\npm-cache'
 
   environment:
     SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
@@ -152,6 +150,4 @@
     - npm --version
     - npm install
 
-  test_script:
-    - ps: set-location -path c:\projects\node_modules\node-sass
-    - npm test
+  test_script: npm test
