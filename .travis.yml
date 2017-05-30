@@ -1,31 +1,40 @@
 language: node_js
-node_js:
-  - "7"
-  - "6"
-  - "4"
-  - "0.12"
-  - "0.10"
-  - "iojs"
 
 compiler: gcc
 sudo: false
-
-os:
-  - linux
-  - osx
 
 env:
   global:
     - SKIP_SASS_BINARY_DOWNLOAD_FOR_CI=true
 
-matrix:
-  fast_finish: true
-  exclude:
-    - node_js: iojs
-    - node_js: "0.10"
+jobs:
+  include:
+    - stage: test
+      node_js: "node"
+      os: linux
+      before_script: npm run lint || exit 1;
+      after_success: npm run-script coverage;
+    - stage: platform-test
+      node_js: "node"
       os: osx
-    - node_js: "0.12"
+    - stage: platform-test
+      node_js: "lts/boron"
+      os: linux
+    - stage: platform-test
+      node_js: "lts/boron"
       os: osx
+    - stage: platform-test
+      node_js: "lts/argon"
+      os: linux
+    - stage: platform-test
+      node_js: "lts/argon"
+      os: osx
+    - stage: platform-test
+      node_js: "0.12"
+      os: linux
+    - stage: platform-test
+      node_js: "0.10"
+      os: linux
 
 addons:
   apt:
@@ -49,17 +58,11 @@ before_install:
   - gcc --version
   - g++ --version
 
-script:
+install:
   - npm install
-  - if [ $TRAVIS_OS_NAME == "linux" ] && [ $TRAVIS_NODE_VERSION == "4" ]; then
-      npm run lint || exit 1;
-    fi
-  - npm test
 
-after_success:
-  - if [ $TRAVIS_OS_NAME == "linux" ] && [ $TRAVIS_NODE_VERSION == "4" ]; then
-      npm run-script coverage;
-    fi
+script:
+  - npm test
 
 cache:
   directories:
