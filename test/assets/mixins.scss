@@ -1,0 +1,13 @@
+@mixin bgColor($color){
+  background: $color;
+}
+
+@mixin bgUrl($path){
+  background: url($path);
+}
+
+body {
+  @include bgColor(#f9cf3e);
+  @include bgUrl("/path/to/some/image.png");
+}
+
