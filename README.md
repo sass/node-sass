@@ -563,11 +563,7 @@ We <3 our contributors! A special thanks to all those who have clocked in some d
 
 ### Note on Patches/Pull Requests
 
- * Fork the project.
- * Make your feature addition or bug fix.
- * Add documentation if necessary.
- * Add tests for it. This is important so I don't break it in a future version unintentionally.
- * Send a pull request. Bonus points for topic branches.
+Check out our [Contributing guide](/.github/CONTRIBUTING.md)
 
 ## Copyright
 
