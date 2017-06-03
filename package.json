@@ -28,7 +28,7 @@
   "gypfile": true,
   "scripts": {
     "coverage": "node scripts/coverage.js",
-    "install": "node scripts/install.js",
+    "install": "SASS_BINARY_SITE=../downloads node scripts/install.js",
     "postinstall": "node scripts/build.js",
     "lint": "node_modules/.bin/eslint bin/node-sass lib scripts test",
     "test": "node_modules/.bin/mocha test/{*,**/**}.js",
