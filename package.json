@@ -28,12 +28,11 @@
   "gypfile": true,
   "scripts": {
     "coverage": "node scripts/coverage.js",
-    "install": "SASS_BINARY_SITE=files://../downloads node scripts/install.js",
+    "install": "node scripts/install.js",
     "postinstall": "node scripts/build.js",
     "lint": "node_modules/.bin/eslint bin/node-sass lib scripts test",
     "test": "node_modules/.bin/mocha test/{*,**/**}.js",
-    "build": "node scripts/build.js --force",
-    "prepublish": "not-in-install && node scripts/prepublish.js || in-install"
+    "build": "node scripts/build.js --force"
   },
   "files": [
     "bin",
