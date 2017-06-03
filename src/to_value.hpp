@@ -34,6 +34,7 @@ namespace Sass {
     Value_Ptr operator()(List_Ptr);
     Value_Ptr operator()(Map_Ptr);
     Value_Ptr operator()(Null_Ptr);
+    Value_Ptr operator()(Function_Ptr);
 
     // convert to string via `To_String`
     Value_Ptr operator()(Selector_List_Ptr);

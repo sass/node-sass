@@ -79,6 +79,12 @@ namespace Sass {
     return n;
   }
 
+  // Function is a valid value
+  Value_Ptr To_Value::operator()(Function_Ptr n)
+  {
+    return n;
+  }
+
   // Argument returns its value
   Value_Ptr To_Value::operator()(Argument_Ptr arg)
   {

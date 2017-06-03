@@ -829,6 +829,14 @@ namespace Sass {
     append_string(")");
   }
 
+  void Inspect::operator()(Function_Ptr f)
+  {
+    append_token("get-function", f);
+    append_string("(");
+    append_string(quote(f->name()));
+    append_string(")");
+  }
+
   void Inspect::operator()(Null_Ptr n)
   {
     // output the final token

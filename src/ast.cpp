@@ -2329,6 +2329,16 @@ namespace Sass {
     return rhs.concrete_type() == NULL_VAL;
   }
 
+  bool Function::operator== (const Expression& rhs) const
+  {
+    if (Function_Ptr_Const r = Cast<Function>(&rhs)) {
+      Definition_Ptr_Const d1 = Cast<Definition>(definition());
+      Definition_Ptr_Const d2 = Cast<Definition>(r->definition());
+      return d1 && d2 && d1 == d2 && is_css() == r->is_css();
+    }
+    return false;
+  }
+
   size_t List::size() const {
     if (!is_arglist_) return length();
     // arglist expects a list of arguments
@@ -2464,6 +2474,7 @@ namespace Sass {
   IMPLEMENT_AST_OPERATORS(Custom_Error);
   IMPLEMENT_AST_OPERATORS(List);
   IMPLEMENT_AST_OPERATORS(Map);
+  IMPLEMENT_AST_OPERATORS(Function);
   IMPLEMENT_AST_OPERATORS(Number);
   IMPLEMENT_AST_OPERATORS(Binary_Expression);
   IMPLEMENT_AST_OPERATORS(String_Schema);
@@ -2514,5 +2525,4 @@ namespace Sass {
   IMPLEMENT_AST_OPERATORS(Placeholder_Selector);
   IMPLEMENT_AST_OPERATORS(Definition);
   IMPLEMENT_AST_OPERATORS(Declaration);
-
 }

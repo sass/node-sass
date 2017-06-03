@@ -132,6 +132,9 @@ namespace Sass {
   class Map;
   typedef Map* Map_Ptr;
   typedef Map const* Map_Ptr_Const;
+  class Function;
+  typedef Function* Function_Ptr;
+  typedef Function const* Function_Ptr_Const;
 
   class Mixin_Call;
   typedef Mixin_Call* Mixin_Call_Ptr;
@@ -311,6 +314,7 @@ namespace Sass {
   IMPL_MEM_OBJ(Expression);
   IMPL_MEM_OBJ(List);
   IMPL_MEM_OBJ(Map);
+  IMPL_MEM_OBJ(Function);
   IMPL_MEM_OBJ(Binary_Expression);
   IMPL_MEM_OBJ(Unary_Expression);
   IMPL_MEM_OBJ(Function_Call);

@@ -838,10 +838,10 @@ namespace Sass {
         if (op_type == Sass_OP::SUB) interpolant = false;
         // if (op_type == Sass_OP::DIV) interpolant = true;
         // check for type violations
-        if (l_type == Expression::MAP) {
+        if (l_type == Expression::MAP || l_type == Expression::FUNCTION_VAL) {
           throw Exception::InvalidValue(*v_l);
         }
-        if (r_type == Expression::MAP) {
+        if (r_type == Expression::MAP || l_type == Expression::FUNCTION_VAL) {
           throw Exception::InvalidValue(*v_r);
         }
         Value_Ptr ex = op_strings(b->op(), *v_l, *v_r, ctx.c_options, pstate, !interpolant); // pass true to compress
@@ -976,6 +976,8 @@ namespace Sass {
     }
     Definition_Ptr def = Cast<Definition>((*env)[full_name]);
 
+    if (c->func()) def = c->func()->definition();
+
     if (def->is_overload_stub()) {
       std::stringstream ss;
       size_t L = args->length();
@@ -997,6 +999,8 @@ namespace Sass {
     Block_Obj          body   = def->block();
     Native_Function func   = def->native_function();
     Sass_Function_Entry c_function = def->c_function();
+
+    if (c->is_css()) return result.detach();
 
     Parameters_Obj params = def->parameters();
     Env fn_env(def->environment());

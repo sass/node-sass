@@ -833,6 +833,7 @@ namespace Sass {
     register_function(ctx, feature_exists_sig, feature_exists, env);
     register_function(ctx, call_sig, call, env);
     register_function(ctx, content_exists_sig, content_exists, env);
+    register_function(ctx, get_function_sig, get_function, env);
     // Boolean Functions
     register_function(ctx, not_sig, sass_not, env);
     register_function(ctx, if_sig, sass_if, env);

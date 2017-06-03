@@ -169,6 +169,7 @@ namespace Sass {
       MAP,
       SELECTOR,
       NULL_VAL,
+      FUNCTION_VAL,
       C_WARNING,
       C_ERROR,
       FUNCTION,
@@ -1434,18 +1435,54 @@ namespace Sass {
     ATTACH_OPERATIONS()
   };
 
+  ////////////////////////////////////////////////////
+  // Function reference.
+  ////////////////////////////////////////////////////
+  class Function : public Value {
+  public:
+    ADD_PROPERTY(Definition_Obj, definition)
+    ADD_PROPERTY(bool, is_css)
+  public:
+    Function(ParserState pstate, Definition_Obj def, bool css)
+    : Value(pstate), definition_(def), is_css_(css)
+    { concrete_type(FUNCTION_VAL); }
+    Function(const Function* ptr)
+    : Value(ptr), definition_(ptr->definition_), is_css_(ptr->is_css_)
+    { concrete_type(FUNCTION_VAL); }
+
+    std::string type() const { return "function"; }
+    static std::string type_name() { return "function"; }
+    bool is_invisible() const { return true; }
+
+    std::string name() {
+      if (definition_) {
+        return definition_->name();
+      }
+      return "";
+    }
+
+    virtual bool operator== (const Expression& rhs) const;
+
+    ATTACH_AST_OPERATIONS(Function)
+    ATTACH_OPERATIONS()
+  };
+
   //////////////////
   // Function calls.
   //////////////////
   class Function_Call : public PreValue {
     HASH_CONSTREF(std::string, name)
     HASH_PROPERTY(Arguments_Obj, arguments)
+    HASH_PROPERTY(Function_Obj, func)
     ADD_PROPERTY(bool, via_call)
     ADD_PROPERTY(void*, cookie)
     size_t hash_;
   public:
     Function_Call(ParserState pstate, std::string n, Arguments_Obj args, void* cookie)
-    : PreValue(pstate), name_(n), arguments_(args), via_call_(false), cookie_(cookie), hash_(0)
+    : PreValue(pstate), name_(n), arguments_(args), func_(0), via_call_(false), cookie_(cookie), hash_(0)
+    { concrete_type(FUNCTION); }
+    Function_Call(ParserState pstate, std::string n, Arguments_Obj args, Function_Obj func)
+    : PreValue(pstate), name_(n), arguments_(args), func_(func), via_call_(false), cookie_(0), hash_(0)
     { concrete_type(FUNCTION); }
     Function_Call(ParserState pstate, std::string n, Arguments_Obj args)
     : PreValue(pstate), name_(n), arguments_(args), via_call_(false), cookie_(0), hash_(0)
@@ -1454,10 +1491,16 @@ namespace Sass {
     : PreValue(ptr),
       name_(ptr->name_),
       arguments_(ptr->arguments_),
+      func_(ptr->func_),
       via_call_(ptr->via_call_),
       cookie_(ptr->cookie_),
       hash_(ptr->hash_)
     { concrete_type(FUNCTION); }
+
+    bool is_css() {
+      if (func_) return func_->is_css();
+      return false;
+    }
 
     virtual bool operator==(const Expression& rhs) const
     {

@@ -1719,9 +1719,14 @@ namespace Sass {
     Signature function_exists_sig = "function-exists($name)";
     BUILT_IN(function_exists)
     {
-      std::string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
+      String_Constant_Ptr ss = Cast<String_Constant>(env["$name"]);
+      if (!ss) {
+        error("$name: " + (env["$name"]->to_string()) + " is not a string for `function-exists'", pstate, backtrace);
+      }
 
-      if(d_env.has_global(s+"[f]")) {
+      std::string name = Util::normalize_underscores(unquote(ss->value()));
+
+      if(d_env.has_global(name+"[f]")) {
         return SASS_MEMORY_NEW(Boolean, pstate, true);
       }
       else {
@@ -1758,7 +1763,20 @@ namespace Sass {
     Signature call_sig = "call($name, $args...)";
     BUILT_IN(call)
     {
-      std::string name = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
+      std::string name;
+      Function_Ptr ff = Cast<Function>(env["$name"]);
+      String_Constant_Ptr ss = Cast<String_Constant>(env["$name"]);
+
+      if (ss) {
+        name = Util::normalize_underscores(unquote(ss->value()));
+        std::cerr << "DEPRECATION WARNING: ";
+        std::cerr << "Passing a string to call() is deprecated and will be illegal " << std::endl;
+        std::cerr << "in Sass 4.0. Use call(get-function(" + quote(name) + ")) instead. " << std::endl;
+        std::cerr << std::endl;
+      } else if (ff) {
+        name = ff->name();
+      }
+
       List_Obj arglist = SASS_MEMORY_COPY(ARG("$args", List));
 
       Arguments_Obj args = SASS_MEMORY_NEW(Arguments, pstate);
@@ -1789,8 +1807,8 @@ namespace Sass {
       Function_Call_Obj func = SASS_MEMORY_NEW(Function_Call, pstate, name, args);
       Expand expand(ctx, &d_env, backtrace, &selector_stack);
       func->via_call(true); // calc invoke is allowed
+      if (ff) func->func(ff);
       return func->perform(&expand.eval);
-
     }
 
     ////////////////////
@@ -2099,6 +2117,37 @@ namespace Sass {
         error("Cannot call content-exists() except within a mixin.", pstate, backtrace);
       }
       return SASS_MEMORY_NEW(Boolean, pstate, d_env.has_lexical("@content[m]"));
+    }
+
+    Signature get_function_sig = "get-function($name, $css: false)";
+    BUILT_IN(get_function)
+    {
+      String_Constant_Ptr ss = Cast<String_Constant>(env["$name"]);
+      if (!ss) {
+        error("$name: " + (env["$name"]->to_string()) + " is not a string for `get-function'", pstate, backtrace);
+      }
+
+      std::string name = Util::normalize_underscores(unquote(ss->value()));
+      std::string full_name = name + "[f]";
+
+      Boolean_Obj css = ARG("$css", Boolean);
+      if (!css->is_false()) {
+        Definition_Ptr def = SASS_MEMORY_NEW(Definition,
+                                         pstate,
+                                         name,
+                                         SASS_MEMORY_NEW(Parameters, pstate),
+                                         SASS_MEMORY_NEW(Block, pstate, 0, false),
+                                         Definition::FUNCTION);
+        return SASS_MEMORY_NEW(Function, pstate, def, true);
+      }
+
+
+      if (!d_env.has_global(full_name)) {
+        error("Function not found: " + name, pstate, backtrace);
+      }
+
+      Definition_Ptr def = Cast<Definition>(d_env[full_name]);
+      return SASS_MEMORY_NEW(Function, pstate, def, false);
     }
   }
 }

@@ -512,8 +512,17 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     std::cerr << " [" << expression->name() << "]";
     if (expression->is_delayed()) std::cerr << " [delayed]";
     if (expression->is_interpolant()) std::cerr << " [interpolant]";
+    if (expression->is_css()) std::cerr << " [css]";
     std::cerr << std::endl;
     debug_ast(expression->arguments(), ind + " args: ", env);
+    debug_ast(expression->func(), ind + " func: ", env);
+  } else if (Cast<Function>(node)) {
+    Function_Ptr expression = Cast<Function>(node);
+    std::cerr << ind << "Function " << expression;
+    std::cerr << " (" << pstate_source_position(node) << ")";
+    if (expression->is_css()) std::cerr << " [css]";
+    std::cerr << std::endl;
+    debug_ast(expression->definition(), ind + " definition: ", env);
   } else if (Cast<Arguments>(node)) {
     Arguments_Ptr expression = Cast<Arguments>(node);
     std::cerr << ind << "Arguments " << expression;
