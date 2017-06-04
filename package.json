@@ -76,7 +76,6 @@
     "istanbul": "^0.4.2",
     "mocha": "^3.1.2",
     "mocha-lcov-reporter": "^1.2.0",
-    "node-gyp": "^3.6.2",
     "object-merge": "^2.5.1",
     "read-yaml": "^1.0.0",
     "rimraf": "^2.5.2",
