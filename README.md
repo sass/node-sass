@@ -102,7 +102,7 @@ Starting from v3.0.0:
 
   ```javascript
   done(new Error('doesn\'t exist!'));
-  // or return synchornously
+  // or return synchronously
   return new Error('nothing to do here');
   ```
 
