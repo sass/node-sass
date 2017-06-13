@@ -174,9 +174,9 @@ namespace Sass {
 
     if (props->length())
     {
-      Block_Obj bb = SASS_MEMORY_NEW(Block, rr->block()->pstate());
-      bb->concat(props);
-      rr->block(bb);
+      Block_Obj pb = SASS_MEMORY_NEW(Block, rr->block()->pstate());
+      pb->concat(props);
+      rr->block(pb);
 
       for (size_t i = 0, L = rules->length(); i < L; i++)
       {
@@ -442,7 +442,7 @@ namespace Sass {
 
       for (size_t j = 0, K = slice->length(); j < K; ++j)
       {
-        Statement_Ptr ss = NULL;
+        Statement_Ptr ss;
         Statement_Obj stm = slice->at(j);
         // this has to go now here (too bad)
         Bubble_Obj node = Cast<Bubble>(stm);
@@ -475,8 +475,6 @@ namespace Sass {
 
         ss->tabs(ss->tabs() + node->tabs());
         ss->group_end(node->group_end());
-
-        if (!ss) continue;
 
         Block_Obj bb = SASS_MEMORY_NEW(Block,
                                     children->pstate(),
@@ -584,10 +582,11 @@ namespace Sass {
     }
 
     Media_Query_Ptr mm = SASS_MEMORY_NEW(Media_Query,
-
-mq1->pstate(), 0,
-mq1->length() + mq2->length(), mod == "not", mod == "only"
-);
+                                         mq1->pstate(),
+                                         0,
+                                         mq1->length() + mq2->length(),
+                                         mod == "not",
+                                         mod == "only");
 
     if (!type.empty()) {
       mm->media_type(SASS_MEMORY_NEW(String_Quoted, mq1->pstate(), type));

@@ -64,6 +64,7 @@ namespace Sass {
       break;
       case Complex_Selector::ANCESTOR_OF:
       break;
+      default: break;
     }
 
     Complex_Selector_Obj tail = sel->tail();

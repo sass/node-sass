@@ -100,7 +100,7 @@ namespace Sass {
     // helper function to find the last directory seperator
     inline size_t find_last_folder_separator(const std::string& path, size_t limit = std::string::npos)
     {
-      size_t pos = std::string::npos;
+      size_t pos;
       size_t pos_p = path.find_last_of('/', limit);
       #ifdef _WIN32
         size_t pos_w = path.find_last_of('\\', limit);
@@ -151,7 +151,7 @@ namespace Sass {
       pos = 0; // remove all self references inside the path string
       while((pos = path.find("/./", pos)) != std::string::npos) path.erase(pos, 2);
 
-      pos = 0; // remove all leading and trailing self references
+      // remove all leading and trailing self references
       while(path.length() > 1 && path.substr(0, 2) == "./") path.erase(0, 2);
       while((pos = path.length()) > 1 && path.substr(pos - 2) == "/.") path.erase(pos - 2);
 

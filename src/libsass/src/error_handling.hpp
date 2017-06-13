@@ -5,6 +5,8 @@
 #include <sstream>
 #include <stdexcept>
 #include "position.hpp"
+#include "ast_fwd_decl.hpp"
+#include "sass/functions.h"
 
 namespace Sass {
 
@@ -136,10 +138,11 @@ namespace Sass {
 
     class IncompatibleUnits : public OperationError {
       protected:
-        const Number& lhs;
-        const Number& rhs;
+        // const Sass::UnitType lhs;
+        // const Sass::UnitType rhs;
       public:
         IncompatibleUnits(const Number& lhs, const Number& rhs);
+        IncompatibleUnits(const UnitType lhs, const UnitType rhs);
         virtual ~IncompatibleUnits() throw() {};
     };
 
