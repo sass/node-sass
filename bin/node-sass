@@ -3,13 +3,13 @@
 var Emitter = require('events').EventEmitter,
   forEach = require('async-foreach').forEach,
   Gaze = require('gaze'),
-  grapher = require('sass-graph'),
   meow = require('meow'),
   util = require('util'),
   path = require('path'),
   glob = require('glob'),
   sass = require('../lib'),
   render = require('../lib/render'),
+  watcher = require('../lib/watcher'),
   stdout = require('stdout-stream'),
   stdin = require('get-stdin'),
   fs = require('fs');
@@ -229,63 +229,41 @@ function getOptions(args, options) {
  */
 
 function watch(options, emitter) {
-  var buildGraph = function(options) {
-    var graph;
-    var graphOptions = {
-      loadPaths: options.includePath,
-      extensions: ['scss', 'sass', 'css']
-    };
-
-    if (options.directory) {
-      graph = grapher.parseDir(options.directory, graphOptions);
-    } else {
-      graph = grapher.parseFile(options.src, graphOptions);
-    }
-
-    return graph;
-  };
-
-  var watch = [];
-  var graph = buildGraph(options);
-
-  // Add all files to watch list
-  for (var i in graph.index) {
-    watch.push(i);
-  }
-
-  var gaze = new Gaze();
-  gaze.add(watch);
-  gaze.on('error', emitter.emit.bind(emitter, 'error'));
-
-  gaze.on('changed', function(file) {
-    var files = [file];
-
-    // descendents may be added, so we need a new graph
-    graph = buildGraph(options);
-    graph.visitAncestors(file, function(parent) {
-      files.push(parent);
-    });
-
-    // Add children to watcher
-    graph.visitDescendents(file, function(child) {
-      if (watch.indexOf(child) === -1) {
-        watch.push(child);
-        gaze.add(child);
+  var handler = function(files) {
+    files.added.forEach(function(file) {
+      var watch = gaze.watched();
+      if (watch.indexOf(file) === -1) {
+        gaze.add(file);
       }
     });
-    files.forEach(function(file) {
+
+    files.changed.forEach(function(file) {
       if (path.basename(file)[0] !== '_') {
         renderFile(file, options, emitter);
       }
     });
+
+    files.removed.forEach(function(file) {
+      gaze.remove(file);
+    });
+  };
+
+  watcher.reset(options);
+
+  var gaze = new Gaze();
+  gaze.add(watcher.reset(options));
+  gaze.on('error', emitter.emit.bind(emitter, 'error'));
+
+  gaze.on('changed', function(file) {
+    handler(watcher.changed(file));
   });
 
-  gaze.on('added', function() {
-    graph = buildGraph(options);
+  gaze.on('added', function(file) {
+    handler(watcher.added(file));
   });
 
-  gaze.on('deleted', function() {
-    graph = buildGraph(options);
+  gaze.on('deleted', function(file) {
+    handler(watcher.deleted(file));
   });
 }
 

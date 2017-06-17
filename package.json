@@ -75,12 +75,14 @@
   "devDependencies": {
     "coveralls": "^2.11.8",
     "eslint": "^3.4.0",
+    "fs-extra": "^0.30.0",
     "istanbul": "^0.4.2",
     "mocha": "^3.1.2",
     "mocha-lcov-reporter": "^1.2.0",
     "object-merge": "^2.5.1",
     "read-yaml": "^1.0.0",
     "rimraf": "^2.5.2",
-    "sass-spec": "3.5.0-1"
+    "sass-spec": "3.5.0-1",
+    "unique-temp-dir": "^1.0.0"
   }
 }
