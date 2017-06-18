@@ -4,7 +4,7 @@ var assert = require('assert'),
   temp = require('unique-temp-dir'),
   watcher = require('../lib/watcher');
 
-describe.only('watcher', function() {
+describe('watcher', function() {
   var main, sibling;
   var origin = path.join(__dirname, 'fixtures', 'watcher');
 
