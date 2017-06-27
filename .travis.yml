@@ -12,42 +12,66 @@ env:
 jobs:
   include:
     - stage: test
-      NODEJS_VERSION: node/6
+      env:
+        global:
+          - NODEJS_VERSION: node/6
       os: linux
       before_script: npm run lint || exit 1;
       after_success: npm run-script coverage;
     - stage: platform-test
-      NODEJS_VERSION: node/8
+      env:
+        global:
+          - NODEJS_VERSION: node/8
       os: osx    
     - stage: platform-test
-      NODEJS_VERSION: node/7
+      env:
+        global:
+          - NODEJS_VERSION: node/7
       os: linux
     - stage: platform-test
-      NODEJS_VERSION: node/7
+      env:
+        global:
+          - NODEJS_VERSION: node/7
       os: osx
     - stage: platform-test
-      NODEJS_VERSION: node/boron
+      env:
+        global:
+          - NODEJS_VERSION: node/boron
       os: linux
     - stage: platform-test
-      NODEJS_VERSION: node/boron
+      env:
+        global:
+          - NODEJS_VERSION: node/boron
       os: osx
     - stage: platform-test
-      NODEJS_VERSION: node/argon
+      env:
+        global:
+          - NODEJS_VERSION: node/argon
       os: linux
     - stage: platform-test
-      NODEJS_VERSION: node/argon
+      env:
+        global:
+          - NODEJS_VERSION: node/argon
       os: osx
     - stage: platform-test
-      NODEJS_VERSION: node/0.12
+      env:
+        global:
+          - NODEJS_VERSION: node/0.12
       os: linux
     - stage: platform-test
-      NODEJS_VERSION: node/0.10
+      env:
+        global:
+          - NODEJS_VERSION: node/0.10
       os: linux
     - stage: platform-test
-      NODEJS_VERSION: chakracore/latest
+      env:
+        global:
+          - NODEJS_VERSION: chakracore/latest
       os: osx
     - stage: platform-test
-      NODEJS_VERSION: chakracore/latest
+      env:
+        global:
+          - NODEJS_VERSION: chakracore/latest
       os: linux
 
 addons:
