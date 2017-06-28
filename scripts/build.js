@@ -100,9 +100,9 @@ function resolveNodeGyp() {
     // If yes, use it instead of using node-gyp directly from
     // node_modules because the one in node_modules is not
     // compatible with node-chakracore.
-    const nodePath = path.dirname(process.execPath);
-    const nodeGypName = process.platform === 'win32' ? 'node-gyp.cmd' : 'node-gyp';
-    const delim = process.platform === 'win32' ? ';' : ':';
+    var nodePath = path.dirname(process.execPath);
+    var nodeGypName = process.platform === 'win32' ? 'node-gyp.cmd' : 'node-gyp';
+    var delim = process.platform === 'win32' ? ';' : ':';
     var globalNodeGypBin = process.env.Path.split(delim).filter(function(envPath) {
       return envPath.startsWith(nodePath) &&
                envPath.endsWith('node-gyp-bin') &&

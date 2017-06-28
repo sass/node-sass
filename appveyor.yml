@@ -140,29 +140,41 @@
     - '%AppData%\npm-cache'
 
   environment:
+    # https://github.com/jasongin/nvs/blob/master/doc/CI.md
+    NVS_VERSION: 1.3.0
     SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
     matrix:
-      - nodejs_version: 0.10
+      - NODEJS_VERSION: node/0.10
         GYP_MSVS_VERSION: 2013
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
-      - nodejs_version: 0.12
+      - NODEJS_VERSION: node/0.12
         GYP_MSVS_VERSION: 2013
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
-      - nodejs_version: 4
+      - NODEJS_VERSION: node/4
         GYP_MSVS_VERSION: 2013
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
-      - nodejs_version: 6
+      - NODEJS_VERSION: node/6
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      - nodejs_version: 7
+      - NODEJS_VERSION: node/7
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      - nodejs_version: 8
+      - NODEJS_VERSION: node/8
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      - NODEJS_VERSION: chakracore/latest
+        GYP_MSVS_VERSION: 2015
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015        
 
   install:
-    - ps: Install-Product node $env:nodejs_version $env:platform
+    # Install NVS
+    - git clone --branch v%NVS_VERSION% --depth 1 https://github.com/jasongin/nvs %LOCALAPPDATA%\nvs
+    - set PATH=%LOCALAPPDATA%\nvs;%PATH%
+    - nvs --version
+    # Install selected version of Node.js using NVS
+    - nvs add %NODEJS_VERSION%
+    - nvs use %NODEJS_VERSION%  
+
     - node --version
     - npm --version
     - npm install
