@@ -95,28 +95,6 @@ function build(options) {
  * @api private
  */
 function resolveNodeGyp() {
-  if (process.jsEngine === 'chakracore') {
-    // For node-chakracore, check if node-gyp is in the path.
-    // If yes, use it instead of using node-gyp directly from
-    // node_modules because the one in node_modules is not
-    // compatible with node-chakracore.
-    var nodePath = path.dirname(process.execPath);
-    var nodeGypName = process.platform === 'win32' ? 'node-gyp.cmd' : 'node-gyp';
-    var delim = process.platform === 'win32' ? ';' : ':';
-    var globalNodeGypBin = process.env.Path.split(delim).filter(function(envPath) {
-      return envPath.startsWith(nodePath) &&
-               envPath.endsWith('node-gyp-bin') &&
-               fs.existsSync(path.resolve(envPath, nodeGypName));
-    });
-
-    if (globalNodeGypBin.length !== 0) {
-      return { exeName: 'node-gyp', args: [] };
-    }
-
-    console.error('node-gyp incompatible with node-chakracore! Please use node-gyp installed with node-chakracore.');
-    process.exit(1);
-  }
-
   var localNodeGypBin = require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js'));
 
   return {
