@@ -3,7 +3,7 @@ Before opening an issue:
 - [Search for duplicate or closed issues](https://github.com/sass/node-sass/issues?utf8=%E2%9C%93&q=is%3Aissue)
 - [Validate](http://sassmeister.com/) that it runs with both Ruby Sass and LibSass
 - Prepare a [reduced test case](https://css-tricks.com/reduced-test-cases/) for any bugs
-- Read the [contributing guidelines](https://github.com/sass/node-sass/blob/master/CONTRIBUTING.md)
+- Read the [contributing guidelines](https://github.com/sass/node-sass/blob/master/.github/CONTRIBUTING.md)
 
 When reporting an bug, **you must provide this information**:
 
