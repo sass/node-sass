@@ -646,10 +646,7 @@ namespace Sass {
             >,
             sequence <
               negate <
-                sequence <
-                  exactly < url_kwd >,
-                  exactly <'('>
-                >
+                uri_prefix
               >,
               neg_class_char <
                 almost_any_value_class
@@ -1611,7 +1608,7 @@ namespace Sass {
                 sequence <
                   optional < pseudo_prefix >,
                   // fix libsass issue 2376
-                  negate < exactly < url_kwd > >
+                  negate < uri_prefix >
                 >
               >,
               // accept hypens in token
