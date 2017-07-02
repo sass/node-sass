@@ -1050,7 +1050,7 @@ namespace Sass {
 
     /* no longer used - remove?
     const char* rgb_prefix(const char* src) {
-      return word<rgb_kwd>(src);
+      return word<rgb_fn_kwd>(src);
     }*/
     // Match CSS uri specifiers.
 
@@ -1164,7 +1164,7 @@ namespace Sass {
     }
     // Match the CSS negation pseudo-class.
     const char* pseudo_not(const char* src) {
-      return word< pseudo_not_kwd >(src);
+      return word< pseudo_not_fn_kwd >(src);
     }
     // Match CSS 'odd' and 'even' keywords for functional pseudo-classes.
     const char* even(const char* src) {
