@@ -8,6 +8,7 @@ This document covers some common node-sass issues and how to resolve them. You s
   - [Assertion failed: (handle->flags & UV_CLOSING), function uv__finish_close](#assertion-failed-handle-flags-&-uv_closing-function-uv__finish_close)
   - [Cannot find module '/root/<...>/install.js'](#cannot-find-module-rootinstalljs)
     - [Linux](#linux)
+  - [NPM 5](#npm-5)
 - [Glossary](#glossary)
   - [Which node runtime am I using?](#which-node-runtime-am-i-using)
   - [Which version of node am I using?](#which-version-of-node-am-i-using)
@@ -42,6 +43,25 @@ $ sudo npm install --unsafe-perm -g node-sass
 
 If this didn't solve your problem please open an issue with the output from [our debugging script](#debugging-installation-issues).
 
+### NPM 5
+
+Some users upgrading from previous versions of NPM have found conflicts with old lock file formats. This may be show up as a URL instead of the actual version number when downloading the binary. EX:
+
+```console
+Downloading binary from https://github.com/sass/node-sass/releases/download/vhttps://registry.npmjs.org/node-sass/-/node-sass-4.5.3.tgz/win32-x64-57_binding.node
+Cannot download "https://github.com/sass/node-sass/releases/download/vhttps://registry.npmjs.org/node-sass/-/node-sass-4.5.3.tgz/win32-x64-57_binding.node":
+
+HTTP error 404 Not Found
+```
+
+The easiest way to get around this is just to cleanup the NPM files and reinstall.
+
+```console
+rm -rf node_modules
+rm package-lock.json
+npm cache clean
+npm install
+```
 
 ## Glossary
 
