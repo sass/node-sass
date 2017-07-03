@@ -469,7 +469,11 @@ node scripts/build -f  # use -d switch for debug release
 
 ## Command Line Interface
 
-The interface for command-line usage is fairly simplistic at this stage, as seen in the following usage section.
+To use `node-sass` from the CLI, you must install the package globally:
+
+```bash
+npm install --global node-sass
+```
 
 Output will be sent to stdout if the `--output` flag is omitted.
 
