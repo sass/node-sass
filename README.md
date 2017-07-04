@@ -469,11 +469,7 @@ node scripts/build -f  # use -d switch for debug release
 
 ## Command Line Interface
 
-To use `node-sass` from the CLI, you must install the package globally:
-
-```bash
-npm install --global node-sass
-```
+The primary use case for the CLI is in npm scripts. Alternatively you can use something like [npx](https://www.npmjs.com/package/npx), as global installs of node-sass have been notoriously troublesome and are not something we'd like to encourage.
 
 Output will be sent to stdout if the `--output` flag is omitted.
 
