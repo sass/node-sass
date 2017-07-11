@@ -23,12 +23,12 @@ namespace Sass {
 
   Block_Ptr Cssize::operator()(Block_Ptr b)
   {
-    Block_Ptr bb = SASS_MEMORY_NEW(Block, b->pstate(), b->length(), b->is_root());
+    Block_Obj bb = SASS_MEMORY_NEW(Block, b->pstate(), b->length(), b->is_root());
     // bb->tabs(b->tabs());
     block_stack.push_back(bb);
     append_block(b, bb);
     block_stack.pop_back();
-    return bb;
+    return bb.detach();
   }
 
   Statement_Ptr Cssize::operator()(Trace_Ptr t)
@@ -259,7 +259,7 @@ namespace Sass {
       tmp |= m->exclude_node(s);
     }
 
-    if (!tmp)
+    if (!tmp && m->block())
     {
       Block_Ptr bb = operator()(m->block());
       for (size_t i = 0, L = bb->length(); i < L; ++i) {
@@ -302,14 +302,17 @@ namespace Sass {
 
   Statement_Ptr Cssize::bubble(At_Root_Block_Ptr m)
   {
+    if (!m || !m->block()) return NULL;
     Block_Ptr bb = SASS_MEMORY_NEW(Block, this->parent()->pstate());
     Has_Block_Obj new_rule = Cast<Has_Block>(SASS_MEMORY_COPY(this->parent()));
-    new_rule->block(bb);
-    new_rule->tabs(this->parent()->tabs());
-    new_rule->block()->concat(m->block());
-
     Block_Ptr wrapper_block = SASS_MEMORY_NEW(Block, m->block()->pstate());
-    wrapper_block->append(new_rule);
+    if (new_rule) {
+      new_rule->block(bb);
+      new_rule->tabs(this->parent()->tabs());
+      new_rule->block()->concat(m->block());
+      wrapper_block->append(new_rule);
+    }
+
     At_Root_Block_Ptr mm = SASS_MEMORY_NEW(At_Root_Block,
                                         m->pstate(),
                                         wrapper_block,
