@@ -1,5 +1,5 @@
 language: node_js
-
+dist: trusty
 compiler: gcc
 sudo: false
 
@@ -40,6 +40,11 @@ jobs:
       os: linux
     - stage: platform-test
       node_js: "0.10"
+      os: linux
+    - stage: platform-test
+      node_js: "node"
+      env:
+        - NVM_NODEJS_ORG_MIRROR=https://nodejs.org/download/chakracore-release/
       os: linux
 
 addons:
