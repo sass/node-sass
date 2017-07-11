@@ -90,7 +90,7 @@ namespace Sass {
     append_token("@at-root ", at_root_block);
     append_mandatory_space();
     if(at_root_block->expression()) at_root_block->expression()->perform(this);
-    at_root_block->block()->perform(this);
+    if(at_root_block->block()) at_root_block->block()->perform(this);
   }
 
   void Inspect::operator()(Directive_Ptr at_rule)
@@ -798,13 +798,15 @@ namespace Sass {
 
   void Inspect::operator()(At_Root_Query_Ptr ae)
   {
-    append_string("(");
-    ae->feature()->perform(this);
-    if (ae->value()) {
-      append_colon_separator();
-      ae->value()->perform(this);
+    if (ae->feature()) {
+      append_string("(");
+      ae->feature()->perform(this);
+      if (ae->value()) {
+        append_colon_separator();
+        ae->value()->perform(this);
+      }
+      append_string(")");
     }
-    append_string(")");
   }
 
   void Inspect::operator()(Null_Ptr n)
