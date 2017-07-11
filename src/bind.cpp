@@ -218,7 +218,9 @@ namespace Sass {
         Map_Obj argmap = Cast<Map>(a->value());
 
         for (auto key : argmap->keys()) {
-          std::string param = "$" + unquote(Cast<String_Constant>(key)->value());
+          String_Constant_Ptr val = Cast<String_Constant>(key);
+          if (val == NULL) throw Exception::InvalidVarKwdType(key->pstate(), key->inspect(), a);
+          std::string param = "$" + unquote(val->value());
 
           if (!param_map.count(param)) {
             std::stringstream msg;
