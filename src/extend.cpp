@@ -718,7 +718,7 @@ namespace Sass {
     }
 
     Node chunk2 = Node::createCollection();
-    while (!chunker(seq2)) {
+    while (!seq2.collection()->empty() && !chunker(seq2)) {
       chunk2.collection()->push_back(seq2.collection()->front());
       seq2.collection()->pop_front();
     }
@@ -1953,12 +1953,14 @@ namespace Sass {
                         Wrapped_Selector_Ptr ext_ws = Cast<Wrapped_Selector>(ext_head->first());
                         if (ext_ws/* && ext_cs->length() == 1*/) {
                           Selector_List_Obj ws_cs = Cast<Selector_List>(ext_ws->selector());
-                          Compound_Selector_Obj ws_ss = ws_cs->first()->head();
-                          if (!(
-                            Cast<Pseudo_Selector>(ws_ss->first()) ||
-                            Cast<Element_Selector>(ws_ss->first()) ||
-                            Cast<Placeholder_Selector>(ws_ss->first())
-                          )) continue;
+                          if (ws_cs && !ws_cs->empty() && ws_cs->first()) {
+                            Compound_Selector_Obj ws_ss = ws_cs->first()->head();
+                            if (ws_ss && !ws_ss->empty() && !(
+                              Cast<Pseudo_Selector>(ws_ss->first()) ||
+                              Cast<Element_Selector>(ws_ss->first()) ||
+                              Cast<Placeholder_Selector>(ws_ss->first())
+                            )) continue;
+                          }
                         }
                         cpy_ws_sl->append(ext_cs->first());
                       }
