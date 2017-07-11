@@ -394,9 +394,11 @@ namespace Sass {
         DWORD dwFileLength = GetFileSize(hFile, NULL);
         if (dwFileLength == INVALID_FILE_SIZE) return 0;
         // allocate an extra byte for the null char
-        pBuffer = (BYTE*)malloc((dwFileLength+1)*sizeof(BYTE));
+        // and another one for edge-cases in lexer
+        pBuffer = (BYTE*)malloc((dwFileLength+2)*sizeof(BYTE));
         ReadFile(hFile, pBuffer, dwFileLength, &dwBytes, NULL);
-        pBuffer[dwFileLength] = '\0';
+        pBuffer[dwFileLength+0] = '\0';
+        pBuffer[dwFileLength+1] = '\0';
         CloseHandle(hFile);
         // just convert from unsigned char*
         char* contents = (char*) pBuffer;
@@ -408,10 +410,12 @@ namespace Sass {
         if (file.is_open()) {
           size_t size = file.tellg();
           // allocate an extra byte for the null char
-          contents = (char*) malloc((size+1)*sizeof(char));
+          // and another one for edge-cases in lexer
+          contents = (char*) malloc((size+2)*sizeof(char));
           file.seekg(0, std::ios::beg);
           file.read(contents, size);
-          contents[size] = '\0';
+          contents[size+0] = '\0';
+          contents[size+0] = '\0';
           file.close();
         }
       #endif
