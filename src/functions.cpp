@@ -1706,10 +1706,10 @@ namespace Sass {
       Expand expand(ctx, &d_env, backtrace, &selector_stack);
       Expression_Obj cond = ARG("$condition", Expression)->perform(&expand.eval);
       bool is_true = !cond->is_false();
-      Expression_Ptr res = ARG(is_true ? "$if-true" : "$if-false", Expression);
+      Expression_Obj res = ARG(is_true ? "$if-true" : "$if-false", Expression);
       res = res->perform(&expand.eval);
       res->set_delayed(false); // clone?
-      return res;
+      return res.detach();
     }
 
     //////////////////////////
