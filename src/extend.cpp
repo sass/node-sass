@@ -718,7 +718,7 @@ namespace Sass {
     }
 
     Node chunk2 = Node::createCollection();
-    while (!chunker(seq2)) {
+    while (!seq2.collection()->empty() && !chunker(seq2)) {
       chunk2.collection()->push_back(seq2.collection()->front());
       seq2.collection()->pop_front();
     }
