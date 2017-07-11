@@ -59,6 +59,10 @@ namespace Sass {
     : Base(pstate, msg, import_stack)
     { }
 
+    NestingLimitError::NestingLimitError(ParserState pstate, std::string msg, std::vector<Sass_Import_Entry>* import_stack)
+    : Base(pstate, msg, import_stack)
+    { }
+
     UndefinedOperation::UndefinedOperation(Expression_Ptr_Const lhs, Expression_Ptr_Const rhs, const std::string& op)
     : lhs(lhs), rhs(rhs), op(op)
     {

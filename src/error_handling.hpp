@@ -17,6 +17,7 @@ namespace Sass {
     const std::string def_msg = "Invalid sass detected";
     const std::string def_op_msg = "Undefined operation";
     const std::string def_op_null_msg = "Invalid null operation";
+    const std::string def_nesting_limit = "Code too deeply neested";
 
     class Base : public std::runtime_error {
       protected:
@@ -81,6 +82,12 @@ namespace Sass {
       public:
         InvalidSyntax(ParserState pstate, std::string msg, std::vector<Sass_Import_Entry>* import_stack = 0);
         virtual ~InvalidSyntax() throw() {};
+    };
+
+    class NestingLimitError : public Base {
+      public:
+        NestingLimitError(ParserState pstate, std::string msg = def_nesting_limit, std::vector<Sass_Import_Entry>* import_stack = 0);
+        virtual ~NestingLimitError() throw() {};
     };
 
     /* common virtual base class (has no pstate) */

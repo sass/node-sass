@@ -10,6 +10,15 @@
 #include "position.hpp"
 #include "prelexer.hpp"
 
+#ifndef MAX_NESTING
+// Note that this limit is not an exact science
+// it depends on various factors, which some are
+// not under our control (compile time or even OS
+// dependent settings on the available stack size)
+// It should fix most common segfault cases though.
+#define MAX_NESTING 512
+#endif
+
 struct Lookahead {
   const char* found;
   const char* error;
@@ -35,14 +44,15 @@ namespace Sass {
     Position before_token;
     Position after_token;
     ParserState pstate;
-    int indentation;
+    size_t indentation;
+    size_t nestings;
 
 
     Token lexed;
 
     Parser(Context& ctx, const ParserState& pstate)
     : ParserState(pstate), ctx(ctx), block_stack(), stack(0), last_media_block(),
-      source(0), position(0), end(0), before_token(pstate), after_token(pstate), pstate(pstate), indentation(0)
+      source(0), position(0), end(0), before_token(pstate), after_token(pstate), pstate(pstate), indentation(0), nestings(0)
     { stack.push_back(Scope::Root); }
 
     // static Parser from_string(const std::string& src, Context& ctx, ParserState pstate = ParserState("[STRING]"));
