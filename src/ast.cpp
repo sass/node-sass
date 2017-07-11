@@ -1225,7 +1225,7 @@ namespace Sass {
         } else {
           last()->head_->concat(h);
         }
-      } else {
+      } else if (last()->head_) {
         last()->head_->concat(h);
       }
     } else {
