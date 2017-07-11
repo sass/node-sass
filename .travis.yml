@@ -1,65 +1,45 @@
 language: node_js
-dist: trusty
+
 compiler: gcc
 sudo: false
 
 env:
   global:
-    # https://github.com/jasongin/nvs/blob/master/doc/CI.md
-    - NVS_VERSION=1.3.0
     - SKIP_SASS_BINARY_DOWNLOAD_FOR_CI=true
 
 jobs:
   include:
     - stage: test
-      env:
-        - NODEJS_VERSION: node/latest
+      node_js: "node"
       os: linux
       before_script: npm run lint || exit 1;
       after_success: npm run-script coverage;
     - stage: platform-test
-      env:
-        - NODEJS_VERSION: node/8
+      node_js: "node"
       os: osx    
     - stage: platform-test
-      env:
-        - NODEJS_VERSION: node/7
+      node_js: "7"
       os: linux
     - stage: platform-test
-      env:
-        - NODEJS_VERSION: node/7
+      node_js: "7"
       os: osx
     - stage: platform-test
-      env:
-        - NODEJS_VERSION: node/boron
+      node_js: "lts/boron"
       os: linux
     - stage: platform-test
-      env:
-        - NODEJS_VERSION: node/boron
+      node_js: "lts/boron"
       os: osx
     - stage: platform-test
-      env:
-        - NODEJS_VERSION: node/argon
+      node_js: "lts/argon"
       os: linux
     - stage: platform-test
-      env:
-        - NODEJS_VERSION: node/argon
+      node_js: "lts/argon"
       os: osx
     - stage: platform-test
-      env:
-         - NODEJS_VERSION: node/0.12
+      node_js: "0.12"
       os: linux
     - stage: platform-test
-      env:
-        - NODEJS_VERSION: node/0.10
-      os: linux
-    - stage: platform-test
-      env:
-        - NODEJS_VERSION: chakracore/latest
-      os: osx
-    - stage: platform-test
-      env:
-        - NODEJS_VERSION: chakracore/latest
+      node_js: "0.10"
       os: linux
 
 addons:
@@ -71,17 +51,6 @@ addons:
       - g++-4.7
 
 before_install:
-  # Install NVS.
-  - git clone --branch v$NVS_VERSION --depth 1 https://github.com/jasongin/nvs ~/.nvs
-  - . ~/.nvs/nvs.sh
-  - nvs --version
-  
-  # Install selected version of Node.js using NVS
-  - nvs add $NODEJS_VERSION
-  - nvs use $NODEJS_VERSION
-  - node --version
-  - npm --version
-  
   - npm config set python `which python`
   - if [ $TRAVIS_OS_NAME == "linux" ]; then
       export CC="gcc-4.7";
@@ -89,7 +58,7 @@ before_install:
       export LINK="gcc-4.7";
       export LINKXX="g++-4.7";
     fi
-
+  - nvm --version
   - node --version
   - npm --version
   - gcc --version
