@@ -29,6 +29,11 @@ class LocalOption {
 };
 
 #define LOCAL_FLAG(name,opt) LocalOption<bool> flag_##name(name, opt)
+#define LOCAL_COUNT(name,opt) LocalOption<size_t> cnt_##name(name, opt)
+
+#define NESTING_GUARD(name) \
+  LocalOption<size_t> cnt_##name(name, name + 1); \
+  if (nestings > MAX_NESTING) throw Exception::NestingLimitError(pstate); \
 
 #define ATTACH_OPERATIONS()\
 virtual void perform(Operation<void>* op) { (*op)(this); }\
