@@ -66,7 +66,7 @@
       - NODEJS_VERSION: node/8
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      - NODEJS_VERSION: chakracore/8.1.2
+      - NODEJS_VERSION: chakracore/8
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015        
 
@@ -162,7 +162,7 @@
       - NODEJS_VERSION: node/8
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      - NODEJS_VERSION: chakracore/latest
+      - NODEJS_VERSION: chakracore/8
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015        
 
