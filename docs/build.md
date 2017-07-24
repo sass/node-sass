@@ -1,4 +1,4 @@
-`libsass` is only a library and does not do much on its own. You need an implementation that you can use from the [command line][6]. Or some [[bindings|Implementations]] to use it within your favorite programming language. You should be able to get [`sassc`][6] running by following the instructions in this guide.
+`libsass` is only a library and does not do much on its own. You need an implementation that you can use from the [command line][6]. Or some [bindings|Implementations][9] to use it within your favorite programming language. You should be able to get [`sassc`][6] running by following the instructions in this guide.
 
 Before starting, see [setup dev environment](setup-environment.md).
 
