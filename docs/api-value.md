@@ -1,7 +1,7 @@
 `Sass_Values` are used to pass values and their types between the implementer
 and LibSass. Sass knows various different value types (including nested arrays
 and hash-maps). If you implement a binding to another programming language, you
-have to find a way to [marshal] [1] (convert) `Sass_Values` between the target
+have to find a way to [marshal][1] (convert) `Sass_Values` between the target
 language and C. `Sass_Values` are currently only used by custom functions, but
 it should also be possible to use them without a compiler context.
 
