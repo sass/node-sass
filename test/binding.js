@@ -10,7 +10,8 @@ var assert = require('assert'),
 describe('binding', function() {
   describe('missing error', function() {
     it('should be useful', function() {
-      process.env.SASS_BINARY_NAME = 'Linux-x64-48';
+      process.env.SASS_BINARY_NAME = 'unknown-x64-48';
+
       assert.throws(
         function() { binding(etx); },
         function(err) {
@@ -42,11 +43,7 @@ describe('binding', function() {
 
   describe('on unsupported environment', function() {
     describe('with an unsupported architecture', function() {
-      var prevValue;
-
       beforeEach(function() {
-        prevValue = process.arch;
-
         Object.defineProperty(process, 'arch', {
           value: 'foo',
         });
@@ -54,7 +51,7 @@ describe('binding', function() {
 
       afterEach(function() {
         Object.defineProperty(process, 'arch', {
-          value: prevValue,
+          value: 'x64',
         });
       });
 
@@ -74,11 +71,7 @@ describe('binding', function() {
     });
 
     describe('with an unsupported platform', function() {
-      var prevValue;
-
       beforeEach(function() {
-        prevValue = process.platform;
-
         Object.defineProperty(process, 'platform', {
           value: 'bar',
         });
@@ -86,7 +79,7 @@ describe('binding', function() {
 
       afterEach(function() {
         Object.defineProperty(process, 'platform', {
-          value: prevValue,
+          value: 'darwin',
         });
       });
 
@@ -106,11 +99,7 @@ describe('binding', function() {
     });
 
     describe('with an unsupported runtime', function() {
-      var prevValue;
-
       beforeEach(function() {
-        prevValue = process.versions.modules;
-
         Object.defineProperty(process.versions, 'modules', {
           value: 'baz',
         });
@@ -118,7 +107,7 @@ describe('binding', function() {
 
       afterEach(function() {
         Object.defineProperty(process.versions, 'modules', {
-          value: prevValue,
+          value: 51,
         });
       });
 

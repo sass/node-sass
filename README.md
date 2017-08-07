@@ -1,6 +1,6 @@
 # node-sass
 
-#### Supported Node.js versions 0.10, 0.12, 1, 2, 3, 4, 5, 6 and 7.
+#### Supported Node.js versions 0.10, 0.12, 1, 2, 3, 4, 5, 6, 7 and 8.
 
 <table>
   <tr>
@@ -22,7 +22,7 @@
 [![devDependency Status](https://david-dm.org/sass/node-sass/dev-status.svg?theme=shields.io)](https://david-dm.org/sass/node-sass#info=devDependencies)
 [![Coverage Status](https://coveralls.io/repos/sass/node-sass/badge.svg?branch=master)](https://coveralls.io/r/sass/node-sass?branch=master)
 [![Inline docs](http://inch-ci.org/github/sass/node-sass.svg?branch=master)](http://inch-ci.org/github/sass/node-sass)
-[![Join us in Slakc](https://libsass-slack.herokuapp.com/badge.svg)](https://libsass-slack.herokuapp.com/)
+[![Join us in Slack](https://libsass-slack.herokuapp.com/badge.svg)](https://libsass-slack.herokuapp.com/)
 
 Node-sass is a library that provides binding for Node.js to [LibSass], the C version of the popular stylesheet preprocessor, Sass.
 
@@ -40,7 +40,7 @@ npm install node-sass
 
 Some users have reported issues installing on Ubuntu due to `node` being registered to another package. [Follow the official NodeJS docs](https://github.com/nodejs/node-v0.x-archive/wiki/Installing-Node.js-via-package-manager) to install NodeJS so that `#!/usr/bin/env node` correctly resolved.
 
-Compiling versions 0.9.4 and above on Windows machines requires [Visual Studio 2013 WD](https://www.visualstudio.com/downloads/download-visual-studio-vs#d-express-windows-desktop). If you have multiple VS versions, use ```npm install``` with the ```--msvs_version=2013``` flag also use this flag when rebuilding the module with node-gyp or nw-gyp.
+Compiling on Windows machines requires the [node-gyp prerequisits](https://github.com/nodejs/node-gyp#on-windows).
 
 **Having installation troubles? Check out our [Troubleshooting guide](/TROUBLESHOOTING.md).**
 
@@ -102,7 +102,7 @@ Starting from v3.0.0:
 
   ```javascript
   done(new Error('doesn\'t exist!'));
-  // or return synchornously
+  // or return synchronously
   return new Error('nothing to do here');
   ```
 
@@ -257,7 +257,7 @@ Used to determine how many digits after the decimal will be allowed. For instanc
 Type: `Boolean`
 Default: `false`
 
-`true` enables additional debugging information in the output file as CSS comments
+`true` Enables the line number and file where a selector is defined to be emitted into the compiled CSS as a comment. Useful for debugging, especially when using imports and mixins.
 
 ### sourceMap
 Type: `Boolean | String | undefined`
@@ -461,7 +461,6 @@ Check out the project:
 ```bash
 git clone --recursive https://github.com/sass/node-sass.git
 cd node-sass
-git submodule update --init --recursive
 npm install
 node scripts/build -f  # use -d switch for debug release
 # if succeeded, it will generate and move
@@ -475,8 +474,8 @@ The interface for command-line usage is fairly simplistic at this stage, as seen
 Output will be sent to stdout if the `--output` flag is omitted.
 
 ### Usage
- `node-sass [options] <input> [output]`  
- Or:  
+ `node-sass [options] <input> [output]`
+ Or:
  `cat <input> | node-sass > output`
 
 Example:
@@ -564,11 +563,7 @@ We <3 our contributors! A special thanks to all those who have clocked in some d
 
 ### Note on Patches/Pull Requests
 
- * Fork the project.
- * Make your feature addition or bug fix.
- * Add documentation if necessary.
- * Add tests for it. This is important so I don't break it in a future version unintentionally.
- * Send a pull request. Bonus points for topic branches.
+Check out our [Contributing guide](/.github/CONTRIBUTING.md)
 
 ## Copyright
 
