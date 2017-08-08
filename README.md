@@ -30,7 +30,7 @@ It allows you to natively compile .scss files to css at incredible speed and aut
 
 Find it on npm: <https://www.npmjs.com/package/node-sass>
 
-Follow @nodesass on twitter for release updates: https://twitter.com/nodesass
+Follow @nodesass on twitter for release updates: <https://twitter.com/nodesass>
 
 ## Install
 
@@ -40,7 +40,7 @@ npm install node-sass
 
 Some users have reported issues installing on Ubuntu due to `node` being registered to another package. [Follow the official NodeJS docs](https://github.com/nodejs/node-v0.x-archive/wiki/Installing-Node.js-via-package-manager) to install NodeJS so that `#!/usr/bin/env node` correctly resolved.
 
-Compiling on Windows machines requires the [node-gyp prerequisits](https://github.com/nodejs/node-gyp#on-windows).
+Compiling on Windows machines requires the [node-gyp prerequisites](https://github.com/nodejs/node-gyp#on-windows).
 
 **Having installation troubles? Check out our [Troubleshooting guide](/TROUBLESHOOTING.md).**
 
@@ -60,16 +60,21 @@ var result = sass.renderSync({
 ```
 
 ## Options
+
 ### file
-Type: `String`
-Default: `null`
+
+* Type: `String`
+* Default: `null`
+
 **Special**: `file` or `data` must be specified
 
 Path to a file for [LibSass] to render.
 
 ### data
-Type: `String`
-Default: `null`
+
+* Type: `String`
+* Default: `null`
+
 **Special**: `file` or `data` must be specified
 
 A string to pass to [LibSass] to render. It is recommended that you use `includePaths` in conjunction with this so that [LibSass] can find files when using the `@import` directive.
@@ -78,10 +83,11 @@ A string to pass to [LibSass] to render. It is recommended that you use `include
 
 **This is an experimental LibSass feature. Use with caution.**
 
-Type: `Function | Function[]` signature `function(url, prev, done)`
-Default: `undefined`
+* Type: `Function | Function[]` signature `function(url, prev, done)`
+* Default: `undefined`
 
 Function Parameters and Information:
+
 * `url (String)` - the path in import **as-is**, which [LibSass] encountered
 * `prev (String)` - the previously resolved path
 * `done (Function)` - a callback function to invoke on async completion, takes an object literal containing
@@ -115,13 +121,16 @@ Starting from v3.0.0:
 `functions` is an `Object` that holds a collection of custom functions that may be invoked by the sass files being compiled. They may take zero or more input parameters and must return a value either synchronously (`return ...;`) or asynchronously (`done();`). Those parameters will be instances of one of the constructors contained in the `require('node-sass').types` hash. The return value must be of one of these types as well. See the list of available types below:
 
 #### types.Number(value [, unit = ""])
+
 * `getValue()`/ `setValue(value)` : gets / sets the numerical portion of the number
 * `getUnit()` / `setUnit(unit)` : gets / sets the unit portion of the number
 
 #### types.String(value)
+
 * `getValue()` / `setValue(value)` : gets / sets the enclosed string
 
 #### types.Color(r, g, b [, a = 1.0]) or types.Color(argb)
+
 * `getR()` / `setR(value)` : red component (integer from `0` to `255`)
 * `getG()` / `setG(value)` : green component (integer from `0` to `255`)
 * `getB()` / `setB(value)` : blue component (integer from `0` to `255`)
@@ -136,21 +145,25 @@ var Color = require('node-sass').types.Color,
 ```
 
 #### types.Boolean(value)
+
 * `getValue()` : gets the enclosed boolean
 * `types.Boolean.TRUE` : Singleton instance of `types.Boolean` that holds "true"
 * `types.Boolean.FALSE` : Singleton instance of `types.Boolean` that holds "false"
 
 #### types.List(length [, commaSeparator = true])
+
 * `getValue(index)` / `setValue(index, value)` : `value` must itself be an instance of one of the constructors in `sass.types`.
 * `getSeparator()` / `setSeparator(isComma)` : whether to use commas as a separator
 * `getLength()`
 
 #### types.Map(length)
+
 * `getKey(index)` / `setKey(index, value)`
 * `getValue(index)` / `setValue(index, value)`
 * `getLength()`
 
 #### types.Null()
+
 * `types.Null.NULL` : Singleton instance of `types.Null`.
 
 #### Example
@@ -174,48 +187,57 @@ sass.renderSync({
 ```
 
 ### includePaths
-Type: `Array<String>`
-Default: `[]`
+
+* Type: `Array<String>`
+* Default: `[]`
 
 An array of paths that [LibSass] can look in to attempt to resolve your `@import` declarations. When using `data`, it is recommended that you use this.
 
 ### indentedSyntax
-Type: `Boolean`
-Default: `false`
+
+* Type: `Boolean`
+* Default: `false`
 
 `true` values enable [Sass Indented Syntax](http://sass-lang.com/documentation/file.INDENTED_SYNTAX.html) for parsing the data string or file.
 
 __Note:__ node-sass/libsass will compile a mixed library of scss and indented syntax (.sass) files with the Default setting (false) as long as .sass and .scss extensions are used in filenames.
 
 ### indentType (>= v3.0.0)
-Type: `String`
-Default: `space`
+
+* Type: `String`
+* Default: `space`
 
 Used to determine whether to use space or tab character for indentation.
 
 ### indentWidth (>= v3.0.0)
-Type: `Number`
-Default: `2`
-Maximum: `10`
+
+* Type: `Number`
+* Default: `2`
+* Maximum: `10`
 
 Used to determine the number of spaces or tabs to be used for indentation.
 
 ### linefeed (>= v3.0.0)
-Type: `String`
-Default: `lf`
+
+* Type: `String`
+* Default: `lf`
 
 Used to determine whether to use `cr`, `crlf`, `lf` or `lfcr` sequence for line break.
 
 ### omitSourceMapUrl
-Type: `Boolean`
-Default: `false`
+
+* Type: `Boolean`
+* Default: `false`
+
 **Special:** When using this, you should also specify `outFile` to avoid unexpected behavior.
 
 `true` values disable the inclusion of source map information in the output file.
 
 ### outFile
-Type: `String | null`
-Default: `null`
+
+* Type: `String | null`
+* Default: `null`
+
 **Special:** Required when `sourceMap` is a truthy value
 
 Specify the intended location of the output file. Strongly recommended when outputting source maps so that they can properly refer back to their intended files.
@@ -223,6 +245,7 @@ Specify the intended location of the output file. Strongly recommended when outp
 **Attention** enabling this option will **not** write the file on disk for you, it's for internal reference purpose only (to generate the map for example).
 
 Example on how to write it on the disk
+
 ```javascript
 sass.render({
     ...
@@ -241,53 +264,63 @@ sass.render({
 ```
 
 ### outputStyle
-Type: `String`
-Default: `nested`
-Values: `nested`, `expanded`, `compact`, `compressed`
+
+* Type: `String`
+* Default: `nested`
+* Values: `nested`, `expanded`, `compact`, `compressed`
 
 Determines the output format of the final CSS style.
 
 ### precision
-Type: `Integer`
-Default: `5`
+
+* Type: `Integer`
+* Default: `5`
 
 Used to determine how many digits after the decimal will be allowed. For instance, if you had a decimal number of `1.23456789` and a precision of `5`, the result will be `1.23457` in the final CSS.
 
 ### sourceComments
-Type: `Boolean`
-Default: `false`
+
+* Type: `Boolean`
+* Default: `false`
 
 `true` Enables the line number and file where a selector is defined to be emitted into the compiled CSS as a comment. Useful for debugging, especially when using imports and mixins.
 
 ### sourceMap
-Type: `Boolean | String | undefined`
-Default: `undefined`
+
+* Type: `Boolean | String | undefined`
+* Default: `undefined`
+
 **Special:** Setting the `sourceMap` option requires also setting the `outFile` option
 
 Enables the outputting of a source map during `render` and `renderSync`. When `sourceMap === true`, the value of `outFile` is used as the target output location for the source map. When `typeof sourceMap === "string"`, the value of `sourceMap` will be used as the writing location for the file.
 
 ### sourceMapContents
-Type: `Boolean`
-Default: `false`
+
+* Type: `Boolean`
+* Default: `false`
 
 `true` includes the `contents` in the source map information
 
 ### sourceMapEmbed
-Type: `Boolean`
-Default: `false`
+
+* Type: `Boolean`
+* Default: `false`
 
 `true` embeds the source map as a data URI
 
 ### sourceMapRoot
-Type: `String`
-Default: `undefined`
+
+* Type: `String`
+* Default: `undefined`
 
 the value will be emitted as `sourceRoot` in the source map information
 
 ## `render` Callback (>= v3.0.0)
+
 node-sass supports standard node style asynchronous callbacks with the signature of `function(err, result)`. In error conditions, the `error` argument is populated with the error object. In success conditions, the `result` object is populated with an object describing the result of the render call.
 
 ### Error Object
+
 * `message` (String) - The error message.
 * `line` (Number) - The line number of error.
 * `column` (Number) - The column number of error.
@@ -295,6 +328,7 @@ node-sass supports standard node style asynchronous callbacks with the signature
 * `file` (String) - The filename of error. In case `file` option was not set (in favour of `data`), this will reflect the value `stdin`.
 
 ### Result Object
+
 * `css` (Buffer) - The compiled CSS. Write this to a file, or serve it out as needed.
 * `map` (Buffer) - The source map
 * `stats` (Object) - An object containing information about the compile. It contains the following keys:
@@ -359,7 +393,7 @@ var result = sass.renderSync({
     // this.options contains this options hash
     someAsyncFunction(url, prev, function(result){
       done({
-        file: result.path, // only one of them is required, see section Sepcial Behaviours.
+        file: result.path, // only one of them is required, see section Special Behaviours.
         contents: result.data
       });
     });
@@ -474,6 +508,7 @@ The interface for command-line usage is fairly simplistic at this stage, as seen
 Output will be sent to stdout if the `--output` flag is omitted.
 
 ### Usage
+
  `node-sass [options] <input> [output]`
  Or:
  `cat <input> | node-sass > output`
