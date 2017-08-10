@@ -2074,14 +2074,14 @@ namespace Sass {
         if (it.first) sel = it.first->first();
         if (it.second) ext = it.second;
         if (ext && (ext->extended() || ext->is_optional())) continue;
-        std::string str_sel(sel->to_string({ NESTED, 5 }));
-        std::string str_ext(ext->to_string({ NESTED, 5 }));
+        std::string str_sel(sel ? sel->to_string({ NESTED, 5 }) : NULL);
+        std::string str_ext(ext ? ext->to_string({ NESTED, 5 }) : NULL);
         // debug_ast(sel, "sel: ");
         // debug_ast(ext, "ext: ");
         error("\"" + str_sel + "\" failed to @extend \"" + str_ext + "\".\n"
               "The selector \"" + str_ext + "\" was not found.\n"
               "Use \"@extend " + str_ext + " !optional\" if the"
-                " extend should be able to fail.", ext->pstate());
+              " extend should be able to fail.", ext ? ext->pstate() : NULL);
       }
     }
 

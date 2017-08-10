@@ -276,7 +276,7 @@ namespace Sass {
       else if ((!l_h && !r_h) ||
                (!l_h && r_h->empty()) ||
                (!r_h && l_h->empty()) ||
-               (*l_h == *r_h))
+               (l_h && r_h && *l_h == *r_h))
       {
         // check combinator after heads
         if (l->combinator() != r->combinator())
