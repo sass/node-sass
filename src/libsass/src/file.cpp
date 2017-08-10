@@ -151,7 +151,6 @@ namespace Sass {
       pos = 0; // remove all self references inside the path string
       while((pos = path.find("/./", pos)) != std::string::npos) path.erase(pos, 2);
 
-      pos = 0; // remove all leading and trailing self references
       while(path.length() > 1 && path.substr(0, 2) == "./") path.erase(0, 2);
       while((pos = path.length()) > 1 && path.substr(pos - 2) == "/.") path.erase(pos - 2);
 
@@ -407,6 +406,9 @@ namespace Sass {
         char* contents = 0;
         if (file.is_open()) {
           size_t size = file.tellg();
+          if (size == size_t(-1)) {
+            size = 0;
+          }
           // allocate an extra byte for the null char
           contents = (char*) malloc((size+1)*sizeof(char));
           file.seekg(0, std::ios::beg);

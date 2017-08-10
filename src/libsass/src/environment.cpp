@@ -136,6 +136,7 @@ namespace Sass {
       }
       shadow = cur->is_shadow();
       cur = cur->parent_;
+      if (!cur) break;
     }
     set_local(key, val);
   }

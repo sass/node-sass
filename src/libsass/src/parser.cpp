@@ -37,7 +37,9 @@ namespace Sass {
     Parser p(ctx, pstate);
     p.source   = source ? source : beg;
     p.position = beg ? beg : p.source;
-    p.end      = p.position + strlen(p.position);
+    if (p.position) {
+      p.end = p.position + strlen(p.position);
+    }
     Block_Obj root = SASS_MEMORY_NEW(Block, pstate);
     p.block_stack.push_back(root);
     root->is_root(true);
@@ -51,7 +53,9 @@ namespace Sass {
     Parser p(ctx, pstate);
     p.source   = source ? source : beg;
     p.position = beg ? beg : p.source;
-    p.end      = end ? end : p.position + strlen(p.position);
+    if (p.position) {
+      p.end = p.position + strlen(p.position);
+    }
     Block_Obj root = SASS_MEMORY_NEW(Block, pstate);
     p.block_stack.push_back(root);
     root->is_root(true);
@@ -85,7 +89,9 @@ namespace Sass {
     Parser p(ctx, pstate);
     p.source   = source ? source : t.begin;
     p.position = t.begin ? t.begin : p.source;
-    p.end      = t.end ? t.end : p.position + strlen(p.position);
+    if (p.position) {
+      p.end = t.end ? t.end : p.position + strlen(p.position);
+    }
     Block_Obj root = SASS_MEMORY_NEW(Block, pstate);
     p.block_stack.push_back(root);
     root->is_root(true);
@@ -715,7 +721,10 @@ namespace Sass {
       combinator = Complex_Selector::REFERENCE;
       if (!lex < re_reference_combinator >()) return 0;
       reference = SASS_MEMORY_NEW(String_Constant, pstate, lexed);
-      if (!lex < exactly < '/' > >()) return 0; // ToDo: error msg?
+      if (!lex < exactly < '/' > >()) {
+        delete reference;
+        return 0; // ToDo: error msg?
+      }
     }
 
     if (!lhs && combinator == Complex_Selector::ANCESTOR_OF) return 0;
@@ -912,9 +921,12 @@ namespace Sass {
       ) {
         lex_css< alternatives < static_value, binomial > >();
         String_Constant_Ptr expr = SASS_MEMORY_NEW(String_Constant, pstate, lexed);
-        if (expr && lex_css< exactly<')'> >()) {
-          expr->can_compress_whitespace(true);
-          return SASS_MEMORY_NEW(Pseudo_Selector, p, name, expr);
+        if (expr) {
+          if (lex_css< exactly<')'> >()) {
+            expr->can_compress_whitespace(true);
+            return SASS_MEMORY_NEW(Pseudo_Selector, p, name, expr);
+          }
+          delete expr;
         }
       }
       else if (Selector_List_Obj wrapped = parse_selector_list(true)) {
@@ -932,7 +944,6 @@ namespace Sass {
     else if(lex < pseudo_prefix >()) {
       css_error("Invalid CSS", " after ", ": expected pseudoclass or pseudoelement, was ");
     }
-
     css_error("Invalid CSS", " after ", ": expected \")\", was ");
 
     // unreachable statement
@@ -1272,7 +1283,6 @@ namespace Sass {
       bool right_ws = peek < css_comments >() != NULL;
       operators.push_back({ op, left_ws, right_ws });
       operands.push_back(parse_expression());
-      left_ws = peek < css_comments >() != NULL;
     }
     // we are called recursively for list, so we first
     // fold inner binary expression which has delayed
@@ -2482,6 +2492,7 @@ namespace Sass {
     const char* p = start ? start : position;
     // match in one big "regex"
     rv.error = p;
+    if (!p) return rv;
     if (const char* q =
       peek <
         re_selector_list
@@ -2583,12 +2594,12 @@ namespace Sass {
         >
       >(p)
     ) {
-      if (p == q) return rv;
+      if (!p || p == q) return rv;
       while (p < q) {
         // did we have interpolations?
         if (*p == '#' && *(p+1) == '{') {
           rv.has_interpolants = true;
-          p = q; break;
+          break;
         }
         ++ p;
       }
