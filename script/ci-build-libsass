@@ -114,7 +114,7 @@ then
   then
     echo "Travis rate limit on github exceeded"
     echo "Retrying via 'special purpose proxy'"
-    JSON=$(curl -L -sS http://libsass.ocbnet.ch/libsass-spec-pr.psgi/$TRAVIS_PULL_REQUEST)
+    JSON=$(curl -L -sS https://github-api-reverse-proxy.herokuapp.com/repos/sass/libsass/pulls/$TRAVIS_PULL_REQUEST)
   fi
 
   RE_SPEC_PR="sass\/sass-spec(#|\/pull\/)([0-9]+)"
