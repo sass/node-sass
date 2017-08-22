@@ -4,11 +4,11 @@
   "libsass": "3.5.0.beta.2",
   "description": "Wrapper around libsass",
   "license": "MIT",
-  "bugs": "https://github.com/princetoad/node-sass/issues",
-  "homepage": "https://github.com/princetoad/node-sass",
+  "bugs": "https://github.com/joy-web/node-sass/issues",
+  "homepage": "https://github.com/joy-web/node-sass",
   "repository": {
     "type": "git",
-    "url": "https://github.com/princetoad/node-sass"
+    "url": "https://github.com/joy-web/node-sass"
   },
   "author": {
     "name": "Andrew Nesbitt",
@@ -20,7 +20,7 @@
   },
   "main": "lib/index.js",
   "nodeSassConfig": {
-    "binarySite": "https://github.com/princetoad/node-sass/releases/download"
+    "binarySite": "https://github.com/joy-web/node-sass/releases/download"
   },
   "bin": {
     "node-sass": "bin/node-sass"
