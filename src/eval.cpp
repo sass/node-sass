@@ -523,7 +523,9 @@ namespace Sass {
                                 m->length());
     for (auto key : m->keys()) {
       Expression_Ptr ex_key = key->perform(this);
-      Expression_Ptr ex_val = m->at(key)->perform(this);
+      Expression_Ptr ex_val = m->at(key);
+      if (ex_val == NULL) continue;
+      ex_val = ex_val->perform(this);
       *mm << std::make_pair(ex_key, ex_val);
     }
 
