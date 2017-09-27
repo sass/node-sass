@@ -105,6 +105,8 @@ function checkAndDownloadBinary() {
   if (sass.hasBinary(binaryPath)) {
     console.log('node-sass build', 'Binary found at', binaryPath);
     return;
+  } else {
+    console.log('binary not found at', binaryPath)
   }
 
   try {
