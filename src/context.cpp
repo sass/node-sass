@@ -132,7 +132,7 @@ namespace Sass {
 
   Context::~Context()
   {
-    // resources were allocated by strdup or malloc
+    // resources were allocated by malloc
     for (size_t i = 0; i < resources.size(); ++i) {
       free(resources[i].contents);
       free(resources[i].srcmap);
