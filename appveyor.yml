@@ -56,18 +56,9 @@ build_script:
 
 test_script:
   - ps: |
-      $PRNR = $env:APPVEYOR_PULL_REQUEST_NUMBER
-      if ($PRNR) {
-        echo "Fetching info for PR $PRNR"
-        wget https://api.github.com/repos/sass/libsass/pulls/$PRNR -OutFile pr.json
-        $json = cat pr.json -Raw
-        $SPEC_PR = [regex]::match($json,'sass\/sass-spec(#|\/pull\/)([0-9]+)').Groups[2].Value
-        if ($SPEC_PR) {
-          echo "Checkout sass spec PR $SPEC_PR"
-          git -C sass-spec fetch -q -u origin pull/$SPEC_PR/head:ci-spec-pr-$SPEC_PR
-          git -C sass-spec checkout -q --force ci-spec-pr-$SPEC_PR
-        }
-      }
+      echo "Checkout sass spec PR 3.4"
+      git -C sass-spec fetch -q -u origin 3.4
+      git -C sass-spec checkout -q --force 3.4
       $env:TargetPath = Join-Path $pwd.Path $env:TargetPath
       If (Test-Path "$env:TargetPath") {
         ruby sass-spec/sass-spec.rb -V 3.4 --probe-todo --impl libsass -c $env:TargetPath -s sass-spec/spec
