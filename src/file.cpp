@@ -415,7 +415,7 @@ namespace Sass {
           file.seekg(0, std::ios::beg);
           file.read(contents, size);
           contents[size+0] = '\0';
-          contents[size+0] = '\0';
+          contents[size+1] = '\0';
           file.close();
         }
       #endif
