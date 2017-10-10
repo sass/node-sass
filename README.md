@@ -42,6 +42,12 @@ Some users have reported issues installing on Ubuntu due to `node` being registe
 
 Compiling on Windows machines requires the [node-gyp prerequisites](https://github.com/nodejs/node-gyp#on-windows).
 
+If you're seeing the following error? Check out our [Troubleshooting guide](/TROUBLESHOOTING.md#installing-node-sass-4x-with-node--4).**
+
+```
+SyntaxError: Use of const in strict mode.
+```
+
 **Having installation troubles? Check out our [Troubleshooting guide](/TROUBLESHOOTING.md).**
 
 ## Usage
@@ -112,7 +118,7 @@ Starting from v3.0.0:
   return new Error('nothing to do here');
   ```
 
-* importer can be an array of functions, which will be called by LibSass in the order of their occurrence in array. This helps user specify special importer for particular kind of path (filesystem, http). If an importer does not want to handle a particular path, it should return `null`. See [functions section](#functions--v300) for more details on Sass types.
+* importer can be an array of functions, which will be called by LibSass in the order of their occurrence in array. This helps user specify special importer for particular kind of path (filesystem, http). If an importer does not want to handle a particular path, it should return `null`. See [functions section](#functions--v300---experimental) for more details on Sass types.
 
 ### functions (>= v3.0.0) - _experimental_
 
