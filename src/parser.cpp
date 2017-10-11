@@ -385,27 +385,22 @@ namespace Sass {
 
   Parameters_Obj Parser::parse_parameters()
   {
+    std::string name(lexed);
+    Position position = after_token;
     Parameters_Obj params = SASS_MEMORY_NEW(Parameters, pstate);
     if (lex_css< exactly<'('> >()) {
       // if there's anything there at all
       if (!peek_css< exactly<')'> >()) {
-        do {
-          if (peek< exactly<')'> >()) break;
-          params->append(parse_parameter());
-        } while (lex_css< exactly<','> >());
+        do params->append(parse_parameter());
+        while (lex_css< exactly<','> >());
       }
-      if (!lex_css< exactly<')'> >()) {
-        css_error("Invalid CSS", " after ", ": expected \")\", was ");
-      }
+      if (!lex_css< exactly<')'> >()) error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name, position);
     }
     return params;
   }
 
   Parameter_Obj Parser::parse_parameter()
   {
-    if (peek< alternatives< exactly<','>, exactly< '{' >, exactly<';'> > >()) {
-      css_error("Invalid CSS", " after ", ": expected variable (e.g. $foo), was ");
-    }
     while (lex< alternatives < spaces, block_comment > >());
     lex < variable >();
     std::string name(Util::normalize_underscores(lexed));
@@ -425,27 +420,22 @@ namespace Sass {
 
   Arguments_Obj Parser::parse_arguments()
   {
+    std::string name(lexed);
+    Position position = after_token;
     Arguments_Obj args = SASS_MEMORY_NEW(Arguments, pstate);
     if (lex_css< exactly<'('> >()) {
       // if there's anything there at all
       if (!peek_css< exactly<')'> >()) {
-        do {
-          if (peek< exactly<')'> >()) break;
-          args->append(parse_argument());
-        } while (lex_css< exactly<','> >());
+        do args->append(parse_argument());
+        while (lex_css< exactly<','> >());
       }
-      if (!lex_css< exactly<')'> >()) {
-        css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
-      }
+      if (!lex_css< exactly<')'> >()) error("expected a variable name (e.g. $x) or ')' for the parameter list for " + name, position);
     }
     return args;
   }
 
   Argument_Obj Parser::parse_argument()
   {
-    if (peek< alternatives< exactly<','>, exactly< '{' >, exactly<';'> > >()) {
-      css_error("Invalid CSS", " after ", ": expected \")\", was ");
-    }
     if (peek_css< sequence < exactly< hash_lbrace >, exactly< rbrace > > >()) {
       position += 2;
       css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
