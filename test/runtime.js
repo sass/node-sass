@@ -1,4 +1,5 @@
 var assert = require('assert'),
+  path = require('path'),
   sass = process.env.NODESASS_COV
       ? require('../lib-cov/extensions')
       : require('../lib/extensions');
@@ -114,6 +115,15 @@ describe('runtime parameters', function() {
       });
     });
 
+  });
+
+  describe('Sass Binary path', function() {
+    it('should convert relative path to absolue path', function() {
+      var relativePath = path.join('test', 'sample_binary', 'sample_binding.node');
+      var absolutePath = path.resolve(process.cwd(), 'sample_binary', 'sample_binding.node');
+      process.argv.push('--sass-binary-path=' + relativePath);
+      assert.equal(sass.getBinaryPath(), absolutePath);
+    });
   });
 
   describe.skip('Sass Binary Cache', function() {
