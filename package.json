@@ -27,13 +27,13 @@
   },
   "gypfile": true,
   "scripts": {
-    "coverage": "node scripts/coverage.js",
-    "install": "node scripts/install.js",
-    "postinstall": "node scripts/build.js",
+    "coverage": "node --harmony scripts/coverage.js",
+    "install": "node --harmony scripts/install.js",
+    "postinstall": "node --harmony scripts/build.js",
     "lint": "node_modules/.bin/eslint bin/node-sass lib scripts test",
     "test": "node_modules/.bin/mocha test/{*,**/**}.js",
-    "build": "node scripts/build.js --force",
-    "prepublish": "not-in-install && node scripts/prepublish.js || in-install"
+    "build": "node --harmony scripts/build.js --force",
+    "prepublish": "not-in-install && node --harmony scripts/prepublish.js || in-install"
   },
   "files": [
     "bin",
