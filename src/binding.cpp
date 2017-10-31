@@ -158,7 +158,9 @@ int ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrapp
       CustomFunctionBridge *bridge = new CustomFunctionBridge(callback, ctx_w->is_sync);
       ctx_w->function_bridges.push_back(bridge);
 
-      Sass_Function_Entry fn = sass_make_function(create_string(signature), sass_custom_function, bridge);
+      char* sig = create_string(signature);
+      Sass_Function_Entry fn = sass_make_function(sig, sass_custom_function, bridge);
+      free(sig);
       sass_function_set_list_entry(fn_list, i, fn);
     }
 
@@ -267,7 +269,7 @@ NAN_METHOD(render) {
   struct Sass_Data_Context* dctx = sass_make_data_context(source_string);
   sass_context_wrapper* ctx_w = sass_make_context_wrapper();
 
-  if (ExtractOptions(options, dctx, ctx_w, false, false) >= 0) { 
+  if (ExtractOptions(options, dctx, ctx_w, false, false) >= 0) {
 
     int status = uv_queue_work(uv_default_loop(), &ctx_w->request, compile_it, (uv_after_work_cb)MakeCallback);
 
@@ -290,6 +292,7 @@ NAN_METHOD(render_sync) {
   }
 
   sass_free_context_wrapper(ctx_w);
+    
   info.GetReturnValue().Set(result == 0);
 }
 

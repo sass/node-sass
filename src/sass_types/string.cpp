@@ -15,9 +15,14 @@ namespace SassTypes
       }
 
       value = create_string(raw_val[0]);
+         *out = sass_make_string(value);
+        delete value;
+        return *out;
+
+    } else {
+        return *out = sass_make_string(value);
     }
 
-    return *out = sass_make_string(value);
   }
 
   void String::initPrototype(v8::Local<v8::FunctionTemplate> proto) {

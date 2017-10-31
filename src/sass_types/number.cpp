@@ -23,6 +23,10 @@ namespace SassTypes
         }
 
         unit = create_string(raw_val[1]);
+        *out = sass_make_number(value, unit);
+        delete unit;
+        return *out;
+
       }
     }
 
