@@ -38,11 +38,11 @@ Follow @nodesass on twitter for release updates: <https://twitter.com/nodesass>
 npm install node-sass
 ```
 
-Some users have reported issues installing on Ubuntu due to `node` being registered to another package. [Follow the official NodeJS docs](https://github.com/nodejs/node-v0.x-archive/wiki/Installing-Node.js-via-package-manager) to install NodeJS so that `#!/usr/bin/env node` correctly resolved.
+Some users have reported issues installing on Ubuntu due to `node` being registered to another package. [Follow the official NodeJS docs](https://github.com/nodejs/node-v0.x-archive/wiki/Installing-Node.js-via-package-manager) to install NodeJS so that `#!/usr/bin/env node` correctly resolves.
 
 Compiling on Windows machines requires the [node-gyp prerequisites](https://github.com/nodejs/node-gyp#on-windows).
 
-If you're seeing the following error? Check out our [Troubleshooting guide](/TROUBLESHOOTING.md#installing-node-sass-4x-with-node--4).**
+Are you seeing the following error? Check out our [Troubleshooting guide](/TROUBLESHOOTING.md#installing-node-sass-4x-with-node--4).**
 
 ```
 SyntaxError: Use of const in strict mode.
@@ -74,7 +74,7 @@ var result = sass.renderSync({
 
 **Special**: `file` or `data` must be specified
 
-Path to a file for [LibSass] to render.
+Path to a file for [LibSass] to compile.
 
 ### data
 
@@ -83,7 +83,7 @@ Path to a file for [LibSass] to render.
 
 **Special**: `file` or `data` must be specified
 
-A string to pass to [LibSass] to render. It is recommended that you use `includePaths` in conjunction with this so that [LibSass] can find files when using the `@import` directive.
+A string to pass to [LibSass] to compile. It is recommended that you use `includePaths` in conjunction with this so that [LibSass] can find files when using the `@import` directive.
 
 ### importer (>= v2.0.0) - _experimental_
 
