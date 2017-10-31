@@ -310,7 +310,6 @@ describe('api', function() {
               contents: '@import "b"'
             });
           } else {
-            console.log(prev);
             assert.equal(prev, '/Users/me/sass/lib/a.scss');
             done({
               file: '/Users/me/sass/lib/b.scss',
