@@ -31,7 +31,7 @@ namespace SassTypes
   }
 
   NAN_METHOD(String::GetValue) {
-    info.GetReturnValue().Set(Nan::New<v8::String>(sass_string_get_value(unwrap(info.This())->value)).ToLocalChecked());
+    info.GetReturnValue().Set(Nan::New<v8::String>(sass_string_get_value(String::Unwrap<String>(info.This())->value)).ToLocalChecked());
   }
 
   NAN_METHOD(String::SetValue) {
@@ -43,6 +43,6 @@ namespace SassTypes
       return Nan::ThrowTypeError("Supplied value should be a string");
     }
 
-    sass_string_set_value(unwrap(info.This())->value, create_string(info[0]));
+    sass_string_set_value(String::Unwrap<String>(info.This())->value, create_string(info[0]));
   }
 }
