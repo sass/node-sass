@@ -1,6 +1,6 @@
 # node-sass
 
-#### Supported Node.js versions 0.10, 0.12, 1, 2, 3, 4, 5, 6, 7 and 8.
+#### Supported Node.js versions vary by release, please consult the [releases page](https://github.com/sass/node-sass/releases)
 
 <table>
   <tr>
