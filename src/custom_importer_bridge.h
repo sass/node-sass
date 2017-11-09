@@ -11,6 +11,7 @@ typedef Sass_Import_List SassImportList;
 class CustomImporterBridge : public CallbackBridge<SassImportList> {
   public:
     CustomImporterBridge(v8::Local<v8::Function> cb, bool is_sync) : CallbackBridge<SassImportList>(cb, is_sync) {}
+    CustomImporterBridge(const CustomImporterBridge& other) : CallbackBridge<SassImportList>(other) {}
 
   private:
     SassImportList post_process_return_value(v8::Local<v8::Value>) const;

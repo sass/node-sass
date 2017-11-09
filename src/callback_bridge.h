@@ -6,21 +6,28 @@
 #include <algorithm>
 #include <uv.h>
 
+#include "debug.h"
+
 #define COMMA ,
 
 template <typename T, typename L = void*>
 class CallbackBridge {
   public:
     CallbackBridge(v8::Local<v8::Function>, bool);
+    CallbackBridge(const CallbackBridge<T,L> &);
+    CallbackBridge<T,L>& operator=(const CallbackBridge<T,L> &);
     virtual ~CallbackBridge();
 
     // Executes the callback
     T operator()(std::vector<void*>);
+    int timedout;
 
   protected:
     // We will expose a bridge object to the JS callback that wraps this instance so we don't loose context.
     // This is the V8 constructor for such objects.
     static Nan::MaybeLocal<v8::Function> get_wrapper_constructor();
+    void init_uv(void);
+    void init_wrapper(void);
     static void async_gone(uv_handle_t *handle);
     static NAN_METHOD(New);
     static NAN_METHOD(ReturnCallback);
@@ -54,12 +61,55 @@ template <typename T, typename L>
 Nan::Persistent<v8::Function> CallbackBridge<T, L>::wrapper_constructor;
 
 template <typename T, typename L>
-CallbackBridge<T, L>::CallbackBridge(v8::Local<v8::Function> callback, bool is_sync) : callback(new Nan::Callback(callback)), is_sync(is_sync) {
+CallbackBridge<T, L>::CallbackBridge(v8::Local<v8::Function> callback, bool is_sync) : timedout(0), callback(new Nan::Callback(callback)), is_sync(is_sync) {
   /* 
    * This is invoked from the main JavaScript thread.
    * V8 context is available.
    */
-  Nan::HandleScope scope;
+  init_uv();
+  init_wrapper();
+}
+
+template <typename T, typename L>
+CallbackBridge<T, L>::CallbackBridge(const CallbackBridge<T,L>& other) : timedout(0), callback(new Nan::Callback(other.callback->GetFunction())), is_sync(other.is_sync) {
+  /* 
+   * This is invoked from the main JavaScript thread.
+   * V8 context is available.
+   */
+  init_uv();
+  init_wrapper();
+}
+
+template <typename T, typename L>
+CallbackBridge<T, L>&
+CallbackBridge<T, L>::operator= (const CallbackBridge<T,L>& other)
+{
+  /* 
+   * This is invoked from the main JavaScript thread.
+   * V8 context is available.
+   */
+   if (other != *this) {
+     TRACEINST(this) << "Instance will be copied over from " << (void *)&other;
+     delete this->callback;
+     this->wrapper.Reset();
+     uv_cond_destroy(&this->condition_variable);
+     uv_mutex_destroy(&this->cv_mutex);
+     if (!is_sync) {
+       uv_close(this->async, &async_gone);
+     }
+
+     this->callback = new Nan::Callback(other.callback->GetFunction());
+     this->is_sync = other.is_sync;
+     this->timedout = 0;
+     init_uv();
+     init_wrapper();
+   }
+   return *this;
+}
+
+template <typename T, typename L>
+void
+CallbackBridge<T, L>::init_uv(void) {
   uv_mutex_init(&this->cv_mutex);
   uv_cond_init(&this->condition_variable);
   if (!is_sync) {
@@ -67,7 +117,12 @@ CallbackBridge<T, L>::CallbackBridge(v8::Local<v8::Function> callback, bool is_s
     this->async->data = (void*) this;
     uv_async_init(uv_default_loop(), this->async, (uv_async_cb) dispatched_async_uv_callback);
   }
+}
 
+template <typename T, typename L>
+void
+CallbackBridge<T, L>::init_wrapper(void) {
+  Nan::HandleScope scope;
   v8::Local<v8::Function> func = CallbackBridge<T, L>::get_wrapper_constructor().ToLocalChecked();
   wrapper.Reset(Nan::NewInstance(func).ToLocalChecked());
   Nan::SetInternalFieldPointer(Nan::New(wrapper), 0, this);
@@ -75,6 +130,7 @@ CallbackBridge<T, L>::CallbackBridge(v8::Local<v8::Function> callback, bool is_s
 
 template <typename T, typename L>
 CallbackBridge<T, L>::~CallbackBridge() {
+  TRACEINST(this) << "Instance shuts down";
   delete this->callback;
   this->wrapper.Reset();
   uv_cond_destroy(&this->condition_variable);
@@ -125,12 +181,12 @@ T CallbackBridge<T, L>::operator()(std::vector<void*> argv) {
      *     async I/O executed from JavaScript callbacks.
      */
     this->argv = argv;
-
+    this->timedout = 0;
     uv_mutex_lock(&this->cv_mutex);
     this->has_returned = false;
     uv_async_send(this->async);
-    while (!this->has_returned) {
-      uv_cond_wait(&this->condition_variable, &this->cv_mutex);
+    while (!this->has_returned && this->timedout == 0) {
+      this->timedout = uv_cond_timedwait(&this->condition_variable, &this->cv_mutex, 2 * (uint64_t)1e9);
     }
     uv_mutex_unlock(&this->cv_mutex);
     return this->return_value;
@@ -150,19 +206,21 @@ void CallbackBridge<T, L>::dispatched_async_uv_callback(uv_async_t *req) {
    * from types invoked by pre_process_args() and
    * post_process_args().
    */
-  Nan::HandleScope scope;
-  Nan::TryCatch try_catch;
+  if (!bridge->timedout) {
+    Nan::HandleScope scope;
+    Nan::TryCatch try_catch;
 
-  std::vector<v8::Local<v8::Value>> argv_v8 = bridge->pre_process_args(bridge->argv);
-  if (try_catch.HasCaught()) {
-    Nan::FatalException(try_catch);
-  }
-  argv_v8.push_back(Nan::New(bridge->wrapper));
+    std::vector<v8::Local<v8::Value>> argv_v8 = bridge->pre_process_args(bridge->argv);
+    if (try_catch.HasCaught()) {
+      Nan::FatalException(try_catch);
+    }
+    argv_v8.push_back(Nan::New(bridge->wrapper));
 
-  bridge->callback->Call(argv_v8.size(), &argv_v8[0]);
+    bridge->callback->Call(argv_v8.size(), &argv_v8[0]);
 
-  if (try_catch.HasCaught()) {
-    Nan::FatalException(try_catch);
+    if (try_catch.HasCaught()) {
+      Nan::FatalException(try_catch);
+    }
   }
 }
 
@@ -179,18 +237,20 @@ NAN_METHOD(CallbackBridge<T COMMA L>::ReturnCallback) {
   CallbackBridge<T, L>* bridge = static_cast<CallbackBridge<T, L>*>(Nan::GetInternalFieldPointer(info.This(), 0));
   Nan::TryCatch try_catch;
 
-  bridge->return_value = bridge->post_process_return_value(info[0]);
+  if (!bridge->timedout) {
+    bridge->return_value = bridge->post_process_return_value(info[0]);
 
-  {
-    uv_mutex_lock(&bridge->cv_mutex);
-    bridge->has_returned = true;
-    uv_mutex_unlock(&bridge->cv_mutex);
-  }
+    {
+      uv_mutex_lock(&bridge->cv_mutex);
+      bridge->has_returned = true;
+      uv_mutex_unlock(&bridge->cv_mutex);
+    }
 
-  uv_cond_broadcast(&bridge->condition_variable);
+    uv_cond_broadcast(&bridge->condition_variable);
 
-  if (try_catch.HasCaught()) {
-    Nan::FatalException(try_catch);
+    if (try_catch.HasCaught()) {
+      Nan::FatalException(try_catch);
+    }
   }
 }
 

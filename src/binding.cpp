@@ -4,6 +4,7 @@
 #include "custom_function_bridge.h"
 #include "create_string.h"
 #include "sass_types/factory.h"
+#include "debug.h"
 
 Sass_Import_List sass_importer(const char* cur_path, Sass_Importer_Entry cb, struct Sass_Compiler* comp)
 {
@@ -16,7 +17,16 @@ Sass_Import_List sass_importer(const char* cur_path, Sass_Importer_Entry cb, str
   argv.push_back((void*)cur_path);
   argv.push_back((void*)prev_path);
 
-  return bridge(argv);
+  TRACEINST(&bridge) << "Importer will be executed";
+
+  Sass_Import_List retval = bridge(argv);
+  if (bridge.timedout) {
+    TRACEINST(&bridge) << "Importer timeout";
+    retval = sass_make_import_list(1);
+    retval[0] = sass_make_import_entry(0, 0, 0);
+    sass_import_set_error(retval[0], "Importer timed out or blocked (>2000ms)", -1, -1);
+  }
+  return retval; 
 }
 
 union Sass_Value* sass_custom_function(const union Sass_Value* s_args, Sass_Function_Entry cb, struct Sass_Compiler* comp)
@@ -29,7 +39,14 @@ union Sass_Value* sass_custom_function(const union Sass_Value* s_args, Sass_Func
     argv.push_back((void*)sass_list_get_value(s_args, i));
   }
 
-  return bridge(argv);
+  TRACEINST(&bridge) << "Function will be executed";
+  Sass_Value *retval = bridge(argv);
+  if (bridge.timedout) {
+    TRACEINST(&bridge) << "Function timeout";
+    return sass_make_error("Function timed out or blocked (>2000ms)");
+  } else {
+    return retval;
+  }
 }
 
 int ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrapper* ctx_w, bool is_file, bool is_sync) {
@@ -120,6 +137,7 @@ int ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrapp
     v8::Local<v8::Function> importer = importer_callback.As<v8::Function>();
 
     CustomImporterBridge *bridge = new CustomImporterBridge(importer, ctx_w->is_sync);
+    TRACEINST(bridge) << "Importer bridge created";
     ctx_w->importer_bridges.push_back(bridge);
 
     Sass_Importer_List c_importers = sass_make_importer_list(1);
@@ -135,6 +153,7 @@ int ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrapp
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(Nan::Get(importers, static_cast<uint32_t>(i)).ToLocalChecked());
 
       CustomImporterBridge *bridge = new CustomImporterBridge(callback, ctx_w->is_sync);
+      TRACEINST(bridge) << "Importer bridge created (item #" << i << ")";
       ctx_w->importer_bridges.push_back(bridge);
 
       c_importers[i] = sass_make_importer(sass_importer, importers->Length() - i - 1, bridge);
@@ -156,6 +175,7 @@ int ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrapp
       v8::Local<v8::Function> callback = v8::Local<v8::Function>::Cast(Nan::Get(functions, signature).ToLocalChecked());
 
       CustomFunctionBridge *bridge = new CustomFunctionBridge(callback, ctx_w->is_sync);
+      TRACEINST(bridge) << "Custom function bridge created (item #" << i << ")";
       ctx_w->function_bridges.push_back(bridge);
 
       Sass_Function_Entry fn = sass_make_function(create_string(signature), sass_custom_function, bridge);
