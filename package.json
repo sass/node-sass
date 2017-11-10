@@ -70,7 +70,8 @@
     "npmlog": "^4.0.0",
     "request": "^2.79.0",
     "sass-graph": "^2.2.4",
-    "stdout-stream": "^1.4.0"
+    "stdout-stream": "^1.4.0",
+    "true-case-path": "^1.0.2"
   },
   "devDependencies": {
     "coveralls": "^2.11.8",
