@@ -69,7 +69,7 @@ else
 endif
 
 SASS_TESTER = $(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb
-SASS_TESTER += -c $(SASS_LIBSASS_PATH)/tester$(EXEEXT)
+SASS_TESTER += -c $(top_srcdir)/tester$(EXEEXT)
 
 test:
 	$(SASS_TESTER) $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
