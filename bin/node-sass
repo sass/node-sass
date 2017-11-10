@@ -233,7 +233,7 @@ function watch(options, emitter) {
     files.added.forEach(function(file) {
       var watch = gaze.watched();
       Object.keys(watch).forEach(function (dir) {
-        if (watch[dir].indexOf(file)) {
+        if (watch[dir].indexOf(file) !== -1) {
           gaze.add(file);
         }
       });
