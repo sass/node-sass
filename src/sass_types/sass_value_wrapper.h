@@ -25,6 +25,8 @@ namespace SassTypes
       static v8::Local<v8::Function> get_constructor();
       static v8::Local<v8::FunctionTemplate> get_constructor_template();
       static NAN_METHOD(New);
+      static NAN_METHOD(Stringify);
+      static NAN_METHOD(Operation);
       static Sass_Value *fail(const char *, Sass_Value **);
 
     protected:
@@ -73,6 +75,8 @@ namespace SassTypes
     v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
     tpl->SetClassName(Nan::New<v8::String>(T::get_constructor_name()).ToLocalChecked());
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
+    Nan::SetPrototypeMethod(tpl, "operation", Operation);
+    Nan::SetPrototypeMethod(tpl, "toString", Stringify);
     T::initPrototype(tpl);
 
     return scope.Escape(tpl);
@@ -85,6 +89,65 @@ namespace SassTypes
     }
 
     return Nan::New(constructor);
+  }
+
+  template <class T>
+  NAN_METHOD(SassValueWrapper<T>::Operation) {
+    if (info.Length() < 2) {
+      return Nan::ThrowTypeError("Not enough arguments for operation");
+    }
+    if (!info[0]->IsString()) {
+      return Nan::ThrowTypeError("Operation value should be a string");
+    }
+    if (SassTypes::Value *rhs = SassTypes::Factory::unwrap(info[1])) {
+      // get and convert all needed input values
+      v8::String::Utf8Value op(info[0]->ToString());
+      Sass_OP operation = NUM_OPS; // abuse
+      Sass_Value* vlhs = unwrap(info.This())->value;
+      Sass_Value* vrhs = rhs->get_sass_value();
+      // hashing all cases for a switch is easy
+      // but only worth if performance is critical
+      if (strcmp("eq", *op)) { operation = EQ; }
+      else if (strcmp("gt", *op)) { operation = GT; }
+      else if (strcmp("lt", *op)) { operation = LT; }
+      else if (strcmp("or", *op)) { operation = OR; }
+      else if (strcmp("and", *op)) { operation = AND; }
+      else if (strcmp("neq", *op)) { operation = NEQ; }
+      else if (strcmp("gte", *op)) { operation = GTE; }
+      else if (strcmp("lte", *op)) { operation = LTE; }
+      else if (strcmp("add", *op)) { operation = ADD; }
+      else if (strcmp("sub", *op)) { operation = SUB; }
+      else if (strcmp("mul", *op)) { operation = MUL; }
+      else if (strcmp("div", *op)) { operation = DIV; }
+      else if (strcmp("mod", *op)) { operation = MOD; }
+      // check if we found a valid operation
+      if (operation != NUM_OPS) {
+        Sass_Value* result = sass_value_op(operation, vlhs, vrhs);
+        info.GetReturnValue().Set(Factory::create(result)->get_js_object());
+        sass_delete_value(result);
+      }
+      // free allocated resources
+      sass_delete_value(vlhs);
+      sass_delete_value(vrhs);
+      // last do error handling
+      if (operation == NUM_OPS) {
+        // throw only after all resources have been freed!
+        return Nan::ThrowTypeError("Operator not recognized");
+      }
+    } else {
+      // there was no valid right hand side
+      return Nan::ThrowTypeError("Operation has invalid right hand side");
+    }
+  }
+
+  template <class T>
+  NAN_METHOD(SassValueWrapper<T>::Stringify) {
+    union Sass_Value* result = sass_value_stringify(
+      unwrap(info.This())->value, false, 5);
+    const char* string = sass_string_get_value(result);
+    auto value = Nan::New<v8::String>(string).ToLocalChecked();
+    sass_delete_value(result); // free temporary value
+    info.GetReturnValue().Set(value);
   }
 
   template <class T>
