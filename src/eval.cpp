@@ -1769,7 +1769,25 @@ namespace Sass {
     if (is_in_selector_schema) exp.selector_stack.push_back(0);
     Selector_List_Obj resolved = s->resolve_parent_refs(exp.selector_stack, implicit_parent);
     if (is_in_selector_schema) exp.selector_stack.pop_back();
+    for (size_t i = 0; i < resolved->length(); i++) {
+      Complex_Selector_Ptr is = resolved->at(i)->first();
+      while (is) {
+        if (is->head()) {
+          is->head()->perform(this);
+        }
+        is = is->tail();
+      }
+    }
     return resolved.detach();
+  }
+
+  Compound_Selector_Ptr Eval::operator()(Compound_Selector_Ptr s)
+  {
+    for (size_t i = 0; i < s->length(); i++) {
+      Simple_Selector_Ptr ss = s->at(i);
+      if (ss) ss->perform(this);
+    }
+    return s;
   }
 
   // XXX: this is never hit via spec tests
@@ -1826,5 +1844,40 @@ namespace Sass {
       return SASS_MEMORY_NEW(Null, p->pstate());
     }
   }
+
+  // hotfix to avoid invalid nested `:not` selectors
+  // probably the wrong place, but this should ultimately
+  // be fixed by implement superselector correctly for `:not`
+  // first use of "find" (ATM only implemented for selectors)
+  bool hasNotSelector(AST_Node_Obj obj) {
+    if (Wrapped_Selector_Ptr w = Cast<Wrapped_Selector>(obj)) {
+      return w->name() == ":not";
+    }
+    return false;
+  }
+
+  Wrapped_Selector_Ptr Eval::operator()(Wrapped_Selector_Ptr s)
+  {
+
+    if (s->name() == ":not") {
+      if (exp.selector_stack.back()) {
+        if (s->selector()->find(hasNotSelector)) {
+          s->selector()->clear();
+          s->name(" ");
+        } else if (s->selector()->length() == 1) {
+          Complex_Selector_Ptr cs = s->selector()->at(0);
+          if (cs->tail()) {
+            s->selector()->clear();
+            s->name(" ");
+          }
+        } else if (s->selector()->length() > 1) {
+          s->selector()->clear();
+          s->name(" ");
+        }
+      }
+    }
+
+    return s;
+  };
 
 }

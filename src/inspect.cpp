@@ -969,20 +969,11 @@ namespace Sass {
     }
   }
 
-  // hotfix to avoid invalid nested `:not` selectors
-  // probably the wrong place, but this should ultimatively
-  // be fixed by implement superselector correctly for `:not`
-  // first use of "find" (ATM only implemented for selectors)
-  bool hasNotSelector(AST_Node_Obj obj) {
-    if (Wrapped_Selector_Ptr w = Cast<Wrapped_Selector>(obj)) {
-      return w->name() == ":not";
-    }
-    return false;
-  }
-
   void Inspect::operator()(Wrapped_Selector_Ptr s)
   {
-    if (!s->selector()->find(hasNotSelector)) {
+    if (s->name() == " ") {
+      append_string("");
+    } else {
       bool was = in_wrapped;
       in_wrapped = true;
       append_token(s->name(), s);

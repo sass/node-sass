@@ -219,7 +219,7 @@ namespace Sass {
     }
     return get_local(key);
   }
-
+/*
   #ifdef DEBUG
   template <typename T>
   size_t Environment<T>::print(std::string prefix)
@@ -238,7 +238,7 @@ namespace Sass {
     return indent ;
   }
   #endif
-
+*/
   // compile implementation for AST_Node
   template class Environment<AST_Node_Obj>;
 
