@@ -600,8 +600,10 @@ namespace Sass {
         }
         else if (Has_Block_Ptr b = Cast<Has_Block>(stm)) {
           Block_Obj pChildBlock = b->block();
-          if (isPrintable(pChildBlock, style)) {
-            hasPrintableChildBlocks = true;
+          if (!b->is_invisible()) {
+            if (isPrintable(pChildBlock, style)) {
+              hasPrintableChildBlocks = true;
+            }
           }
         }
 
