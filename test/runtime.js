@@ -1,4 +1,5 @@
 var assert = require('assert'),
+  path = require('path'),
   sass = process.env.NODESASS_COV
       ? require('../lib-cov/extensions')
       : require('../lib/extensions');
@@ -19,7 +20,7 @@ describe('runtime parameters', function() {
 
     describe('SASS_BINARY_NAME', function() {
       beforeEach(function() {
-        process.argv.push('--sass-binary-name', 'aaa');
+        process.argv.push('--sass-binary-name=aaa');
         process.env.SASS_BINARY_NAME = 'bbb';
         process.env.npm_config_sass_binary_name = 'ccc';
         pkg.nodeSassConfig = { binaryName: 'ddd' };
@@ -50,7 +51,7 @@ describe('runtime parameters', function() {
 
     describe('SASS_BINARY_SITE', function() {
       beforeEach(function() {
-        process.argv.push('--sass-binary-site', 'http://aaa.example.com:9999');
+        process.argv.push('--sass-binary-site=http://aaa.example.com:9999');
         process.env.SASS_BINARY_SITE = 'http://bbb.example.com:8888';
         process.env.npm_config_sass_binary_site = 'http://ccc.example.com:7777';
         pkg.nodeSassConfig = { binarySite: 'http://ddd.example.com:6666' };
@@ -85,7 +86,7 @@ describe('runtime parameters', function() {
 
     describe('SASS_BINARY_PATH', function() {
       beforeEach(function() {
-        process.argv.push('--sass-binary-path', 'aaa_binding.node');
+        process.argv.push('--sass-binary-path=aaa_binding.node');
         process.env.SASS_BINARY_PATH = 'bbb_binding.node';
         process.env.npm_config_sass_binary_path = 'ccc_binding.node';
         pkg.nodeSassConfig = { binaryPath: 'ddd_binding.node' };
@@ -114,6 +115,15 @@ describe('runtime parameters', function() {
       });
     });
 
+  });
+
+  describe('Sass Binary path', function() {
+    it('should convert relative path to absolue path', function() {
+      var relativePath = path.join('test', 'sample_binary', 'sample_binding.node');
+      var absolutePath = path.resolve(process.cwd(), 'sample_binary', 'sample_binding.node');
+      process.argv.push('--sass-binary-path=' + relativePath);
+      assert.equal(sass.getBinaryPath(), absolutePath);
+    });
   });
 
   describe.skip('Sass Binary Cache', function() {

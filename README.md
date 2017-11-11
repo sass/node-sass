@@ -566,7 +566,9 @@ Variable name    | .npmrc parameter | Process argument   | Value
 -----------------|------------------|--------------------|------
 SASS_BINARY_NAME | sass_binary_name | --sass-binary-name | path
 SASS_BINARY_SITE | sass_binary_site | --sass-binary-site | URL
-SASS_BINARY_PATH | sass_binary_path | --sass-binary-path | path
+SASS_BINARY_PATH | sass_binary_path | --sass-binary-path | path*
+
+##### **Note: sass binary path should be absolute or relative to your project directory*
 
 These parameters can be used as environment variable:
 
