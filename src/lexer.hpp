@@ -29,6 +29,7 @@ namespace Sass {
     bool is_alpha(const char& src);
     bool is_punct(const char& src);
     bool is_digit(const char& src);
+    bool is_number(const char& src);
     bool is_alnum(const char& src);
     bool is_xdigit(const char& src);
     bool is_unicode(const char& src);
