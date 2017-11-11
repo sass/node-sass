@@ -1937,8 +1937,8 @@ namespace Sass {
                   // this seems inconsistent but it is how ruby sass seems to remove parentheses
                   cpy_head->append(SASS_MEMORY_NEW(Element_Selector, hs->pstate(), ws->name()));
                 }
-                // has wrapped selectors
-                else {
+                // has wrapped not selectors
+                else if (ws->name() == ":not") {
                   // extend the inner list of wrapped selector
                   Selector_List_Obj ext_sl = extendSelectorList(sl, recseen);
                   for (size_t i = 0; i < ext_sl->length(); i += 1) {
@@ -1970,6 +1970,13 @@ namespace Sass {
                       cpy_head->append(cpy_ws);
                     }
                   }
+                }
+                // has wrapped selectors
+                else {
+                  Wrapped_Selector_Obj cpy_ws = SASS_MEMORY_COPY(ws);
+                  Selector_List_Obj ext_sl = extendSelectorList(sl, recseen);
+                  cpy_ws->selector(ext_sl);
+                  cpy_head->append(cpy_ws);
                 }
               } else {
                 cpy_head->append(hs);
