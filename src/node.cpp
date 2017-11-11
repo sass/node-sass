@@ -191,13 +191,15 @@ namespace Sass {
 
       bool empty_parent_ref = pToConvert->head() && pToConvert->head()->is_empty_reference();
 
-      if (pToConvert->head() || empty_parent_ref) {
-      }
-
       // the first Complex_Selector may contain a dummy head pointer, skip it.
       if (pToConvert->head() && !empty_parent_ref) {
         node.collection()->push_back(Node::createSelector(*pToConvert));
         if (has_lf) node.collection()->back().got_line_feed = has_lf;
+        if (pToConvert->head() || empty_parent_ref) {
+          if (pToConvert->tail()) {
+            pToConvert->tail()->has_line_feed(pToConvert->has_line_feed());
+          }
+        }
         has_lf = false;
       }
 
