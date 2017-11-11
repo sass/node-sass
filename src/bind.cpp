@@ -137,7 +137,7 @@ namespace Sass {
               if (List_Obj rest = Cast<List>(a->value())) {
                 arglist->separator(rest->separator());
 
-                for (size_t i = 0, L = rest->size(); i < L; ++i) {
+                for (size_t i = 0, L = rest->length(); i < L; ++i) {
                   Expression_Obj obj = rest->at(i);
                   arglist->append(SASS_MEMORY_NEW(Argument,
                                                 obj->pstate(),
