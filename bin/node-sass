@@ -232,9 +232,11 @@ function watch(options, emitter) {
   var handler = function(files) {
     files.added.forEach(function(file) {
       var watch = gaze.watched();
-      if (watch.indexOf(file) === -1) {
-        gaze.add(file);
-      }
+      Object.keys(watch).forEach(function (dir) {
+        if (watch[dir].indexOf(file) !== -1) {
+          gaze.add(file);
+        }
+      });
     });
 
     files.changed.forEach(function(file) {
