@@ -998,7 +998,17 @@ namespace Sass {
                           digits>(src);
     }
     const char* number(const char* src) {
-      return sequence< optional<sign>, unsigned_number>(src);
+      return sequence<
+          optional<sign>,
+          unsigned_number,
+          optional<
+            sequence<
+              exactly<'e'>,
+              optional<sign>,
+              unsigned_number
+            >
+          >
+        >(src);
     }
     const char* coefficient(const char* src) {
       return alternatives< sequence< optional<sign>, digits >,

@@ -49,6 +49,12 @@ namespace Sass {
       return unsigned(chr - '0') <= '9' - '0';
     }
 
+    bool is_number(const char& chr)
+    {
+      // adapted the technique from is_alpha
+      return is_digit(chr) || chr == '-' || chr == '+';
+    }
+
     bool is_xdigit(const char& chr)
     {
       // adapted the technique from is_alpha

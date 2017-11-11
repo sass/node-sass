@@ -18,7 +18,7 @@ namespace Sass {
     } while (0)
 
   double round(double val, size_t precision = 0);
-  double sass_atof(const char* str);
+  double sass_strtod(const char* str);
   const char* safe_str(const char *, const char* = "");
   void free_string_array(char **);
   char **copy_strings(const std::vector<std::string>&, char ***, int = 0);
