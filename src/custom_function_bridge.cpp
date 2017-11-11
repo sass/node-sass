@@ -4,10 +4,10 @@
 #include "sass_types/factory.h"
 #include "sass_types/value.h"
 
-Sass_Value* CustomFunctionBridge::post_process_return_value(v8::Local<v8::Value> val) const {
-  SassTypes::Value *v_;
-  if ((v_ = SassTypes::Factory::unwrap(val))) {
-    return v_->get_sass_value();
+Sass_Value* CustomFunctionBridge::post_process_return_value(v8::Local<v8::Value> _val) const {
+  SassTypes::Value *value = SassTypes::Factory::unwrap(_val);
+  if (value) {
+    return value->get_sass_value();
   } else {
     return sass_make_error("A SassValue object was expected.");
   }
@@ -17,7 +17,10 @@ std::vector<v8::Local<v8::Value>> CustomFunctionBridge::pre_process_args(std::ve
   std::vector<v8::Local<v8::Value>> argv = std::vector<v8::Local<v8::Value>>();
 
   for (void* value : in) {
-    argv.push_back(SassTypes::Factory::create(static_cast<Sass_Value*>(value))->get_js_object());
+    Sass_Value* x = static_cast<Sass_Value*>(value);
+    SassTypes::Value* y = SassTypes::Factory::create(x);
+
+    argv.push_back(y->get_js_object());
   }
 
   return argv;

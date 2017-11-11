@@ -29,6 +29,7 @@ SassImportList CustomImporterBridge::post_process_return_value(v8::Local<v8::Val
         imports[i] = sass_make_import_entry(0, 0, 0);
 
         sass_import_set_error(imports[i], message, -1, -1);
+        free(message);
       }
       else {
         imports[i] = get_importer_entry(object);
@@ -43,6 +44,7 @@ SassImportList CustomImporterBridge::post_process_return_value(v8::Local<v8::Val
     imports[0] = sass_make_import_entry(0, 0, 0);
 
     sass_import_set_error(imports[0], message, -1, -1);
+    free(message);
   }
   else if (returned_value->IsObject()) {
     imports = sass_make_import_list(1);
@@ -55,12 +57,12 @@ SassImportList CustomImporterBridge::post_process_return_value(v8::Local<v8::Val
 Sass_Import* CustomImporterBridge::check_returned_string(Nan::MaybeLocal<v8::Value> value, const char *msg) const
 {
     v8::Local<v8::Value> checked;
-    if (value.ToLocal(&checked)) { 
+    if (value.ToLocal(&checked)) {
       if (!checked->IsUndefined() && !checked->IsString()) {
         goto err;
       } else {
         return nullptr;
-      } 
+      }
     }
 err:
     auto entry = sass_make_import_entry(0, 0, 0);

@@ -37,7 +37,7 @@ namespace SassTypes
       return Nan::ThrowTypeError("Supplied index should be an integer");
     }
 
-    Sass_Value* map = unwrap(info.This())->value;
+    Sass_Value* map = Map::Unwrap<Map>(info.This())->value;
     size_t index = Nan::To<uint32_t>(info[0]).FromJust();
 
 
@@ -63,14 +63,13 @@ namespace SassTypes
 
     Value* sass_value = Factory::unwrap(info[1]);
     if (sass_value) {
-      sass_map_set_value(unwrap(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
+      sass_map_set_value(Map::Unwrap<Map>(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
     } else {
       Nan::ThrowTypeError("A SassValue is expected as a map value");
     }
   }
 
   NAN_METHOD(Map::GetKey) {
-
     if (info.Length() != 1) {
       return Nan::ThrowTypeError("Expected just one argument");
     }
@@ -79,7 +78,7 @@ namespace SassTypes
       return Nan::ThrowTypeError("Supplied index should be an integer");
     }
 
-    Sass_Value* map = unwrap(info.This())->value;
+    Sass_Value* map = Map::Unwrap<Map>(info.This())->value;
     size_t index = Nan::To<uint32_t>(info[0]).FromJust();
 
 
@@ -87,7 +86,9 @@ namespace SassTypes
       return Nan::ThrowRangeError(Nan::New("Out of bound index").ToLocalChecked());
     }
 
-    info.GetReturnValue().Set(Factory::create(sass_map_get_key(map, Nan::To<uint32_t>(info[0]).FromJust()))->get_js_object());
+    SassTypes::Value* obj = Factory::create(sass_map_get_key(map, Nan::To<uint32_t>(info[0]).FromJust()));
+    v8::Local<v8::Object> js_obj = obj->get_js_object();
+    info.GetReturnValue().Set(js_obj);
   }
 
   NAN_METHOD(Map::SetKey) {
@@ -105,13 +106,13 @@ namespace SassTypes
 
     Value* sass_value = Factory::unwrap(info[1]);
     if (sass_value) {
-      sass_map_set_key(unwrap(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
+      sass_map_set_key(Map::Unwrap<Map>(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
     } else {
       Nan::ThrowTypeError("A SassValue is expected as a map key");
     }
   }
 
   NAN_METHOD(Map::GetLength) {
-    info.GetReturnValue().Set(Nan::New<v8::Number>(sass_map_get_length(unwrap(info.This())->value)));
+    info.GetReturnValue().Set(Nan::New<v8::Number>(sass_map_get_length(Map::Unwrap<Map>(info.This())->value)));
   }
 }

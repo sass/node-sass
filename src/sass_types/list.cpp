@@ -47,7 +47,7 @@ namespace SassTypes
       return Nan::ThrowTypeError("Supplied index should be an integer");
     }
 
-    Sass_Value* list = unwrap(info.This())->value;
+    Sass_Value* list = List::Unwrap<List>(info.This())->value;
     size_t index = Nan::To<uint32_t>(info[0]).FromJust();
 
 
@@ -73,14 +73,14 @@ namespace SassTypes
 
     Value* sass_value = Factory::unwrap(info[1]);
     if (sass_value) {
-      sass_list_set_value(unwrap(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
+      sass_list_set_value(List::Unwrap<List>(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
     } else {
       Nan::ThrowTypeError("A SassValue is expected as the list item");
     }
   }
 
   NAN_METHOD(List::GetSeparator) {
-    info.GetReturnValue().Set(sass_list_get_separator(unwrap(info.This())->value) == SASS_COMMA);
+    info.GetReturnValue().Set(sass_list_get_separator(List::Unwrap<List>(info.This())->value) == SASS_COMMA);
   }
 
   NAN_METHOD(List::SetSeparator) {
@@ -92,10 +92,10 @@ namespace SassTypes
       return Nan::ThrowTypeError("Supplied value should be a boolean");
     }
 
-    sass_list_set_separator(unwrap(info.This())->value, Nan::To<bool>(info[0]).FromJust() ? SASS_COMMA : SASS_SPACE);
+    sass_list_set_separator(List::Unwrap<List>(info.This())->value, Nan::To<bool>(info[0]).FromJust() ? SASS_COMMA : SASS_SPACE);
   }
 
   NAN_METHOD(List::GetLength) {
-    info.GetReturnValue().Set(Nan::New<v8::Number>(sass_list_get_length(unwrap(info.This())->value)));
+    info.GetReturnValue().Set(Nan::New<v8::Number>(sass_list_get_length(List::Unwrap<List>(info.This())->value)));
   }
 }

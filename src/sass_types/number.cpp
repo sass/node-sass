@@ -23,6 +23,10 @@ namespace SassTypes
         }
 
         unit = create_string(raw_val[1]);
+        *out = sass_make_number(value, unit);
+        delete unit;
+        return *out;
+
       }
     }
 
@@ -37,11 +41,11 @@ namespace SassTypes
   }
 
   NAN_METHOD(Number::GetValue) {
-    info.GetReturnValue().Set(Nan::New<v8::Number>(sass_number_get_value(unwrap(info.This())->value)));
+    info.GetReturnValue().Set(Nan::New<v8::Number>(sass_number_get_value(Number::Unwrap<Number>(info.This())->value)));
   }
 
   NAN_METHOD(Number::GetUnit) {
-    info.GetReturnValue().Set(Nan::New<v8::String>(sass_number_get_unit(unwrap(info.This())->value)).ToLocalChecked());
+    info.GetReturnValue().Set(Nan::New<v8::String>(sass_number_get_unit(Number::Unwrap<Number>(info.This())->value)).ToLocalChecked());
   }
 
   NAN_METHOD(Number::SetValue) {
@@ -54,7 +58,7 @@ namespace SassTypes
       return Nan::ThrowTypeError("Supplied value should be a number");
     }
 
-    sass_number_set_value(unwrap(info.This())->value, Nan::To<double>(info[0]).FromJust());
+    sass_number_set_value(Number::Unwrap<Number>(info.This())->value, Nan::To<double>(info[0]).FromJust());
   }
 
   NAN_METHOD(Number::SetUnit) {
@@ -66,6 +70,6 @@ namespace SassTypes
       return Nan::ThrowTypeError("Supplied value should be a string");
     }
 
-    sass_number_set_unit(unwrap(info.This())->value, create_string(info[0]));
+    sass_number_set_unit(Number::Unwrap<Number>(info.This())->value, create_string(info[0]));
   }
 }

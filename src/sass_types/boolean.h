@@ -12,7 +12,6 @@ namespace SassTypes
       static Boolean& get_singleton(bool);
       static v8::Local<v8::Function> get_constructor();
 
-      Sass_Value* get_sass_value();
       v8::Local<v8::Object> get_js_object();
 
       static NAN_METHOD(New);
@@ -21,11 +20,11 @@ namespace SassTypes
     private:
       Boolean(bool);
 
-      bool value;
       Nan::Persistent<v8::Object> js_object;
 
       static Nan::Persistent<v8::Function> constructor;
       static bool constructor_locked;
+      v8::Local<v8::Boolean> get_js_boolean();
   };
 }
 

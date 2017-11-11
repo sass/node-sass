@@ -62,19 +62,19 @@ namespace SassTypes
   }
 
   NAN_METHOD(Color::GetR) {
-    info.GetReturnValue().Set(sass_color_get_r(unwrap(info.This())->value));
+    info.GetReturnValue().Set(sass_color_get_r(Color::Unwrap<Color>(info.This())->value));
   }
 
   NAN_METHOD(Color::GetG) {
-    info.GetReturnValue().Set(sass_color_get_g(unwrap(info.This())->value));
+    info.GetReturnValue().Set(sass_color_get_g(Color::Unwrap<Color>(info.This())->value));
   }
 
   NAN_METHOD(Color::GetB) {
-    info.GetReturnValue().Set(sass_color_get_b(unwrap(info.This())->value));
+    info.GetReturnValue().Set(sass_color_get_b(Color::Unwrap<Color>(info.This())->value));
   }
 
   NAN_METHOD(Color::GetA) {
-    info.GetReturnValue().Set(sass_color_get_a(unwrap(info.This())->value));
+    info.GetReturnValue().Set(sass_color_get_a(Color::Unwrap<Color>(info.This())->value));
   }
 
   NAN_METHOD(Color::SetR) {
@@ -86,7 +86,7 @@ namespace SassTypes
       return Nan::ThrowTypeError("Supplied value should be a number");
     }
 
-    sass_color_set_r(unwrap(info.This())->value, Nan::To<double>(info[0]).FromJust());
+    sass_color_set_r(Color::Unwrap<Color>(info.This())->value, Nan::To<double>(info[0]).FromJust());
   }
 
   NAN_METHOD(Color::SetG) {
@@ -98,7 +98,7 @@ namespace SassTypes
       return Nan::ThrowTypeError("Supplied value should be a number");
     }
 
-    sass_color_set_g(unwrap(info.This())->value, Nan::To<double>(info[0]).FromJust());
+    sass_color_set_g(Color::Unwrap<Color>(info.This())->value, Nan::To<double>(info[0]).FromJust());
   }
 
   NAN_METHOD(Color::SetB) {
@@ -110,7 +110,7 @@ namespace SassTypes
       return Nan::ThrowTypeError("Supplied value should be a number");
     }
 
-    sass_color_set_b(unwrap(info.This())->value, Nan::To<double>(info[0]).FromJust());
+    sass_color_set_b(Color::Unwrap<Color>(info.This())->value, Nan::To<double>(info[0]).FromJust());
   }
 
   NAN_METHOD(Color::SetA) {
@@ -122,6 +122,6 @@ namespace SassTypes
       return Nan::ThrowTypeError("Supplied value should be a number");
     }
 
-    sass_color_set_a(unwrap(info.This())->value, Nan::To<double>(info[0]).FromJust());
+    sass_color_set_a(Color::Unwrap<Color>(info.This())->value, Nan::To<double>(info[0]).FromJust());
   }
 }

@@ -6,7 +6,9 @@ namespace SassTypes
   Nan::Persistent<v8::Function> Null::constructor;
   bool Null::constructor_locked = false;
 
-  Null::Null() {}
+  Null::Null() {
+      value = sass_make_null();
+  }
 
   Null& Null::get_singleton() {
     static Null singleton_instance;
@@ -35,10 +37,6 @@ namespace SassTypes
     }
 
     return scope.Escape(conslocal);
-  }
-
-  Sass_Value* Null::get_sass_value() {
-    return sass_make_null();
   }
 
   v8::Local<v8::Object> Null::get_js_object() {
