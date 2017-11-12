@@ -138,7 +138,7 @@ namespace Sass {
                 arglist->separator(rest->separator());
 
                 for (size_t i = 0, L = rest->length(); i < L; ++i) {
-                  Expression_Obj obj = rest->at(i);
+                  Expression_Obj obj = rest->value_at_index(i);
                   arglist->append(SASS_MEMORY_NEW(Argument,
                                                 obj->pstate(),
                                                 obj,
