@@ -576,7 +576,7 @@ namespace Sass {
     const char* value_combinations(const char* src) {
       // `2px-2px` is invalid combo
       bool was_number = false;
-      const char* pos = src;
+      const char* pos;
       while (src) {
         if ((pos = alternatives < quoted_string, identifier, percentage, hex >(src))) {
           was_number = false;

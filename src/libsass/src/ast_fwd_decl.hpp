@@ -376,6 +376,11 @@ namespace Sass {
   struct CompareNodes {
     template <class T>
     bool operator() (const T& lhs, const T& rhs) const {
+      // code around sass logic issue. 1px == 1 is true
+      // but both items are still different keys in maps
+      if (dynamic_cast<Number*>(lhs.ptr()))
+        if (dynamic_cast<Number*>(rhs.ptr()))
+          return lhs->hash() == rhs->hash();
       return !lhs.isNull() && !rhs.isNull() && *lhs == *rhs;
     }
   };
@@ -410,6 +415,7 @@ namespace Sass {
   typedef std::deque<Complex_Selector_Obj> ComplexSelectorDeque;
   typedef std::set<Simple_Selector_Obj, OrderNodes> SimpleSelectorSet;
   typedef std::set<Complex_Selector_Obj, OrderNodes> ComplexSelectorSet;
+  typedef std::set<Compound_Selector_Obj, OrderNodes> CompoundSelectorSet;
   typedef std::unordered_set<Simple_Selector_Obj, HashNodes, CompareNodes> SimpleSelectorDict;
 
   // ###########################################################################

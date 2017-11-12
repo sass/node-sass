@@ -96,9 +96,9 @@ namespace Sass {
     // Regex equivalent: /(?:literal)/
     template <const char* str>
     const char* exactly(const char* src) {
-      if (str == 0) return 0;
+      if (str == NULL) return 0;
       const char* pre = str;
-      if (src == 0) return 0;
+      if (src == NULL) return 0;
       // there is a small chance that the search string
       // is longer than the rest of the string to look at
       while (*pre && *src == *pre) {
@@ -114,9 +114,9 @@ namespace Sass {
     // only define lower case alpha chars
     template <const char* str>
     const char* insensitive(const char* src) {
-      if (str == 0) return 0;
+      if (str == NULL) return 0;
       const char* pre = str;
-      if (src == 0) return 0;
+      if (src == NULL) return 0;
       // there is a small chance that the search string
       // is longer than the rest of the string to look at
       while (*pre && (*src == *pre || *src+32 == *pre)) {
