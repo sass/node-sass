@@ -49,9 +49,10 @@ namespace Sass {
 
     // return the current directory
     // always with forward slashes
+    // always with trailing slash
     std::string get_cwd()
     {
-      const size_t wd_len = 1024;
+      const size_t wd_len = 4096;
       #ifndef _WIN32
         char wd[wd_len];
         std::string cwd = getcwd(wd, wd_len);
@@ -69,7 +70,10 @@ namespace Sass {
     bool file_exists(const std::string& path)
     {
       #ifdef _WIN32
-        std::wstring wpath = UTF_8::convert_to_utf16(path);
+        // windows unicode filepaths are encoded in utf16
+        std::string abspath(join_paths(get_cwd(), path));
+        std::wstring wpath(UTF_8::convert_to_utf16("\\\\?\\" + abspath));
+        std::replace(wpath.begin(), wpath.end(), '/', '\\');
         DWORD dwAttrib = GetFileAttributesW(wpath.c_str());
         return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
                (!(dwAttrib & FILE_ATTRIBUTE_DIRECTORY)));
@@ -388,7 +392,9 @@ namespace Sass {
         BYTE* pBuffer;
         DWORD dwBytes;
         // windows unicode filepaths are encoded in utf16
-        std::wstring wpath = UTF_8::convert_to_utf16(path);
+        std::string abspath(join_paths(get_cwd(), path));
+        std::wstring wpath(UTF_8::convert_to_utf16("\\\\?\\" + abspath));
+        std::replace(wpath.begin(), wpath.end(), '/', '\\');
         HANDLE hFile = CreateFileW(wpath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
         if (hFile == INVALID_HANDLE_VALUE) return 0;
         DWORD dwFileLength = GetFileSize(hFile, NULL);
