@@ -4,6 +4,7 @@
 #include "backtrace.hpp"
 #include "paths.hpp"
 #include "parser.hpp"
+#include "expand.hpp"
 #include "node.hpp"
 #include "sass_util.hpp"
 #include "remove_placeholders.hpp"
@@ -1475,6 +1476,13 @@ namespace Sass {
           toPush.plus(seqs);
           toPush.plus(last_current);
 
+          // move line feed from inner to outer selector (very hacky indeed)
+          if (last_current.collection() && last_current.collection()->front().selector()) {
+            toPush.got_line_feed = last_current.collection()->front().got_line_feed;
+            last_current.collection()->front().selector()->has_line_feed(false);
+            last_current.collection()->front().got_line_feed = false;
+          }
+
           tempResult.collection()->push_back(toPush);
 
         }
@@ -1786,7 +1794,7 @@ namespace Sass {
         ComplexSelectorSet srcset;
         srcset.insert(selector);
         sseqSel->addSources(srcset);
-        DEBUG_PRINTLN(EXTEND_COMPLEX, "ADD SOURCES: " << *pComplexSelector)
+        // DEBUG_PRINTLN(EXTEND_COMPLEX, "ADD SOURCES: " << *pComplexSelector)
       }
 
       bool isSuperselector = false;
@@ -1940,7 +1948,8 @@ namespace Sass {
                 // has wrapped not selectors
                 else if (ws->name() == ":not") {
                   // extend the inner list of wrapped selector
-                  Selector_List_Obj ext_sl = extendSelectorList(sl, recseen);
+                  bool extended = false;
+                  Selector_List_Obj ext_sl = extendSelectorList(sl, false, extended, recseen);
                   for (size_t i = 0; i < ext_sl->length(); i += 1) {
                     if (Complex_Selector_Obj ext_cs = ext_sl->at(i)) {
                       // create clones for wrapped selector and the inner list
@@ -1950,18 +1959,6 @@ namespace Sass {
                       Compound_Selector_Obj ext_head = NULL;
                       if (ext_cs->first()) ext_head = ext_cs->first()->head();
                       if (ext_head && ext_head && ext_head->length() > 0) {
-                        Wrapped_Selector_Ptr ext_ws = Cast<Wrapped_Selector>(ext_head->first());
-                        if (ext_ws/* && ext_cs->length() == 1*/) {
-                          Selector_List_Obj ws_cs = Cast<Selector_List>(ext_ws->selector());
-                          if (ws_cs && !ws_cs->empty() && ws_cs->first()) {
-                            Compound_Selector_Obj ws_ss = ws_cs->first()->head();
-                            if (ws_ss && !ws_ss->empty() && !(
-                              Cast<Pseudo_Selector>(ws_ss->first()) ||
-                              Cast<Element_Selector>(ws_ss->first()) ||
-                              Cast<Placeholder_Selector>(ws_ss->first())
-                            )) continue;
-                          }
-                        }
                         cpy_ws_sl->append(ext_cs->first());
                       }
                       // assign list to clone
@@ -1969,6 +1966,11 @@ namespace Sass {
                       // append the clone
                       cpy_head->append(cpy_ws);
                     }
+                  }
+                  if (eval && extended) {
+                    eval->exp.selector_stack.push_back(pNewSelectors);
+                    cpy_head->perform(eval);
+                    eval->exp.selector_stack.pop_back();
                   }
                 }
                 // has wrapped selectors
@@ -2066,8 +2068,12 @@ namespace Sass {
   }
 
   Extend::Extend(Subset_Map& ssm)
-  : subset_map(ssm)
+  : subset_map(ssm), eval(NULL)
   { }
+
+  void Extend::setEval(Eval& e) {
+    eval = &e;
+  }
 
   void Extend::operator()(Block_Ptr b)
   {
