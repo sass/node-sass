@@ -513,11 +513,11 @@ namespace Sass {
     // check for pseudo elements because they are always last
     size_t i, L;
     bool found = false;
-    if (typeid(*this) == typeid(Pseudo_Selector) || typeid(*this) == typeid(Wrapped_Selector))
+    if (typeid(*this) == typeid(Pseudo_Selector) || typeid(*this) == typeid(Wrapped_Selector) || typeid(*this) == typeid(Attribute_Selector))
     {
       for (i = 0, L = rhs->length(); i < L; ++i)
       {
-        if ((Cast<Pseudo_Selector>((*rhs)[i]) || Cast<Wrapped_Selector>((*rhs)[i])) && (*rhs)[L-1]->is_pseudo_element())
+        if ((Cast<Pseudo_Selector>((*rhs)[i]) || Cast<Wrapped_Selector>((*rhs)[i]) || Cast<Attribute_Selector>((*rhs)[i])) && (*rhs)[L-1]->is_pseudo_element())
         { found = true; break; }
       }
     }
@@ -525,16 +525,16 @@ namespace Sass {
     {
       for (i = 0, L = rhs->length(); i < L; ++i)
       {
-        if (Cast<Pseudo_Selector>((*rhs)[i]) || Cast<Wrapped_Selector>((*rhs)[i]))
+        if (Cast<Pseudo_Selector>((*rhs)[i]) || Cast<Wrapped_Selector>((*rhs)[i]) || Cast<Attribute_Selector>((*rhs)[i]))
         { found = true; break; }
       }
     }
     if (!found)
     {
       rhs->append(this);
-      return rhs;
+    } else {
+      rhs->elements().insert(rhs->elements().begin() + i, this);
     }
-    rhs->elements().insert(rhs->elements().begin() + i, this);
     return rhs;
   }
 
