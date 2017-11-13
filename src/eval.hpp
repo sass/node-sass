@@ -76,14 +76,14 @@ namespace Sass {
     Selector_List_Ptr operator()(Selector_List_Ptr);
     Selector_List_Ptr operator()(Complex_Selector_Ptr);
     Compound_Selector_Ptr operator()(Compound_Selector_Ptr);
-    Attribute_Selector_Ptr operator()(Attribute_Selector_Ptr);
-    // they don't have any specific implementatio (yet)
-    Element_Selector_Ptr operator()(Element_Selector_Ptr s) { return s; };
-    Pseudo_Selector_Ptr operator()(Pseudo_Selector_Ptr s) { return s; };
+    Simple_Selector_Ptr operator()(Simple_Selector_Ptr s);
     Wrapped_Selector_Ptr operator()(Wrapped_Selector_Ptr s);
-    Class_Selector_Ptr operator()(Class_Selector_Ptr s) { return s; };
-    Id_Selector_Ptr operator()(Id_Selector_Ptr s) { return s; };
-    Placeholder_Selector_Ptr operator()(Placeholder_Selector_Ptr s) { return s; };
+    // they don't have any specific implementation (yet)
+    // Element_Selector_Ptr operator()(Element_Selector_Ptr s) { return s; };
+    // Pseudo_Selector_Ptr operator()(Pseudo_Selector_Ptr s) { return s; };
+    // Class_Selector_Ptr operator()(Class_Selector_Ptr s) { return s; };
+    // Id_Selector_Ptr operator()(Id_Selector_Ptr s) { return s; };
+    // Placeholder_Selector_Ptr operator()(Placeholder_Selector_Ptr s) { return s; };
     // actual evaluated selectors
     Selector_List_Ptr operator()(Selector_Schema_Ptr);
     Expression_Ptr operator()(Parent_Selector_Ptr);
