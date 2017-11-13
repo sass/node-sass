@@ -264,7 +264,6 @@ namespace Sass {
     const char* kwd_while_directive(const char* src);
 
     const char* re_nothing(const char* src);
-    const char* re_type_selector2(const char* src);
 
     const char* re_special_fun(const char* src);
 
