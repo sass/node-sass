@@ -1804,8 +1804,10 @@ namespace Sass {
   {
     LOCAL_FLAG(is_in_selector_schema, true);
     // the parser will look for a brace to end the selector
+    ctx.c_options.in_selector = true; // do not compress colors
     Expression_Obj sel = s->contents()->perform(this);
     std::string result_str(sel->to_string(ctx.c_options));
+    ctx.c_options.in_selector = false; // flag temporary only
     result_str = unquote(Util::rtrim(result_str));
     char* temp_cstr = sass_copy_c_string(result_str.c_str());
     ctx.strings.push_back(temp_cstr); // attach to context
