@@ -1773,7 +1773,7 @@ namespace Sass {
       Complex_Selector_Ptr is = resolved->at(i)->first();
       while (is) {
         if (is->head()) {
-          is->head()->perform(this);
+          is->head(operator()(is->head()));
         }
         is = is->tail();
       }
@@ -1785,19 +1785,11 @@ namespace Sass {
   {
     for (size_t i = 0; i < s->length(); i++) {
       Simple_Selector_Ptr ss = s->at(i);
-      if (ss) ss->perform(this);
+      // skip parents here (called via resolve_parent_refs)
+      if (ss == NULL || Cast<Parent_Selector>(ss)) continue;
+      s->at(i) = Cast<Simple_Selector>(ss->perform(this));
     }
     return s;
-  }
-
-  // XXX: this is never hit via spec tests
-  Attribute_Selector_Ptr Eval::operator()(Attribute_Selector_Ptr s)
-  {
-    String_Obj attr = s->value();
-    if (attr) { attr = static_cast<String_Ptr>(attr->perform(this)); }
-    Attribute_Selector_Ptr ss = SASS_MEMORY_COPY(s);
-    ss->value(attr);
-    return ss;
   }
 
   Selector_List_Ptr Eval::operator()(Selector_Schema_Ptr s)
@@ -1847,6 +1839,11 @@ namespace Sass {
     }
   }
 
+  Simple_Selector_Ptr Eval::operator()(Simple_Selector_Ptr s)
+  {
+    return s;
+  }
+
   // hotfix to avoid invalid nested `:not` selectors
   // probably the wrong place, but this should ultimately
   // be fixed by implement superselector correctly for `:not`
@@ -1878,7 +1875,6 @@ namespace Sass {
         }
       }
     }
-
     return s;
   };
 
