@@ -856,9 +856,6 @@ namespace Sass {
     else if (lex< id_name >()) {
       return SASS_MEMORY_NEW(Id_Selector, pstate, lexed);
     }
-    else if (lex< quoted_string >()) {
-      return SASS_MEMORY_NEW(Element_Selector, pstate, unquote(lexed));
-    }
     else if (lex< alternatives < variable, number, static_reference_combinator > >()) {
       return SASS_MEMORY_NEW(Element_Selector, pstate, lexed);
     }
@@ -878,6 +875,9 @@ namespace Sass {
       Placeholder_Selector_Ptr sel = SASS_MEMORY_NEW(Placeholder_Selector, pstate, lexed);
       sel->media_block(last_media_block);
       return sel;
+    }
+    else {
+      css_error("Invalid CSS", " after ", ": expected selector, was ");
     }
     // failed
     return 0;
