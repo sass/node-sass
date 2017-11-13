@@ -35,7 +35,7 @@ namespace Sass {
   }
 
   /* Locale unspecific atof function. */
-  double sass_atof(const char *str)
+  double sass_strtod(const char *str)
   {
     char separator = *(localeconv()->decimal_point);
     if(separator != '.'){
@@ -48,13 +48,13 @@ namespace Sass {
         // of the string. This is slower but it is thread safe.
         char *copy = sass_copy_c_string(str);
         *(copy + (found - str)) = separator;
-        double res = atof(copy);
+        double res = strtod(copy, NULL);
         free(copy);
         return res;
       }
     }
 
-    return atof(str);
+    return strtod(str, NULL);
   }
 
   // helper for safe access to c_ctx
@@ -600,8 +600,10 @@ namespace Sass {
         }
         else if (Has_Block_Ptr b = Cast<Has_Block>(stm)) {
           Block_Obj pChildBlock = b->block();
-          if (isPrintable(pChildBlock, style)) {
-            hasPrintableChildBlocks = true;
+          if (!b->is_invisible()) {
+            if (isPrintable(pChildBlock, style)) {
+              hasPrintableChildBlocks = true;
+            }
           }
         }
 

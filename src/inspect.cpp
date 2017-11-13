@@ -42,7 +42,9 @@ namespace Sass {
   void Inspect::operator()(Ruleset_Ptr ruleset)
   {
     if (ruleset->selector()) {
+      opt.in_selector = true;
       ruleset->selector()->perform(this);
+      opt.in_selector = false;
     }
     if (ruleset->block()) {
       ruleset->block()->perform(this);
@@ -600,6 +602,11 @@ namespace Sass {
     // maybe an unknown token
     std::string name = c->disp();
 
+    if (opt.in_selector && name != "") {
+      append_token(name, c);
+      return;
+    }
+
     // resolved color
     std::string res_name = name;
 
@@ -879,7 +886,9 @@ namespace Sass {
 
   void Inspect::operator()(Selector_Schema_Ptr s)
   {
+    opt.in_selector = true;
     s->contents()->perform(this);
+    opt.in_selector = false;
   }
 
   void Inspect::operator()(Parent_Selector_Ptr p)
@@ -939,20 +948,11 @@ namespace Sass {
     }
   }
 
-  // hotfix to avoid invalid nested `:not` selectors
-  // probably the wrong place, but this should ultimatively
-  // be fixed by implement superselector correctly for `:not`
-  // first use of "find" (ATM only implemented for selectors)
-  bool hasNotSelector(AST_Node_Obj obj) {
-    if (Wrapped_Selector_Ptr w = Cast<Wrapped_Selector>(obj)) {
-      return w->name() == ":not";
-    }
-    return false;
-  }
-
   void Inspect::operator()(Wrapped_Selector_Ptr s)
   {
-    if (!s->selector()->find(hasNotSelector)) {
+    if (s->name() == " ") {
+      append_string("");
+    } else {
       bool was = in_wrapped;
       in_wrapped = true;
       append_token(s->name(), s);

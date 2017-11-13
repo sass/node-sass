@@ -998,7 +998,17 @@ namespace Sass {
                           digits>(src);
     }
     const char* number(const char* src) {
-      return sequence< optional<sign>, unsigned_number>(src);
+      return sequence<
+          optional<sign>,
+          unsigned_number,
+          optional<
+            sequence<
+              exactly<'e'>,
+              optional<sign>,
+              unsigned_number
+            >
+          >
+        >(src);
     }
     const char* coefficient(const char* src) {
       return alternatives< sequence< optional<sign>, digits >,
@@ -1646,10 +1656,7 @@ namespace Sass {
       return sequence< optional<namespace_schema>, identifier>(src);
     }
     const char* re_type_selector(const char* src) {
-      return alternatives< type_selector, universal, quoted_string, dimension, percentage, number, identifier_alnums >(src);
-    }
-    const char* re_type_selector2(const char* src) {
-      return alternatives< type_selector, universal, quoted_string, dimension, percentage, number, identifier_alnums >(src);
+      return alternatives< type_selector, universal, dimension, percentage, number, identifier_alnums >(src);
     }
     const char* re_static_expression(const char* src) {
       return sequence< number, optional_spaces, exactly<'/'>, optional_spaces, number >(src);

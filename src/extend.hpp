@@ -6,6 +6,7 @@
 
 #include "ast.hpp"
 #include "node.hpp"
+#include "eval.hpp"
 #include "operation.hpp"
 #include "subset_map.hpp"
 #include "ast_fwd_decl.hpp"
@@ -17,6 +18,7 @@ namespace Sass {
   class Extend : public Operation_CRTP<void, Extend> {
 
     Subset_Map& subset_map;
+    Eval* eval;
 
     void fallback_impl(AST_Node_Ptr n) { }
 
@@ -54,6 +56,7 @@ namespace Sass {
     Node weave(Node& path);
 
   public:
+    void setEval(Eval& eval);
     Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, bool isReplace, bool& extendedSomething, CompoundSelectorSet& seen);
     Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, bool isReplace = false) {
       bool extendedSomething = false;
