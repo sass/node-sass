@@ -20,7 +20,7 @@ describe('watcher', function() {
     beforeEach(function() {
       watcher.reset({
         directory: main,
-        loadPaths: [main]
+        includePath: [main]
       });
     });
 
@@ -126,7 +126,7 @@ describe('watcher', function() {
     beforeEach(function() {
       watcher.reset({
         src: path.join(main, 'one.scss'),
-        loadPaths: [main]
+        includePath: [main]
       });
     });
 
