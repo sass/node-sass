@@ -250,8 +250,6 @@ function watch(options, emitter) {
     });
   };
 
-  watcher.reset(options);
-
   var gaze = new Gaze();
   gaze.add(watcher.reset(options));
   gaze.on('error', emitter.emit.bind(emitter, 'error'));

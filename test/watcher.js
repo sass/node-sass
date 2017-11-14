@@ -20,103 +20,218 @@ describe('watcher', function() {
     beforeEach(function() {
       watcher.reset({
         directory: main,
-        loadPaths: [main]
+        includePath: [main]
       });
     });
 
-    describe('when a file is changed in the graph', function() {
-      it('should return the files to compile', function() {
-        var files = watcher.changed(path.join(main, 'partials', '_one.scss'));
-        assert.deepEqual(files, {
-          added: [],
-          changed: [path.join(main, 'one.scss')],
-          removed: [],
-        });
-      });
+    describe('when a file is changed', function() {
+      describe('and it is in the graph', function() {
+        describe('if it is a partial', function() {
+          it('should record its ancestors as changed', function() {
+            var file = path.join(main, 'partials', '_one.scss');
+            var files = watcher.changed(file);
+            assert.deepEqual(files.changed, [
+              path.join(main, 'one.scss'),
+            ]);
+          });
 
-      describe('and @imports previously not imported files', function() {
-        it('should also return the new imported files', function() {
-          var file = path.join(main, 'partials', '_one.scss');
-          fs.writeFileSync(file, '@import "partials/three.scss";', { flag: 'a' });
-          var files = watcher.changed(file);
-          assert.deepEqual(files, {
-            added: [path.join(main, 'partials', '_three.scss')],
-            changed: [path.join(main, 'one.scss')],
-            removed: [],
+          it('should record its decendants as added', function() {
+            var file = path.join(main, 'partials', '_one.scss');
+            var files = watcher.changed(file);
+            assert.deepEqual(files.added, [
+              path.join(main, 'partials', '_three.scss'),
+            ]);
+          });
+
+          it('should record nothing as removed', function() {
+            var file = path.join(main, 'partials', '_one.scss');
+            var files = watcher.changed(file);
+            assert.deepEqual(files.removed, []);
           });
         });
-      });
-    });
 
-    describe('when a file is changed outside the graph', function() {
-      it('should return an empty array', function() {
-        var files = watcher.changed(path.join(sibling, 'partials', '_three.scss'));
-        assert.deepEqual(files, {
-          added: [],
-          changed: [],
-          removed: [],
-        });
-      });
-    });
-
-    describe('when a file is added in the graph', function() {
-      it('should return only the added file', function() {
-        var file = path.join(main, 'three.scss');
-        fs.writeFileSync(file, '@import "paritals/two.scss";');
-        var files = watcher.added(file);
-        assert.deepEqual(files, {
-          added: [file],
-          changed: [],
-          removed: [],
-        });
-      });
-
-      describe('and @imports previously not imported files', function() {
-        it('should also return the new imported files', function() {
-          var file = path.join(main, 'three.scss');
-          fs.writeFileSync(file, '@import "partials/three.scss";');
-          var files = watcher.added(file);
-          assert.deepEqual(files, {
-            added: [
+        describe('if it is not a partial', function() {
+          it('should record itself as changed', function() {
+            var file = path.join(main, 'one.scss');
+            var files = watcher.changed(file);
+            assert.deepEqual(files.changed, [
               file,
-              path.join(main, 'partials', '_three.scss')
-            ],
-            changed: [],
-            removed: [],
+            ]);
+          });
+
+          it('should record its decendants as added', function() {
+            var file = path.join(main, 'one.scss');
+            var files = watcher.changed(file);
+            assert.deepEqual(files.added, [
+              path.join(main, 'partials', '_one.scss'),
+              path.join(main, 'partials', '_three.scss'),
+            ]);
+          });
+
+          it('should record nothing as removed', function() {
+            var file = path.join(main, 'one.scss');
+            var files = watcher.changed(file);
+            assert.deepEqual(files.removed, []);
+          });
+        });
+      });
+
+      describe('and is not in the graph', function() {
+        describe('if it is a partial', function() {
+          it('should not record anything', function() {
+            var file = path.join(sibling, 'partials', '_three.scss');
+            var files = watcher.changed(file);
+            assert.deepEqual(files, {
+              added: [],
+              changed: [],
+              removed: [],
+            });
+          });
+        });
+
+        describe('if it is not a partial', function() {
+          it('should record itself as changed', function() {
+            var file = path.join(sibling, 'three.scss');
+            var files = watcher.changed(file);
+            assert.deepEqual(files, {
+              added: [],
+              changed: [file],
+              removed: [],
+            });
           });
         });
       });
     });
 
-    describe('when a file is added outside the graph', function() {
-      it('should return an empty array', function() {
-        var files = watcher.added(path.join(sibling, 'three.scss'));
-        assert.deepEqual(files, {
-          added: [],
-          changed: [],
-          removed: [],
+    describe('when a file is added', function() {
+      describe('and it is in the graph', function() {
+        describe('if it is a partial', function() {
+          it('should record nothing as added', function() {
+            var file = path.join(main, 'partials', '_three.scss');
+            var files = watcher.added(file);
+            assert.deepEqual(files.added, []);
+          });
+
+          it('should record its decendants as added', function() {
+            var file = path.join(main, 'partials', '_one.scss');
+            var files = watcher.added(file);
+            assert.deepEqual(files.added, [
+              path.join(main, 'partials', '_three.scss')
+            ]);
+          });
+
+          it('should record nothing as changed', function() {
+            var file = path.join(main, 'partials', '_three.scss');
+            var files = watcher.added(file);
+            assert.deepEqual(files.changed, []);
+          });
+
+          it('should record nothing as removed', function() {
+            var file = path.join(main, 'partials', '_three.scss');
+            var files = watcher.added(file);
+            assert.deepEqual(files.removed, []);
+          });
+        });
+
+        describe('if it is not a partial', function() {
+          it('should record nothing as added', function() {
+            var file = path.join(main, 'three.scss');
+            var files = watcher.added(file);
+            assert.deepEqual(files.added, []);
+          });
+
+          it('should record its decendants as added', function() {
+            var file = path.join(main, 'one.scss');
+            var files = watcher.added(file);
+            assert.deepEqual(files.added, [
+              path.join(main, 'partials', '_one.scss'),
+              path.join(main, 'partials', '_three.scss'),
+            ]);
+          });
+
+          it('should record nothing as changed', function() {
+            var file = path.join(main, 'one.scss');
+            var files = watcher.added(file);
+            assert.deepEqual(files.changed, []);
+          });
+
+          it('should record nothing as removed', function() {
+            var file = path.join(main, 'one.scss');
+            var files = watcher.added(file);
+            assert.deepEqual(files.removed, []);
+          });
         });
       });
     });
 
-    describe('when a file is removed from the graph', function() {
-      it('should return the files to compile', function() {
-        var files = watcher.removed(path.join(main, 'partials', '_one.scss'));
-        assert.deepEqual(files, {
-          added: [],
-          changed: [path.join(main, 'one.scss')],
-          removed: [path.join(main, 'partials', '_one.scss')],
+    describe('when a file is removed', function() {
+      describe('and it is in the graph', function() {
+        describe('if it is a partial', function() {
+          it('should record nothing as added', function() {
+            var file = path.join(main, 'partials', '_one.scss');
+            var files = watcher.removed(file);
+            assert.deepEqual(files.added, []);
+          });
+
+          it('should record its ancestors as changed', function() {
+            var file = path.join(main, 'partials', '_one.scss');
+            var files = watcher.removed(file);
+            assert.deepEqual(files.changed, [
+              path.join(main, 'one.scss'),
+            ]);
+          });
+
+          it('should record itself as removed', function() {
+            var file = path.join(main, 'partials', '_one.scss');
+            var files = watcher.removed(file);
+            assert.deepEqual(files.removed, [file]);
+          });
+        });
+
+        describe('if it is not a partial', function() {
+          it('should record nothing as added', function() {
+            var file = path.join(main, 'one.scss');
+            var files = watcher.removed(file);
+            assert.deepEqual(files.added, []);
+          });
+
+          it('should record nothing as changed', function() {
+            var file = path.join(main, 'one.scss');
+            var files = watcher.removed(file);
+            assert.deepEqual(files.changed, []);
+          });
+
+          it('should record itself as removed', function() {
+            var file = path.join(main, 'one.scss');
+            var files = watcher.removed(file);
+            assert.deepEqual(files.removed, [file]);
+          });
         });
       });
-    });
 
-    describe('when a file is removed from outside the graph', function() {
-      it('should return an empty array', function() {
-        var files = watcher.removed(path.join(sibling, 'partials', '_three.scss'));
-        assert.deepEqual(files, {
-          added: [],
-          changed: [],
-          removed: [],
+      describe('and is not in the graph', function() {
+        describe('if it is a partial', function() {
+          it('should record nothing', function() {
+            var file = path.join(sibling, 'partials', '_three.scss');
+            var files = watcher.removed(file);
+            assert.deepEqual(files, {
+              added: [],
+              changed: [],
+              removed: [],
+            });
+          });
+        });
+
+        describe('if it is not a partial', function() {
+          it('should record nothing', function() {
+            var file = path.join(sibling, 'three.scss');
+            var files = watcher.removed(file);
+            assert.deepEqual(files, {
+              added: [],
+              changed: [],
+              removed: [],
+            });
+          });
         });
       });
     });
@@ -126,63 +241,261 @@ describe('watcher', function() {
     beforeEach(function() {
       watcher.reset({
         src: path.join(main, 'one.scss'),
-        loadPaths: [main]
+        includePath: [main]
       });
     });
 
-    describe('when a file is changed in the graph', function() {
-      it('should return the files to compile', function() {
-        var files = watcher.changed(path.join(main, 'partials', '_one.scss'));
-        assert.deepEqual(files, {
-          added: [],
-          changed: [path.join(main, 'one.scss')],
-          removed: [],
+    describe('when a file is changed', function() {
+      describe('and it is in the graph', function() {
+        describe('if it is a partial', function() {
+          it('should record its decendents as added', function() {
+            var file = path.join(main, 'partials', '_one.scss');
+            var files = watcher.changed(file);
+            assert.deepEqual(files.added, [
+              path.join(main, 'partials', '_three.scss'),
+            ]);
+          });
+
+          it('should record its ancenstors as changed', function() {
+            var file = path.join(main, 'partials', '_one.scss');
+            var files = watcher.changed(file);
+            assert.deepEqual(files.changed, [
+              path.join(main, 'one.scss'),
+            ]);
+          });
+
+          it('should record nothing as removed', function() {
+            var file = path.join(main, 'partials', '_one.scss');
+            var files = watcher.changed(file);
+            assert.deepEqual(files.removed, []);
+          });
+        });
+
+        describe('if it is not a partial', function() {
+          it('should record its decendents as added', function() {
+            var file = path.join(main, 'one.scss');
+            var files = watcher.changed(file);
+            assert.deepEqual(files.added, [
+              path.join(main, 'partials', '_one.scss'),
+              path.join(main, 'partials', '_three.scss'),
+            ]);
+          });
+
+          it('should record itself as changed', function() {
+            var file = path.join(main, 'one.scss');
+            var files = watcher.changed(file);
+            assert.deepEqual(files.changed, [file]);
+          });
+
+          it('should record nothing as removed', function() {
+            var file = path.join(main, 'one.scss');
+            var files = watcher.changed(file);
+            assert.deepEqual(files.removed, []);
+          });
         });
       });
-    });
 
-    describe('when a file is changed outside the graph', function() {
-      it('should return an empty array', function() {
-        var files = watcher.changed(path.join(sibling, 'partials', '_three.scss'));
-        assert.deepEqual(files, {
-          added: [],
-          changed: [],
-          removed: [],
+      describe('and it is not in the graph', function() {
+        describe('if it is a partial', function() {
+          it('should record nothing', function() {
+            var file = path.join(sibling, 'partials', '_three.scss');
+            var files = watcher.changed(file);
+            assert.deepEqual(files, {
+              added: [],
+              changed: [],
+              removed: [],
+            });
+          });
+        });
+
+        describe('if it is not a partial', function() {
+          it('should record nothing as added', function() {
+            var file = path.join(sibling, 'three.scss');
+            var files = watcher.changed(file);
+            assert.deepEqual(files.added, []);
+          });
+
+          it('should record itself as changed', function() {
+            var file = path.join(sibling, 'three.scss');
+            var files = watcher.changed(file);
+            assert.deepEqual(files.changed, [file]);
+          });
+
+          it('should record nothing as removed', function() {
+            var file = path.join(sibling, 'three.scss');
+            var files = watcher.changed(file);
+            assert.deepEqual(files.removed, []);
+          });
         });
       });
     });
 
     describe('when a file is added', function() {
-      it('should return an empty array', function() {
-        var file = path.join(main, 'three.scss');
-        fs.writeFileSync(file, '@import "paritals/one.scss";');
-        var files = watcher.added(file);
-        assert.deepEqual(files, {
-          added: [],
-          changed: [],
-          removed: [],
+      describe('and it is in the graph', function() {
+        it('should record nothing as added', function() {
+          var file = path.join(main, 'partials', '_three.scss');
+          var files = watcher.added(file);
+          assert.deepEqual(files.added, []);
+        });
+
+        it('should record its decendants as added', function() {
+          var file = path.join(main, 'partials', '_one.scss');
+          var files = watcher.added(file);
+          assert.deepEqual(files.added, [
+            path.join(main, 'partials', '_three.scss'),
+          ]);
+        });
+
+        it('should record nothing as changed', function() {
+          var file = path.join(main, 'partials', '_three.scss');
+          var files = watcher.added(file);
+          assert.deepEqual(files.changed, []);
+        });
+
+        it('should record nothing as removed', function() {
+          var file = path.join(main, 'partials', '_three.scss');
+          var files = watcher.added(file);
+          assert.deepEqual(files.removed, []);
+        });
+      });
+
+      describe('and it is not in the graph', function() {
+        beforeEach(function() {
+          watcher.reset({
+            src: path.join(main, 'two.scss'),
+            includePath: [main]
+          });
+        });
+
+        describe('if it is a partial', function() {
+          it('should record nothing as added', function() {
+            var file = path.join(main, 'partials', '_three.scss');
+            var files = watcher.added(file);
+            assert.deepEqual(files.added, [
+              file,
+            ]);
+          });
+
+          it('should not record its decendants as added', function() {
+            var file = path.join(main, 'partials', '_one.scss');
+            var files = watcher.added(file);
+            assert.deepEqual(files.added, [
+              file,
+            ]);
+          });
+
+          it('should record nothing as changed', function() {
+            var file = path.join(main, 'partials', '_three.scss');
+            var files = watcher.added(file);
+            assert.deepEqual(files.changed, []);
+          });
+
+          it('should record nothing as removed', function() {
+            var file = path.join(main, 'partials', '_three.scss');
+            var files = watcher.added(file);
+            assert.deepEqual(files.removed, []);
+          });
+        });
+
+        describe('if it is not a partial', function() {
+          it('should record itself as added', function() {
+            var file = path.join(main, 'three.scss');
+            var files = watcher.added(file);
+            assert.deepEqual(files.added, [
+              file,
+            ]);
+          });
+
+          it('should record nothing as changed', function() {
+            var file = path.join(main, 'one.scss');
+            var files = watcher.added(file);
+            assert.deepEqual(files.changed, []);
+          });
+
+          it('should record nothing as removed', function() {
+            var file = path.join(main, 'one.scss');
+            var files = watcher.added(file);
+            assert.deepEqual(files.removed, []);
+          });
         });
       });
     });
 
-    describe('when a file is removed from the graph', function() {
-      it('should return the files to compile', function() {
-        var files = watcher.removed(path.join(main, 'partials', '_one.scss'));
-        assert.deepEqual(files, {
-          added: [],
-          changed: [path.join(main, 'one.scss')],
-          removed: [path.join(main, 'partials', '_one.scss')],
+    describe('when a file is removed', function() {
+      describe('and it is in the graph', function() {
+        describe('if it is a partial', function() {
+          it('should record nothing as added', function() {
+            var file = path.join(main, 'partials', '_one.scss');
+            var files = watcher.removed(file);
+            assert.deepEqual(files.added, []);
+          });
+
+          it('should record its ancestors as changed', function() {
+            var file = path.join(main, 'partials', '_one.scss');
+            var files = watcher.removed(file);
+            assert.deepEqual(files.changed, [
+              path.join(main, 'one.scss'),
+            ]);
+          });
+
+          it('should record itself as removed', function() {
+            var file = path.join(main, 'partials', '_one.scss');
+            var files = watcher.removed(file);
+            assert.deepEqual(files.removed, [file]);
+          });
+        });
+
+        describe('if it is not a partial', function() {
+          it('should record nothing as added', function() {
+            var file = path.join(main, 'one.scss');
+            var files = watcher.removed(file);
+            assert.deepEqual(files.added, []);
+          });
+
+          it('should record nothing as changed', function() {
+            var file = path.join(main, 'one.scss');
+            var files = watcher.removed(file);
+            assert.deepEqual(files.changed, []);
+          });
+
+          it('should record itself as removed', function() {
+            var file = path.join(main, 'one.scss');
+            var files = watcher.removed(file);
+            assert.deepEqual(files.removed, [file]);
+          });
         });
       });
-    });
 
-    describe('when a file is removed from outside the graph', function() {
-      it('should return an empty array', function() {
-        var files = watcher.removed(path.join(sibling, 'partials', '_three.scss'));
-        assert.deepEqual(files, {
-          added: [],
-          changed: [],
-          removed: [],
+      describe('and is not in the graph', function() {
+        beforeEach(function() {
+          watcher.reset({
+            src: path.join(main, 'two.scss'),
+            includePath: [main]
+          });
+        });
+
+        describe('if it is a partial', function() {
+          it('should record nothing as added', function() {
+            var file = path.join(main, 'partials', '_one.scss');
+            var files = watcher.removed(file);
+            assert.deepEqual(files, {
+              added: [],
+              changed: [],
+              removed: [],
+            });
+          });
+        });
+
+        describe('if it is not a partial', function() {
+          it('should record nothing', function() {
+            var file = path.join(main, 'one.scss');
+            var files = watcher.removed(file);
+            assert.deepEqual(files, {
+              added: [],
+              changed: [],
+              removed: [],
+            });
+          });
         });
       });
     });
