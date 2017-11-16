@@ -1,4 +1,5 @@
 Before opening an issue:
+- Check that the version of node-sass you're trying to install supports your version of Node by looking at the release page for that version https://github.com/sass/node-sass/releases
 - Read the common workarounds in the [TROUBLESHOOTING.md](https://github.com/sass/node-sass/blob/master/TROUBLESHOOTING.md)
 - [Search for duplicate or closed issues](https://github.com/sass/node-sass/issues?utf8=%E2%9C%93&q=is%3Aissue)
 - [Validate](http://sassmeister.com/) that it runs with both Ruby Sass and LibSass
