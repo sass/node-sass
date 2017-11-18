@@ -415,6 +415,7 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     Declaration_Ptr block = Cast<Declaration>(node);
     std::cerr << ind << "Declaration " << block;
     std::cerr << " (" << pstate_source_position(node) << ")";
+    std::cerr << " [is_custom_property: " << block->is_custom_property() << "] ";
     std::cerr << " " << block->tabs() << std::endl;
     debug_ast(block->property(), ind + " prop: ", env);
     debug_ast(block->value(), ind + " value: ", env);

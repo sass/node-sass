@@ -54,7 +54,8 @@ namespace Sass {
                                       d->pstate(),
                                       property,
                                       d->value(),
-                                      d->is_important());
+                                      d->is_important(),
+                                      d->is_custom_property());
     dd->is_indented(d->is_indented());
     dd->tabs(d->tabs());
 

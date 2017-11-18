@@ -1461,6 +1461,16 @@ namespace Sass {
     //   >(src);
     // }
 
+    const char* real_uri(const char* src) {
+      return sequence<
+        exactly< url_kwd >,
+        exactly< '(' >,
+        W,
+        real_uri_value,
+        exactly< ')' >
+      >(src);
+    }
+
     const char* real_uri_suffix(const char* src) {
       return sequence< W, exactly< ')' > >(src);
     }
@@ -1511,6 +1521,7 @@ namespace Sass {
                            static_string,
                            percentage,
                            hex,
+                           hexa,
                            exactly<'|'>,
                            // exactly<'+'>,
                            sequence < number, unit_identifier >,
@@ -1576,6 +1587,40 @@ namespace Sass {
                        zero_plus < spaces >,
                        alternatives< exactly<';'>, exactly<'}'> >
                       >(src);
+    }
+
+    extern const char css_variable_url_negates[] = "()[]{}\"'#/";
+    const char* css_variable_value(const char* src) {
+      return sequence<
+        alternatives<
+          sequence<
+            negate< exactly< url_fn_kwd > >,
+            one_plus< neg_class_char< css_variable_url_negates > >
+          >,
+          sequence< exactly<'#'>, negate< exactly<'{'> > >,
+          sequence< exactly<'/'>, negate< exactly<'*'> > >,
+          static_string,
+          real_uri,
+          block_comment
+        >
+      >(src);
+    }
+
+    extern const char css_variable_url_top_level_negates[] = "()[]{}\"'#/;!";
+    const char* css_variable_top_level_value(const char* src) {
+      return sequence<
+        alternatives<
+          sequence<
+            negate< exactly< url_fn_kwd > >,
+            one_plus< neg_class_char< css_variable_url_top_level_negates > >
+          >,
+          sequence< exactly<'#'>, negate< exactly<'{'> > >,
+          sequence< exactly<'/'>, negate< exactly<'*'> > >,
+          static_string,
+          real_uri,
+          block_comment
+        >
+      >(src);
     }
 
     const char* parenthese_scope(const char* src) {

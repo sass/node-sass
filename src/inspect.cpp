@@ -123,6 +123,8 @@ namespace Sass {
     if (dec->value()->concrete_type() == Expression::NULL_VAL) return;
     bool was_decl = in_declaration;
     in_declaration = true;
+    LOCAL_FLAG(in_custom_property, dec->is_custom_property());
+
     if (output_style() == NESTED)
       indentation += dec->tabs();
     append_indentation();

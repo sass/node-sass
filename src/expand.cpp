@@ -265,6 +265,7 @@ namespace Sass {
                                         new_p,
                                         value,
                                         d->is_important(),
+                                        d->is_custom_property(),
                                         bb);
     decl->tabs(d->tabs());
     return decl;

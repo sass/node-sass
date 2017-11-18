@@ -660,19 +660,22 @@ namespace Sass {
     ADD_PROPERTY(String_Obj, property)
     ADD_PROPERTY(Expression_Obj, value)
     ADD_PROPERTY(bool, is_important)
+    ADD_PROPERTY(bool, is_custom_property)
     ADD_PROPERTY(bool, is_indented)
   public:
     Declaration(ParserState pstate,
-                String_Obj prop, Expression_Obj val, bool i = false, Block_Obj b = 0)
-    : Has_Block(pstate, b), property_(prop), value_(val), is_important_(i), is_indented_(false)
+                String_Obj prop, Expression_Obj val, bool i = false, bool c = false, Block_Obj b = 0)
+    : Has_Block(pstate, b), property_(prop), value_(val), is_important_(i), is_custom_property_(c), is_indented_(false)
     { statement_type(DECLARATION); }
     Declaration(const Declaration* ptr)
     : Has_Block(ptr),
       property_(ptr->property_),
       value_(ptr->value_),
       is_important_(ptr->is_important_),
+      is_custom_property_(ptr->is_custom_property_),
       is_indented_(ptr->is_indented_)
     { statement_type(DECLARATION); }
+    virtual bool is_invisible() const;
     ATTACH_AST_OPERATIONS(Declaration)
     ATTACH_OPERATIONS()
   };

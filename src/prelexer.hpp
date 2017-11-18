@@ -365,6 +365,7 @@ namespace Sass {
     const char* UUNICODE(const char* src);
     const char* NONASCII(const char* src);
     const char* ESCAPE(const char* src);
+    const char* real_uri(const char* src);
     const char* real_uri_suffix(const char* src);
     // const char* real_uri_prefix(const char* src);
     const char* real_uri_value(const char* src);
@@ -378,6 +379,9 @@ namespace Sass {
     const char* static_component(const char* src);
     const char* static_property(const char* src);
     const char* static_value(const char* src);
+
+    const char* css_variable_value(const char* src);
+    const char* css_variable_top_level_value(const char* src);
 
     // Utility functions for finding and counting characters in a string.
     template<char c>

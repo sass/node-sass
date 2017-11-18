@@ -324,7 +324,7 @@ namespace Sass {
     if (s->can_compress_whitespace() && output_style() == COMPRESSED) {
       value.erase(std::remove_if(value.begin(), value.end(), ::isspace), value.end());
     }
-    if (!in_comment) {
+    if (!in_comment && !in_custom_property) {
       append_token(string_to_output(value), s);
     } else {
       append_token(value, s);

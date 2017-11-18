@@ -2394,6 +2394,13 @@ namespace Sass {
     return quote(value_, '*');
   }
 
+  bool Declaration::is_invisible() const
+  {
+    if (is_custom_property()) return false;
+
+    return !(value_ && value_->concrete_type() != Expression::NULL_VAL);
+  }
+
   //////////////////////////////////////////////////////////////////////////////////////////
   // Additional method on Lists to retrieve values directly or from an encompassed Argument.
   //////////////////////////////////////////////////////////////////////////////////////////

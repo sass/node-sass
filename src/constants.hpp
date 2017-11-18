@@ -80,6 +80,7 @@ namespace Sass {
     extern const char keyframes_kwd[];
     extern const char only_kwd[];
     extern const char rgb_fn_kwd[];
+    extern const char url_fn_kwd[];
     extern const char url_kwd[];
     // extern const char url_prefix_fn_kwd[];
     extern const char important_kwd[];

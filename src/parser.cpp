@@ -261,8 +261,13 @@ namespace Sass {
     }
 
     // selector may contain interpolations which need delayed evaluation
-    else if (!(lookahead_result = lookahead_for_selector(position)).error)
-    { block->append(parse_ruleset(lookahead_result)); }
+    else if (
+      !(lookahead_result = lookahead_for_selector(position)).error &&
+      !lookahead_result.is_custom_property
+    )
+    {
+      block->append(parse_ruleset(lookahead_result));
+    }
 
     // parse multiple specific keyword directives
     else if (lex < kwd_media >(true)) { block->append(parse_media_block()); }
@@ -1019,10 +1024,15 @@ namespace Sass {
 
   Declaration_Obj Parser::parse_declaration() {
     String_Obj prop;
+    bool is_custom_property = false;
     if (lex< sequence< optional< exactly<'*'> >, identifier_schema > >()) {
+      const std::string property(lexed);
+      is_custom_property = property.compare(0, 2, "--") == 0;
       prop = parse_identifier_schema();
     }
     else if (lex< sequence< optional< exactly<'*'> >, identifier, zero_plus< block_comment > > >()) {
+      const std::string property(lexed);
+      is_custom_property = property.compare(0, 2, "--") == 0;
       prop = SASS_MEMORY_NEW(String_Constant, pstate, lexed);
     }
     else {
@@ -1031,9 +1041,12 @@ namespace Sass {
     bool is_indented = true;
     const std::string property(lexed);
     if (!lex_css< one_plus< exactly<':'> > >()) error("property \"" + property + "\" must be followed by a ':'", pstate);
+    if (!is_custom_property && match< sequence< optional_css_comments, exactly<';'> > >()) error("style declaration must contain a value", pstate);
+    if (match< sequence< optional_css_comments, exactly<'{'> > >()) is_indented = false; // don't indent if value is empty
+    if (is_custom_property) {
+      return SASS_MEMORY_NEW(Declaration, prop->pstate(), prop, parse_css_variable_value(), false, true);
+    }
     lex < css_comments >(false);
-    if (peek_css< exactly<';'> >()) error("style declaration must contain a value", pstate);
-    if (peek_css< exactly<'{'> >()) is_indented = false; // don't indent if value is empty
     if (peek_css< static_value >()) {
       return SASS_MEMORY_NEW(Declaration, prop->pstate(), prop, parse_static_value()/*, lex<kwd_important>()*/);
     }
@@ -1751,13 +1764,80 @@ namespace Sass {
     return schema.detach();
   }
 
+  String_Schema_Obj Parser::parse_css_variable_value(bool top_level)
+  {
+    String_Schema_Obj schema = SASS_MEMORY_NEW(String_Schema, pstate);
+    String_Schema_Obj tok;
+    if (!(tok = parse_css_variable_value_token(top_level))) {
+      return NULL;
+    }
+
+    schema->concat(tok);
+    while ((tok = parse_css_variable_value_token(top_level))) {
+      schema->concat(tok);
+    }
+
+    return schema.detach();
+  }
+
+  String_Schema_Obj Parser::parse_css_variable_value_token(bool top_level)
+  {
+    String_Schema_Obj schema = SASS_MEMORY_NEW(String_Schema, pstate);
+    if (
+      (top_level && lex< css_variable_top_level_value >(false)) ||
+      (!top_level && lex< css_variable_value >(false))
+    ) {
+      Token str(lexed);
+      schema->append(SASS_MEMORY_NEW(String_Constant, pstate, str));
+    }
+    else if (Expression_Obj tok = lex_interpolation()) {
+      if (String_Schema_Ptr s = Cast<String_Schema>(tok)) {
+        schema->concat(s);
+      } else {
+        schema->append(tok);
+      }
+    }
+    else if (lex< quoted_string >()) {
+      Expression_Obj tok = parse_string();
+      if (String_Schema_Ptr s = Cast<String_Schema>(tok)) {
+        schema->concat(s);
+      } else {
+        schema->append(tok);
+      }
+    }
+    else {
+      if (peek< alternatives< exactly<'('>, exactly<'['>, exactly<'{'> > >()) {
+        if (lex< exactly<'('> >()) {
+          schema->append(SASS_MEMORY_NEW(String_Constant, pstate, std::string("(")));
+          if (String_Schema_Obj tok = parse_css_variable_value(false)) schema->concat(tok);
+          if (!lex< exactly<')'> >()) css_error("Invalid CSS", " after ", ": expected \")\", was ");
+          schema->append(SASS_MEMORY_NEW(String_Constant, pstate, std::string(")")));
+        }
+        else if (lex< exactly<'['> >()) {
+          schema->append(SASS_MEMORY_NEW(String_Constant, pstate, std::string("[")));
+          if (String_Schema_Obj tok = parse_css_variable_value(false)) schema->concat(tok);
+          if (!lex< exactly<']'> >()) css_error("Invalid CSS", " after ", ": expected \"]\", was ");
+          schema->append(SASS_MEMORY_NEW(String_Constant, pstate, std::string("]")));
+        }
+        else if (lex< exactly<'{'> >()) {
+          schema->append(SASS_MEMORY_NEW(String_Constant, pstate, std::string("{")));
+          if (String_Schema_Obj tok = parse_css_variable_value(false)) schema->concat(tok);
+          if (!lex< exactly<'}'> >()) css_error("Invalid CSS", " after ", ": expected \"}\", was ");
+          schema->append(SASS_MEMORY_NEW(String_Constant, pstate, std::string("}")));
+        }
+      }
+    }
+
+    return schema->length() > 0 ? schema.detach() : NULL;
+  }
+
   String_Constant_Obj Parser::parse_static_value()
   {
     lex< static_value >();
     Token str(lexed);
     // static values always have trailing white-
     // space and end delimiter (\s*[;]$) included
-    -- pstate.offset.column;
+    --pstate.offset.column;
     --str.end;
     --position;
 
@@ -2679,11 +2759,17 @@ namespace Sass {
         re_selector_list
       >(p)
     ) {
+      bool could_be_property = peek< sequence< exactly<'-'>, exactly<'-'> > >(p);
       while (p < q) {
         // did we have interpolations?
         if (*p == '#' && *(p+1) == '{') {
           rv.has_interpolants = true;
           p = q; break;
+        }
+        // A property that's ambiguous with a nested selector is interpreted as a
+        // custom property.
+        if (*p == ':') {
+          rv.is_custom_property = could_be_property || p+1 == q || peek< space >(p+1);
         }
         ++ p;
       }

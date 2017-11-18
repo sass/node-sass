@@ -40,6 +40,8 @@ namespace Sass {
       AST_Node_Ptr scheduled_mapping;
 
     public:
+      // output strings different in custom css properties
+      bool in_custom_property;
       // output strings different in comments
       bool in_comment;
       // selector list does not get linefeeds
