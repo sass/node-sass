@@ -762,7 +762,7 @@ describe('cli', function() {
       ]);
 
       bin.stderr.once('data', function(code) {
-        assert.equal(JSON.parse(code).message, 'doesn\'t exist!');
+        assert.ok(/doesn't exist!/.test(code.toString()));
         done();
       });
     });
