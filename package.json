@@ -60,7 +60,6 @@
     "get-stdin": "^6.0.0",
     "glob": "^7.0.3",
     "in-publish": "^2.0.0",
-    "lodash.assign": "^4.2.0",
     "lodash.clonedeep": "^4.3.2",
     "lodash.mergewith": "^4.6.0",
     "meow": "^4.0.0",
