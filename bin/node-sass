@@ -263,7 +263,7 @@ function watch(options, emitter) {
   });
 
   gaze.on('deleted', function(file) {
-    handler(watcher.deleted(file));
+    handler(watcher.removed(file));
   });
 }
 
