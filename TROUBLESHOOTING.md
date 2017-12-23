@@ -69,7 +69,7 @@ npm install
 
 ### Which node runtime am I using?
 
-There are two primary node runtimes, Node.js and io.js, both of which are supported by node-sass. To determine which you are currenty using you first need to determine [which node runtime](#which-node-runtime-am-i-using-glossaryruntime) you are running.
+There are two primary node runtimes, Node.js and io.js, both of which are supported by node-sass. To determine which you are currently using you first need to determine [which node runtime](#which-node-runtime-am-i-using-glossaryruntime) you are running.
 
 ```
 node -v
