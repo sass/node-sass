@@ -67,7 +67,9 @@
       'cflags_cc': [
         '-fexceptions',
         '-frtti',
+        '-s WASM=1',
       ],
+      'cflags': [ '-s WASM=1' ],
       'include_dirs': [ 'libsass/include' ],
       'direct_dependent_settings': {
         'include_dirs': [ 'libsass/include' ],
@@ -103,7 +105,6 @@
         ['OS!="win"', {
           'cflags_cc+': [
             '-std=c++0x',
-            '-s WASM=1',
           ]
         }]
       ]

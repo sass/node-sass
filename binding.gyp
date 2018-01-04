@@ -22,6 +22,10 @@
         'src/sass_types/number.cpp',
         'src/sass_types/string.cpp'
       ],
+      'cflags_cc': [
+        '-s WASM=1',
+      ],
+      'cflags': [ '-s WASM=1' ],
       'msvs_settings': {
         'VCLinkerTool': {
            'SetChecksum': 'true'
@@ -83,7 +87,6 @@
         ['OS!="win"', {
           'cflags_cc+': [
             '-std=c++0x',
-            '-s WASM=1',
           ]
         }]
       ]
