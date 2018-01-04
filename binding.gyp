@@ -82,7 +82,8 @@
         }],
         ['OS!="win"', {
           'cflags_cc+': [
-            '-std=c++0x'
+            '-std=c++0x',
+            '-s WASM=1',
           ]
         }]
       ]
