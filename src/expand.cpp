@@ -141,6 +141,8 @@ namespace Sass {
       }
     }
 
+    // do not connect parent again
+    sel->remove_parent_selectors();
     selector_stack.push_back(sel);
     Env env(environment());
     if (block_stack.back()->is_root()) {
