@@ -965,6 +965,10 @@ namespace Sass {
       }
     }
     add_close_mapping(s);
+    if (s->modifier() != 0) {
+      append_mandatory_space();
+      append_char(s->modifier());
+    }
     append_string("]");
   }
 

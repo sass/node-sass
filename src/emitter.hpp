@@ -66,6 +66,8 @@ namespace Sass {
       void prepend_output(const OutputBuffer& out);
       // append some text or token to the buffer
       void append_string(const std::string& text);
+      // append a single character to buffer
+      void append_char(const char chr);
       // append some white-space only text
       void append_wspace(const std::string& text);
       // append some text or token to the buffer

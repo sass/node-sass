@@ -4,6 +4,11 @@
 namespace Sass {
 
 
+  Offset::Offset(const char chr)
+  : line(chr == '\n' ? 1 : 0),
+    column(chr == '\n' ? 0 : 1)
+  {}
+
   Offset::Offset(const char* string)
   : line(0), column(0)
   {
