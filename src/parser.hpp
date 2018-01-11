@@ -108,7 +108,7 @@ namespace Sass {
 
     }
 
-    // peek will only skip over space, tabs and line comment
+    // match will not skip over space, tabs and line comment
     // return the position where the lexer match will occur
     template <Prelexer::prelexer mx>
     const char* match(const char* start = 0)

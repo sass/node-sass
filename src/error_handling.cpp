@@ -165,6 +165,17 @@ namespace Sass {
     std::cerr << "Warning: " << msg<< std::endl;
   }
 
+  void warning(std::string msg, ParserState pstate)
+  {
+    std::string cwd(Sass::File::get_cwd());
+    std::string abs_path(Sass::File::rel2abs(pstate.path, cwd, cwd));
+    std::string rel_path(Sass::File::abs2rel(pstate.path, cwd, cwd));
+    std::string output_path(Sass::File::path_for_console(rel_path, abs_path, pstate.path));
+
+    std::cerr << "WARNING on line " << pstate.line+1 << ", column " << pstate.column+1 << " of " << output_path << std::endl;
+    std::cerr << msg << std::endl << std::endl;
+  }
+
   void warn(std::string msg, ParserState pstate, Backtrace* bt)
   {
     Backtrace top(bt, pstate, "");
