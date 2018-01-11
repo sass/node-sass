@@ -73,6 +73,8 @@ namespace Sass {
       // append some text or token to the buffer
       // this adds source-mappings for node start and end
       void append_token(const std::string& text, const AST_Node_Ptr node);
+      // query last appended character
+      char last_char();
 
     public: // syntax sugar
       void append_indentation();
