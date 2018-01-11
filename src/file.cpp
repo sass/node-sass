@@ -55,10 +55,14 @@ namespace Sass {
       const size_t wd_len = 4096;
       #ifndef _WIN32
         char wd[wd_len];
-        std::string cwd = getcwd(wd, wd_len);
+        char* pwd = getcwd(wd, wd_len);
+        if (pwd == NULL) throw Exception::OperationError("cwd gone missing");
+        std::string cwd = pwd;
       #else
         wchar_t wd[wd_len];
-        std::string cwd = wstring_to_string(_wgetcwd(wd, wd_len));
+        wchar_t* pwd = _wgetcwd(wd, wd_len);
+        if (pwd == NULL) throw Exception::OperationError("cwd gone missing");
+        std::string cwd = wstring_to_string(pwd);
         //convert backslashes to forward slashes
         replace(cwd.begin(), cwd.end(), '\\', '/');
       #endif
