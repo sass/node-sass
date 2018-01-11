@@ -954,12 +954,28 @@ namespace Sass {
     return 0;
   }
 
+  const char* Parser::re_attr_sensitive_close(const char* src)
+  {
+    return alternatives < exactly<']'>, exactly<'/'> >(src);
+  }
+
+  const char* Parser::re_attr_insensitive_close(const char* src)
+  {
+    return sequence < insensitive<'i'>, re_attr_sensitive_close >(src);
+  }
+
   Attribute_Selector_Obj Parser::parse_attribute_selector()
   {
     ParserState p = pstate;
     if (!lex_css< attribute_name >()) error("invalid attribute name in attribute selector", pstate);
     std::string name(lexed);
-    if (lex_css< alternatives < exactly<']'>, exactly<'/'> > >()) return SASS_MEMORY_NEW(Attribute_Selector, p, name, "", 0);
+    if (lex_css< re_attr_sensitive_close >()) {
+      return SASS_MEMORY_NEW(Attribute_Selector, p, name, "", 0, 0);
+    }
+    else if (lex_css< re_attr_insensitive_close >()) {
+      char modifier = lexed.begin[0];
+      return SASS_MEMORY_NEW(Attribute_Selector, p, name, "", 0, modifier);
+    }
     if (!lex_css< alternatives< exact_match, class_match, dash_match,
                                 prefix_match, suffix_match, substring_match > >()) {
       error("invalid operator in attribute selector for " + name, pstate);
@@ -977,8 +993,15 @@ namespace Sass {
       error("expected a string constant or identifier in attribute selector for " + name, pstate);
     }
 
-    if (!lex_css< alternatives < exactly<']'>, exactly<'/'> > >()) error("unterminated attribute selector for " + name, pstate);
-    return SASS_MEMORY_NEW(Attribute_Selector, p, name, matcher, value);
+    if (lex_css< re_attr_sensitive_close >()) {
+      return SASS_MEMORY_NEW(Attribute_Selector, p, name, matcher, value, 0);
+    }
+    else if (lex_css< re_attr_insensitive_close >()) {
+      char modifier = lexed.begin[0];
+      return SASS_MEMORY_NEW(Attribute_Selector, p, name, matcher, value, modifier);
+    }
+    error("unterminated attribute selector for " + name, pstate);
+    return NULL; // to satisfy compilers (error must not return)
   }
 
   /* parse block comment and add to block */

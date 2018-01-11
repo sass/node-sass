@@ -105,6 +105,17 @@ namespace Sass {
     wbuf.buffer = text + wbuf.buffer;
   }
 
+  // append a single char to the buffer
+  void Emitter::append_char(const char chr)
+  {
+    // write space/lf
+    flush_schedules();
+    // add to buffer
+    wbuf.buffer += chr;
+    // account for data in source-maps
+    wbuf.smap.append(Offset(chr));
+  }
+
   // append some text or token to the buffer
   void Emitter::append_string(const std::string& text)
   {

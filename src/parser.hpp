@@ -379,6 +379,9 @@ namespace Sass {
     Number_Ptr lexed_percentage(const std::string& parsed) { return lexed_percentage(pstate, parsed); };
     Expression_Ptr lexed_hex_color(const std::string& parsed) { return lexed_hex_color(pstate, parsed); };
 
+    static const char* re_attr_sensitive_close(const char* src);
+    static const char* re_attr_insensitive_close(const char* src);
+
   };
 
   size_t check_bom_chars(const char* src, const char *end, const unsigned char* bom, size_t len);

@@ -110,6 +110,14 @@ namespace Sass {
     }
 
 
+    // Match a single character literal.
+    // Regex equivalent: /(?:x)/i
+    // only define lower case alpha chars
+    template <char chr>
+    const char* insensitive(const char* src) {
+      return *src == chr || *src+32 == chr ? src + 1 : 0;
+    }
+
     // Match the full string literal.
     // Regex equivalent: /(?:literal)/i
     // only define lower case alpha chars
