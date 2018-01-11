@@ -1,3 +1,4 @@
+#include "sass.hpp"
 #ifdef _WIN32
 # ifdef __MINGW32__
 #  ifndef off64_t
@@ -9,7 +10,6 @@
 #else
 # include <unistd.h>
 #endif
-#include "sass.hpp"
 #include <iostream>
 #include <fstream>
 #include <cctype>
