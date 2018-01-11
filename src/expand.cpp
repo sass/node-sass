@@ -117,7 +117,7 @@ namespace Sass {
     if (sel) sel = sel->eval(eval);
 
     // check for parent selectors in base level rules
-    if (r->is_root()) {
+    if (r->is_root() || (block_stack.back() && block_stack.back()->is_root())) {
       if (Selector_List_Ptr selector_list = Cast<Selector_List>(r->selector())) {
         for (Complex_Selector_Obj complex_selector : selector_list->elements()) {
           Complex_Selector_Ptr tail = complex_selector;
@@ -744,8 +744,14 @@ namespace Sass {
     Trace_Obj trace = SASS_MEMORY_NEW(Trace, c->pstate(), c->name(), trace_block);
 
 
+    if (Block_Ptr pr = block_stack.back()) {
+      trace_block->is_root(pr->is_root());
+    }
     block_stack.push_back(trace_block);
     for (auto bb : body->elements()) {
+      if (Ruleset_Ptr r = Cast<Ruleset>(bb)) {
+        r->is_root(trace_block->is_root());
+      }
       Statement_Obj ith = bb->perform(this);
       if (ith) trace->block()->append(ith);
     }
