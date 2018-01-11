@@ -105,6 +105,11 @@ namespace Sass {
     wbuf.buffer = text + wbuf.buffer;
   }
 
+  char Emitter::last_char()
+  {
+    return wbuf.buffer.back();
+  }
+
   // append a single char to the buffer
   void Emitter::append_char(const char chr)
   {
@@ -217,7 +222,9 @@ namespace Sass {
     if ((output_style() != COMPRESSED) && buffer().size()) {
       unsigned char lst = buffer().at(buffer().length() - 1);
       if (!isspace(lst) || scheduled_delimiter) {
-        append_mandatory_space();
+        if (last_char() != '(') {
+          append_mandatory_space();
+        }
       }
     }
   }
