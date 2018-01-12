@@ -105,6 +105,22 @@ namespace Sass {
     wbuf.buffer = text + wbuf.buffer;
   }
 
+  char Emitter::last_char()
+  {
+    return wbuf.buffer.back();
+  }
+
+  // append a single char to the buffer
+  void Emitter::append_char(const char chr)
+  {
+    // write space/lf
+    flush_schedules();
+    // add to buffer
+    wbuf.buffer += chr;
+    // account for data in source-maps
+    wbuf.smap.append(Offset(chr));
+  }
+
   // append some text or token to the buffer
   void Emitter::append_string(const std::string& text)
   {
@@ -206,7 +222,9 @@ namespace Sass {
     if ((output_style() != COMPRESSED) && buffer().size()) {
       unsigned char lst = buffer().at(buffer().length() - 1);
       if (!isspace(lst) || scheduled_delimiter) {
-        append_mandatory_space();
+        if (last_char() != '(') {
+          append_mandatory_space();
+        }
       }
     }
   }

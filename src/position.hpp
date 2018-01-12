@@ -11,6 +11,7 @@ namespace Sass {
   class Offset {
 
     public: // c-tor
+      Offset(const char chr);
       Offset(const char* string);
       Offset(const std::string& text);
       Offset(const size_t line, const size_t column);

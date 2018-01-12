@@ -2532,14 +2532,16 @@ namespace Sass {
     ADD_CONSTREF(std::string, matcher)
     // this cannot be changed to obj atm!!!!!!????!!!!!!!
     ADD_PROPERTY(String_Obj, value) // might be interpolated
+    ADD_PROPERTY(char, modifier);
   public:
-    Attribute_Selector(ParserState pstate, std::string n, std::string m, String_Obj v)
-    : Simple_Selector(pstate, n), matcher_(m), value_(v)
+    Attribute_Selector(ParserState pstate, std::string n, std::string m, String_Obj v, char o = 0)
+    : Simple_Selector(pstate, n), matcher_(m), value_(v), modifier_(o)
     { simple_type(ATTR_SEL); }
     Attribute_Selector(const Attribute_Selector* ptr)
     : Simple_Selector(ptr),
       matcher_(ptr->matcher_),
-      value_(ptr->value_)
+      value_(ptr->value_),
+      modifier_(ptr->modifier_)
     { simple_type(ATTR_SEL); }
     virtual size_t hash()
     {

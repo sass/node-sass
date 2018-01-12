@@ -109,7 +109,7 @@ namespace Sass {
 
     }
 
-    // peek will only skip over space, tabs and line comment
+    // match will not skip over space, tabs and line comment
     // return the position where the lexer match will occur
     template <Prelexer::prelexer mx>
     const char* match(const char* start = 0)
@@ -378,6 +378,9 @@ namespace Sass {
     Number_Ptr lexed_dimension(const std::string& parsed) { return lexed_dimension(pstate, parsed); };
     Number_Ptr lexed_percentage(const std::string& parsed) { return lexed_percentage(pstate, parsed); };
     Expression_Ptr lexed_hex_color(const std::string& parsed) { return lexed_hex_color(pstate, parsed); };
+
+    static const char* re_attr_sensitive_close(const char* src);
+    static const char* re_attr_insensitive_close(const char* src);
 
   };
 
