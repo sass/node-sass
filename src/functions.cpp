@@ -222,7 +222,8 @@ namespace Sass {
       "global-variable-shadowing",
       "extend-selector-pseudoclass",
       "at-error",
-      "units-level-3"
+      "units-level-3",
+      "custom-property"
     };
 
     ////////////////
