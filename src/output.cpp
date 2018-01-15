@@ -134,6 +134,7 @@ namespace Sass {
       append_string(ss.str());
       append_optional_linefeed();
     }
+    scheduled_crutch = s;
     if (s) s->perform(this);
     append_scope_opener(b);
     for (size_t i = 0, L = b->length(); i < L; ++i) {

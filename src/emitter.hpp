@@ -37,6 +37,7 @@ namespace Sass {
       size_t scheduled_space;
       size_t scheduled_linefeed;
       bool scheduled_delimiter;
+      AST_Node_Ptr scheduled_crutch;
       AST_Node_Ptr scheduled_mapping;
 
     public:
