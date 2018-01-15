@@ -14,6 +14,7 @@ namespace Sass {
     scheduled_space(0),
     scheduled_linefeed(0),
     scheduled_delimiter(false),
+    scheduled_crutch(0),
     scheduled_mapping(0),
     in_custom_property(false),
     in_comment(false),
@@ -162,9 +163,9 @@ namespace Sass {
     add_open_mapping(node);
     // hotfix for browser issues
     // this is pretty ugly indeed
-    if (scheduled_mapping) {
-      add_open_mapping(scheduled_mapping);
-      scheduled_mapping = 0;
+    if (scheduled_crutch) {
+      add_open_mapping(scheduled_crutch);
+      scheduled_crutch = 0;
     }
     append_string(text);
     add_close_mapping(node);
