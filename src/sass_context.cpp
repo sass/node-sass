@@ -72,24 +72,35 @@ namespace Sass {
 
       // now create the code trace (ToDo: maybe have util functions?)
       if (e.pstate.line != std::string::npos && e.pstate.column != std::string::npos) {
-        size_t line = e.pstate.line;
+        size_t lines = e.pstate.line;
         const char* line_beg = e.pstate.src;
-        while (line_beg && *line_beg && line) {
-          if (*line_beg == '\n') --line;
-          ++line_beg;
+        // scan through src until target line
+        // move line_beg pointer to line start
+        while (line_beg && *line_beg && lines != 0) {
+          if (*line_beg == '\n') --lines;
+          utf8::unchecked::next(line_beg); 
         }
         const char* line_end = line_beg;
+        // move line_end before next newline character
         while (line_end && *line_end && *line_end != '\n') {
           if (*line_end == '\n') break;
           if (*line_end == '\r') break;
-          line_end++;
+          utf8::unchecked::next(line_end); 
         }
-        size_t max_left = 42; size_t max_right = 78;
-        size_t move_in = e.pstate.column > max_left ? e.pstate.column - max_left : 0;
-        size_t shorten = (line_end - line_beg) - move_in > max_right ?
-          (line_end - line_beg) - move_in - max_right : 0;
-        msg_stream << ">> " << std::string(line_beg + move_in, line_end - shorten) << "\n";
-        msg_stream << "   " << std::string(e.pstate.column - move_in, '-') << "^\n";
+        if (line_end && *line_end != 0) ++ line_end;
+        size_t line_len = line_end - line_beg;
+        size_t move_in = 0; size_t shorten = 0;
+        size_t left_chars = 42; size_t max_chars = 76;
+        // reported excerpt should not exceed `max_chars` chars
+        if (e.pstate.column > line_len) left_chars = e.pstate.column;
+        if (e.pstate.column > left_chars) move_in = e.pstate.column - left_chars;
+        if (line_len > max_chars + move_in) shorten = line_len - move_in - max_chars;
+        utf8::advance(line_beg, move_in, line_end);
+        utf8::retreat(line_end, shorten, line_beg);
+        std::string sanitized; std::string marker(e.pstate.column - move_in, '-');
+        utf8::replace_invalid(line_beg, line_end, std::back_inserter(sanitized));
+        msg_stream << ">> " << sanitized << "\n";
+        msg_stream << "   " << marker << "^\n";
       }
 
       JsonNode* json_err = json_mkobject();
