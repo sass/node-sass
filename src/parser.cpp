@@ -1726,6 +1726,7 @@ namespace Sass {
     // static values always have trailing white-
     // space and end delimiter (\s*[;]$) included
     -- pstate.offset.column;
+    --after_token.column;
     --str.end;
     --position;
 
