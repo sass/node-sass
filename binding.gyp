@@ -1,7 +1,18 @@
 {
   'variables': {
-      'libsass_ext%': '',
+    'libsass_ext%': '',
   },
+  'target_conditions': [
+    ['_type=="wasm"', {
+      'product_extension': 'wasmn',
+      'defines': [
+        'BUILDING_NODE_EXTENSION'
+      ],
+      'cflags_cc': [ '-s WASM=1' ],
+      'cflags': [ '-s WASM=1' ],
+      'ldflags': [ '-s WASM=1' ],
+    }],
+  ],
   'targets': [
     {
       'target_name': 'binding',
@@ -22,10 +33,6 @@
         'src/sass_types/number.cpp',
         'src/sass_types/string.cpp'
       ],
-      'cflags_cc': [
-        '-s WASM=1',
-      ],
-      'cflags': [ '-s WASM=1' ],
       'msvs_settings': {
         'VCLinkerTool': {
            'SetChecksum': 'true'
@@ -35,6 +42,8 @@
         'OTHER_CPLUSPLUSFLAGS': [
           '-std=c++11'
         ],
+        'GCC_OPTIMIZATION_LEVEL': '3',
+        'GCC_GENERATE_DEBUGGING_SYMBOLS': 'NO',
         'OTHER_LDFLAGS': [],
         'GCC_ENABLE_CPP_EXCEPTIONS': 'NO',
         'MACOSX_DEPLOYMENT_TARGET': '10.7'

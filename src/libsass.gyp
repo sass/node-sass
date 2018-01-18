@@ -1,4 +1,18 @@
 {
+  'target_defaults': {
+    'type': 'wasm',
+  },
+  'target_conditions': [
+    ['_type=="wasm"', {
+      'product_extension': 'wasmn',
+      'defines': [
+        'BUILDING_NODE_EXTENSION'
+      ],
+      'cflags_cc': [ '-s WASM=1' ],
+      'cflags': [ '-s WASM=1' ],
+      'ldflags': [ '-s WASM=1' ],
+    }],
+  ],
   'targets': [
     {
       'target_name': 'libsass',
@@ -67,9 +81,7 @@
       'cflags_cc': [
         '-fexceptions',
         '-frtti',
-        '-s WASM=1',
       ],
-      'cflags': [ '-s WASM=1' ],
       'include_dirs': [ 'libsass/include' ],
       'direct_dependent_settings': {
         'include_dirs': [ 'libsass/include' ],
@@ -82,6 +94,8 @@
             'OTHER_LDFLAGS': [],
             'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
             'GCC_ENABLE_CPP_RTTI': 'YES',
+            'GCC_OPTIMIZATION_LEVEL': '3',
+            'GCC_GENERATE_DEBUGGING_SYMBOLS': 'NO',
             'MACOSX_DEPLOYMENT_TARGET': '10.7'
           }
         }],
