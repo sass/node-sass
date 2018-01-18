@@ -99,6 +99,15 @@ namespace Sass {
     // consume unicode BOM
     read_bom();
 
+    // scan the input to find invalid utf8 sequences
+    const char* it = utf8::find_invalid(position, end);
+
+    // report invalid utf8
+    if (it != end) {
+      pstate += Offset::init(position, it);
+      throw Exception::InvalidSass(pstate, "Invalid UTF-8 sequence");
+    }
+
     // create a block AST node to hold children
     Block_Obj root = SASS_MEMORY_NEW(Block, pstate, 0, true);
 
