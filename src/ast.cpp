@@ -1322,12 +1322,12 @@ namespace Sass {
                   ss->head(NULL);
                 }
                 // adjust for parent selector (1 char)
-                if (h->length()) {
-                  ParserState state(h->at(0)->pstate());
-                  state.offset.column += 1;
-                  state.column -= 1;
-                  (*h)[0]->pstate(state);
-                }
+                // if (h->length()) {
+                //   ParserState state(h->at(0)->pstate());
+                //   state.offset.column += 1;
+                //   state.column -= 1;
+                //   (*h)[0]->pstate(state);
+                // }
                 // keep old parser state
                 s->pstate(pstate());
                 // append new tail
@@ -1360,12 +1360,12 @@ namespace Sass {
               // \/ IMO ruby sass bug \/
               ss->has_line_feed(false);
               // adjust for parent selector (1 char)
-              if (h->length()) {
-                ParserState state(h->at(0)->pstate());
-                state.offset.column += 1;
-                state.column -= 1;
-                (*h)[0]->pstate(state);
-              }
+              // if (h->length()) {
+              //   ParserState state(h->at(0)->pstate());
+              //   state.offset.column += 1;
+              //   state.column -= 1;
+              //   (*h)[0]->pstate(state);
+              // }
               // keep old parser state
               s->pstate(pstate());
               // append new tail
