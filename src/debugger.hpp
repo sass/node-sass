@@ -696,6 +696,8 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
       case Expression::Concrete_Type::C_ERROR: std::cerr << " [C_ERROR]"; break;
       case Expression::Concrete_Type::FUNCTION: std::cerr << " [FUNCTION]"; break;
       case Expression::Concrete_Type::NUM_TYPES: std::cerr << " [NUM_TYPES]"; break;
+      case Expression::Concrete_Type::VARIABLE: std::cerr << " [VARIABLE]"; break;
+      case Expression::Concrete_Type::FUNCTION_VAL: std::cerr << " [FUNCTION_VAL]"; break;
     }
     std::cerr << std::endl;
   } else if (Cast<Has_Block>(node)) {
