@@ -2759,7 +2759,7 @@ namespace Sass {
         re_selector_list
       >(p)
     ) {
-      bool could_be_property = peek< sequence< exactly<'-'>, exactly<'-'> > >(p);
+      bool could_be_property = peek< sequence< exactly<'-'>, exactly<'-'> > >(p) != 0;
       while (p < q) {
         // did we have interpolations?
         if (*p == '#' && *(p+1) == '{') {
