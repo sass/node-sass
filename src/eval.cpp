@@ -812,6 +812,7 @@ namespace Sass {
       if (l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
         Number_Ptr l_n = Cast<Number>(lhs);
         Number_Ptr r_n = Cast<Number>(rhs);
+        l_n->reduce(); r_n->reduce();
         rv = op_numbers(op_type, *l_n, *r_n, ctx.c_options, pstate);
       }
       else if (l_type == Expression::NUMBER && r_type == Expression::COLOR) {
@@ -1499,24 +1500,26 @@ namespace Sass {
   {
     double lv = l.value();
     double rv = r.value();
+
     if (op == Sass_OP::DIV && rv == 0) {
       // XXX: this is never hit via spec tests
       return SASS_MEMORY_NEW(String_Quoted, pstate, lv ? "Infinity" : "NaN");
     }
+
     if (op == Sass_OP::MOD && !rv) {
       // XXX: this is never hit via spec tests
       throw Exception::ZeroDivisionError(l, r);
     }
 
-    size_t l_n_units = l.numerator_units().size();
-    size_t l_d_units = l.numerator_units().size();
-    size_t r_n_units = r.denominator_units().size();
-    size_t r_d_units = r.denominator_units().size();
+    size_t l_n_units = l.numerators.size();
+    size_t l_d_units = l.numerators.size();
+    size_t r_n_units = r.denominators.size();
+    size_t r_d_units = r.denominators.size();
     // optimize out the most common and simplest case
     if (l_n_units == r_n_units && l_d_units == r_d_units) {
       if (l_n_units + l_d_units <= 1 && r_n_units + r_d_units <= 1) {
-        if (l.numerator_units() == r.numerator_units()) {
-          if (l.denominator_units() == r.denominator_units()) {
+        if (l.numerators == r.numerators) {
+          if (l.denominators == r.denominators) {
             Number_Ptr v = SASS_MEMORY_COPY(&l);
             v->value(ops[op](lv, rv));
             return v;
@@ -1525,41 +1528,39 @@ namespace Sass {
       }
     }
 
-    Number tmp(&r); // copy
-    bool strict = op != Sass_OP::MUL && op != Sass_OP::DIV;
-    tmp.normalize(l.find_convertible_unit(), strict);
-    std::string l_unit(l.unit());
-    std::string r_unit(tmp.unit());
-    Number_Obj v = SASS_MEMORY_COPY(&l); // copy
-    v->pstate(pstate);
-    if (l_unit.empty() && (op == Sass_OP::ADD || op == Sass_OP::SUB || op == Sass_OP::MOD)) {
-      v->numerator_units() = r.numerator_units();
-      v->denominator_units() = r.denominator_units();
+    Number_Obj v = SASS_MEMORY_COPY(&l);
+    
+    if (l.is_unitless() && (op == Sass_OP::ADD || op == Sass_OP::SUB || op == Sass_OP::MOD)) {
+      v->numerators = r.numerators;
+      v->denominators = r.denominators;
     }
 
     if (op == Sass_OP::MUL) {
       v->value(ops[op](lv, rv));
-      for (size_t i = 0, S = r.numerator_units().size(); i < S; ++i) {
-        v->numerator_units().push_back(r.numerator_units()[i]);
-      }
-      for (size_t i = 0, S = r.denominator_units().size(); i < S; ++i) {
-        v->denominator_units().push_back(r.denominator_units()[i]);
-      }
+      v->numerators.insert(v->numerators.end(),
+        r.numerators.begin(), r.numerators.end()
+      );
+      v->denominators.insert(v->denominators.end(),
+        r.denominators.begin(), r.denominators.end()
+      );
     }
     else if (op == Sass_OP::DIV) {
       v->value(ops[op](lv, rv));
-      for (size_t i = 0, S = r.numerator_units().size(); i < S; ++i) {
-        v->denominator_units().push_back(r.numerator_units()[i]);
-      }
-      for (size_t i = 0, S = r.denominator_units().size(); i < S; ++i) {
-        v->numerator_units().push_back(r.denominator_units()[i]);
-      }
-    } else {
-      v->value(ops[op](lv, r.value() * r.convert_factor(l)));
-      // v->normalize();
-      return v.detach();
+      v->numerators.insert(v->numerators.end(),
+        r.denominators.begin(), r.denominators.end()
+      );
+      v->denominators.insert(v->denominators.end(),
+        r.numerators.begin(), r.numerators.end()
+      );
     }
-    v->normalize();
+    else {
+      Number ln(l), rn(r);
+      ln.reduce(); rn.reduce();
+      double f(rn.convert_factor(ln));
+      v->value(ops[op](lv, rn.value() * f));
+    }
+
+    v->pstate(pstate);
     return v.detach();
   }
 

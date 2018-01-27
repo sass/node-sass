@@ -1813,10 +1813,9 @@ namespace Sass {
 
   Number::Number(ParserState pstate, double val, std::string u, bool zero)
   : Value(pstate),
+    Units(),
     value_(val),
     zero_(zero),
-    numerator_units_(std::vector<std::string>()),
-    denominator_units_(std::vector<std::string>()),
     hash_(0)
   {
     size_t l = 0;
@@ -1827,351 +1826,34 @@ namespace Sass {
         r = u.find_first_of("*/", l);
         std::string unit(u.substr(l, r == std::string::npos ? r : r - l));
         if (!unit.empty()) {
-          if (nominator) numerator_units_.push_back(unit);
-          else denominator_units_.push_back(unit);
+          if (nominator) numerators.push_back(unit);
+          else denominators.push_back(unit);
         }
         if (r == std::string::npos) break;
         // ToDo: should error for multiple slashes
         // if (!nominator && u[r] == '/') error(...)
         if (u[r] == '/')
           nominator = false;
+        // strange math parsing?
+        // else if (u[r] == '*')
+        //  nominator = true;
         l = r + 1;
       }
     }
     concrete_type(NUMBER);
   }
 
-  std::string Number::unit() const
+  // cancel out unnecessary units
+  void Number::reduce()
   {
-    std::string u;
-    for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
-      if (i) u += '*';
-      u += numerator_units_[i];
-    }
-    if (!denominator_units_.empty()) u += '/';
-    for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
-      if (i) u += '*';
-      u += denominator_units_[i];
-    }
-    return u;
+    // apply conversion factor
+    value_ *= this->Units::reduce();
   }
 
-  bool Number::is_valid_css_unit() const
+  void Number::normalize()
   {
-    return numerator_units().size() <= 1 &&
-           denominator_units().size() == 0;
-  }
-
-  bool Number::is_unitless() const
-  { return numerator_units_.empty() && denominator_units_.empty(); }
-
-  void Number::normalize(const std::string& prefered, bool strict)
-  {
-    // no conversion if unit is empty
-    if (prefered.empty() && numerator_units_.size() == 0 && denominator_units_.size() == 0) return;
-
-    // first make sure same units cancel each other out
-    // it seems that a map table will fit nicely to do this
-    // we basically construct exponents for each unit
-    // has the advantage that they will be pre-sorted
-    std::map<std::string, int> exponents;
-
-    // initialize by summing up occurences in unit vectors
-    for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) ++ exponents[numerator_units_[i]];
-    for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) -- exponents[denominator_units_[i]];
-
-    // the final conversion factor
-    double factor = 1;
-
-    // get the first entry of numerators
-    // forward it when entry is converted
-    std::vector<std::string>::iterator nom_it = numerator_units_.begin();
-    std::vector<std::string>::iterator nom_end = numerator_units_.end();
-    std::vector<std::string>::iterator denom_it = denominator_units_.begin();
-    std::vector<std::string>::iterator denom_end = denominator_units_.end();
-
-    // main normalization loop
-    // should be close to optimal
-    while (denom_it != denom_end)
-    {
-      // get and increment afterwards
-      const std::string denom = *(denom_it ++);
-      // skip already canceled out unit
-      if (exponents[denom] >= 0) continue;
-      // skip all units we don't know how to convert
-      if (string_to_unit(denom) == UNKNOWN) continue;
-      // now search for nominator
-      while (nom_it != nom_end)
-      {
-        // get and increment afterwards
-        const std::string nom = *(nom_it ++);
-        // skip already canceled out unit
-        if (exponents[nom] <= 0) continue;
-        // skip all units we don't know how to convert
-        if (string_to_unit(nom) == UNKNOWN) continue;
-        // we now have two convertable units
-        // add factor for current conversion
-        factor *= conversion_factor(nom, denom, strict);
-        // update nominator/denominator exponent
-        -- exponents[nom]; ++ exponents[denom];
-        // inner loop done
-        break;
-      }
-    }
-
-    // now we can build up the new unit arrays
-    numerator_units_.clear();
-    denominator_units_.clear();
-
-    // build them by iterating over the exponents
-    for (auto exp : exponents)
-    {
-      // maybe there is more effecient way to push
-      // the same item multiple times to a vector?
-      for(size_t i = 0, S = abs(exp.second); i < S; ++i)
-      {
-        // opted to have these switches in the inner loop
-        // makes it more readable and should not cost much
-        if (!exp.first.empty()) {
-          if (exp.second < 0) denominator_units_.push_back(exp.first);
-          else if (exp.second > 0) numerator_units_.push_back(exp.first);
-        }
-      }
-    }
-
-    // apply factor to value_
-    // best precision this way
-    value_ *= factor;
-
-    // maybe convert to other unit
-    // easier implemented on its own
-    try { convert(prefered, strict); }
-    catch (Exception::IncompatibleUnits& err)
-    { error(err.what(), pstate()); }
-    catch (...) { throw; }
-
-  }
-
-  // this does not cover all cases (multiple prefered units)
-  double Number::convert_factor(const Number& n) const
-  {
-
-    // first make sure same units cancel each other out
-    // it seems that a map table will fit nicely to do this
-    // we basically construct exponents for each unit class
-    // std::map<std::string, int> exponents;
-    // initialize by summing up occurences in unit vectors
-    // for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) ++ exponents[unit_to_class(numerator_units_[i])];
-    // for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) -- exponents[unit_to_class(denominator_units_[i])];
-
-    std::vector<std::string> l_miss_nums(0);
-    std::vector<std::string> l_miss_dens(0);
-    // create copy since we need these for state keeping
-    std::vector<std::string> r_nums(n.numerator_units_);
-    std::vector<std::string> r_dens(n.denominator_units_);
-
-    std::vector<std::string>::const_iterator l_num_it = numerator_units_.begin();
-    std::vector<std::string>::const_iterator l_num_end = numerator_units_.end();
-
-    bool l_unitless = is_unitless();
-    bool r_unitless = n.is_unitless();
-
-    // overall conversion
-    double factor = 1;
-
-    // process all left numerators
-    while (l_num_it != l_num_end)
-    {
-      // get and increment afterwards
-      const std::string l_num = *(l_num_it ++);
-
-      std::vector<std::string>::iterator r_num_it = r_nums.begin();
-      std::vector<std::string>::iterator r_num_end = r_nums.end();
-
-      bool found = false;
-      // search for compatible numerator
-      while (r_num_it != r_num_end)
-      {
-        // get and increment afterwards
-        const std::string r_num = *(r_num_it);
-        // get possible converstion factor for units
-        double conversion = conversion_factor(l_num, r_num, false);
-        // skip incompatible numerator
-        if (conversion == 0) {
-          ++ r_num_it;
-          continue;
-        }
-        // apply to global factor
-        factor *= conversion;
-        // remove item from vector
-        r_nums.erase(r_num_it);
-        // found numerator
-        found = true;
-        break;
-      }
-      // maybe we did not find any
-      // left numerator is leftover
-      if (!found) l_miss_nums.push_back(l_num);
-    }
-
-    std::vector<std::string>::const_iterator l_den_it = denominator_units_.begin();
-    std::vector<std::string>::const_iterator l_den_end = denominator_units_.end();
-
-    // process all left denominators
-    while (l_den_it != l_den_end)
-    {
-      // get and increment afterwards
-      const std::string l_den = *(l_den_it ++);
-
-      std::vector<std::string>::iterator r_den_it = r_dens.begin();
-      std::vector<std::string>::iterator r_den_end = r_dens.end();
-
-      bool found = false;
-      // search for compatible denominator
-      while (r_den_it != r_den_end)
-      {
-        // get and increment afterwards
-        const std::string r_den = *(r_den_it);
-        // get possible converstion factor for units
-        double conversion = conversion_factor(l_den, r_den, false);
-        // skip incompatible denominator
-        if (conversion == 0) {
-          ++ r_den_it;
-          continue;
-        }
-        // apply to global factor
-        factor *= conversion;
-        // remove item from vector
-        r_dens.erase(r_den_it);
-        // found denominator
-        found = true;
-        break;
-      }
-      // maybe we did not find any
-      // left denominator is leftover
-      if (!found) l_miss_dens.push_back(l_den);
-    }
-
-    // check left-overs (ToDo: might cancel out)
-    if (l_miss_nums.size() > 0 && !r_unitless) {
-      throw Exception::IncompatibleUnits(n, *this);
-    }
-    if (l_miss_dens.size() > 0 && !r_unitless) {
-      throw Exception::IncompatibleUnits(n, *this);
-    }
-    if (r_nums.size() > 0 && !l_unitless) {
-      throw Exception::IncompatibleUnits(n, *this);
-    }
-    if (r_dens.size() > 0 && !l_unitless) {
-      throw Exception::IncompatibleUnits(n, *this);
-    }
-
-    return factor;
-  }
-
-  // this does not cover all cases (multiple prefered units)
-  bool Number::convert(const std::string& prefered, bool strict)
-  {
-    // no conversion if unit is empty
-    if (prefered.empty()) return true;
-
-    // first make sure same units cancel each other out
-    // it seems that a map table will fit nicely to do this
-    // we basically construct exponents for each unit
-    // has the advantage that they will be pre-sorted
-    std::map<std::string, int> exponents;
-
-    // initialize by summing up occurences in unit vectors
-    for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) ++ exponents[numerator_units_[i]];
-    for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) -- exponents[denominator_units_[i]];
-
-    // the final conversion factor
-    double factor = 1;
-
-    std::vector<std::string>::iterator denom_it = denominator_units_.begin();
-    std::vector<std::string>::iterator denom_end = denominator_units_.end();
-
-    // main normalization loop
-    // should be close to optimal
-    while (denom_it != denom_end)
-    {
-      // get and increment afterwards
-      const std::string denom = *(denom_it ++);
-      // check if conversion is needed
-      if (denom == prefered) continue;
-      // skip already canceled out unit
-      if (exponents[denom] >= 0) continue;
-      // skip all units we don't know how to convert
-      if (string_to_unit(denom) == UNKNOWN) continue;
-      // we now have two convertable units
-      // add factor for current conversion
-      factor *= conversion_factor(denom, prefered, strict);
-      // update nominator/denominator exponent
-      ++ exponents[denom]; -- exponents[prefered];
-    }
-
-    std::vector<std::string>::iterator nom_it = numerator_units_.begin();
-    std::vector<std::string>::iterator nom_end = numerator_units_.end();
-
-    // now search for nominator
-    while (nom_it != nom_end)
-    {
-      // get and increment afterwards
-      const std::string nom = *(nom_it ++);
-      // check if conversion is needed
-      if (nom == prefered) continue;
-      // skip already canceled out unit
-      if (exponents[nom] <= 0) continue;
-      // skip all units we don't know how to convert
-      if (string_to_unit(nom) == UNKNOWN) continue;
-      // we now have two convertable units
-      // add factor for current conversion
-      factor *= conversion_factor(nom, prefered, strict);
-      // update nominator/denominator exponent
-      -- exponents[nom]; ++ exponents[prefered];
-    }
-
-    // now we can build up the new unit arrays
-    numerator_units_.clear();
-    denominator_units_.clear();
-
-    // build them by iterating over the exponents
-    for (auto exp : exponents)
-    {
-      // maybe there is more effecient way to push
-      // the same item multiple times to a vector?
-      for(size_t i = 0, S = abs(exp.second); i < S; ++i)
-      {
-        // opted to have these switches in the inner loop
-        // makes it more readable and should not cost much
-        if (!exp.first.empty()) {
-          if (exp.second < 0) denominator_units_.push_back(exp.first);
-          else if (exp.second > 0) numerator_units_.push_back(exp.first);
-        }
-      }
-    }
-
-    // apply factor to value_
-    // best precision this way
-    value_ *= factor;
-
-    // success?
-    return true;
-
-  }
-
-  // useful for making one number compatible with another
-  std::string Number::find_convertible_unit() const
-  {
-    for (size_t i = 0, S = numerator_units_.size(); i < S; ++i) {
-      std::string u(numerator_units_[i]);
-      if (string_to_unit(u) != UNKNOWN) return u;
-    }
-    for (size_t i = 0, S = denominator_units_.size(); i < S; ++i) {
-      std::string u(denominator_units_[i]);
-      if (string_to_unit(u) != UNKNOWN) return u;
-    }
-    return std::string();
+    // apply conversion factor
+    value_ *= this->Units::normalize();
   }
 
   bool Custom_Warning::operator== (const Expression& rhs) const
@@ -2192,37 +1874,43 @@ namespace Sass {
 
   bool Number::operator== (const Expression& rhs) const
   {
-    if (Number_Ptr_Const r = Cast<Number>(&rhs)) {
-      size_t lhs_units = numerator_units_.size() + denominator_units_.size();
-      size_t rhs_units = r->numerator_units_.size() + r->denominator_units_.size();
-      // unitless and only having one unit seems equivalent (will change in future)
-      if (!lhs_units || !rhs_units) {
-        return std::fabs(value() - r->value()) < NUMBER_EPSILON;
-      }
-      return (numerator_units_ == r->numerator_units_) &&
-             (denominator_units_ == r->denominator_units_) &&
-             std::fabs(value() - r->value()) < NUMBER_EPSILON;
+    if (auto rhsnr = Cast<Number>(&rhs)) {
+      return *this == *rhsnr;
     }
     return false;
   }
 
-  bool Number::operator< (const Number& rhs) const
+  bool Number::operator== (const Number& rhs) const
   {
-    size_t lhs_units = numerator_units_.size() + denominator_units_.size();
-    size_t rhs_units = rhs.numerator_units_.size() + rhs.denominator_units_.size();
+    Number l(*this), r(rhs); l.reduce(); r.reduce();
+    size_t lhs_units = l.numerators.size() + l.denominators.size();
+    size_t rhs_units = r.numerators.size() + r.denominators.size();
     // unitless and only having one unit seems equivalent (will change in future)
     if (!lhs_units || !rhs_units) {
-      return value() < rhs.value();
+      return NEAR_EQUAL(l.value(), r.value());
     }
+    l.normalize(); r.normalize();
+    Units &lhs_unit = l, &rhs_unit = r;
+    return lhs_unit == rhs_unit &&
+      NEAR_EQUAL(l.value(), r.value());
+  }
 
-    Number tmp_r(&rhs); // copy
-    tmp_r.normalize(find_convertible_unit());
-    std::string l_unit(unit());
-    std::string r_unit(tmp_r.unit());
-    if (unit() != tmp_r.unit()) {
-      error("cannot compare numbers with incompatible units", pstate());
+  bool Number::operator< (const Number& rhs) const
+  {
+    Number l(*this), r(rhs); l.reduce(); r.reduce();
+    size_t lhs_units = l.numerators.size() + l.denominators.size();
+    size_t rhs_units = r.numerators.size() + r.denominators.size();
+    // unitless and only having one unit seems equivalent (will change in future)
+    if (!lhs_units || !rhs_units) {
+      return l.value() < r.value();
     }
-    return value() < tmp_r.value();
+    l.normalize(); r.normalize();
+    Units &lhs_unit = l, &rhs_unit = r;
+    if (!(lhs_unit == rhs_unit)) {
+      throw Exception::IncompatibleUnits(rhs, *this);
+    }
+    return lhs_unit < rhs_unit ||
+           l.value() < r.value();
   }
 
   bool String_Quoted::operator== (const Expression& rhs) const
