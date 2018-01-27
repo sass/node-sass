@@ -75,6 +75,9 @@ namespace Sass {
   // Note: most methods follow precision option
   const double NUMBER_EPSILON = 0.00000000000001;
 
+  // macro to test if numbers are equal within a small error margin
+  #define NEAR_EQUAL(lhs, rhs) std::fabs(lhs - rhs) < NUMBER_EPSILON
+
   // ToDo: where does this fit best?
   // We don't share this with C-API?
   class Operand {
@@ -1544,53 +1547,41 @@ namespace Sass {
   ////////////////////////////////////////////////
   // Numbers, percentages, dimensions, and colors.
   ////////////////////////////////////////////////
-  class Number : public Value {
+  class Number : public Value, public Units {
     HASH_PROPERTY(double, value)
     ADD_PROPERTY(bool, zero)
-    std::vector<std::string> numerator_units_;
-    std::vector<std::string> denominator_units_;
     size_t hash_;
   public:
     Number(ParserState pstate, double val, std::string u = "", bool zero = true);
 
     Number(const Number* ptr)
     : Value(ptr),
+      Units(ptr),
       value_(ptr->value_), zero_(ptr->zero_),
-      numerator_units_(ptr->numerator_units_),
-      denominator_units_(ptr->denominator_units_),
       hash_(ptr->hash_)
     { concrete_type(NUMBER); }
 
     bool zero() { return zero_; }
-    bool is_valid_css_unit() const;
-    std::vector<std::string>& numerator_units()   { return numerator_units_; }
-    std::vector<std::string>& denominator_units() { return denominator_units_; }
-    const std::vector<std::string>& numerator_units() const   { return numerator_units_; }
-    const std::vector<std::string>& denominator_units() const { return denominator_units_; }
     std::string type() const { return "number"; }
     static std::string type_name() { return "number"; }
-    std::string unit() const;
 
-    bool is_unitless() const;
-    double convert_factor(const Number&) const;
-    bool convert(const std::string& unit = "", bool strict = false);
-    void normalize(const std::string& unit = "", bool strict = false);
-    // useful for making one number compatible with another
-    std::string find_convertible_unit() const;
+    void reduce();
+    void normalize();
 
     virtual size_t hash()
     {
       if (hash_ == 0) {
         hash_ = std::hash<double>()(value_);
-        for (const auto numerator : numerator_units())
+        for (const auto numerator : numerators)
           hash_combine(hash_, std::hash<std::string>()(numerator));
-        for (const auto denominator : denominator_units())
+        for (const auto denominator : denominators)
           hash_combine(hash_, std::hash<std::string>()(denominator));
       }
       return hash_;
     }
 
     virtual bool operator< (const Number& rhs) const;
+    virtual bool operator== (const Number& rhs) const;
     virtual bool operator== (const Expression& rhs) const;
     ATTACH_AST_OPERATIONS(Number)
     ATTACH_OPERATIONS()

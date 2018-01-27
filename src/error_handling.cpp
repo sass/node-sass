@@ -121,7 +121,7 @@ namespace Sass {
       msg  = "stack level too deep";
     }
 
-    IncompatibleUnits::IncompatibleUnits(const Number& lhs, const Number& rhs)
+    IncompatibleUnits::IncompatibleUnits(const Units& lhs, const Units& rhs)
     {
       msg  = "Incompatible units: '";
       msg += rhs.unit();
