@@ -18,7 +18,7 @@
   "engines": {
     "node": ">=0.10.0"
   },
-  "main": "lib/index.js",
+  "main": "lib/index",
   "nodeSassConfig": {
     "binarySite": "https://github.com/sass/node-sass/releases/download"
   },
