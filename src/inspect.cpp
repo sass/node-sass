@@ -529,6 +529,9 @@ namespace Sass {
 
     std::string res;
 
+    // reduce units
+    n->reduce();
+
     // check if the fractional part of the value equals to zero
     // neat trick from http://stackoverflow.com/a/1521682/1550314
     // double int_part; bool is_int = modf(value, &int_part) == 0.0;
@@ -679,7 +682,7 @@ namespace Sass {
       ss << name;
     }
     else if (r == 0 && g == 0 && b == 0 && a == 0) {
-        ss << "transparent";
+      ss << "transparent";
     }
     else if (a >= 1) {
       if (res_name != "") {
