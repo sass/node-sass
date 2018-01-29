@@ -567,7 +567,7 @@ Variable name    | .npmrc parameter | Process argument   | Value
 SASS_BINARY_NAME | sass_binary_name | --sass-binary-name | path
 SASS_BINARY_SITE | sass_binary_site | --sass-binary-site | URL
 SASS_BINARY_PATH | sass_binary_path | --sass-binary-path | path
-
+SASS_BINARY_SITE_AUTH_HEADER | sass_binary_site_auth_header | --sass-binary-site-auth-header | path
 These parameters can be used as environment variable:
 
 * E.g. `export SASS_BINARY_SITE=http://example.com/`

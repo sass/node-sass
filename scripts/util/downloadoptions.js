@@ -13,13 +13,24 @@ var proxy = require('./proxy'),
  * @api private
  */
 module.exports = function() {
+  var authHeader = getArgument('--sass-binary-site-auth-header') ||
+             process.env.SASS_BINARY_SITE_AUTH_HEADER  ||
+             process.env.npm_config_sass_binary_site_auth_header;
+
   var options = {
     rejectUnauthorized: false,
     timeout: 60000,
     headers: {
-      'User-Agent': userAgent(),
+      'User-Agent': userAgent()
     }
   };
+
+  if(authHeader != undefined){
+    options.headers = {
+      'User-Agent': userAgent(),
+      authHeader
+    }
+  }
 
   var proxyConfig = proxy();
   if (proxyConfig) {
