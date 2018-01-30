@@ -14,8 +14,8 @@ var proxy = require('./proxy'),
  */
 module.exports = function() {
   var authHeader = getArgument('--sass-binary-site-auth-header') ||
-             process.env.SASS_BINARY_SITE_AUTH_HEADER  ||
-             process.env.npm_config_sass_binary_site_auth_header;
+            process.env.SASS_BINARY_SITE_AUTH_HEADER  ||
+            process.env.npm_config_sass_binary_site_auth_header;
 
   var options = {
     rejectUnauthorized: false,
@@ -26,10 +26,7 @@ module.exports = function() {
   };
 
   if(authHeader != undefined){
-    options.headers = {
-      'User-Agent': userAgent(),
-      authHeader
-    }
+    options.headers['Authorization'] = authHeader;
   }
 
   var proxyConfig = proxy();
