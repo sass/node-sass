@@ -1,5 +1,4 @@
 var proxy = require('./proxy'),
-  sass = require('../../lib/extensions'),
   auth = require('./auth'),
   userAgent = require('./useragent');
 
