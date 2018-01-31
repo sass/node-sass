@@ -151,5 +151,4 @@ function checkAndDownloadBinary() {
  * If binary does not exist, download it
  */
 
-//checkAndDownloadBinary();
-request('https://github.com/sass/node-sass/releases/download', downloadOptions(), function(err, response) {});
+checkAndDownloadBinary();

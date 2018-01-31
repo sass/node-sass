@@ -1,5 +1,6 @@
 var proxy = require('./proxy'),
   sass = require('../../lib/extensions'),
+  auth = require('./auth'),
   userAgent = require('./useragent');
 
 /**
@@ -14,8 +15,6 @@ var proxy = require('./proxy'),
  * @api private
  */
 module.exports = function() {
-  var authHeader = sass.getBinarySiteAuthHeader();
-
   var options = {
     rejectUnauthorized: false,
     timeout: 60000,
@@ -24,16 +23,15 @@ module.exports = function() {
     }
   };
 
-  if(authHeader != undefined){
-    options.headers.Authorization = authHeader;
-  }
-
   var proxyConfig = proxy();
   if (proxyConfig) {
     options.proxy = proxyConfig;
   }
 
-  console.log(options);
+  var authParams = auth();
+  if (authParams) {
+    options.auth = authParams;
+  }
 
   return options;
 };
