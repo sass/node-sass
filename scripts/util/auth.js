@@ -13,7 +13,7 @@ module.exports = function() {
     auth = {
       username: user,
       password: pass
-    }
+    };
   }
 
   return auth;
