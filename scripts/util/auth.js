@@ -7,7 +7,7 @@ var extensions = require('../../lib/extensions');
 module.exports = function() {
   var auth;
   var user = extensions.getBinarySiteAuthUserName();
-  var pass = getBinarySiteAuthUserPassword();
+  var pass = extensions.getBinarySiteAuthUserPassword();
 
   if(user && password){
     auth = {
