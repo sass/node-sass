@@ -9,7 +9,7 @@ module.exports = function() {
   var user = extensions.getBinarySiteAuthUserName();
   var pass = extensions.getBinarySiteAuthUserPassword();
 
-  if(user && password){
+  if(user && pass){
     auth = {
       username: user,
       password: pass
