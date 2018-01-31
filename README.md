@@ -567,10 +567,16 @@ Variable name    | .npmrc parameter | Process argument   | Value
 SASS_BINARY_NAME | sass_binary_name | --sass-binary-name | path
 SASS_BINARY_SITE | sass_binary_site | --sass-binary-site | URL
 SASS_BINARY_PATH | sass_binary_path | --sass-binary-path | path
+SASS_BINARY_SITE_AUTH_USERNAME | n/a | --sass-binary-site-auth-username | string
+SASS_BINARY_SITE_AUTH_PASSWORD | n/a | --sass-binary-site-auth-password | string
 
 These parameters can be used as environment variable:
 
 * E.g. `export SASS_BINARY_SITE=http://example.com/`
+
+* E.g. `export SASS_BINARY_SITE_AUTH_USERNAME=user`
+
+* E.g. `export SASS_BINARY_SITE_AUTH_PASSWORD=password`
 
 As local or global [.npmrc](https://docs.npmjs.com/misc/config) configuration file:
 
@@ -579,6 +585,8 @@ As local or global [.npmrc](https://docs.npmjs.com/misc/config) configuration fi
 As a process argument:
 
 * E.g. `npm install node-sass --sass-binary-site=http://example.com/`
+
+* E.g. `npm install node-sass --sass-binary-site=https://example.com --sass-binary-site-auth-username user --sass-binary-site-auth-password pass`
 
 ## Post-install Build
 

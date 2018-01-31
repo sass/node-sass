@@ -83,6 +83,42 @@ describe('runtime parameters', function() {
       });
     });
 
+    describe('SASS_BINARY_SITE_AUTH_USERNAME', function() {
+      beforeEach(function() {
+        process.argv.push('--sass-binary-site-auth-username', 'aaa-user');
+        process.env.SASS_BINARY_SITE_AUTH_USERNAME = 'bbb-user';
+      });
+
+      it('command line argument', function() {
+        var user = 'aaa-user';
+        assert.equal(sass.getBinarySiteAuthUserName().substr(0, user.length), user);
+      });
+
+      it('environment variable', function() {
+        process.argv = [];
+        var user = 'bbb-user';
+        assert.equal(sass.getBinarySiteAuthUserName().substr(0, user.length), user);
+      });
+    });
+
+    describe('SASS_BINARY_SITE_AUTH_PASSWORD', function() {
+      beforeEach(function() {
+        process.argv.push('--sass-binary-site-auth-password', 'aaa-pass');
+        process.env.SASS_BINARY_SITE_AUTH_PASSWORD = 'bbb-pass';
+      });
+
+      it('command line argument', function() {
+        var pass = 'aaa-pass';
+        assert.equal(sass.getBinarySiteAuthUserPassword().substr(0, pass.length), pass);
+      });
+
+      it('environment variable', function() {
+        process.argv = [];
+        var pass = 'bbb-pass';
+        assert.equal(sass.getBinarySiteAuthUserPassword().substr(0, pass.length), pass);
+      });
+    });
+
     describe('SASS_BINARY_PATH', function() {
       beforeEach(function() {
         process.argv.push('--sass-binary-path', 'aaa_binding.node');

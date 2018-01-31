@@ -1,4 +1,5 @@
 var proxy = require('./proxy'),
+  auth = require('./auth'),
   userAgent = require('./useragent');
 
 /**
@@ -17,13 +18,18 @@ module.exports = function() {
     rejectUnauthorized: false,
     timeout: 60000,
     headers: {
-      'User-Agent': userAgent(),
+      'User-Agent': userAgent()
     }
   };
 
   var proxyConfig = proxy();
   if (proxyConfig) {
     options.proxy = proxyConfig;
+  }
+
+  var authParams = auth();
+  if (authParams) {
+    options.auth = authParams;
   }
 
   return options;
