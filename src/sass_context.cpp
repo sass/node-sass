@@ -534,30 +534,10 @@ extern "C" {
   static void sass_clear_options (struct Sass_Options* options)
   {
     if (options == 0) return;
-    // Deallocate custom functions
-    if (options->c_functions) {
-      Sass_Function_List this_func_data = options->c_functions;
-      while (this_func_data && *this_func_data) {
-        free(*this_func_data);
-        ++this_func_data;
-      }
-    }
-    // Deallocate custom headers
-    if (options->c_headers) {
-      Sass_Importer_List this_head_data = options->c_headers;
-      while (this_head_data && *this_head_data) {
-        free(*this_head_data);
-        ++this_head_data;
-      }
-    }
-    // Deallocate custom importers
-    if (options->c_importers) {
-      Sass_Importer_List this_imp_data = options->c_importers;
-      while (this_imp_data && *this_imp_data) {
-        free(*this_imp_data);
-        ++this_imp_data;
-      }
-    }
+    // Deallocate custom functions, headers and importes
+    sass_delete_function_list(options->c_functions);
+    sass_delete_importer_list(options->c_importers);
+    sass_delete_importer_list(options->c_headers);
     // Deallocate inc paths
     if (options->plugin_paths) {
       struct string_list* cur;
