@@ -157,7 +157,7 @@ namespace Sass {
         // const Sass::UnitType lhs;
         // const Sass::UnitType rhs;
       public:
-        IncompatibleUnits(const Number& lhs, const Number& rhs);
+        IncompatibleUnits(const Units& lhs, const Units& rhs);
         IncompatibleUnits(const UnitType lhs, const UnitType rhs);
         virtual ~IncompatibleUnits() throw() {};
     };

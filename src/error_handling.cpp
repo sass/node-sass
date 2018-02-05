@@ -121,7 +121,7 @@ namespace Sass {
       msg  = "stack level too deep";
     }
 
-    IncompatibleUnits::IncompatibleUnits(const Number& lhs, const Number& rhs)
+    IncompatibleUnits::IncompatibleUnits(const Units& lhs, const Units& rhs)
     {
       msg  = "Incompatible units: '";
       msg += rhs.unit();
@@ -172,7 +172,7 @@ namespace Sass {
     std::string rel_path(Sass::File::abs2rel(pstate.path, cwd, cwd));
     std::string output_path(Sass::File::path_for_console(rel_path, abs_path, pstate.path));
 
-    std::cerr << "WARNING on line " << pstate.line+1 << ", column " << pstate.column+1 << " of " << output_path << std::endl;
+    std::cerr << "WARNING on line " << pstate.line+1 << ", column " << pstate.column+1 << " of " << output_path << ":" << std::endl;
     std::cerr << msg << std::endl << std::endl;
   }
 

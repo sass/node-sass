@@ -99,6 +99,15 @@ namespace Sass {
     // consume unicode BOM
     read_bom();
 
+    // scan the input to find invalid utf8 sequences
+    const char* it = utf8::find_invalid(position, end);
+
+    // report invalid utf8
+    if (it != end) {
+      pstate += Offset::init(position, it);
+      throw Exception::InvalidSass(pstate, "Invalid UTF-8 sequence");
+    }
+
     // create a block AST node to hold children
     Block_Obj root = SASS_MEMORY_NEW(Block, pstate, 0, true);
 
@@ -1726,6 +1735,7 @@ namespace Sass {
     // static values always have trailing white-
     // space and end delimiter (\s*[;]$) included
     -- pstate.offset.column;
+    --after_token.column;
     --str.end;
     --position;
 
@@ -2644,6 +2654,7 @@ namespace Sass {
         re_selector_list
       >(p)
     ) {
+      bool could_be_property = peek< sequence< exactly<'-'>, exactly<'-'> > >(p) != 0;
       while (p < q) {
         // did we have interpolations?
         if (*p == '#' && *(p+1) == '{') {

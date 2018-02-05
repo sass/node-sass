@@ -14,6 +14,7 @@ namespace Sass {
     scheduled_space(0),
     scheduled_linefeed(0),
     scheduled_delimiter(false),
+    scheduled_crutch(0),
     scheduled_mapping(0),
     in_comment(false),
     in_wrapped(false),
@@ -101,7 +102,11 @@ namespace Sass {
   // prepend some text or token to the buffer
   void Emitter::prepend_string(const std::string& text)
   {
-    wbuf.smap.prepend(Offset(text));
+    // do not adjust mappings for utf8 bom
+    // seems they are not counted in any UA
+    if (text.compare("\xEF\xBB\xBF") != 0) {
+      wbuf.smap.prepend(Offset(text));
+    }
     wbuf.buffer = text + wbuf.buffer;
   }
 
@@ -161,9 +166,9 @@ namespace Sass {
     add_open_mapping(node);
     // hotfix for browser issues
     // this is pretty ugly indeed
-    if (scheduled_mapping) {
-      add_open_mapping(scheduled_mapping);
-      scheduled_mapping = 0;
+    if (scheduled_crutch) {
+      add_open_mapping(scheduled_crutch);
+      scheduled_crutch = 0;
     }
     append_string(text);
     add_close_mapping(node);
