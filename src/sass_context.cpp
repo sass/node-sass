@@ -569,11 +569,6 @@ extern "C" {
     free(options->include_path);
     free(options->source_map_file);
     free(options->source_map_root);
-    // Free custom functions
-    free(options->c_functions);
-    // Free custom importers
-    free(options->c_importers);
-    free(options->c_headers);
     // Reset our pointers
     options->input_path = 0;
     options->output_path = 0;
