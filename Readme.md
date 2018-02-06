@@ -24,11 +24,12 @@ CLI tool built by the same people as LibSass.
 
 - https://github.com/sass/node-sass (Node.js)
 - https://github.com/sass/perl-libsass (Perl)
+- https://github.com/sass/libsass-python (Python)
 - https://github.com/wellington/go-libsass (Go)
 - https://github.com/sass/sassc-ruby (Ruby)
 - https://github.com/sass/libsass-net (C#)
 - https://github.com/medialize/sass.js (JS)
-- https://github.com/sass/libsass-python (Python)
+- https://github.com/bit3/jsass (Java)
 
 This list does not say anything about the quality of either the listed or not listed [implementations](docs/implementations.md)!  
 The authors of the listed projects above are just known to work regularly together with LibSass developers.
