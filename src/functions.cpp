@@ -320,8 +320,8 @@ namespace Sass {
 
     inline bool special_number(String_Constant_Ptr s) {
       if (s) {
-        std::string calc("calc");
-        std::string var("var");
+        std::string calc("calc(");
+        std::string var("var(");
         std::string ss(s->value());
         return std::equal(calc.begin(), calc.end(), ss.begin()) ||
                std::equal(var.begin(), var.end(), ss.begin());
@@ -386,6 +386,17 @@ namespace Sass {
     Signature rgba_2_sig = "rgba($color, $alpha)";
     BUILT_IN(rgba_2)
     {
+      if (
+        special_number(Cast<String_Constant>(env["$color"]))
+      ) {
+        return SASS_MEMORY_NEW(String_Constant, pstate, "rgba("
+                                                        + env["$color"]->to_string()
+                                                        + ", "
+                                                        + env["$alpha"]->to_string()
+                                                        + ")"
+        );
+      }
+
       Color_Ptr c_arg = ARG("$color", Color);
 
       if (
@@ -1738,7 +1749,7 @@ namespace Sass {
 
     Signature unit_sig = "unit($number)";
     BUILT_IN(unit)
-    { 
+    {
       Number_Obj arg = ARGN("$number");
       std::string str(quote(arg->unit(), '"'));
       return SASS_MEMORY_NEW(String_Quoted, pstate, str);
