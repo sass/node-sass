@@ -295,7 +295,7 @@ namespace Sass {
     else if (lex< re_prefixed_directive >(true)) { block->append(parse_prefixed_directive()); }
     else if (lex< at_keyword >(true)) { block->append(parse_directive()); }
 
-    else if (is_root /* && block->is_root() */) {
+    else if (is_root && stack.back() != Scope::AtRoot /* && block->is_root() */) {
       lex< css_whitespace >();
       if (position >= end) return true;
       css_error("Invalid CSS", " after ", ": expected 1 selector or at-rule, was ");
@@ -2479,6 +2479,7 @@ namespace Sass {
 
   At_Root_Block_Obj Parser::parse_at_root_block()
   {
+    stack.push_back(Scope::AtRoot);
     ParserState at_source_position = pstate;
     Block_Obj body = 0;
     At_Root_Query_Obj expr;
@@ -2497,6 +2498,7 @@ namespace Sass {
     }
     At_Root_Block_Obj at_root = SASS_MEMORY_NEW(At_Root_Block, at_source_position, body);
     if (!expr.isNull()) at_root->expression(expr);
+    stack.pop_back();
     return at_root;
   }
 

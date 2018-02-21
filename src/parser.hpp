@@ -33,7 +33,7 @@ namespace Sass {
   class Parser : public ParserState {
   public:
 
-    enum Scope { Root, Mixin, Function, Media, Control, Properties, Rules };
+    enum Scope { Root, Mixin, Function, Media, Control, Properties, Rules, AtRoot };
 
     Context& ctx;
     std::vector<Block_Obj> block_stack;

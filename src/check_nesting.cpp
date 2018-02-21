@@ -40,7 +40,11 @@ namespace Sass {
       }
 
       At_Root_Block_Ptr ar = Cast<At_Root_Block>(parent);
-      Statement_Ptr ret = this->visit_children(ar->block());
+      Block_Ptr ret = ar->block();
+
+      for (auto n : ret->elements()) {
+        n->perform(this);
+      }
 
       this->parent = old_parent;
       this->parents = old_parents;
