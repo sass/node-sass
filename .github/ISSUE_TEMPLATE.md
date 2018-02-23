@@ -1,3 +1,4 @@
+<!--
 Before opening an issue:
 - Check that the version of node-sass you're trying to install supports your version of Node by looking at the release page for that version https://github.com/sass/node-sass/releases
 - Read the common workarounds in the [TROUBLESHOOTING.md](https://github.com/sass/node-sass/blob/master/TROUBLESHOOTING.md)
@@ -6,7 +7,14 @@ Before opening an issue:
 - Prepare a [reduced test case](https://css-tricks.com/reduced-test-cases/) for any bugs
 - Read the [contributing guidelines](https://github.com/sass/node-sass/blob/master/.github/CONTRIBUTING.md)
 
-When reporting an bug, **you must provide this information**:
+When encountering a syntax, or compilation issue:
+
+- [Open an issue on `LibSass`](https://github.com/sass/LibSass/issues/new). You
+may link it back here, but any change will be required there, not here
+
+**When reporting an bug, YOU MUST PROVIDE THIS INFORMATION 
+or your issue will be closed without discussion**
+-->
 
 - NPM version (`npm -v`):
 - Node version (`node -v`):
@@ -15,10 +23,3 @@ When reporting an bug, **you must provide this information**:
 - Node architecture (`node -p process.arch`):
 - node-sass version (`node -p "require('node-sass').info"`):
 - npm node-sass versions (`npm ls node-sass`):
-
-When encountering a syntax, or compilation issue:
-
-- [Open an issue on `LibSass`](https://github.com/sass/LibSass/issues/new). You
-may link it back here, but any change will be required there, not here
-
-*If you delete this text without following it, your issue will be closed.*
