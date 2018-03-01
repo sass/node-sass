@@ -42,8 +42,10 @@ namespace Sass {
       At_Root_Block_Ptr ar = Cast<At_Root_Block>(parent);
       Block_Ptr ret = ar->block();
 
-      for (auto n : ret->elements()) {
-        n->perform(this);
+      if (ret != NULL) {
+        for (auto n : ret->elements()) {
+          n->perform(this);
+        }
       }
 
       this->parent = old_parent;
