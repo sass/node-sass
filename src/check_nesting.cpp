@@ -103,6 +103,19 @@ namespace Sass {
     return n;
   }
 
+  Statement_Ptr CheckNesting::operator()(If_Ptr i)
+  {
+    this->visit_children(i);
+
+    if (Block_Ptr b = Cast<Block>(i->alternative())) {
+      for (auto n : i->alternative()->elements()) {
+        n->perform(this);
+      }
+    }
+
+    return i;
+  }
+
   Statement_Ptr CheckNesting::fallback_impl(Statement_Ptr s)
   {
     Block_Ptr b1 = Cast<Block>(s);

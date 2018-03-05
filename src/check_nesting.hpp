@@ -22,6 +22,7 @@ namespace Sass {
 
     Statement_Ptr operator()(Block_Ptr);
     Statement_Ptr operator()(Definition_Ptr);
+    Statement_Ptr operator()(If_Ptr);
 
     template <typename U>
     Statement_Ptr fallback(U x) {
