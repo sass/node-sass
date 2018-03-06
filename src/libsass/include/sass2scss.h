@@ -37,7 +37,7 @@
 #ifndef SASS2SCSS_VERSION
 // Hardcode once the file is copied from
 // https://github.com/mgreter/sass2scss
-#define SASS2SCSS_VERSION "1.1.0"
+#define SASS2SCSS_VERSION "1.1.1"
 #endif
 
 // add namespace for c++

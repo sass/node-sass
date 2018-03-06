@@ -4,6 +4,11 @@
 namespace Sass {
 
 
+  Offset::Offset(const char chr)
+  : line(chr == '\n' ? 1 : 0),
+    column(chr == '\n' ? 0 : 1)
+  {}
+
   Offset::Offset(const char* string)
   : line(0), column(0)
   {
@@ -32,7 +37,6 @@ namespace Sass {
 
   // increase offset by given string (mostly called by lexer)
   // increase line counter and count columns on the last line
-  // ToDo: make the col count utf8 aware
   Offset Offset::add(const char* begin, const char* end)
   {
     if (end == 0) return *this;
@@ -42,9 +46,23 @@ namespace Sass {
         // start new line
         column = 0;
       } else {
-        ++ column;
+        // do not count any utf8 continuation bytes
+        // https://stackoverflow.com/a/9356203/1550314
+        // https://en.wikipedia.org/wiki/UTF-8#Description
+        unsigned char chr = *begin;
+        // skip over 10xxxxxx
+        // is 1st bit not set
+        if ((chr & 128) == 0) {
+          // regular ascii char
+          column += 1;
+        }
+        // is 2nd bit not set
+        else if ((chr & 64) == 0) {
+          // first utf8 byte
+          column += 1;
+        }
       }
-      ++begin;
+      ++ begin;
     }
     return *this;
   }

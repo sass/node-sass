@@ -14,7 +14,9 @@ namespace Sass {
     scheduled_space(0),
     scheduled_linefeed(0),
     scheduled_delimiter(false),
+    scheduled_crutch(0),
     scheduled_mapping(0),
+    in_custom_property(false),
     in_comment(false),
     in_wrapped(false),
     in_media_block(false),
@@ -101,8 +103,28 @@ namespace Sass {
   // prepend some text or token to the buffer
   void Emitter::prepend_string(const std::string& text)
   {
-    wbuf.smap.prepend(Offset(text));
+    // do not adjust mappings for utf8 bom
+    // seems they are not counted in any UA
+    if (text.compare("\xEF\xBB\xBF") != 0) {
+      wbuf.smap.prepend(Offset(text));
+    }
     wbuf.buffer = text + wbuf.buffer;
+  }
+
+  char Emitter::last_char()
+  {
+    return wbuf.buffer.back();
+  }
+
+  // append a single char to the buffer
+  void Emitter::append_char(const char chr)
+  {
+    // write space/lf
+    flush_schedules();
+    // add to buffer
+    wbuf.buffer += chr;
+    // account for data in source-maps
+    wbuf.smap.append(Offset(chr));
   }
 
   // append some text or token to the buffer
@@ -145,9 +167,9 @@ namespace Sass {
     add_open_mapping(node);
     // hotfix for browser issues
     // this is pretty ugly indeed
-    if (scheduled_mapping) {
-      add_open_mapping(scheduled_mapping);
-      scheduled_mapping = 0;
+    if (scheduled_crutch) {
+      add_open_mapping(scheduled_crutch);
+      scheduled_crutch = 0;
     }
     append_string(text);
     add_close_mapping(node);
@@ -193,7 +215,7 @@ namespace Sass {
   {
     scheduled_space = 0;
     append_string(":");
-    append_optional_space();
+    if (!in_custom_property) append_optional_space();
   }
 
   void Emitter::append_mandatory_space()
@@ -206,7 +228,9 @@ namespace Sass {
     if ((output_style() != COMPRESSED) && buffer().size()) {
       unsigned char lst = buffer().at(buffer().length() - 1);
       if (!isspace(lst) || scheduled_delimiter) {
-        append_mandatory_space();
+        if (last_char() != '(') {
+          append_mandatory_space();
+        }
       }
     }
   }

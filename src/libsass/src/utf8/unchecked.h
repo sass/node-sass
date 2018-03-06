@@ -116,6 +116,13 @@ namespace utf8
                 utf8::unchecked::next(it);
         }
 
+        template <typename octet_iterator, typename distance_type>
+        void retreat (octet_iterator& it, distance_type n)
+        {
+            for (distance_type i = 0; i < n; ++i)
+                utf8::unchecked::prior(it);
+        }
+
         template <typename octet_iterator>
         typename std::iterator_traits<octet_iterator>::difference_type
         distance (octet_iterator first, octet_iterator last)

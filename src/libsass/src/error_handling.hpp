@@ -5,6 +5,8 @@
 #include <sstream>
 #include <stdexcept>
 #include "position.hpp"
+#include "ast_fwd_decl.hpp"
+#include "sass/functions.h"
 
 namespace Sass {
 
@@ -15,6 +17,7 @@ namespace Sass {
     const std::string def_msg = "Invalid sass detected";
     const std::string def_op_msg = "Undefined operation";
     const std::string def_op_null_msg = "Invalid null operation";
+    const std::string def_nesting_limit = "Code too deeply neested";
 
     class Base : public std::runtime_error {
       protected:
@@ -66,10 +69,25 @@ namespace Sass {
         virtual ~InvalidArgumentType() throw() {};
     };
 
+    class InvalidVarKwdType : public Base {
+      protected:
+        std::string name;
+        const Argument_Ptr arg;
+      public:
+        InvalidVarKwdType(ParserState pstate, std::string name, const Argument_Ptr arg = 0);
+        virtual ~InvalidVarKwdType() throw() {};
+    };
+
     class InvalidSyntax : public Base {
       public:
         InvalidSyntax(ParserState pstate, std::string msg, std::vector<Sass_Import_Entry>* import_stack = 0);
         virtual ~InvalidSyntax() throw() {};
+    };
+
+    class NestingLimitError : public Base {
+      public:
+        NestingLimitError(ParserState pstate, std::string msg = def_nesting_limit, std::vector<Sass_Import_Entry>* import_stack = 0);
+        virtual ~NestingLimitError() throw() {};
     };
 
     /* common virtual base class (has no pstate) */
@@ -136,10 +154,11 @@ namespace Sass {
 
     class IncompatibleUnits : public OperationError {
       protected:
-        const Number& lhs;
-        const Number& rhs;
+        // const Sass::UnitType lhs;
+        // const Sass::UnitType rhs;
       public:
-        IncompatibleUnits(const Number& lhs, const Number& rhs);
+        IncompatibleUnits(const Units& lhs, const Units& rhs);
+        IncompatibleUnits(const UnitType lhs, const UnitType rhs);
         virtual ~IncompatibleUnits() throw() {};
     };
 
@@ -181,9 +200,10 @@ namespace Sass {
 
   void warn(std::string msg, ParserState pstate);
   void warn(std::string msg, ParserState pstate, Backtrace* bt);
+  void warning(std::string msg, ParserState pstate);
 
   void deprecated_function(std::string msg, ParserState pstate);
-  void deprecated(std::string msg, std::string msg2, ParserState pstate);
+  void deprecated(std::string msg, std::string msg2, bool with_column, ParserState pstate);
   void deprecated_bind(std::string msg, ParserState pstate);
   // void deprecated(std::string msg, ParserState pstate, Backtrace* bt);
 

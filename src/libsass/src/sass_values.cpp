@@ -221,6 +221,7 @@ extern "C" {
         case SASS_WARNING: {
                 free(val->error.message);
         }   break;
+        default: break;
     }
 
     free(val);
@@ -236,26 +237,26 @@ extern "C" {
     switch(val->unknown.tag) {
         case SASS_NULL: {
                 return sass_make_null();
-        }   break;
+        }
         case SASS_BOOLEAN: {
                 return sass_make_boolean(val->boolean.value);
-        }   break;
+        }
         case SASS_NUMBER: {
                 return sass_make_number(val->number.value, val->number.unit);
-        }   break;
+        }
         case SASS_COLOR: {
                 return sass_make_color(val->color.r, val->color.g, val->color.b, val->color.a);
-        }   break;
+        }
         case SASS_STRING: {
                 return sass_string_is_quoted(val) ? sass_make_qstring(val->string.value) : sass_make_string(val->string.value);
-        }   break;
+        }
         case SASS_LIST: {
                 union Sass_Value* list = sass_make_list(val->list.length, val->list.separator, val->list.is_bracketed);
                 for (i = 0; i < list->list.length; i++) {
                     list->list.values[i] = sass_clone_value(val->list.values[i]);
                 }
                 return list;
-        }   break;
+        }
         case SASS_MAP: {
                 union Sass_Value* map = sass_make_map(val->map.length);
                 for (i = 0; i < val->map.length; i++) {
@@ -263,13 +264,14 @@ extern "C" {
                     map->map.pairs[i].value = sass_clone_value(val->map.pairs[i].value);
                 }
                 return map;
-        }   break;
+        }
         case SASS_ERROR: {
                 return sass_make_error(val->error.message);
-        }   break;
+        }
         case SASS_WARNING: {
                 return sass_make_warning(val->warning.message);
-        }   break;
+        }
+        default: break;
     }
 
     return 0;
@@ -287,7 +289,7 @@ extern "C" {
   union Sass_Value* ADDCALL sass_value_op (enum Sass_OP op, const union Sass_Value* a, const union Sass_Value* b)
   {
 
-    Sass::Value_Ptr rv = 0;
+    Sass::Value_Ptr rv;
 
     try {
 
@@ -311,27 +313,27 @@ extern "C" {
       if (sass_value_is_number(a) && sass_value_is_number(b)) {
         Number_Ptr_Const l_n = Cast<Number>(lhs);
         Number_Ptr_Const r_n = Cast<Number>(rhs);
-        rv = Eval::op_numbers(op, *l_n, *r_n, options);
+        rv = Eval::op_numbers(op, *l_n, *r_n, options, l_n->pstate());
       }
       else if (sass_value_is_number(a) && sass_value_is_color(a)) {
         Number_Ptr_Const l_n = Cast<Number>(lhs);
         Color_Ptr_Const r_c = Cast<Color>(rhs);
-        rv = Eval::op_number_color(op, *l_n, *r_c, options);
+        rv = Eval::op_number_color(op, *l_n, *r_c, options, l_n->pstate());
       }
       else if (sass_value_is_color(a) && sass_value_is_number(b)) {
         Color_Ptr_Const l_c = Cast<Color>(lhs);
         Number_Ptr_Const r_n = Cast<Number>(rhs);
-        rv = Eval::op_color_number(op, *l_c, *r_n, options);
+        rv = Eval::op_color_number(op, *l_c, *r_n, options, l_c->pstate());
       }
       else if (sass_value_is_color(a) && sass_value_is_color(b)) {
         Color_Ptr_Const l_c = Cast<Color>(lhs);
         Color_Ptr_Const r_c = Cast<Color>(rhs);
-        rv = Eval::op_colors(op, *l_c, *r_c, options);
+        rv = Eval::op_colors(op, *l_c, *r_c, options, l_c->pstate());
       }
       else /* convert other stuff to string and apply operation */ {
         Value_Ptr l_v = Cast<Value>(lhs);
         Value_Ptr r_v = Cast<Value>(rhs);
-        rv = Eval::op_strings(op, *l_v, *r_v, options);
+        rv = Eval::op_strings(op, *l_v, *r_v, options, l_v->pstate());
       }
 
       // ToDo: maybe we should should return null value?
@@ -349,9 +351,6 @@ extern "C" {
     catch (std::string& e) { return sass_make_error(e.c_str()); }
     catch (const char* e) { return sass_make_error(e); }
     catch (...) { return sass_make_error("unknown"); }
-
-    return 0;
-
   }
 
 }

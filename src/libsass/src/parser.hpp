@@ -10,12 +10,22 @@
 #include "position.hpp"
 #include "prelexer.hpp"
 
+#ifndef MAX_NESTING
+// Note that this limit is not an exact science
+// it depends on various factors, which some are
+// not under our control (compile time or even OS
+// dependent settings on the available stack size)
+// It should fix most common segfault cases though.
+#define MAX_NESTING 512
+#endif
+
 struct Lookahead {
   const char* found;
   const char* error;
   const char* position;
   bool parsable;
   bool has_interpolants;
+  bool is_custom_property;
 };
 
 namespace Sass {
@@ -23,7 +33,7 @@ namespace Sass {
   class Parser : public ParserState {
   public:
 
-    enum Scope { Root, Mixin, Function, Media, Control, Properties, Rules };
+    enum Scope { Root, Mixin, Function, Media, Control, Properties, Rules, AtRoot };
 
     Context& ctx;
     std::vector<Block_Obj> block_stack;
@@ -35,14 +45,14 @@ namespace Sass {
     Position before_token;
     Position after_token;
     ParserState pstate;
-    int indentation;
-
+    size_t indentation;
+    size_t nestings;
 
     Token lexed;
 
     Parser(Context& ctx, const ParserState& pstate)
     : ParserState(pstate), ctx(ctx), block_stack(), stack(0), last_media_block(),
-      source(0), position(0), end(0), before_token(pstate), after_token(pstate), pstate(pstate), indentation(0)
+      source(0), position(0), end(0), before_token(pstate), after_token(pstate), pstate(pstate), indentation(0), nestings(0)
     { stack.push_back(Scope::Root); }
 
     // static Parser from_string(const std::string& src, Context& ctx, ParserState pstate = ParserState("[STRING]"));
@@ -99,7 +109,7 @@ namespace Sass {
 
     }
 
-    // peek will only skip over space, tabs and line comment
+    // match will not skip over space, tabs and line comment
     // return the position where the lexer match will occur
     template <Prelexer::prelexer mx>
     const char* match(const char* start = 0)
@@ -227,7 +237,8 @@ namespace Sass {
     // text before and in the middle are configurable
     void css_error(const std::string& msg,
                    const std::string& prefix = " after ",
-                   const std::string& middle = ", was: ");
+                   const std::string& middle = ", was: ",
+                   const bool trim = true);
     void read_bom();
 
     Block_Obj parse();
@@ -275,6 +286,8 @@ namespace Sass {
     String_Obj parse_interpolated_chunk(Token, bool constant = false);
     String_Obj parse_string();
     String_Constant_Obj parse_static_value();
+    String_Schema_Obj parse_css_variable_value(bool top_level = true);
+    String_Schema_Obj parse_css_variable_value_token(bool top_level = true);
     String_Obj parse_ie_property();
     String_Obj parse_ie_keyword_arg();
     String_Schema_Obj parse_value_schema(const char* stop);
@@ -357,6 +370,21 @@ namespace Sass {
       }
       return 0;
     }
+
+  public:
+    static Number_Ptr lexed_number(const ParserState& pstate, const std::string& parsed);
+    static Number_Ptr lexed_dimension(const ParserState& pstate, const std::string& parsed);
+    static Number_Ptr lexed_percentage(const ParserState& pstate, const std::string& parsed);
+    static Expression_Ptr lexed_hex_color(const ParserState& pstate, const std::string& parsed);
+  private:
+    Number_Ptr lexed_number(const std::string& parsed) { return lexed_number(pstate, parsed); };
+    Number_Ptr lexed_dimension(const std::string& parsed) { return lexed_dimension(pstate, parsed); };
+    Number_Ptr lexed_percentage(const std::string& parsed) { return lexed_percentage(pstate, parsed); };
+    Expression_Ptr lexed_hex_color(const std::string& parsed) { return lexed_hex_color(pstate, parsed); };
+
+    static const char* re_attr_sensitive_close(const char* src);
+    static const char* re_attr_insensitive_close(const char* src);
+
   };
 
   size_t check_bom_chars(const char* src, const char *end, const unsigned char* bom, size_t len);

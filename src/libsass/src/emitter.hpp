@@ -37,9 +37,12 @@ namespace Sass {
       size_t scheduled_space;
       size_t scheduled_linefeed;
       bool scheduled_delimiter;
+      AST_Node_Ptr scheduled_crutch;
       AST_Node_Ptr scheduled_mapping;
 
     public:
+      // output strings different in custom css properties
+      bool in_custom_property;
       // output strings different in comments
       bool in_comment;
       // selector list does not get linefeeds
@@ -66,11 +69,15 @@ namespace Sass {
       void prepend_output(const OutputBuffer& out);
       // append some text or token to the buffer
       void append_string(const std::string& text);
+      // append a single character to buffer
+      void append_char(const char chr);
       // append some white-space only text
       void append_wspace(const std::string& text);
       // append some text or token to the buffer
       // this adds source-mappings for node start and end
       void append_token(const std::string& text, const AST_Node_Ptr node);
+      // query last appended character
+      char last_char();
 
     public: // syntax sugar
       void append_indentation();

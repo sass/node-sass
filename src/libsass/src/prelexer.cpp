@@ -437,6 +437,10 @@ namespace Sass {
         optional <
           sequence <
           exactly <'/'>,
+          negate < sequence <
+            exactly < calc_fn_kwd >,
+            exactly < '(' >
+          > >,
           multiple_units
         > >
       >(src);
@@ -576,7 +580,7 @@ namespace Sass {
     const char* value_combinations(const char* src) {
       // `2px-2px` is invalid combo
       bool was_number = false;
-      const char* pos = src;
+      const char* pos;
       while (src) {
         if ((pos = alternatives < quoted_string, identifier, percentage, hex >(src))) {
           was_number = false;
@@ -642,10 +646,7 @@ namespace Sass {
             >,
             sequence <
               negate <
-                sequence <
-                  exactly < url_kwd >,
-                  exactly <'('>
-                >
+                uri_prefix
               >,
               neg_class_char <
                 almost_any_value_class
@@ -997,7 +998,17 @@ namespace Sass {
                           digits>(src);
     }
     const char* number(const char* src) {
-      return sequence< optional<sign>, unsigned_number>(src);
+      return sequence<
+          optional<sign>,
+          unsigned_number,
+          optional<
+            sequence<
+              exactly<'e'>,
+              optional<sign>,
+              unsigned_number
+            >
+          >
+        >(src);
     }
     const char* coefficient(const char* src) {
       return alternatives< sequence< optional<sign>, digits >,
@@ -1036,7 +1047,7 @@ namespace Sass {
     const char* hexa(const char* src) {
       const char* p = sequence< exactly<'#'>, one_plus<xdigit> >(src);
       ptrdiff_t len = p - src;
-      return (len != 4 && len != 7 && len != 9) ? 0 : p;
+      return (len != 5 && len != 9) ? 0 : p;
     }
     const char* hex0(const char* src) {
       const char* p = sequence< exactly<'0'>, exactly<'x'>, one_plus<xdigit> >(src);
@@ -1046,7 +1057,7 @@ namespace Sass {
 
     /* no longer used - remove?
     const char* rgb_prefix(const char* src) {
-      return word<rgb_kwd>(src);
+      return word<rgb_fn_kwd>(src);
     }*/
     // Match CSS uri specifiers.
 
@@ -1160,7 +1171,7 @@ namespace Sass {
     }
     // Match the CSS negation pseudo-class.
     const char* pseudo_not(const char* src) {
-      return word< pseudo_not_kwd >(src);
+      return word< pseudo_not_fn_kwd >(src);
     }
     // Match CSS 'odd' and 'even' keywords for functional pseudo-classes.
     const char* even(const char* src) {
@@ -1268,7 +1279,7 @@ namespace Sass {
             optional_css_whitespace,
             exactly<'='>,
             optional_css_whitespace,
-            alternatives< variable, identifier_schema, identifier, quoted_string, number, hexa >,
+            alternatives< variable, identifier_schema, identifier, quoted_string, number, hex, hexa >,
             zero_plus< sequence<
               optional_css_whitespace,
               exactly<','>,
@@ -1278,7 +1289,7 @@ namespace Sass {
                 optional_css_whitespace,
                 exactly<'='>,
                 optional_css_whitespace,
-                alternatives< variable, identifier_schema, identifier, quoted_string, number, hexa >
+                alternatives< variable, identifier_schema, identifier, quoted_string, number, hex, hexa >
               >
             > >
           > >,
@@ -1313,6 +1324,7 @@ namespace Sass {
           identifier,
           quoted_string,
           number,
+          hex,
           hexa,
           sequence <
             exactly < '(' >,
@@ -1449,6 +1461,16 @@ namespace Sass {
     //   >(src);
     // }
 
+    const char* real_uri(const char* src) {
+      return sequence<
+        exactly< url_kwd >,
+        exactly< '(' >,
+        W,
+        real_uri_value,
+        exactly< ')' >
+      >(src);
+    }
+
     const char* real_uri_suffix(const char* src) {
       return sequence< W, exactly< ')' > >(src);
     }
@@ -1499,6 +1521,7 @@ namespace Sass {
                            static_string,
                            percentage,
                            hex,
+                           hexa,
                            exactly<'|'>,
                            // exactly<'+'>,
                            sequence < number, unit_identifier >,
@@ -1566,6 +1589,40 @@ namespace Sass {
                       >(src);
     }
 
+    extern const char css_variable_url_negates[] = "()[]{}\"'#/";
+    const char* css_variable_value(const char* src) {
+      return sequence<
+        alternatives<
+          sequence<
+            negate< exactly< url_fn_kwd > >,
+            one_plus< neg_class_char< css_variable_url_negates > >
+          >,
+          sequence< exactly<'#'>, negate< exactly<'{'> > >,
+          sequence< exactly<'/'>, negate< exactly<'*'> > >,
+          static_string,
+          real_uri,
+          block_comment
+        >
+      >(src);
+    }
+
+    extern const char css_variable_url_top_level_negates[] = "()[]{}\"'#/;!";
+    const char* css_variable_top_level_value(const char* src) {
+      return sequence<
+        alternatives<
+          sequence<
+            negate< exactly< url_fn_kwd > >,
+            one_plus< neg_class_char< css_variable_url_top_level_negates > >
+          >,
+          sequence< exactly<'#'>, negate< exactly<'{'> > >,
+          sequence< exactly<'/'>, negate< exactly<'*'> > >,
+          static_string,
+          real_uri,
+          block_comment
+        >
+      >(src);
+    }
+
     const char* parenthese_scope(const char* src) {
       return sequence <
         exactly < '(' >,
@@ -1599,7 +1656,7 @@ namespace Sass {
             class_char < selector_lookahead_ops >,
             // match selector combinators /[>+~]/
             class_char < selector_combinator_ops >,
-            // match attribute compare operators
+            // match pseudo selectors
             sequence <
               exactly <'('>,
               optional_spaces,
@@ -1607,6 +1664,7 @@ namespace Sass {
               optional_spaces,
               exactly <')'>
             >,
+            // match attribute compare operators
             alternatives <
               exact_match, class_match, dash_match,
               prefix_match, suffix_match, substring_match
@@ -1625,12 +1683,21 @@ namespace Sass {
                 // class match
                 exactly <'.'>,
                 // single or double colon
-                optional < pseudo_prefix >
+                sequence <
+                  optional < pseudo_prefix >,
+                  // fix libsass issue 2376
+                  negate < uri_prefix >
+                >
               >,
               // accept hypens in token
               one_plus < sequence <
                 // can start with hyphens
-                zero_plus < exactly<'-'> >,
+                zero_plus <
+                  sequence <
+                    exactly <'-'>,
+                    optional_spaces
+                  >
+                >,
                 // now the main token
                 alternatives <
                   kwd_optional,
@@ -1657,10 +1724,7 @@ namespace Sass {
       return sequence< optional<namespace_schema>, identifier>(src);
     }
     const char* re_type_selector(const char* src) {
-      return alternatives< type_selector, universal, quoted_string, dimension, percentage, number, identifier_alnums >(src);
-    }
-    const char* re_type_selector2(const char* src) {
-      return alternatives< type_selector, universal, quoted_string, dimension, percentage, number, identifier_alnums >(src);
+      return alternatives< type_selector, universal, dimension, percentage, number, identifier_alnums >(src);
     }
     const char* re_static_expression(const char* src) {
       return sequence< number, optional_spaces, exactly<'/'>, optional_spaces, number >(src);

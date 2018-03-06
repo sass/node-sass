@@ -29,6 +29,7 @@ namespace Sass {
     bool is_alpha(const char& src);
     bool is_punct(const char& src);
     bool is_digit(const char& src);
+    bool is_number(const char& src);
     bool is_alnum(const char& src);
     bool is_xdigit(const char& src);
     bool is_unicode(const char& src);
@@ -96,9 +97,9 @@ namespace Sass {
     // Regex equivalent: /(?:literal)/
     template <const char* str>
     const char* exactly(const char* src) {
-      if (str == 0) return 0;
+      if (str == NULL) return 0;
       const char* pre = str;
-      if (src == 0) return 0;
+      if (src == NULL) return 0;
       // there is a small chance that the search string
       // is longer than the rest of the string to look at
       while (*pre && *src == *pre) {
@@ -109,14 +110,22 @@ namespace Sass {
     }
 
 
+    // Match a single character literal.
+    // Regex equivalent: /(?:x)/i
+    // only define lower case alpha chars
+    template <char chr>
+    const char* insensitive(const char* src) {
+      return *src == chr || *src+32 == chr ? src + 1 : 0;
+    }
+
     // Match the full string literal.
     // Regex equivalent: /(?:literal)/i
     // only define lower case alpha chars
     template <const char* str>
     const char* insensitive(const char* src) {
-      if (str == 0) return 0;
+      if (str == NULL) return 0;
       const char* pre = str;
-      if (src == 0) return 0;
+      if (src == NULL) return 0;
       // there is a small chance that the search string
       // is longer than the rest of the string to look at
       while (*pre && (*src == *pre || *src+32 == *pre)) {

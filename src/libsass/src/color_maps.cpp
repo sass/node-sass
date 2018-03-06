@@ -607,16 +607,20 @@ namespace Sass {
 
   Color_Ptr_Const name_to_color(const char* key)
   {
-    auto p = names_to_colors.find(key);
-    if (p != names_to_colors.end()) {
-      return p->second;
-    }
-    return 0;
+    return name_to_color(std::string(key));
   }
 
   Color_Ptr_Const name_to_color(const std::string& key)
   {
-    return name_to_color(key.c_str());
+    // case insensitive lookup.  See #2462
+    std::string lower{key};
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+
+    auto p = names_to_colors.find(lower.c_str());
+    if (p != names_to_colors.end()) {
+      return p->second;
+    }
+    return 0;
   }
 
   const char* color_to_name(const int key)

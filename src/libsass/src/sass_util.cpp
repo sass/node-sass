@@ -37,7 +37,7 @@ namespace Sass {
       end
     end
   */
-  Node paths(const Node& arrs, Context& ctx) {
+  Node paths(const Node& arrs) {
 
     Node loopStart = Node::createCollection();
     loopStart.collection()->push_back(Node::createCollection());
@@ -108,7 +108,7 @@ namespace Sass {
     return flattened
   end
   */
-  Node flatten(Node& arr, Context& ctx, int n) {
+  Node flatten(Node& arr, int n) {
     if (n != -1 && n == 0) {
       return arr;
     }
@@ -124,7 +124,7 @@ namespace Sass {
       if (e.isCollection()) {
 
       	// e.collection().got_line_feed = e.got_line_feed;
-      	Node recurseFlattened = flatten(e, ctx, n - 1);
+      	Node recurseFlattened = flatten(e, n - 1);
 
       	if(e.got_line_feed) {
       		 flattened.got_line_feed = e.got_line_feed;

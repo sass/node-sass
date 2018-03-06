@@ -134,6 +134,7 @@ namespace Sass {
       append_string(ss.str());
       append_optional_linefeed();
     }
+    scheduled_crutch = s;
     if (s) s->perform(this);
     append_scope_opener(b);
     for (size_t i = 0, L = b->length(); i < L; ++i) {
@@ -324,7 +325,7 @@ namespace Sass {
     if (s->can_compress_whitespace() && output_style() == COMPRESSED) {
       value.erase(std::remove_if(value.begin(), value.end(), ::isspace), value.end());
     }
-    if (!in_comment) {
+    if (!in_comment && !in_custom_property) {
       append_token(string_to_output(value), s);
     } else {
       append_token(value, s);

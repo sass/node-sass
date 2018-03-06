@@ -9,8 +9,6 @@ namespace Sass {
     // throw a runtime error if this happens
     // we want a well defined set of possible nodes
     throw std::runtime_error("invalid node for to_value");
-    // mute warning
-    return 0;
   }
 
   // Custom_Error is a valid value
@@ -62,7 +60,8 @@ namespace Sass {
                                l->pstate(),
                                l->length(),
                                l->separator(),
-                               l->is_arglist());
+                               l->is_arglist(),
+                               l->is_bracketed());
     for (size_t i = 0, L = l->length(); i < L; ++i) {
       ll->append((*l)[i]->perform(this));
     }
@@ -77,6 +76,12 @@ namespace Sass {
 
   // Null is a valid value
   Value_Ptr To_Value::operator()(Null_Ptr n)
+  {
+    return n;
+  }
+
+  // Function is a valid value
+  Value_Ptr To_Value::operator()(Function_Ptr n)
   {
     return n;
   }

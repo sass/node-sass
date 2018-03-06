@@ -23,12 +23,12 @@ namespace Sass {
 
   Block_Ptr Cssize::operator()(Block_Ptr b)
   {
-    Block_Ptr bb = SASS_MEMORY_NEW(Block, b->pstate(), b->length(), b->is_root());
+    Block_Obj bb = SASS_MEMORY_NEW(Block, b->pstate(), b->length(), b->is_root());
     // bb->tabs(b->tabs());
     block_stack.push_back(bb);
     append_block(b, bb);
     block_stack.pop_back();
-    return bb;
+    return bb.detach();
   }
 
   Statement_Ptr Cssize::operator()(Trace_Ptr t)
@@ -54,7 +54,8 @@ namespace Sass {
                                       d->pstate(),
                                       property,
                                       d->value(),
-                                      d->is_important());
+                                      d->is_important(),
+                                      d->is_custom_property());
     dd->is_indented(d->is_indented());
     dd->tabs(d->tabs());
 
@@ -174,9 +175,9 @@ namespace Sass {
 
     if (props->length())
     {
-      Block_Obj bb = SASS_MEMORY_NEW(Block, rr->block()->pstate());
-      bb->concat(props);
-      rr->block(bb);
+      Block_Obj pb = SASS_MEMORY_NEW(Block, rr->block()->pstate());
+      pb->concat(props);
+      rr->block(pb);
 
       for (size_t i = 0, L = rules->length(); i < L; i++)
       {
@@ -259,7 +260,7 @@ namespace Sass {
       tmp |= m->exclude_node(s);
     }
 
-    if (!tmp)
+    if (!tmp && m->block())
     {
       Block_Ptr bb = operator()(m->block());
       for (size_t i = 0, L = bb->length(); i < L; ++i) {
@@ -302,14 +303,17 @@ namespace Sass {
 
   Statement_Ptr Cssize::bubble(At_Root_Block_Ptr m)
   {
+    if (!m || !m->block()) return NULL;
     Block_Ptr bb = SASS_MEMORY_NEW(Block, this->parent()->pstate());
     Has_Block_Obj new_rule = Cast<Has_Block>(SASS_MEMORY_COPY(this->parent()));
-    new_rule->block(bb);
-    new_rule->tabs(this->parent()->tabs());
-    new_rule->block()->concat(m->block());
-
     Block_Ptr wrapper_block = SASS_MEMORY_NEW(Block, m->block()->pstate());
-    wrapper_block->append(new_rule);
+    if (new_rule) {
+      new_rule->block(bb);
+      new_rule->tabs(this->parent()->tabs());
+      new_rule->block()->concat(m->block());
+      wrapper_block->append(new_rule);
+    }
+
     At_Root_Block_Ptr mm = SASS_MEMORY_NEW(At_Root_Block,
                                         m->pstate(),
                                         wrapper_block,
@@ -442,7 +446,7 @@ namespace Sass {
 
       for (size_t j = 0, K = slice->length(); j < K; ++j)
       {
-        Statement_Ptr ss = NULL;
+        Statement_Ptr ss;
         Statement_Obj stm = slice->at(j);
         // this has to go now here (too bad)
         Bubble_Obj node = Cast<Bubble>(stm);
@@ -475,8 +479,6 @@ namespace Sass {
 
         ss->tabs(ss->tabs() + node->tabs());
         ss->group_end(node->group_end());
-
-        if (!ss) continue;
 
         Block_Obj bb = SASS_MEMORY_NEW(Block,
                                     children->pstate(),
@@ -584,10 +586,11 @@ namespace Sass {
     }
 
     Media_Query_Ptr mm = SASS_MEMORY_NEW(Media_Query,
-
-mq1->pstate(), 0,
-mq1->length() + mq2->length(), mod == "not", mod == "only"
-);
+                                         mq1->pstate(),
+                                         0,
+                                         mq1->length() + mq2->length(),
+                                         mod == "not",
+                                         mod == "only");
 
     if (!type.empty()) {
       mm->media_type(SASS_MEMORY_NEW(String_Quoted, mq1->pstate(), type));

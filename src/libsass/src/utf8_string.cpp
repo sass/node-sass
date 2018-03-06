@@ -28,7 +28,7 @@ namespace Sass {
     size_t offset_at_position(const string& str, size_t position) {
       string::const_iterator it = str.begin();
       utf8::advance(it, position, str.end());
-      return distance(str.begin(), it);
+      return std::distance(str.begin(), it);
     }
 
     // function that returns number of bytes in a character at offset
