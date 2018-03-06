@@ -24,9 +24,9 @@ namespace Sass {
 
     json_append_member(json_srcmap, "version", json_mknumber(3));
 
-    const char *include = file.c_str();
-    JsonNode *json_include = json_mkstring(include);
-    json_append_member(json_srcmap, "file", json_include);
+    const char *file_name = file.c_str();
+    JsonNode *json_file_name = json_mkstring(file_name);
+    json_append_member(json_srcmap, "file", json_file_name);
 
     // pass-through sourceRoot option
     if (!ctx.source_map_root.empty()) {
@@ -34,35 +34,34 @@ namespace Sass {
       json_append_member(json_srcmap, "sourceRoot", root);
     }
 
-    JsonNode *json_includes = json_mkarray();
+    JsonNode *json_sources = json_mkarray();
     for (size_t i = 0; i < source_index.size(); ++i) {
-      std::string include(links[source_index[i]]);
+      std::string source(links[source_index[i]]);
       if (ctx.c_options.source_map_file_urls) {
-        include = File::rel2abs(include);
+        source = File::rel2abs(source);
         // check for windows abs path
-        if (include[0] == '/') {
+        if (source[0] == '/') {
           // ends up with three slashes
-          include = "file://" + include;
+          source = "file://" + source;
         } else {
           // needs an additional slash
-          include = "file:///" + include;
+          source = "file:///" + source;
         }
       }
-      const char* inc = include.c_str();
-      JsonNode *json_include = json_mkstring(inc);
-      json_append_element(json_includes, json_include);
+      const char* source_name = source.c_str();
+      JsonNode *json_source_name = json_mkstring(source_name);
+      json_append_element(json_sources, json_source_name);
     }
-    json_append_member(json_srcmap, "sources", json_includes);
+    json_append_member(json_srcmap, "sources", json_sources);
 
-    if (include_sources) {
+    if (include_sources && source_index.size()) {
       JsonNode *json_contents = json_mkarray();
       for (size_t i = 0; i < source_index.size(); ++i) {
         const Resource& resource(sources[source_index[i]]);
         JsonNode *json_content = json_mkstring(resource.contents);
         json_append_element(json_contents, json_content);
       }
-      if (json_contents->children.head)
-        json_append_member(json_srcmap, "sourcesContent", json_contents);
+      json_append_member(json_srcmap, "sourcesContent", json_contents);
     }
 
     JsonNode *json_names = json_mkarray();
@@ -137,7 +136,7 @@ namespace Sass {
         }
       }
     }
-    // will adjust the offset
+    // adjust the buffer offset
     prepend(Offset(out.buffer));
     // now add the new mappings
     VECTOR_UNSHIFT(mappings, out.smap.mappings);

@@ -28,7 +28,7 @@ namespace Sass {
     #     #  [1, 4, 5],
     #     #  [2, 4, 5]]
   */
-  Node paths(const Node& arrs, Context& ctx);
+  Node paths(const Node& arrs);
 
 
   /*
@@ -139,7 +139,7 @@ namespace Sass {
   http://en.wikipedia.org/wiki/Longest_common_subsequence_problem
   */
   template<typename ComparatorType>
-  Node lcs(Node& x, Node& y, const ComparatorType& comparator, Context& ctx) {
+  Node lcs(Node& x, Node& y, const ComparatorType& comparator) {
     DEBUG_PRINTLN(LCS, "LCS: X=" << x << " Y=" << y)
 
     Node newX = Node::createCollection();
@@ -169,7 +169,7 @@ namespace Sass {
   # @param n [int] The number of levels to flatten
   # @return [NodeCollection] The flattened array
   */
-  Node flatten(Node& arr, Context& ctx, int n = -1);
+  Node flatten(Node& arr, int n = -1);
 
 
   /*

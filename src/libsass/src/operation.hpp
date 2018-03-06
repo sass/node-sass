@@ -40,6 +40,7 @@ namespace Sass {
     // expressions
     virtual T operator()(List_Ptr x)                   = 0;
     virtual T operator()(Map_Ptr x)                    = 0;
+    virtual T operator()(Function_Ptr x)               = 0;
     virtual T operator()(Binary_Expression_Ptr x)      = 0;
     virtual T operator()(Unary_Expression_Ptr x)       = 0;
     virtual T operator()(Function_Call_Ptr x)          = 0;
@@ -47,7 +48,6 @@ namespace Sass {
     virtual T operator()(Custom_Warning_Ptr x)         = 0;
     virtual T operator()(Custom_Error_Ptr x)           = 0;
     virtual T operator()(Variable_Ptr x)               = 0;
-    virtual T operator()(Textual_Ptr x)                = 0;
     virtual T operator()(Number_Ptr x)                 = 0;
     virtual T operator()(Color_Ptr x)                  = 0;
     virtual T operator()(Boolean_Ptr x)                = 0;
@@ -122,6 +122,7 @@ namespace Sass {
     // expressions
     T operator()(List_Ptr x)                   { return static_cast<D*>(this)->fallback(x); }
     T operator()(Map_Ptr x)                    { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Function_Ptr x)               { return static_cast<D*>(this)->fallback(x); }
     T operator()(Binary_Expression_Ptr x)      { return static_cast<D*>(this)->fallback(x); }
     T operator()(Unary_Expression_Ptr x)       { return static_cast<D*>(this)->fallback(x); }
     T operator()(Function_Call_Ptr x)          { return static_cast<D*>(this)->fallback(x); }
@@ -129,7 +130,6 @@ namespace Sass {
     T operator()(Custom_Warning_Ptr x)         { return static_cast<D*>(this)->fallback(x); }
     T operator()(Custom_Error_Ptr x)           { return static_cast<D*>(this)->fallback(x); }
     T operator()(Variable_Ptr x)               { return static_cast<D*>(this)->fallback(x); }
-    T operator()(Textual_Ptr x)                { return static_cast<D*>(this)->fallback(x); }
     T operator()(Number_Ptr x)                 { return static_cast<D*>(this)->fallback(x); }
     T operator()(Color_Ptr x)                  { return static_cast<D*>(this)->fallback(x); }
     T operator()(Boolean_Ptr x)                { return static_cast<D*>(this)->fallback(x); }

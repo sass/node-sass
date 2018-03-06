@@ -43,6 +43,9 @@ namespace Sass {
     Plugins plugins;
     Output emitter;
 
+    // generic ast node garbage container
+    // used to avoid possible circular refs
+    std::vector<AST_Node_Obj> ast_gc;
     // resources add under our control
     // these are guaranteed to be freed
     std::vector<char*> strings;

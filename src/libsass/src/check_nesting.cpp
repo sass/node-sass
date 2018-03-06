@@ -40,7 +40,13 @@ namespace Sass {
       }
 
       At_Root_Block_Ptr ar = Cast<At_Root_Block>(parent);
-      Statement_Ptr ret = this->visit_children(ar->block());
+      Block_Ptr ret = ar->block();
+
+      if (ret != NULL) {
+        for (auto n : ret->elements()) {
+          n->perform(this);
+        }
+      }
 
       this->parent = old_parent;
       this->parents = old_parents;
@@ -95,6 +101,19 @@ namespace Sass {
     this->current_mixin_definition = old_mixin_definition;
 
     return n;
+  }
+
+  Statement_Ptr CheckNesting::operator()(If_Ptr i)
+  {
+    this->visit_children(i);
+
+    if (Block_Ptr b = Cast<Block>(i->alternative())) {
+      for (auto n : i->alternative()->elements()) {
+        n->perform(this);
+      }
+    }
+
+    return i;
   }
 
   Statement_Ptr CheckNesting::fallback_impl(Statement_Ptr s)

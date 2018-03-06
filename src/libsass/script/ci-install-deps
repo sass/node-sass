@@ -1,7 +1,7 @@
 #!/bin/bash
 if [ "x$COVERAGE" == "xyes" ]; then
-  pip install --user gcovr
-  pip install --user cpp-coveralls
+  pip2 install --user gcovr
+  pip2 install --user cpp-coveralls
 else
   echo "no dependencies to install"
 fi
@@ -15,9 +15,6 @@ if [ "x$AUTOTOOLS" == "xyes" ]; then
     sudo apt-get -qq install automake
   fi
 
-  # https://github.com/sass/libsass/pull/2183
-  if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-    brew uninstall libtool
-    brew install libtool
-  fi
 fi
+
+exit 0

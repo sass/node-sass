@@ -2,17 +2,26 @@
 #define SASS_ENVIRONMENT_H
 
 #include <string>
-#include <map>
-
 #include "ast_fwd_decl.hpp"
 #include "ast_def_macros.hpp"
 
 namespace Sass {
 
+  typedef environment_map<std::string, AST_Node_Obj>::iterator EnvIter;
+
+  class EnvResult {
+    public:
+      EnvIter it;
+      bool found;
+    public:
+      EnvResult(EnvIter it, bool found)
+      : it(it), found(found) {}
+  };
+
   template <typename T>
   class Environment {
     // TODO: test with map
-    std::map<std::string, T> local_frame_;
+    environment_map<std::string, T> local_frame_;
     ADD_PROPERTY(Environment*, parent)
     ADD_PROPERTY(bool, is_shadow)
 
@@ -37,14 +46,17 @@ namespace Sass {
 
     // scope operates on the current frame
 
-    std::map<std::string, T>& local_frame();
+    environment_map<std::string, T>& local_frame();
 
     bool has_local(const std::string& key) const;
+
+    EnvResult find_local(const std::string& key);
 
     T& get_local(const std::string& key);
 
     // set variable on the current frame
-    void set_local(const std::string& key, T val);
+    void set_local(const std::string& key, const T& val);
+    void set_local(const std::string& key, T&& val);
 
     void del_local(const std::string& key);
 
@@ -60,7 +72,8 @@ namespace Sass {
     T& get_global(const std::string& key);
 
     // set a variable on the global frame
-    void set_global(const std::string& key, T val);
+    void set_global(const std::string& key, const T& val);
+    void set_global(const std::string& key, T&& val);
 
     void del_global(const std::string& key);
 
@@ -72,11 +85,16 @@ namespace Sass {
     // see if we have a lexical we could update
     // either update already existing lexical value
     // or we create a new one on the current frame
-    void set_lexical(const std::string& key, T val);
+    void set_lexical(const std::string& key, T&& val);
+    void set_lexical(const std::string& key, const T& val);
 
     // look on the full stack for key
     // include all scopes available
     bool has(const std::string& key) const;
+
+    // look on the full stack for key
+    // include all scopes available
+    EnvResult find(const std::string& key);
 
     // use array access for getter and setter functions
     T& operator[](const std::string& key);

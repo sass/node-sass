@@ -17,7 +17,7 @@ namespace Sass {
   #ifdef DEBUG_SHARED_PTR
 
     #define SASS_MEMORY_NEW(Class, ...) \
-      ((new Class(__VA_ARGS__))->trace(__FILE__, __LINE__)) \
+      ((Class*)(new Class(__VA_ARGS__))->trace(__FILE__, __LINE__)) \
 
     #define SASS_MEMORY_COPY(obj) \
       ((obj)->copy(__FILE__, __LINE__)) \
@@ -86,9 +86,9 @@ namespace Sass {
 
 
   class SharedPtr {
-  private:
+  protected:
     SharedObj* node;
-  private:
+  protected:
     void decRefCount();
     void incRefCount();
   public:
@@ -97,16 +97,16 @@ namespace Sass {
     : node(NULL) {};
     // the create constructor
     SharedPtr(SharedObj* ptr);
-    // copy assignment operator
-    SharedPtr& operator=(const SharedPtr& rhs);
-    // move assignment operator
-    /* SharedPtr& operator=(SharedPtr&& rhs); */
     // the copy constructor
     SharedPtr(const SharedPtr& obj);
     // the move constructor
-    /* SharedPtr(SharedPtr&& obj); */
-    // destructor
-    ~SharedPtr();
+    SharedPtr(SharedPtr&& obj);
+    // copy assignment operator
+    SharedPtr& operator=(const SharedPtr& obj);
+    // move assignment operator
+    SharedPtr& operator=(SharedPtr&& obj);
+    // pure virtual destructor
+    virtual ~SharedPtr() = 0;
   public:
     SharedObj* obj () const {
       return node;
@@ -146,6 +146,29 @@ namespace Sass {
     : SharedPtr(node) {};
     SharedImpl(const T& node)
     : SharedPtr(node) {};
+    // the copy constructor
+    SharedImpl(const SharedImpl<T>& impl)
+    : SharedPtr(impl.node) {};
+    // the move constructor
+    SharedImpl(SharedImpl<T>&& impl)
+    : SharedPtr(impl.node) {};
+    // copy assignment operator
+    SharedImpl<T>& operator=(const SharedImpl<T>& rhs) {
+      if (node) decRefCount();
+      node = rhs.node;
+      incRefCount();
+      return *this;
+    }
+    // move assignment operator
+    SharedImpl<T>& operator=(SharedImpl<T>&& rhs) {
+      // don't move our self
+      if (this != &rhs) {
+        if (node) decRefCount();
+        node = std::move(rhs.node);
+        rhs.node = NULL;
+      }
+      return *this;
+    }
     ~SharedImpl() {};
   public:
     operator T*() const {

@@ -14,15 +14,15 @@ namespace Sass {
   }
 
 
-  Node Node::createSelector(Complex_Selector_Ptr pSelector, Context& ctx) {
+  Node Node::createSelector(const Complex_Selector& pSelector) {
     NodeDequePtr null;
 
-    Complex_Selector_Ptr pStripped = SASS_MEMORY_COPY(pSelector);
+    Complex_Selector_Ptr pStripped = SASS_MEMORY_COPY(&pSelector);
     pStripped->tail(NULL);
     pStripped->combinator(Complex_Selector::ANCESTOR_OF);
 
     Node n(SELECTOR, Complex_Selector::ANCESTOR_OF, pStripped, null /*pCollection*/);
-    if (pSelector) n.got_line_feed = pSelector->has_line_feed();
+    n.got_line_feed = pSelector.has_line_feed();
     return n;
   }
 
@@ -50,12 +50,12 @@ namespace Sass {
   { if (pSelector) got_line_feed = pSelector->has_line_feed(); }
 
 
-  Node Node::klone(Context& ctx) const {
+  Node Node::klone() const {
     NodeDequePtr pNewCollection = std::make_shared<NodeDeque>();
     if (mpCollection) {
       for (NodeDeque::iterator iter = mpCollection->begin(), iterEnd = mpCollection->end(); iter != iterEnd; iter++) {
         Node& toClone = *iter;
-        pNewCollection->push_back(toClone.klone(ctx));
+        pNewCollection->push_back(toClone.klone());
       }
     }
 
@@ -65,7 +65,7 @@ namespace Sass {
   }
 
 
-  bool Node::contains(const Node& potentialChild, bool simpleSelectorOrderDependent) const {
+  bool Node::contains(const Node& potentialChild) const {
     bool found = false;
 
     for (NodeDeque::iterator iter = mpCollection->begin(), iterEnd = mpCollection->end(); iter != iterEnd; iter++) {
@@ -172,7 +172,7 @@ namespace Sass {
 #endif
 
 
-  Node complexSelectorToNode(Complex_Selector_Ptr pToConvert, Context& ctx) {
+  Node complexSelectorToNode(Complex_Selector_Ptr pToConvert) {
     if (pToConvert == NULL) {
       return Node::createNil();
     }
@@ -191,13 +191,15 @@ namespace Sass {
 
       bool empty_parent_ref = pToConvert->head() && pToConvert->head()->is_empty_reference();
 
-      if (pToConvert->head() || empty_parent_ref) {
-      }
-
       // the first Complex_Selector may contain a dummy head pointer, skip it.
       if (pToConvert->head() && !empty_parent_ref) {
-        node.collection()->push_back(Node::createSelector(pToConvert, ctx));
+        node.collection()->push_back(Node::createSelector(*pToConvert));
         if (has_lf) node.collection()->back().got_line_feed = has_lf;
+        if (pToConvert->head() || empty_parent_ref) {
+          if (pToConvert->tail()) {
+            pToConvert->tail()->has_line_feed(pToConvert->has_line_feed());
+          }
+        }
         has_lf = false;
       }
 
@@ -218,7 +220,7 @@ namespace Sass {
   }
 
 
-  Complex_Selector_Ptr nodeToComplexSelector(const Node& toConvert, Context& ctx) {
+  Complex_Selector_Ptr nodeToComplexSelector(const Node& toConvert) {
     if (toConvert.isNil()) {
       return NULL;
     }
@@ -232,7 +234,6 @@ namespace Sass {
     NodeDeque& childNodes = *toConvert.collection();
 
     std::string noPath("");
-    Position noPosition(-1, -1, -1);
     Complex_Selector_Obj pFirst = SASS_MEMORY_NEW(Complex_Selector, ParserState("[NODE]"), Complex_Selector::ANCESTOR_OF, NULL, NULL);
 
     Complex_Selector_Obj pCurrent = pFirst;
@@ -280,7 +281,7 @@ namespace Sass {
 
   // A very naive trim function, which removes duplicates in a node
   // This is only used in Complex_Selector::unify_with for now, may need modifications to fit other needs
-  Node Node::naiveTrim(Node& seqses, Context& ctx) {
+  Node Node::naiveTrim(Node& seqses) {
 
     std::vector<Node*> res;
     std::vector<Complex_Selector_Obj> known;

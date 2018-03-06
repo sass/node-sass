@@ -15,7 +15,7 @@
 
 namespace Sass {
 
-  Inspect::Inspect(Emitter emi)
+  Inspect::Inspect(const Emitter& emi)
   : Emitter(emi)
   { }
   Inspect::~Inspect() { }
@@ -42,7 +42,9 @@ namespace Sass {
   void Inspect::operator()(Ruleset_Ptr ruleset)
   {
     if (ruleset->selector()) {
+      opt.in_selector = true;
       ruleset->selector()->perform(this);
+      opt.in_selector = false;
     }
     if (ruleset->block()) {
       ruleset->block()->perform(this);
@@ -90,7 +92,7 @@ namespace Sass {
     append_token("@at-root ", at_root_block);
     append_mandatory_space();
     if(at_root_block->expression()) at_root_block->expression()->perform(this);
-    at_root_block->block()->perform(this);
+    if(at_root_block->block()) at_root_block->block()->perform(this);
   }
 
   void Inspect::operator()(Directive_Ptr at_rule)
@@ -121,6 +123,8 @@ namespace Sass {
     if (dec->value()->concrete_type() == Expression::NULL_VAL) return;
     bool was_decl = in_declaration;
     in_declaration = true;
+    LOCAL_FLAG(in_custom_property, dec->is_custom_property());
+
     if (output_style() == NESTED)
       indentation += dec->tabs();
     append_indentation();
@@ -354,6 +358,8 @@ namespace Sass {
       if (items_output) append_comma_separator();
       key->perform(this);
       append_colon_separator();
+      LOCAL_FLAG(in_space_array, true);
+      LOCAL_FLAG(in_comma_array, true);
       map->at(key)->perform(this);
       items_output = true;
     }
@@ -495,8 +501,9 @@ namespace Sass {
 
   void Inspect::operator()(Unary_Expression_Ptr expr)
   {
-    if (expr->optype() == Unary_Expression::PLUS) append_string("+");
-    else                                          append_string("-");
+    if (expr->optype() == Unary_Expression::PLUS)       append_string("+");
+    else if (expr->optype() == Unary_Expression::SLASH) append_string("/");
+    else                                                append_string("-");
     expr->operand()->perform(this);
   }
 
@@ -517,15 +524,13 @@ namespace Sass {
     append_token(var->name(), var);
   }
 
-  void Inspect::operator()(Textual_Ptr txt)
-  {
-    append_token(txt->value(), txt);
-  }
-
   void Inspect::operator()(Number_Ptr n)
   {
 
     std::string res;
+
+    // reduce units
+    n->reduce();
 
     // check if the fractional part of the value equals to zero
     // neat trick from http://stackoverflow.com/a/1521682/1550314
@@ -624,6 +629,11 @@ namespace Sass {
     // maybe an unknown token
     std::string name = c->disp();
 
+    if (opt.in_selector && name != "") {
+      append_token(name, c);
+      return;
+    }
+
     // resolved color
     std::string res_name = name;
 
@@ -672,7 +682,7 @@ namespace Sass {
       ss << name;
     }
     else if (r == 0 && g == 0 && b == 0 && a == 0) {
-        ss << "transparent";
+      ss << "transparent";
     }
     else if (a >= 1) {
       if (res_name != "") {
@@ -822,12 +832,22 @@ namespace Sass {
 
   void Inspect::operator()(At_Root_Query_Ptr ae)
   {
-    append_string("(");
-    ae->feature()->perform(this);
-    if (ae->value()) {
-      append_colon_separator();
-      ae->value()->perform(this);
+    if (ae->feature()) {
+      append_string("(");
+      ae->feature()->perform(this);
+      if (ae->value()) {
+        append_colon_separator();
+        ae->value()->perform(this);
+      }
+      append_string(")");
     }
+  }
+
+  void Inspect::operator()(Function_Ptr f)
+  {
+    append_token("get-function", f);
+    append_string("(");
+    append_string(quote(f->name()));
     append_string(")");
   }
 
@@ -901,7 +921,9 @@ namespace Sass {
 
   void Inspect::operator()(Selector_Schema_Ptr s)
   {
+    opt.in_selector = true;
     s->contents()->perform(this);
+    opt.in_selector = false;
   }
 
   void Inspect::operator()(Parent_Selector_Ptr p)
@@ -948,6 +970,10 @@ namespace Sass {
       }
     }
     add_close_mapping(s);
+    if (s->modifier() != 0) {
+      append_mandatory_space();
+      append_char(s->modifier());
+    }
     append_string("]");
   }
 
@@ -963,16 +989,20 @@ namespace Sass {
 
   void Inspect::operator()(Wrapped_Selector_Ptr s)
   {
-    bool was = in_wrapped;
-    in_wrapped = true;
-    append_token(s->name(), s);
-    append_string("(");
-    bool was_comma_array = in_comma_array;
-    in_comma_array = false;
-    s->selector()->perform(this);
-    in_comma_array = was_comma_array;
-    append_string(")");
-    in_wrapped = was;
+    if (s->name() == " ") {
+      append_string("");
+    } else {
+      bool was = in_wrapped;
+      in_wrapped = true;
+      append_token(s->name(), s);
+      append_string("(");
+      bool was_comma_array = in_comma_array;
+      in_comma_array = false;
+      s->selector()->perform(this);
+      in_comma_array = was_comma_array;
+      append_string(")");
+      in_wrapped = was;
+    }
   }
 
   void Inspect::operator()(Compound_Selector_Ptr s)
@@ -1038,6 +1068,7 @@ namespace Sass {
         if (tail) append_mandatory_space();
         else append_optional_space();
       break;
+      default: break;
     }
     if (tail && comb != Complex_Selector::ANCESTOR_OF) {
       if (c->has_line_break()) append_optional_linefeed();

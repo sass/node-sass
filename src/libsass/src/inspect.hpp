@@ -17,7 +17,7 @@ namespace Sass {
 
   public:
 
-    Inspect(Emitter emi);
+    Inspect(const Emitter& emi);
     virtual ~Inspect();
 
     // statements
@@ -48,6 +48,7 @@ namespace Sass {
     virtual void operator()(Content_Ptr);
     // expressions
     virtual void operator()(Map_Ptr);
+    virtual void operator()(Function_Ptr);
     virtual void operator()(List_Ptr);
     virtual void operator()(Binary_Expression_Ptr);
     virtual void operator()(Unary_Expression_Ptr);
@@ -56,7 +57,6 @@ namespace Sass {
     // virtual void operator()(Custom_Warning_Ptr);
     // virtual void operator()(Custom_Error_Ptr);
     virtual void operator()(Variable_Ptr);
-    virtual void operator()(Textual_Ptr);
     virtual void operator()(Number_Ptr);
     virtual void operator()(Color_Ptr);
     virtual void operator()(Boolean_Ptr);

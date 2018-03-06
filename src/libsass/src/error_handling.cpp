@@ -31,6 +31,13 @@ namespace Sass {
       msg += "\"";
     }
 
+    InvalidVarKwdType::InvalidVarKwdType(ParserState pstate, std::string name, const Argument_Ptr arg)
+    : Base(pstate), name(name), arg(arg)
+    {
+      msg = "Variable keyword argument map must have string keys.\n";
+      msg += name + " is not a string in " + arg->to_string() + ".";
+    }
+
     InvalidArgumentType::InvalidArgumentType(ParserState pstate, std::string fn, std::string arg, std::string type, const Value_Ptr value)
     : Base(pstate), fn(fn), arg(arg), type(type), value(value)
     {
@@ -49,6 +56,10 @@ namespace Sass {
     }
 
     InvalidSyntax::InvalidSyntax(ParserState pstate, std::string msg, std::vector<Sass_Import_Entry>* import_stack)
+    : Base(pstate, msg, import_stack)
+    { }
+
+    NestingLimitError::NestingLimitError(ParserState pstate, std::string msg, std::vector<Sass_Import_Entry>* import_stack)
     : Base(pstate, msg, import_stack)
     { }
 
@@ -110,13 +121,21 @@ namespace Sass {
       msg  = "stack level too deep";
     }
 
-    IncompatibleUnits::IncompatibleUnits(const Number& lhs, const Number& rhs)
-    : lhs(lhs), rhs(rhs)
+    IncompatibleUnits::IncompatibleUnits(const Units& lhs, const Units& rhs)
     {
       msg  = "Incompatible units: '";
       msg += rhs.unit();
       msg += "' and '";
       msg += lhs.unit();
+      msg += "'.";
+    }
+
+    IncompatibleUnits::IncompatibleUnits(const UnitType lhs, const UnitType rhs)
+    {
+      msg  = "Incompatible units: '";
+      msg += unit_to_string(rhs);
+      msg += "' and '";
+      msg += unit_to_string(lhs);
       msg += "'.";
     }
 
@@ -146,6 +165,17 @@ namespace Sass {
     std::cerr << "Warning: " << msg<< std::endl;
   }
 
+  void warning(std::string msg, ParserState pstate)
+  {
+    std::string cwd(Sass::File::get_cwd());
+    std::string abs_path(Sass::File::rel2abs(pstate.path, cwd, cwd));
+    std::string rel_path(Sass::File::abs2rel(pstate.path, cwd, cwd));
+    std::string output_path(Sass::File::path_for_console(rel_path, abs_path, pstate.path));
+
+    std::cerr << "WARNING on line " << pstate.line+1 << ", column " << pstate.column+1 << " of " << output_path << ":" << std::endl;
+    std::cerr << msg << std::endl << std::endl;
+  }
+
   void warn(std::string msg, ParserState pstate, Backtrace* bt)
   {
     Backtrace top(bt, pstate, "");
@@ -165,7 +195,7 @@ namespace Sass {
     std::cerr << "        on line " << pstate.line+1 << " of " << output_path << std::endl;
   }
 
-  void deprecated(std::string msg, std::string msg2, ParserState pstate)
+  void deprecated(std::string msg, std::string msg2, bool with_column, ParserState pstate)
   {
     std::string cwd(Sass::File::get_cwd());
     std::string abs_path(Sass::File::rel2abs(pstate.path, cwd, cwd));
@@ -173,9 +203,10 @@ namespace Sass {
     std::string output_path(Sass::File::path_for_console(rel_path, pstate.path, pstate.path));
 
     std::cerr << "DEPRECATION WARNING on line " << pstate.line + 1;
+    if (with_column) std::cerr << ", column " << pstate.column + pstate.offset.column + 1;
     if (output_path.length()) std::cerr << " of " << output_path;
     std::cerr << ":" << std::endl;
-    std::cerr << msg << " and will be an error in future versions of Sass." << std::endl;
+    std::cerr << msg << std::endl;
     if (msg2.length()) std::cerr << msg2 << std::endl;
     std::cerr << std::endl;
   }
