@@ -457,7 +457,7 @@ This functionality has been moved to [`node-sass-middleware`](https://github.com
 
 ### DocPad Plugin
 
-[@jking90](https://github.com/jking90) wrote a [DocPad](http://docpad.org/) plugin that compiles `.scss` files using node-sass: <https://github.com/jking90/docpad-plugin-nodesass>
+[@10xLaCroixDrinker](https://github.com/10xLaCroixDrinker) wrote a [DocPad](http://docpad.org/) plugin that compiles `.scss` files using node-sass: <https://github.com/10xLaCroixDrinker/docpad-plugin-nodesass>
 
 ### Duo.js extension
 
