@@ -18,7 +18,8 @@ module.exports = function() {
     timeout: 60000,
     headers: {
       'User-Agent': userAgent(),
-    }
+    },
+    encoding: null,
   };
 
   var proxyConfig = proxy();

@@ -12,7 +12,8 @@ describe('util', function() {
           timeout: 60000,
           headers: {
             'User-Agent': ua(),
-          }
+          },
+          encoding: null,
         };
 
         assert.deepEqual(opts(), expected);
@@ -37,7 +38,8 @@ describe('util', function() {
           timeout: 60000,
           headers: {
             'User-Agent': ua(),
-          }
+          },
+          encoding: null,
         };
 
         assert.deepEqual(opts(), expected);
@@ -61,7 +63,8 @@ describe('util', function() {
           timeout: 60000,
           headers: {
             'User-Agent': ua(),
-          }
+          },
+          encoding: null,
         };
 
         assert.deepEqual(opts(), expected);
