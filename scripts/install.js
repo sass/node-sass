@@ -51,7 +51,7 @@ function download(url, dest, cb) {
   console.log('Downloading binary from', url);
 
   try {
-    request(url, downloadOptions(), function(err, response) {
+    request(url, downloadOptions(), function(err, response, buffer) {
       if (err) {
         reportError(err);
       } else if (!successful(response)) {
@@ -60,10 +60,12 @@ function download(url, dest, cb) {
         console.log('Download complete');
 
         if (successful(response)) {
-          response.pipe(fs.createWriteStream(dest));
+          fs.createWriteStream(dest)
+            .on('error', cb)
+            .end(buffer, cb);
+        } else {
+          cb();
         }
-
-        cb();
       }
     })
     .on('response', function(response) {
