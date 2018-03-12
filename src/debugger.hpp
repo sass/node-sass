@@ -79,7 +79,7 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     Trace_Ptr trace = Cast<Trace>(node);
     std::cerr << ind << "Trace " << trace;
     std::cerr << " (" << pstate_source_position(node) << ")"
-    << " [name:" << trace->name() << "]"
+    << " [name:" << trace->name() << ", type: " << trace->type() << "]"
     << std::endl;
     debug_ast(trace->block(), ind + " ", env);
   } else if (Cast<At_Root_Block>(node)) {

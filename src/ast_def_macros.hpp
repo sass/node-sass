@@ -33,7 +33,7 @@ class LocalOption {
 
 #define NESTING_GUARD(name) \
   LocalOption<size_t> cnt_##name(name, name + 1); \
-  if (name > MAX_NESTING) throw Exception::NestingLimitError(pstate); \
+  if (name > MAX_NESTING) throw Exception::NestingLimitError(pstate, traces); \
 
 #define ATTACH_OPERATIONS()\
 virtual void perform(Operation<void>* op) { (*op)(this); }\

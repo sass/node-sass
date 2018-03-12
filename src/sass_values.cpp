@@ -4,6 +4,7 @@
 #include "util.hpp"
 #include "eval.hpp"
 #include "values.hpp"
+#include "operators.hpp"
 #include "sass/values.h"
 #include "sass_values.hpp"
 
@@ -299,41 +300,41 @@ extern "C" {
 
       // see if it's a relational expression
       switch(op) {
-        case Sass_OP::EQ:  return sass_make_boolean(Eval::eq(lhs, rhs));
-        case Sass_OP::NEQ: return sass_make_boolean(!Eval::eq(lhs, rhs));
-        case Sass_OP::GT:  return sass_make_boolean(!Eval::lt(lhs, rhs, "gt") && !Eval::eq(lhs, rhs));
-        case Sass_OP::GTE: return sass_make_boolean(!Eval::lt(lhs, rhs, "gte"));
-        case Sass_OP::LT:  return sass_make_boolean(Eval::lt(lhs, rhs, "lt"));
-        case Sass_OP::LTE: return sass_make_boolean(Eval::lt(lhs, rhs, "lte") || Eval::eq(lhs, rhs));
+        case Sass_OP::EQ:  return sass_make_boolean(Operators::eq(lhs, rhs));
+        case Sass_OP::NEQ: return sass_make_boolean(Operators::neq(lhs, rhs));
+        case Sass_OP::GT:  return sass_make_boolean(Operators::gt(lhs, rhs));
+        case Sass_OP::GTE: return sass_make_boolean(Operators::gte(lhs, rhs));
+        case Sass_OP::LT:  return sass_make_boolean(Operators::lt(lhs, rhs));
+        case Sass_OP::LTE: return sass_make_boolean(Operators::lte(lhs, rhs));
         case Sass_OP::AND: return ast_node_to_sass_value(lhs->is_false() ? lhs : rhs);
         case Sass_OP::OR:  return ast_node_to_sass_value(lhs->is_false() ? rhs : lhs);
-        default:           break;
+        default: break;
       }
 
       if (sass_value_is_number(a) && sass_value_is_number(b)) {
         Number_Ptr_Const l_n = Cast<Number>(lhs);
         Number_Ptr_Const r_n = Cast<Number>(rhs);
-        rv = Eval::op_numbers(op, *l_n, *r_n, options, l_n->pstate());
+        rv = Operators::op_numbers(op, *l_n, *r_n, options, l_n->pstate());
       }
       else if (sass_value_is_number(a) && sass_value_is_color(a)) {
         Number_Ptr_Const l_n = Cast<Number>(lhs);
         Color_Ptr_Const r_c = Cast<Color>(rhs);
-        rv = Eval::op_number_color(op, *l_n, *r_c, options, l_n->pstate());
+        rv = Operators::op_number_color(op, *l_n, *r_c, options, l_n->pstate());
       }
       else if (sass_value_is_color(a) && sass_value_is_number(b)) {
         Color_Ptr_Const l_c = Cast<Color>(lhs);
         Number_Ptr_Const r_n = Cast<Number>(rhs);
-        rv = Eval::op_color_number(op, *l_c, *r_n, options, l_c->pstate());
+        rv = Operators::op_color_number(op, *l_c, *r_n, options, l_c->pstate());
       }
       else if (sass_value_is_color(a) && sass_value_is_color(b)) {
         Color_Ptr_Const l_c = Cast<Color>(lhs);
         Color_Ptr_Const r_c = Cast<Color>(rhs);
-        rv = Eval::op_colors(op, *l_c, *r_c, options, l_c->pstate());
+        rv = Operators::op_colors(op, *l_c, *r_c, options, l_c->pstate());
       }
       else /* convert other stuff to string and apply operation */ {
         Value_Ptr l_v = Cast<Value>(lhs);
         Value_Ptr r_v = Cast<Value>(rhs);
-        rv = Eval::op_strings(op, *l_v, *r_v, options, l_v->pstate());
+        rv = Operators::op_strings(op, *l_v, *r_v, options, l_v->pstate());
       }
 
       // ToDo: maybe we should should return null value?

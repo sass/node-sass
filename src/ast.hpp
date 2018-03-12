@@ -572,13 +572,15 @@ namespace Sass {
   // Trace.
   /////////////////
   class Trace : public Has_Block {
+    ADD_CONSTREF(char, type)
     ADD_CONSTREF(std::string, name)
   public:
-    Trace(ParserState pstate, std::string n, Block_Obj b = 0)
-    : Has_Block(pstate, b), name_(n)
+    Trace(ParserState pstate, std::string n, Block_Obj b = 0, char type = 'm')
+    : Has_Block(pstate, b), type_(type), name_(n)
     { }
     Trace(const Trace* ptr)
     : Has_Block(ptr),
+      type_(ptr->type_),
       name_(ptr->name_)
     { }
     ATTACH_AST_OPERATIONS(Trace)
@@ -943,7 +945,7 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////////
   struct Backtrace;
   typedef const char* Signature;
-  typedef Expression_Ptr (*Native_Function)(Env&, Env&, Context&, Signature, ParserState, Backtrace*, std::vector<Selector_List_Obj>);
+  typedef Expression_Ptr (*Native_Function)(Env&, Env&, Context&, Signature, ParserState, Backtraces, std::vector<Selector_List_Obj>);
   class Definition : public Has_Block {
   public:
     enum Type { MIXIN, FUNCTION };
@@ -1184,6 +1186,27 @@ namespace Sass {
     }
   }
 
+  inline static const std::string sass_op_separator(enum Sass_OP op) {
+    switch (op) {
+      case AND: return "&&";
+      case OR: return "||";
+      case EQ: return "==";
+      case NEQ: return "!=";
+      case GT: return ">";
+      case GTE: return ">=";
+      case LT: return "<";
+      case LTE: return "<=";
+      case ADD: return "+";
+      case SUB: return "-";
+      case MUL: return "*";
+      case DIV: return "/";
+      case MOD: return "%";
+      // this is only used internally!
+      case NUM_OPS: return "[OPS]";
+      default: return "invalid";
+    }
+  }
+
   //////////////////////////////////////////////////////////////////////////
   // Binary expressions. Represents logical, relational, and arithmetic
   // operations. Templatized to avoid large switch statements and repetitive
@@ -1208,44 +1231,10 @@ namespace Sass {
       hash_(ptr->hash_)
     { }
     const std::string type_name() {
-      switch (optype()) {
-        case AND: return "and";
-        case OR: return "or";
-        case EQ: return "eq";
-        case NEQ: return "neq";
-        case GT: return "gt";
-        case GTE: return "gte";
-        case LT: return "lt";
-        case LTE: return "lte";
-        case ADD: return "add";
-        case SUB: return "sub";
-        case MUL: return "mul";
-        case DIV: return "div";
-        case MOD: return "mod";
-        // this is only used internally!
-        case NUM_OPS: return "[OPS]";
-        default: return "invalid";
-      }
+      return sass_op_to_name(optype());
     }
     const std::string separator() {
-      switch (optype()) {
-        case AND: return "&&";
-        case OR: return "||";
-        case EQ: return "==";
-        case NEQ: return "!=";
-        case GT: return ">";
-        case GTE: return ">=";
-        case LT: return "<";
-        case LTE: return "<=";
-        case ADD: return "+";
-        case SUB: return "-";
-        case MUL: return "*";
-        case DIV: return "/";
-        case MOD: return "%";
-        // this is only used internally!
-        case NUM_OPS: return "[OPS]";
-        default: return "invalid";
-      }
+      return sass_op_separator(optype());
     }
     bool is_left_interpolant(void) const;
     bool is_right_interpolant(void) const;
@@ -1360,7 +1349,7 @@ namespace Sass {
     : Expression(pstate), value_(val), name_(n), is_rest_argument_(rest), is_keyword_argument_(keyword), hash_(0)
     {
       if (!name_.empty() && is_rest_argument_) {
-        error("variable-length argument may not be passed by name", pstate_);
+        coreError("variable-length argument may not be passed by name", pstate_);
       }
     }
     Argument(const Argument* ptr)
@@ -1372,7 +1361,7 @@ namespace Sass {
       hash_(ptr->hash_)
     {
       if (!name_.empty() && is_rest_argument_) {
-        error("variable-length argument may not be passed by name", pstate_);
+        coreError("variable-length argument may not be passed by name", pstate_);
       }
     }
 
@@ -2218,22 +2207,22 @@ namespace Sass {
     {
       if (p->default_value()) {
         if (has_rest_parameter()) {
-          error("optional parameters may not be combined with variable-length parameters", p->pstate());
+          coreError("optional parameters may not be combined with variable-length parameters", p->pstate());
         }
         has_optional_parameters(true);
       }
       else if (p->is_rest_parameter()) {
         if (has_rest_parameter()) {
-          error("functions and mixins cannot have more than one variable-length parameter", p->pstate());
+          coreError("functions and mixins cannot have more than one variable-length parameter", p->pstate());
         }
         has_rest_parameter(true);
       }
       else {
         if (has_rest_parameter()) {
-          error("required parameters must precede variable-length parameters", p->pstate());
+          coreError("required parameters must precede variable-length parameters", p->pstate());
         }
         if (has_optional_parameters()) {
-          error("required parameters must precede optional parameters", p->pstate());
+          coreError("required parameters must precede optional parameters", p->pstate());
         }
       }
     }
@@ -2872,13 +2861,13 @@ namespace Sass {
     Complex_Selector_Obj innermost() { return last(); };
 
     size_t length() const;
-    Selector_List_Ptr resolve_parent_refs(std::vector<Selector_List_Obj>& pstack, bool implicit_parent = true);
+    Selector_List_Ptr resolve_parent_refs(std::vector<Selector_List_Obj>& pstack, Backtraces& traces, bool implicit_parent = true);
     virtual bool is_superselector_of(Compound_Selector_Obj sub, std::string wrapping = "");
     virtual bool is_superselector_of(Complex_Selector_Obj sub, std::string wrapping = "");
     virtual bool is_superselector_of(Selector_List_Obj sub, std::string wrapping = "");
     Selector_List_Ptr unify_with(Complex_Selector_Ptr rhs);
     Combinator clear_innermost();
-    void append(Complex_Selector_Obj);
+    void append(Complex_Selector_Obj, Backtraces& traces);
     void set_innermost(Complex_Selector_Obj, Combinator);
     virtual size_t hash()
     {
@@ -2994,7 +2983,7 @@ namespace Sass {
     virtual bool has_parent_ref() const;
     virtual bool has_real_parent_ref() const;
     void remove_parent_selectors();
-    Selector_List_Ptr resolve_parent_refs(std::vector<Selector_List_Obj>& pstack, bool implicit_parent = true);
+    Selector_List_Ptr resolve_parent_refs(std::vector<Selector_List_Obj>& pstack, Backtraces& traces, bool implicit_parent = true);
     virtual bool is_superselector_of(Compound_Selector_Obj sub, std::string wrapping = "");
     virtual bool is_superselector_of(Complex_Selector_Obj sub, std::string wrapping = "");
     virtual bool is_superselector_of(Selector_List_Obj sub, std::string wrapping = "");
