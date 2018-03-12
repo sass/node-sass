@@ -653,8 +653,11 @@ namespace Sass {
     Expand expand(*this, &global, &backtrace);
     Cssize cssize(*this, &backtrace);
     CheckNesting check_nesting;
-    // check nesting
-    check_nesting(root);
+    // check nesting in all files
+    for (auto sheet : sheets) {
+      auto styles = sheet.second;
+      check_nesting(styles.root);
+    }
     // expand and eval the tree
     root = expand(root);
     // check nesting
