@@ -102,8 +102,6 @@ namespace Sass {
 
   namespace Functions {
 
-    static Number tmpnr(ParserState("[FN]"), 0);
-
     inline void handle_utf8_error (const ParserState& pstate, Backtrace* backtrace)
     {
       try {
@@ -159,7 +157,7 @@ namespace Sass {
     {
       // Minimal error handling -- the expectation is that built-ins will be written correctly!
       Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, backtrace);
-      tmpnr = val;
+      Number tmpnr(val);
       tmpnr.reduce();
       double v = tmpnr.value();
       if (!(lo <= v && v <= hi)) {
@@ -175,7 +173,7 @@ namespace Sass {
     {
       // Minimal error handling -- the expectation is that built-ins will be written correctly!
       Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, backtrace);
-      tmpnr = val;
+      Number tmpnr(val);
       tmpnr.reduce();
       return tmpnr;
     }
@@ -193,7 +191,7 @@ namespace Sass {
     {
       // Minimal error handling -- the expectation is that built-ins will be written correctly!
       Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, backtrace);
-      tmpnr = val;
+      Number tmpnr(val);
       tmpnr.reduce();
       /*
       if (tmpnr.unit() == "%") {
@@ -210,7 +208,7 @@ namespace Sass {
     {
       // Minimal error handling -- the expectation is that built-ins will be written correctly!
       Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, backtrace);
-      tmpnr = val;
+      Number tmpnr(val);
       tmpnr.reduce();
       return tmpnr.value();
     }
@@ -218,7 +216,8 @@ namespace Sass {
     double color_num(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace)
     {
       Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, backtrace);
-      tmpnr = val; tmpnr.reduce();
+      Number tmpnr(val);
+      tmpnr.reduce();
       if (tmpnr.unit() == "%") {
         return std::min(std::max(tmpnr.value() * 255 / 100.0, 0.0), 255.0);
       } else {
@@ -229,7 +228,8 @@ namespace Sass {
 
     inline double alpha_num(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace) {
       Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, backtrace);
-      tmpnr = val; tmpnr.reduce();
+      Number tmpnr(val);
+      tmpnr.reduce();
       if (tmpnr.unit() == "%") {
         return std::min(std::max(tmpnr.value(), 0.0), 100.0);
       } else {
