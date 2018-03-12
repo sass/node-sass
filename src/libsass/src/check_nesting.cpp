@@ -108,9 +108,7 @@ namespace Sass {
     this->visit_children(i);
 
     if (Block_Ptr b = Cast<Block>(i->alternative())) {
-      for (auto n : i->alternative()->elements()) {
-        n->perform(this);
-      }
+      for (auto n : b->elements()) n->perform(this);
     }
 
     return i;

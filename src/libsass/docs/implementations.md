@@ -3,6 +3,9 @@ There are several implementations of `libsass` for a variety of languages. Here 
 ### C
 * [sassc](https://github.com/hcatlin/sassc)
 
+### Crystal
+* [sass.cr](https://github.com/straight-shoota/sass.cr)
+
 ### Elixir
 * [sass.ex](https://github.com/scottdavis/sass.ex)
 
