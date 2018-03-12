@@ -53,7 +53,7 @@ SyntaxError: Use of const in strict mode.
 ### Install from mirror in China
 
 ```shell
-npx mirror-config-china --registry=http://registry.npm.taobao.org
+npm install -g mirror-config-china --registry=http://registry.npm.taobao.org
 npm install node-sass
 ```
 
