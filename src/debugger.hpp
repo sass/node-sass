@@ -664,6 +664,7 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     std::cerr << " (" << pstate_source_position(expression) << ")";
     std::cerr << " " << expression->concrete_type();
     std::cerr << " (" << pstate_source_position(node) << ")";
+    if (expression->css()) std::cerr << " [css]";
     if (expression->is_delayed()) std::cerr << " [delayed]";
     if (expression->is_interpolant()) std::cerr << " [is interpolant]";
     if (expression->has_interpolant()) std::cerr << " [has interpolant]";

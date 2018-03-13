@@ -1779,15 +1779,16 @@ namespace Sass {
   // evaluation phase.
   ///////////////////////////////////////////////////////////////////////
   class String_Schema : public String, public Vectorized<Expression_Obj> {
-    // ADD_PROPERTY(bool, has_interpolants)
+    ADD_PROPERTY(bool, css)
     size_t hash_;
   public:
-    String_Schema(ParserState pstate, size_t size = 0, bool has_interpolants = false)
-    : String(pstate), Vectorized<Expression_Obj>(size), hash_(0)
+    String_Schema(ParserState pstate, size_t size = 0, bool css = true)
+    : String(pstate), Vectorized<Expression_Obj>(size), css_(css), hash_(0)
     { concrete_type(STRING); }
     String_Schema(const String_Schema* ptr)
     : String(ptr),
       Vectorized<Expression_Obj>(*ptr),
+      css_(ptr->css_),
       hash_(ptr->hash_)
     { concrete_type(STRING); }
 
@@ -1840,17 +1841,17 @@ namespace Sass {
       value_(ptr->value_),
       hash_(ptr->hash_)
     { }
-    String_Constant(ParserState pstate, std::string val)
-    : String(pstate), quote_mark_(0), can_compress_whitespace_(false), value_(read_css_string(val)), hash_(0)
+    String_Constant(ParserState pstate, std::string val, bool css = true)
+    : String(pstate), quote_mark_(0), can_compress_whitespace_(false), value_(read_css_string(val, css)), hash_(0)
     { }
-    String_Constant(ParserState pstate, const char* beg)
-    : String(pstate), quote_mark_(0), can_compress_whitespace_(false), value_(read_css_string(std::string(beg))), hash_(0)
+    String_Constant(ParserState pstate, const char* beg, bool css = true)
+    : String(pstate), quote_mark_(0), can_compress_whitespace_(false), value_(read_css_string(std::string(beg), css)), hash_(0)
     { }
-    String_Constant(ParserState pstate, const char* beg, const char* end)
-    : String(pstate), quote_mark_(0), can_compress_whitespace_(false), value_(read_css_string(std::string(beg, end-beg))), hash_(0)
+    String_Constant(ParserState pstate, const char* beg, const char* end, bool css = true)
+    : String(pstate), quote_mark_(0), can_compress_whitespace_(false), value_(read_css_string(std::string(beg, end-beg), css)), hash_(0)
     { }
-    String_Constant(ParserState pstate, const Token& tok)
-    : String(pstate), quote_mark_(0), can_compress_whitespace_(false), value_(read_css_string(std::string(tok.begin, tok.end))), hash_(0)
+    String_Constant(ParserState pstate, const Token& tok, bool css = true)
+    : String(pstate), quote_mark_(0), can_compress_whitespace_(false), value_(read_css_string(std::string(tok.begin, tok.end), css)), hash_(0)
     { }
     std::string type() const { return "string"; }
     static std::string type_name() { return "string"; }
@@ -1883,8 +1884,8 @@ namespace Sass {
   public:
     String_Quoted(ParserState pstate, std::string val, char q = 0,
       bool keep_utf8_escapes = false, bool skip_unquoting = false,
-      bool strict_unquoting = true)
-    : String_Constant(pstate, val)
+      bool strict_unquoting = true, bool css = true)
+    : String_Constant(pstate, val, css)
     {
       if (skip_unquoting == false) {
         value_ = unquote(value_, &quote_mark_, keep_utf8_escapes, strict_unquoting);

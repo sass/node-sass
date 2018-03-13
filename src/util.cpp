@@ -96,8 +96,9 @@ namespace Sass {
   }
 
   // read css string (handle multiline DELIM)
-  std::string read_css_string(const std::string& str)
+  std::string read_css_string(const std::string& str, bool css)
   {
+    if (!css) return str;
     std::string out("");
     bool esc = false;
     for (auto i : str) {
@@ -175,6 +176,23 @@ namespace Sass {
       } else if (!(lf && isspace(i))) {
         out += i;
         lf = false;
+      }
+    }
+    return out;
+  }
+
+  std::string escape_string(const std::string& str)
+  {
+    std::string out("");
+    for (auto i : str) {
+      if (i == '\n') {
+        out += "\\n";
+      } else if (i == '\r') {
+        out += "\\r";
+      } else if (i == '\t') {
+        out += "\\t";
+      } else {
+        out += i;
       }
     }
     return out;
