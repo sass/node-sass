@@ -1026,7 +1026,7 @@ namespace Sass {
     while (lex< block_comment >()) {
       bool is_important = lexed.begin[2] == '!';
       // flag on second param is to skip loosely over comments
-      String_Obj contents = parse_interpolated_chunk(lexed, true);
+      String_Obj contents = parse_interpolated_chunk(lexed, true, false);
       block->append(SASS_MEMORY_NEW(Comment, pstate, contents, is_important));
     }
   }
@@ -1049,7 +1049,7 @@ namespace Sass {
     }
     bool is_indented = true;
     const std::string property(lexed);
-    if (!lex_css< one_plus< exactly<':'> > >()) error("property \"" + property + "\" must be followed by a ':'", pstate);
+    if (!lex_css< one_plus< exactly<':'> > >()) error("property \"" + escape_string(property) + "\" must be followed by a ':'", pstate);
     if (!is_custom_property && match< sequence< optional_css_comments, exactly<';'> > >()) error("style declaration must contain a value", pstate);
     if (match< sequence< optional_css_comments, exactly<'{'> > >()) is_indented = false; // don't indent if value is empty
     if (is_custom_property) {
@@ -1721,7 +1721,7 @@ namespace Sass {
 
   // this parses interpolation inside other strings
   // means the result should later be quoted again
-  String_Obj Parser::parse_interpolated_chunk(Token chunk, bool constant)
+  String_Obj Parser::parse_interpolated_chunk(Token chunk, bool constant, bool css)
   {
     const char* i = chunk.begin;
     // see if there any interpolants
@@ -1729,12 +1729,12 @@ namespace Sass {
                     find_first_in_interval< exactly<hash_lbrace>, block_comment >(i, chunk.end);
 
     if (!p) {
-      String_Quoted_Ptr str_quoted = SASS_MEMORY_NEW(String_Quoted, pstate, std::string(i, chunk.end));
+      String_Quoted_Ptr str_quoted = SASS_MEMORY_NEW(String_Quoted, pstate, std::string(i, chunk.end), 0, false, false, true, css);
       if (!constant && str_quoted->quote_mark()) str_quoted->quote_mark('*');
       return str_quoted;
     }
 
-    String_Schema_Obj schema = SASS_MEMORY_NEW(String_Schema, pstate);
+    String_Schema_Obj schema = SASS_MEMORY_NEW(String_Schema, pstate, 0, css);
     schema->is_interpolant(true);
     while (i < chunk.end) {
       p = constant ? find_first_in_interval< exactly<hash_lbrace> >(i, chunk.end) :
@@ -1742,7 +1742,7 @@ namespace Sass {
       if (p) {
         if (i < p) {
           // accumulate the preceding segment if it's nonempty
-          schema->append(SASS_MEMORY_NEW(String_Constant, pstate, std::string(i, p)));
+          schema->append(SASS_MEMORY_NEW(String_Constant, pstate, std::string(i, p), css));
         }
         // we need to skip anything inside strings
         // create a new target in parser/prelexer
@@ -1764,7 +1764,7 @@ namespace Sass {
       }
       else { // no interpolants left; add the last segment if nonempty
         // check if we need quotes here (was not sure after merge)
-        if (i < chunk.end) schema->append(SASS_MEMORY_NEW(String_Constant, pstate, std::string(i, chunk.end)));
+        if (i < chunk.end) schema->append(SASS_MEMORY_NEW(String_Constant, pstate, std::string(i, chunk.end), css));
         break;
       }
       ++ i;

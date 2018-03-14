@@ -1258,10 +1258,10 @@ namespace Sass {
     }
     if (!s->is_interpolant()) {
       if (s->length() > 1 && res == "") return SASS_MEMORY_NEW(Null, s->pstate());
-      return SASS_MEMORY_NEW(String_Constant, s->pstate(), res);
+      return SASS_MEMORY_NEW(String_Constant, s->pstate(), res, s->css());
     }
     // string schema seems to have a special unquoting behavior (also handles "nested" quotes)
-    String_Quoted_Obj str = SASS_MEMORY_NEW(String_Quoted, s->pstate(), res, 0, false, false, false);
+    String_Quoted_Obj str = SASS_MEMORY_NEW(String_Quoted, s->pstate(), res, 0, false, false, false, s->css());
     // if (s->is_interpolant()) str->quote_mark(0);
     // String_Constant_Ptr str = SASS_MEMORY_NEW(String_Constant, s->pstate(), res);
     if (str->quote_mark()) str->quote_mark('*');
