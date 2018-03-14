@@ -56,6 +56,8 @@ namespace Sass {
       #ifndef _WIN32
         char wd[wd_len];
         char* pwd = getcwd(wd, wd_len);
+        // we should check error for more detailed info (e.g. ENOENT)
+        // http://man7.org/linux/man-pages/man2/getcwd.2.html#ERRORS
         if (pwd == NULL) throw Exception::OperationError("cwd gone missing");
         std::string cwd = pwd;
       #else
@@ -74,11 +76,15 @@ namespace Sass {
     bool file_exists(const std::string& path)
     {
       #ifdef _WIN32
+        wchar_t resolved[32768];
         // windows unicode filepaths are encoded in utf16
         std::string abspath(join_paths(get_cwd(), path));
         std::wstring wpath(UTF_8::convert_to_utf16("\\\\?\\" + abspath));
         std::replace(wpath.begin(), wpath.end(), '/', '\\');
-        DWORD dwAttrib = GetFileAttributesW(wpath.c_str());
+        DWORD rv = GetFullPathNameW(wpath.c_str(), 32767, resolved, NULL);
+        if (rv > 32767) throw Exception::OperationError("Path is too long");
+        if (rv == 0) throw Exception::OperationError("Path could not be resolved");
+        DWORD dwAttrib = GetFileAttributesW(resolved);
         return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
                (!(dwAttrib & FILE_ATTRIBUTE_DIRECTORY)));
       #else
@@ -200,6 +206,13 @@ namespace Sass {
       if (is_absolute_path(r)) return r;
       if (l[l.length()-1] != '/') l += '/';
 
+      // this does a logical cleanup of the right hand path
+      // Note that this does collapse x/../y sections into y.
+      // This is by design. If /foo on your system is a symlink
+      // to /bar/baz, then /foo/../cd is actually /bar/cd,
+      // not /cd as a naive ../ removal would give you.
+      // will only work on leading double dot dirs on rhs
+      // therefore it is safe if lhs is already resolved cwd
       while ((r.length() > 3) && ((r.substr(0, 3) == "../") || (r.substr(0, 3)) == "..\\")) {
         size_t L = l.length(), pos = find_last_folder_separator(l, L - 2);
         bool is_slash = pos + 2 == L && (l[pos+1] == '/' || l[pos+1] == '\\');
@@ -395,11 +408,15 @@ namespace Sass {
       #ifdef _WIN32
         BYTE* pBuffer;
         DWORD dwBytes;
+        wchar_t resolved[32768];
         // windows unicode filepaths are encoded in utf16
         std::string abspath(join_paths(get_cwd(), path));
         std::wstring wpath(UTF_8::convert_to_utf16("\\\\?\\" + abspath));
         std::replace(wpath.begin(), wpath.end(), '/', '\\');
-        HANDLE hFile = CreateFileW(wpath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+        DWORD rv = GetFullPathNameW(wpath.c_str(), 32767, resolved, NULL);
+        if (rv > 32767) throw Exception::OperationError("Path is too long");
+        if (rv == 0) throw Exception::OperationError("Path could not be resolved");
+        HANDLE hFile = CreateFileW(resolved, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
         if (hFile == INVALID_HANDLE_VALUE) return 0;
         DWORD dwFileLength = GetFileSize(hFile, NULL);
         if (dwFileLength == INVALID_FILE_SIZE) return 0;
