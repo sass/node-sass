@@ -33,6 +33,9 @@ extern "C" {
     else if (ctx_w->fctx) {
       sass_delete_file_context(ctx_w->fctx);
     }
+    if (ctx_w->async_resource) {
+      delete ctx_w->async_resource;
+    }
 
     delete ctx_w->error_callback;
     delete ctx_w->success_callback;

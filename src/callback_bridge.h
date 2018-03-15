@@ -40,6 +40,7 @@ class CallbackBridge {
     virtual std::vector<v8::Local<v8::Value>> pre_process_args(std::vector<L>) const =0;
 
     Nan::Callback* callback;
+    Nan::AsyncResource* async_resource;
     bool is_sync;
 
     uv_mutex_t cv_mutex;
@@ -66,6 +67,7 @@ CallbackBridge<T, L>::CallbackBridge(v8::Local<v8::Function> callback, bool is_s
     this->async = new uv_async_t;
     this->async->data = (void*) this;
     uv_async_init(uv_default_loop(), this->async, (uv_async_cb) dispatched_async_uv_callback);
+    this->async_resource = new Nan::AsyncResource("node-sass:CallbackBridge");
   }
 
   v8::Local<v8::Function> func = CallbackBridge<T, L>::get_wrapper_constructor().ToLocalChecked();
@@ -82,6 +84,7 @@ CallbackBridge<T, L>::~CallbackBridge() {
 
   if (!is_sync) {
     uv_close((uv_handle_t*)this->async, &async_gone);
+    delete this->async_resource;
   }
 }
 
@@ -107,7 +110,7 @@ T CallbackBridge<T, L>::operator()(std::vector<void*> argv) {
     argv_v8.push_back(Nan::New(wrapper));
 
     return this->post_process_return_value(
-      Nan::Call(*callback, argv_v8.size(), &argv_v8[0]).ToLocalChecked()
+      Nan::Call(*this->callback, argv_v8.size(), &argv_v8[0]).ToLocalChecked()
     );
   } else {
     /*
@@ -151,7 +154,6 @@ void CallbackBridge<T, L>::dispatched_async_uv_callback(uv_async_t *req) {
    * post_process_args().
    */
   Nan::HandleScope scope;
-  Nan::AsyncResource async("sass:CallbackBridge");
   Nan::TryCatch try_catch;
 
   std::vector<v8::Local<v8::Value>> argv_v8 = bridge->pre_process_args(bridge->argv);
@@ -160,7 +162,7 @@ void CallbackBridge<T, L>::dispatched_async_uv_callback(uv_async_t *req) {
   }
   argv_v8.push_back(Nan::New(bridge->wrapper));
 
-  bridge->callback->Call(argv_v8.size(), &argv_v8[0], &async);
+  bridge->callback->Call(argv_v8.size(), &argv_v8[0], bridge->async_resource);
 
   if (try_catch.HasCaught()) {
     Nan::FatalException(try_catch);
