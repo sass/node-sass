@@ -1,4 +1,7 @@
 <!--
+
+**Do not ask to but Request package, it breaks old Node compatiblity. It is used for downloading the binaries.**
+
 Before opening an issue:
 - Check that the version of node-sass you're trying to install supports your version of Node by looking at the release page for that version https://github.com/sass/node-sass/releases
 - Read the common workarounds in the [TROUBLESHOOTING.md](https://github.com/sass/node-sass/blob/master/TROUBLESHOOTING.md)
