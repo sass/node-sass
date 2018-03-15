@@ -227,9 +227,16 @@ int GetResult(sass_context_wrapper* ctx_w, Sass_Context* ctx, bool is_sync = fal
   return status;
 }
 
+void PerformCall(sass_context_wrapper* ctx_w, Nan::Callback* callback, int argc, v8::Local<v8::Value> argv[]) {
+  if (ctx_w->is_sync) {
+    Nan::Call(*callback, argc, argv);
+  } else {
+    callback->Call(argc, argv, ctx_w->async_resource);
+  }
+}
+
 void MakeCallback(uv_work_t* req) {
   Nan::HandleScope scope;
-  Nan::AsyncResource async("sass:MakeCallback");
 
   Nan::TryCatch try_catch;
   sass_context_wrapper* ctx_w = static_cast<sass_context_wrapper*>(req->data);
@@ -246,7 +253,7 @@ void MakeCallback(uv_work_t* req) {
 
   if (status == 0 && ctx_w->success_callback) {
     // if no error, do callback(null, result)
-    ctx_w->success_callback->Call(0, 0, &async);
+    PerformCall(ctx_w, ctx_w->success_callback, 0, 0);
   }
   else if (ctx_w->error_callback) {
     // if error, do callback(error)
@@ -254,7 +261,7 @@ void MakeCallback(uv_work_t* req) {
     v8::Local<v8::Value> argv[] = {
       Nan::New<v8::String>(err).ToLocalChecked()
     };
-    ctx_w->error_callback->Call(1, argv, &async);
+    PerformCall(ctx_w, ctx_w->error_callback, 1, argv);
   }
   if (try_catch.HasCaught()) {
     Nan::FatalException(try_catch);
@@ -269,6 +276,8 @@ NAN_METHOD(render) {
   char* source_string = create_string(Nan::Get(options, Nan::New("data").ToLocalChecked()));
   struct Sass_Data_Context* dctx = sass_make_data_context(source_string);
   sass_context_wrapper* ctx_w = sass_make_context_wrapper();
+
+  ctx_w->async_resource = new Nan::AsyncResource("node-sass:sass_context_wrapper:render");
 
   if (ExtractOptions(options, dctx, ctx_w, false, false) >= 0) {
 
@@ -303,6 +312,8 @@ NAN_METHOD(render_file) {
   char* input_path = create_string(Nan::Get(options, Nan::New("file").ToLocalChecked()));
   struct Sass_File_Context* fctx = sass_make_file_context(input_path);
   sass_context_wrapper* ctx_w = sass_make_context_wrapper();
+
+  ctx_w->async_resource = new Nan::AsyncResource("node-sass:sass_context_wrapper:render_file");
 
   if (ExtractOptions(options, fctx, ctx_w, true, false) >= 0) {
 
