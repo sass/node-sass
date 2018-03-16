@@ -22,6 +22,9 @@ There are several implementations of `libsass` for a variety of languages. Here 
 * [NSass](https://github.com/TBAPI-0KA/NSass)
 * [Sass.Net](https://github.com/andyalm/Sass.Net)
 
+### Nim
+* [nim-sass](https://github.com/zacharycarter/nim-sass)
+
 ### node.js
 * [node-sass](https://github.com/andrew/node-sass)
 
