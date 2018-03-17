@@ -1703,16 +1703,16 @@ namespace Sass {
   // Interpolated strings. Meant to be reduced to flat strings during the
   // evaluation phase.
   ///////////////////////////////////////////////////////////////////////
-  class String_Schema : public String, public Vectorized<Expression_Obj> {
+  class String_Schema : public String, public Vectorized<PreValue_Obj> {
     ADD_PROPERTY(bool, css)
     size_t hash_;
   public:
     String_Schema(ParserState pstate, size_t size = 0, bool css = true)
-    : String(pstate), Vectorized<Expression_Obj>(size), css_(css), hash_(0)
+    : String(pstate), Vectorized<PreValue_Obj>(size), css_(css), hash_(0)
     { concrete_type(STRING); }
     String_Schema(const String_Schema* ptr)
     : String(ptr),
-      Vectorized<Expression_Obj>(*ptr),
+      Vectorized<PreValue_Obj>(*ptr),
       css_(ptr->css_),
       hash_(ptr->hash_)
     { concrete_type(STRING); }
