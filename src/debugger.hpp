@@ -621,6 +621,7 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     Color_Ptr expression = Cast<Color>(node);
     std::cerr << ind << "Color " << expression;
     std::cerr << " (" << pstate_source_position(node) << ")";
+    std::cerr << " [name: " << expression->disp() << "] ";
     std::cerr << " [delayed: " << expression->is_delayed() << "] ";
     std::cerr << " [interpolant: " << expression->is_interpolant() << "] ";
     std::cerr << " [" << expression->r() << ":"  << expression->g() << ":" << expression->b() << "@" << expression->a() << "]" << std::endl;
