@@ -944,7 +944,6 @@ namespace Sass {
   // by a type tag.
   /////////////////////////////////////////////////////////////////////////////
   struct Backtrace;
-  typedef const char* Signature;
   typedef Expression_Ptr (*Native_Function)(Env&, Env&, Context&, Signature, ParserState, Backtraces, std::vector<Selector_List_Obj>);
   class Definition : public Has_Block {
   public:

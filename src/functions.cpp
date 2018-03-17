@@ -31,68 +31,11 @@
 #include "wincrypt.h"
 #endif
 
-#define ARG(argname, argtype) get_arg<argtype>(argname, env, sig, pstate, traces)
-#define ARGM(argname, argtype, ctx) get_arg_m(argname, env, sig, pstate, traces, ctx)
-
-// return a number object (copied since we want to have reduced units)
-#define ARGN(argname) get_arg_n(argname, env, sig, pstate, traces) // Number copy
-
-// special function for weird hsla percent (10px == 10% == 10 != 0.1)
-#define ARGVAL(argname) get_arg_val(argname, env, sig, pstate, traces) // double
-
-// macros for common ranges (u mean unsigned or upper, r for full range)
-#define DARG_U_FACT(argname) get_arg_r(argname, env, sig, pstate, traces, - 0.0, 1.0) // double
-#define DARG_R_FACT(argname) get_arg_r(argname, env, sig, pstate, traces, - 1.0, 1.0) // double
-#define DARG_U_BYTE(argname) get_arg_r(argname, env, sig, pstate, traces, - 0.0, 255.0) // double
-#define DARG_R_BYTE(argname) get_arg_r(argname, env, sig, pstate, traces, - 255.0, 255.0) // double
-#define DARG_U_PRCT(argname) get_arg_r(argname, env, sig, pstate, traces, - 0.0, 100.0) // double
-#define DARG_R_PRCT(argname) get_arg_r(argname, env, sig, pstate, traces, - 100.0, 100.0) // double
-
-// macros for color related inputs (rbg and alpha/opacity values)
-#define COLOR_NUM(argname) color_num(argname, env, sig, pstate, traces) // double
-#define ALPHA_NUM(argname) alpha_num(argname, env, sig, pstate, traces) // double
+#include "fn_utils.hpp"
 
 namespace Sass {
   using std::stringstream;
   using std::endl;
-
-  Definition_Ptr make_native_function(Signature sig, Native_Function func, Context& ctx)
-  {
-    Parser sig_parser = Parser::from_c_str(sig, ctx, ctx.traces, ParserState("[built-in function]"));
-    sig_parser.lex<Prelexer::identifier>();
-    std::string name(Util::normalize_underscores(sig_parser.lexed));
-    Parameters_Obj params = sig_parser.parse_parameters();
-    return SASS_MEMORY_NEW(Definition,
-                           ParserState("[built-in function]"),
-                           sig,
-                           name,
-                           params,
-                           func,
-                           false);
-  }
-
-  Definition_Ptr make_c_function(Sass_Function_Entry c_func, Context& ctx)
-  {
-    using namespace Prelexer;
-
-    const char* sig = sass_function_get_signature(c_func);
-    Parser sig_parser = Parser::from_c_str(sig, ctx, ctx.traces, ParserState("[c function]"));
-    // allow to overload generic callback plus @warn, @error and @debug with custom functions
-    sig_parser.lex < alternatives < identifier, exactly <'*'>,
-                                    exactly < Constants::warn_kwd >,
-                                    exactly < Constants::error_kwd >,
-                                    exactly < Constants::debug_kwd >
-                   >              >();
-    std::string name(Util::normalize_underscores(sig_parser.lexed));
-    Parameters_Obj params = sig_parser.parse_parameters();
-    return SASS_MEMORY_NEW(Definition,
-                           ParserState("[c function]"),
-                           sig,
-                           name,
-                           params,
-                           c_func,
-                           false, true);
-  }
 
   std::string function_name(Signature sig)
   {
@@ -120,152 +63,6 @@ namespace Sass {
         error(msg, pstate, traces);
       }
       catch (...) { throw; }
-    }
-
-    template <typename T>
-    T* get_arg(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces)
-    {
-      // Minimal error handling -- the expectation is that built-ins will be written correctly!
-      T* val = Cast<T>(env[argname]);
-      if (!val) {
-        std::string msg("argument `");
-        msg += argname;
-        msg += "` of `";
-        msg += sig;
-        msg += "` must be a ";
-        msg += T::type_name();
-        error(msg, pstate, traces);
-      }
-      return val;
-    }
-
-    Map_Ptr get_arg_m(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, Context& ctx)
-    {
-      // Minimal error handling -- the expectation is that built-ins will be written correctly!
-      Map_Ptr val = Cast<Map>(env[argname]);
-      if (val) return val;
-
-      List_Ptr lval = Cast<List>(env[argname]);
-      if (lval && lval->length() == 0) return SASS_MEMORY_NEW(Map, pstate, 0);
-
-      // fallback on get_arg for error handling
-      val = get_arg<Map>(argname, env, sig, pstate, traces);
-      return val;
-    }
-
-    double get_arg_r(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, double lo, double hi)
-    {
-      // Minimal error handling -- the expectation is that built-ins will be written correctly!
-      Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, traces);
-      Number tmpnr(val);
-      tmpnr.reduce();
-      double v = tmpnr.value();
-      if (!(lo <= v && v <= hi)) {
-        std::stringstream msg;
-        msg << "argument `" << argname << "` of `" << sig << "` must be between ";
-        msg << lo << " and " << hi;
-        error(msg.str(), pstate, traces);
-      }
-      return v;
-    }
-
-    Number_Ptr get_arg_n(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces)
-    {
-      // Minimal error handling -- the expectation is that built-ins will be written correctly!
-      Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, traces);
-      val = SASS_MEMORY_COPY(val);
-      val->reduce();
-      return val;
-    }
-
-    double get_arg_v(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces)
-    {
-      // Minimal error handling -- the expectation is that built-ins will be written correctly!
-      Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, traces);
-      Number tmpnr(val);
-      tmpnr.reduce();
-      /*
-      if (tmpnr.unit() == "%") {
-        tmpnr.value(tmpnr.value() / 100);
-        tmpnr.numerators.clear();
-      } else {
-        if (!tmpnr.is_unitless()) error("argument " + argname + " of `" + std::string(sig) + "` must be unitless", pstate);
-      }
-      */
-      return tmpnr.value();
-    }
-
-    double get_arg_val(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces)
-    {
-      // Minimal error handling -- the expectation is that built-ins will be written correctly!
-      Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, traces);
-      Number tmpnr(val);
-      tmpnr.reduce();
-      return tmpnr.value();
-    }
-
-    double color_num(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces)
-    {
-      Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, traces);
-      Number tmpnr(val);
-      tmpnr.reduce();
-      if (tmpnr.unit() == "%") {
-        return std::min(std::max(tmpnr.value() * 255 / 100.0, 0.0), 255.0);
-      } else {
-        return std::min(std::max(tmpnr.value(), 0.0), 255.0);
-      }
-    }
-
-
-    inline double alpha_num(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces) {
-      Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, traces);
-      Number tmpnr(val);
-      tmpnr.reduce();
-      if (tmpnr.unit() == "%") {
-        return std::min(std::max(tmpnr.value(), 0.0), 100.0);
-      } else {
-        return std::min(std::max(tmpnr.value(), 0.0), 1.0);
-      }
-    }
-
-    #define ARGSEL(argname, seltype, contextualize) get_arg_sel<seltype>(argname, env, sig, pstate, traces, ctx)
-
-    template <typename T>
-    T get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, Context& ctx);
-
-    template <>
-    Selector_List_Obj get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, Context& ctx) {
-      Expression_Obj exp = ARG(argname, Expression);
-      if (exp->concrete_type() == Expression::NULL_VAL) {
-        std::stringstream msg;
-        msg << argname << ": null is not a valid selector: it must be a string,\n";
-        msg << "a list of strings, or a list of lists of strings for `" << function_name(sig) << "'";
-        error(msg.str(), pstate, traces);
-      }
-      if (String_Constant_Ptr str = Cast<String_Constant>(exp)) {
-        str->quote_mark(0);
-      }
-      std::string exp_src = exp->to_string(ctx.c_options);
-      return Parser::parse_selector(exp_src.c_str(), ctx, traces);
-    }
-
-    template <>
-    Compound_Selector_Obj get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, Context& ctx) {
-      Expression_Obj exp = ARG(argname, Expression);
-      if (exp->concrete_type() == Expression::NULL_VAL) {
-        std::stringstream msg;
-        msg << argname << ": null is not a string for `" << function_name(sig) << "'";
-        error(msg.str(), pstate, traces);
-      }
-      if (String_Constant_Ptr str = Cast<String_Constant>(exp)) {
-        str->quote_mark(0);
-      }
-      std::string exp_src = exp->to_string(ctx.c_options);
-      Selector_List_Obj sel_list = Parser::parse_selector(exp_src.c_str(), ctx, traces);
-      if (sel_list->length() == 0) return NULL;
-      Complex_Selector_Obj first = sel_list->first();
-      if (!first->tail()) return first->head();
-      return first->tail()->head();
     }
 
     #ifdef __MINGW32__
@@ -2097,8 +1894,8 @@ namespace Sass {
     Signature selector_unify_sig = "selector-unify($selector1, $selector2)";
     BUILT_IN(selector_unify)
     {
-      Selector_List_Obj selector1 = ARGSEL("$selector1", Selector_List_Obj, p_contextualize);
-      Selector_List_Obj selector2 = ARGSEL("$selector2", Selector_List_Obj, p_contextualize);
+      Selector_List_Obj selector1 = ARGSELS("$selector1");
+      Selector_List_Obj selector2 = ARGSELS("$selector2");
 
       Selector_List_Obj result = selector1->unify_with(selector2);
       Listize listize;
@@ -2108,7 +1905,7 @@ namespace Sass {
     Signature simple_selectors_sig = "simple-selectors($selector)";
     BUILT_IN(simple_selectors)
     {
-      Compound_Selector_Obj sel = ARGSEL("$selector", Compound_Selector_Obj, p_contextualize);
+      Compound_Selector_Obj sel = ARGSEL("$selector");
 
       List_Ptr l = SASS_MEMORY_NEW(List, sel->pstate(), sel->length(), SASS_COMMA);
 
@@ -2125,9 +1922,9 @@ namespace Sass {
     Signature selector_extend_sig = "selector-extend($selector, $extendee, $extender)";
     BUILT_IN(selector_extend)
     {
-      Selector_List_Obj  selector = ARGSEL("$selector", Selector_List_Obj, p_contextualize);
-      Selector_List_Obj  extendee = ARGSEL("$extendee", Selector_List_Obj, p_contextualize);
-      Selector_List_Obj  extender = ARGSEL("$extender", Selector_List_Obj, p_contextualize);
+      Selector_List_Obj  selector = ARGSELS("$selector");
+      Selector_List_Obj  extendee = ARGSELS("$extendee");
+      Selector_List_Obj  extender = ARGSELS("$extender");
 
       Subset_Map subset_map;
       extender->populate_extends(extendee, subset_map);
@@ -2142,9 +1939,9 @@ namespace Sass {
     Signature selector_replace_sig = "selector-replace($selector, $original, $replacement)";
     BUILT_IN(selector_replace)
     {
-      Selector_List_Obj selector = ARGSEL("$selector", Selector_List_Obj, p_contextualize);
-      Selector_List_Obj original = ARGSEL("$original", Selector_List_Obj, p_contextualize);
-      Selector_List_Obj replacement = ARGSEL("$replacement", Selector_List_Obj, p_contextualize);
+      Selector_List_Obj selector = ARGSELS("$selector");
+      Selector_List_Obj original = ARGSELS("$original");
+      Selector_List_Obj replacement = ARGSELS("$replacement");
       Subset_Map subset_map;
       replacement->populate_extends(original, subset_map);
       Extend extend(subset_map);
@@ -2158,7 +1955,7 @@ namespace Sass {
     Signature selector_parse_sig = "selector-parse($selector)";
     BUILT_IN(selector_parse)
     {
-      Selector_List_Obj sel = ARGSEL("$selector", Selector_List_Obj, p_contextualize);
+      Selector_List_Obj sel = ARGSELS("$selector");
 
       Listize listize;
       return sel->perform(&listize);
@@ -2167,8 +1964,8 @@ namespace Sass {
     Signature is_superselector_sig = "is-superselector($super, $sub)";
     BUILT_IN(is_superselector)
     {
-      Selector_List_Obj  sel_sup = ARGSEL("$super", Selector_List_Obj, p_contextualize);
-      Selector_List_Obj  sel_sub = ARGSEL("$sub", Selector_List_Obj, p_contextualize);
+      Selector_List_Obj  sel_sup = ARGSELS("$super");
+      Selector_List_Obj  sel_sub = ARGSELS("$sub");
       bool result = sel_sup->is_superselector_of(sel_sub);
       return SASS_MEMORY_NEW(Boolean, pstate, result);
     }

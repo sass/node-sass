@@ -419,7 +419,13 @@ namespace Sass {
   typedef std::set<Compound_Selector_Obj, OrderNodes> CompoundSelectorSet;
   typedef std::unordered_set<Simple_Selector_Obj, HashNodes, CompareNodes> SimpleSelectorDict;
 
+  typedef std::vector<Block_Ptr> BlockStack;
+  typedef std::vector<AST_Node_Obj> CallStack;
+  typedef std::vector<Media_Block_Ptr> MediaStack;
+  typedef std::vector<Selector_List_Obj> SelectorStack;
   typedef std::vector<Sass_Import_Entry>* ImporterStack;
+
+  typedef const char* Signature;
 
   // only to switch implementations for testing
   #define environment_map std::map

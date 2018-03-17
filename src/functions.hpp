@@ -6,17 +6,12 @@
 #include "environment.hpp"
 #include "ast_fwd_decl.hpp"
 #include "sass/functions.h"
-
-#define BUILT_IN(name) Expression_Ptr \
-name(Env& env, Env& d_env, Context& ctx, Signature sig, ParserState pstate, Backtraces traces, std::vector<Selector_List_Obj> selector_stack)
+#include "fn_utils.hpp"
 
 namespace Sass {
   struct Backtrace;
   typedef const char* Signature;
   typedef Expression_Ptr (*Native_Function)(Env&, Env&, Context&, Signature, ParserState, Backtraces, std::vector<Selector_List_Obj>);
-
-  Definition_Ptr make_native_function(Signature, Native_Function, Context& ctx);
-  Definition_Ptr make_c_function(Sass_Function_Entry c_func, Context& ctx);
 
   std::string function_name(Signature);
 
