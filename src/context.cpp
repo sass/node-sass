@@ -30,6 +30,7 @@
 #include "prelexer.hpp"
 #include "emitter.hpp"
 #include "fn_utils.hpp"
+#include "fn_miscs.hpp"
 #include "fn_maps.hpp"
 #include "fn_lists.hpp"
 #include "fn_colors.hpp"

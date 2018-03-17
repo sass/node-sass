@@ -12,22 +12,9 @@ namespace Sass {
     name(Env& env, Env& d_env, Context& ctx, Signature sig, ParserState pstate, Backtraces traces, std::vector<Selector_List_Obj> selector_stack)
 
   #define ARG(argname, argtype) get_arg<argtype>(argname, env, sig, pstate, traces)
-  #define ARGM(argname, argtype, ctx) get_arg_m(argname, env, sig, pstate, traces)
 
   // special function for weird hsla percent (10px == 10% == 10 != 0.1)
   #define ARGVAL(argname) get_arg_val(argname, env, sig, pstate, traces) // double
-
-  // macros for common ranges (u mean unsigned or upper, r for full range)
-  #define DARG_U_FACT(argname) get_arg_r(argname, env, sig, pstate, traces, - 0.0, 1.0) // double
-  #define DARG_R_FACT(argname) get_arg_r(argname, env, sig, pstate, traces, - 1.0, 1.0) // double
-  #define DARG_U_BYTE(argname) get_arg_r(argname, env, sig, pstate, traces, - 0.0, 255.0) // double
-  #define DARG_R_BYTE(argname) get_arg_r(argname, env, sig, pstate, traces, - 255.0, 255.0) // double
-  #define DARG_U_PRCT(argname) get_arg_r(argname, env, sig, pstate, traces, - 0.0, 100.0) // double
-  #define DARG_R_PRCT(argname) get_arg_r(argname, env, sig, pstate, traces, - 100.0, 100.0) // double
-
-  // macros for color related inputs (rbg and alpha/opacity values)
-  #define COLOR_NUM(argname) color_num(argname, env, sig, pstate, traces) // double
-  #define ALPHA_NUM(argname) alpha_num(argname, env, sig, pstate, traces) // double
 
   typedef const char* Signature;
 

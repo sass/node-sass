@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <stdexcept>
+#include "units.hpp"
 #include "position.hpp"
 #include "backtrace.hpp"
 #include "ast_fwd_decl.hpp"

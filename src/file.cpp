@@ -21,6 +21,7 @@
 #include "prelexer.hpp"
 #include "utf8_string.hpp"
 #include "sass_functions.hpp"
+#include "error_handling.hpp"
 #include "sass2scss.h"
 
 #ifdef _WIN32

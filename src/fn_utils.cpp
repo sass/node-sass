@@ -45,6 +45,12 @@ namespace Sass {
 
   namespace Functions {
 
+    std::string function_name(Signature sig)
+    {
+      std::string str(sig);
+      return str.substr(0, str.find('('));
+    }
+
     Map_Ptr get_arg_m(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces)
     {
       // Minimal error handling -- the expectation is that built-ins will be written correctly!
