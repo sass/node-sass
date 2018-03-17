@@ -65,7 +65,7 @@
     "lodash.mergewith": "^4.6.0",
     "meow": "^3.7.0",
     "mkdirp": "^0.5.1",
-    "nan": "2.9.2",
+    "nan": "^2.10.0",
     "node-gyp": "^3.3.1",
     "npmlog": "^4.0.0",
     "request": "~2.79.0",
