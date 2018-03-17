@@ -14,11 +14,17 @@
 // aplies to MSVC and MinGW
 #ifdef _WIN32
 // we do not want the ERROR macro
-# define NOGDI
+# ifndef NOGDI
+#  define NOGDI
+# endif
 // we do not want the min/max macro
-# define NOMINMAX
+# ifndef NOMINMAX
+#  define NOMINMAX
+# endif
 // we do not want the IN/OUT macro
-# define _NO_W32_PSEUDO_MODIFIERS
+# ifndef _NO_W32_PSEUDO_MODIFIERS
+#  define _NO_W32_PSEUDO_MODIFIERS
+# endif
 #endif
 
 
