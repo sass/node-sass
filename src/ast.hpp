@@ -81,6 +81,12 @@ namespace Sass {
     : pstate_(ptr->pstate_)
     { }
 
+    // allow implicit conversion to string
+    // needed for by SharedPtr implementation
+    operator std::string() {
+      return to_string();
+    }
+
     // AST_Node(AST_Node& ptr) = delete;
 
     virtual ~AST_Node() = 0;
@@ -1429,25 +1435,34 @@ namespace Sass {
   // Function calls.
   //////////////////
   class Function_Call : public PreValue {
-    HASH_CONSTREF(std::string, name)
+    HASH_CONSTREF(String_Obj, sname)
     HASH_PROPERTY(Arguments_Obj, arguments)
     HASH_PROPERTY(Function_Obj, func)
     ADD_PROPERTY(bool, via_call)
     ADD_PROPERTY(void*, cookie)
     size_t hash_;
   public:
-    Function_Call(ParserState pstate, std::string n, Arguments_Obj args, void* cookie)
-    : PreValue(pstate), name_(n), arguments_(args), func_(0), via_call_(false), cookie_(cookie), hash_(0)
+    Function_Call(ParserState pstate, std::string n, Arguments_Obj args, void* cookie);
+    Function_Call(ParserState pstate, std::string n, Arguments_Obj args, Function_Obj func);
+    Function_Call(ParserState pstate, std::string n, Arguments_Obj args);
+
+    Function_Call(ParserState pstate, String_Obj n, Arguments_Obj args, void* cookie)
+    : PreValue(pstate), sname_(n), arguments_(args), func_(0), via_call_(false), cookie_(cookie), hash_(0)
     { concrete_type(FUNCTION); }
-    Function_Call(ParserState pstate, std::string n, Arguments_Obj args, Function_Obj func)
-    : PreValue(pstate), name_(n), arguments_(args), func_(func), via_call_(false), cookie_(0), hash_(0)
+    Function_Call(ParserState pstate, String_Obj n, Arguments_Obj args, Function_Obj func)
+    : PreValue(pstate), sname_(n), arguments_(args), func_(func), via_call_(false), cookie_(0), hash_(0)
     { concrete_type(FUNCTION); }
-    Function_Call(ParserState pstate, std::string n, Arguments_Obj args)
-    : PreValue(pstate), name_(n), arguments_(args), via_call_(false), cookie_(0), hash_(0)
+    Function_Call(ParserState pstate, String_Obj n, Arguments_Obj args)
+    : PreValue(pstate), sname_(n), arguments_(args), via_call_(false), cookie_(0), hash_(0)
     { concrete_type(FUNCTION); }
+
+    std::string name() {
+      return sname();
+    }
+
     Function_Call(const Function_Call* ptr)
     : PreValue(ptr),
-      name_(ptr->name_),
+      sname_(ptr->sname_),
       arguments_(ptr->arguments_),
       func_(ptr->func_),
       via_call_(ptr->via_call_),
@@ -1460,53 +1475,11 @@ namespace Sass {
       return false;
     }
 
-    virtual bool operator==(const Expression& rhs) const
-    {
-      try
-      {
-        Function_Call_Ptr_Const m = Cast<Function_Call>(&rhs);
-        if (!(m && name() == m->name())) return false;
-        if (!(m && arguments()->length() == m->arguments()->length())) return false;
-        for (size_t i =0, L = arguments()->length(); i < L; ++i)
-          if (!(*(*arguments())[i] == *(*m->arguments())[i])) return false;
-        return true;
-      }
-      catch (std::bad_cast&)
-      {
-        return false;
-      }
-      catch (...) { throw; }
-    }
+    virtual bool operator==(const Expression& rhs) const;
 
-    virtual size_t hash()
-    {
-      if (hash_ == 0) {
-        hash_ = std::hash<std::string>()(name());
-        for (auto argument : arguments()->elements())
-          hash_combine(hash_, argument->hash());
-      }
-      return hash_;
-    }
+    virtual size_t hash();
+
     ATTACH_AST_OPERATIONS(Function_Call)
-    ATTACH_CRTP_PERFORM_METHODS()
-  };
-
-  /////////////////////////
-  // Function call schemas.
-  /////////////////////////
-  class Function_Call_Schema : public Expression {
-    ADD_PROPERTY(String_Obj, name)
-    ADD_PROPERTY(Arguments_Obj, arguments)
-  public:
-    Function_Call_Schema(ParserState pstate, String_Obj n, Arguments_Obj args)
-    : Expression(pstate), name_(n), arguments_(args)
-    { concrete_type(STRING); }
-    Function_Call_Schema(const Function_Call_Schema* ptr)
-    : Expression(ptr),
-      name_(ptr->name_),
-      arguments_(ptr->arguments_)
-    { concrete_type(STRING); }
-    ATTACH_AST_OPERATIONS(Function_Call_Schema)
     ATTACH_CRTP_PERFORM_METHODS()
   };
 

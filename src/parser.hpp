@@ -285,7 +285,7 @@ namespace Sass {
     Expression_Obj parse_value();
     Function_Call_Obj parse_calc_function();
     Function_Call_Obj parse_function_call();
-    Function_Call_Schema_Obj parse_function_call_schema();
+    Function_Call_Obj parse_function_call_schema();
     String_Obj parse_url_function_string();
     String_Obj parse_url_function_argument();
     String_Obj parse_interpolated_chunk(Token, bool constant = false, bool css = true);

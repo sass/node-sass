@@ -51,7 +51,6 @@ namespace Sass {
     virtual void operator()(Binary_Expression_Ptr);
     virtual void operator()(Unary_Expression_Ptr);
     virtual void operator()(Function_Call_Ptr);
-    virtual void operator()(Function_Call_Schema_Ptr);
     // virtual void operator()(Custom_Warning_Ptr);
     // virtual void operator()(Custom_Error_Ptr);
     virtual void operator()(Variable_Ptr);

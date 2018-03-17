@@ -149,9 +149,6 @@ namespace Sass {
   class Function_Call;
   typedef Function_Call* Function_Call_Ptr;
   typedef Function_Call const* Function_Call_Ptr_Const;
-  class Function_Call_Schema;
-  typedef Function_Call_Schema* Function_Call_Schema_Ptr;
-  typedef Function_Call_Schema const* Function_Call_Schema_Ptr_Const;
   class Custom_Warning;
   typedef Custom_Warning* Custom_Warning_Ptr;
   typedef Custom_Warning const* Custom_Warning_Ptr_Const;
@@ -319,7 +316,6 @@ namespace Sass {
   IMPL_MEM_OBJ(Binary_Expression);
   IMPL_MEM_OBJ(Unary_Expression);
   IMPL_MEM_OBJ(Function_Call);
-  IMPL_MEM_OBJ(Function_Call_Schema);
   IMPL_MEM_OBJ(Custom_Warning);
   IMPL_MEM_OBJ(Custom_Error);
   IMPL_MEM_OBJ(Variable);

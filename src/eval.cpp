@@ -931,8 +931,18 @@ namespace Sass {
         stm << "Stack depth exceeded max of " << Constants::MaxCallStack;
         error(stm.str(), c->pstate(), traces);
     }
+
+    if (Cast<String_Schema>(c->sname())) {
+      Expression_Ptr evaluated_name = c->sname()->perform(this);
+      Expression_Ptr evaluated_args = c->arguments()->perform(this);
+      std::string str(evaluated_name->to_string());
+      str += evaluated_args->to_string();
+      return SASS_MEMORY_NEW(String_Constant, c->pstate(), str);
+    }
+
     std::string name(Util::normalize_underscores(c->name()));
     std::string full_name(name + "[f]");
+
     // we make a clone here, need to implement that further
     Arguments_Obj args = c->arguments();
 
@@ -1088,16 +1098,6 @@ namespace Sass {
     result->is_interpolant(c->is_interpolant());
     exp.env_stack.pop_back();
     return result.detach();
-  }
-
-  Expression_Ptr Eval::operator()(Function_Call_Schema_Ptr s)
-  {
-    Expression_Ptr evaluated_name = s->name()->perform(this);
-    Expression_Ptr evaluated_args = s->arguments()->perform(this);
-    String_Schema_Obj ss = SASS_MEMORY_NEW(String_Schema, s->pstate(), 2);
-    ss->append(evaluated_name);
-    ss->append(evaluated_args);
-    return ss->perform(this);
   }
 
   Expression_Ptr Eval::operator()(Variable_Ptr v)

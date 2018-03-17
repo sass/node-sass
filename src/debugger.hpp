@@ -497,14 +497,6 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     std::cerr << " [" << expression->name() << "]" << std::endl;
     std::string name(expression->name());
     if (env && env->has(name)) debug_ast(Cast<Expression>((*env)[name]), ind + " -> ", env);
-  } else if (Cast<Function_Call_Schema>(node)) {
-    Function_Call_Schema_Ptr expression = Cast<Function_Call_Schema>(node);
-    std::cerr << ind << "Function_Call_Schema " << expression;
-    std::cerr << " [interpolant: " << expression->is_interpolant() << "] ";
-    std::cerr << " (" << pstate_source_position(node) << ")";
-    std::cerr << "" << std::endl;
-    debug_ast(expression->name(), ind + "name: ", env);
-    debug_ast(expression->arguments(), ind + " args: ", env);
   } else if (Cast<Function_Call>(node)) {
     Function_Call_Ptr expression = Cast<Function_Call>(node);
     std::cerr << ind << "Function_Call " << expression;

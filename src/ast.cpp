@@ -2108,6 +2108,44 @@ namespace Sass {
     }
   }
 
+  Function_Call::Function_Call(ParserState pstate, std::string n, Arguments_Obj args, void* cookie)
+  : PreValue(pstate), sname_(SASS_MEMORY_NEW(String_Constant, pstate, n)), arguments_(args), func_(0), via_call_(false), cookie_(cookie), hash_(0)
+  { concrete_type(FUNCTION); }
+  Function_Call::Function_Call(ParserState pstate, std::string n, Arguments_Obj args, Function_Obj func)
+  : PreValue(pstate), sname_(SASS_MEMORY_NEW(String_Constant, pstate, n)), arguments_(args), func_(func), via_call_(false), cookie_(0), hash_(0)
+  { concrete_type(FUNCTION); }
+  Function_Call::Function_Call(ParserState pstate, std::string n, Arguments_Obj args)
+  : PreValue(pstate), sname_(SASS_MEMORY_NEW(String_Constant, pstate, n)), arguments_(args), via_call_(false), cookie_(0), hash_(0)
+  { concrete_type(FUNCTION); }
+
+  bool Function_Call::operator==(const Expression& rhs) const
+  {
+    try
+    {
+      Function_Call_Ptr_Const m = Cast<Function_Call>(&rhs);
+      if (!(m && *sname() == *m->sname())) return false;
+      if (!(m && arguments()->length() == m->arguments()->length())) return false;
+      for (size_t i =0, L = arguments()->length(); i < L; ++i)
+        if (!(*(*arguments())[i] == *(*m->arguments())[i])) return false;
+      return true;
+    }
+    catch (std::bad_cast&)
+    {
+      return false;
+    }
+    catch (...) { throw; }
+  }
+
+  size_t Function_Call::hash()
+  {
+    if (hash_ == 0) {
+      hash_ = std::hash<std::string>()(name());
+      for (auto argument : arguments()->elements())
+        hash_combine(hash_, argument->hash());
+    }
+    return hash_;
+  }
+
   //////////////////////////////////////////////////////////////////////////////////////////
   // Convert map to (key, value) list.
   //////////////////////////////////////////////////////////////////////////////////////////
@@ -2181,7 +2219,6 @@ namespace Sass {
   IMPLEMENT_AST_OPERATORS(Arguments);
   IMPLEMENT_AST_OPERATORS(Argument);
   IMPLEMENT_AST_OPERATORS(Unary_Expression);
-  IMPLEMENT_AST_OPERATORS(Function_Call_Schema);
   IMPLEMENT_AST_OPERATORS(Block);
   IMPLEMENT_AST_OPERATORS(Content);
   IMPLEMENT_AST_OPERATORS(Trace);

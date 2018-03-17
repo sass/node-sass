@@ -513,12 +513,6 @@ namespace Sass {
     call->arguments()->perform(this);
   }
 
-  void Inspect::operator()(Function_Call_Schema_Ptr call)
-  {
-    call->name()->perform(this);
-    call->arguments()->perform(this);
-  }
-
   void Inspect::operator()(Variable_Ptr var)
   {
     append_token(var->name(), var);
