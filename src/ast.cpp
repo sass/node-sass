@@ -2124,38 +2124,6 @@ namespace Sass {
     return ret;
   }
 
-  //////////////////////////////////////////////////////////////////////////////////////////
-  // Copy implementations
-  //////////////////////////////////////////////////////////////////////////////////////////
-
-  #ifdef DEBUG_SHARED_PTR
-
-  #define IMPLEMENT_AST_OPERATORS(klass) \
-    klass##_Ptr klass::copy(std::string file, size_t line) const { \
-      klass##_Ptr cpy = new klass(this); \
-      cpy->trace(file, line); \
-      return cpy; \
-    } \
-    klass##_Ptr klass::clone(std::string file, size_t line) const { \
-      klass##_Ptr cpy = copy(file, line); \
-      cpy->cloneChildren(); \
-      return cpy; \
-    } \
-
-  #else
-
-  #define IMPLEMENT_AST_OPERATORS(klass) \
-    klass##_Ptr klass::copy() const { \
-      return new klass(this); \
-    } \
-    klass##_Ptr klass::clone() const { \
-      klass##_Ptr cpy = copy(); \
-      cpy->cloneChildren(); \
-      return cpy; \
-    } \
-
-  #endif
-
   IMPLEMENT_AST_OPERATORS(Supports_Operator);
   IMPLEMENT_AST_OPERATORS(Supports_Negation);
   IMPLEMENT_AST_OPERATORS(Compound_Selector);

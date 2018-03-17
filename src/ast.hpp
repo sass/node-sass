@@ -13,42 +13,6 @@
 #include "sass/base.h"
 #include "ast_fwd_decl.hpp"
 
-#ifdef DEBUG_SHARED_PTR
-
-#define ATTACH_VIRTUAL_AST_OPERATIONS(klass) \
-  virtual klass##_Ptr copy(std::string, size_t) const = 0; \
-  virtual klass##_Ptr clone(std::string, size_t) const = 0; \
-
-#define ATTACH_AST_OPERATIONS(klass) \
-  virtual klass##_Ptr copy(std::string, size_t) const; \
-  virtual klass##_Ptr clone(std::string, size_t) const; \
-
-#else
-
-#define ATTACH_VIRTUAL_AST_OPERATIONS(klass) \
-  virtual klass##_Ptr copy() const = 0; \
-  virtual klass##_Ptr clone() const = 0; \
-
-#define ATTACH_AST_OPERATIONS(klass) \
-  virtual klass##_Ptr copy() const; \
-  virtual klass##_Ptr clone() const; \
-
-#endif
-
-#ifdef __clang__
-
-/*
- * There are some overloads used here that trigger the clang overload
- * hiding warning. Specifically:
- *
- * Type type() which hides string type() from Expression
- *
- */
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Woverloaded-virtual"
-
-#endif
-
 #include "util.hpp"
 #include "units.hpp"
 #include "context.hpp"

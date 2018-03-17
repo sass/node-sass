@@ -67,4 +67,54 @@ public: \
   void name(type name##__) { hash_ = 0; name##_ = name##__; } \
 private:
 
+#ifdef DEBUG_SHARED_PTR
+
+#define ATTACH_VIRTUAL_AST_OPERATIONS(klass) \
+  virtual klass##_Ptr copy(std::string, size_t) const = 0; \
+  virtual klass##_Ptr clone(std::string, size_t) const = 0; \
+
+#define ATTACH_AST_OPERATIONS(klass) \
+  virtual klass##_Ptr copy(std::string, size_t) const; \
+  virtual klass##_Ptr clone(std::string, size_t) const; \
+
+#else
+
+#define ATTACH_VIRTUAL_AST_OPERATIONS(klass) \
+  virtual klass##_Ptr copy() const = 0; \
+  virtual klass##_Ptr clone() const = 0; \
+
+#define ATTACH_AST_OPERATIONS(klass) \
+  virtual klass##_Ptr copy() const; \
+  virtual klass##_Ptr clone() const; \
+
+#endif
+
+#ifdef DEBUG_SHARED_PTR
+
+  #define IMPLEMENT_AST_OPERATORS(klass) \
+    klass##_Ptr klass::copy(std::string file, size_t line) const { \
+      klass##_Ptr cpy = new klass(this); \
+      cpy->trace(file, line); \
+      return cpy; \
+    } \
+    klass##_Ptr klass::clone(std::string file, size_t line) const { \
+      klass##_Ptr cpy = copy(file, line); \
+      cpy->cloneChildren(); \
+      return cpy; \
+    } \
+
+#else
+
+  #define IMPLEMENT_AST_OPERATORS(klass) \
+    klass##_Ptr klass::copy() const { \
+      return new klass(this); \
+    } \
+    klass##_Ptr klass::clone() const { \
+      klass##_Ptr cpy = copy(); \
+      cpy->cloneChildren(); \
+      return cpy; \
+    } \
+
+#endif
+
 #endif
