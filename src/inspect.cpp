@@ -42,9 +42,7 @@ namespace Sass {
   void Inspect::operator()(Ruleset_Ptr ruleset)
   {
     if (ruleset->selector()) {
-      opt.in_selector = true;
       ruleset->selector()->perform(this);
-      opt.in_selector = false;
     }
     if (ruleset->block()) {
       ruleset->block()->perform(this);
@@ -623,11 +621,6 @@ namespace Sass {
     // maybe an unknown token
     std::string name = c->disp();
 
-    if (opt.in_selector && name != "") {
-      append_token(name, c);
-      return;
-    }
-
     // resolved color
     std::string res_name = name;
 
@@ -915,9 +908,7 @@ namespace Sass {
 
   void Inspect::operator()(Selector_Schema_Ptr s)
   {
-    opt.in_selector = true;
     s->contents()->perform(this);
-    opt.in_selector = false;
   }
 
   void Inspect::operator()(Parent_Selector_Ptr p)
