@@ -30,6 +30,8 @@
 #include "prelexer.hpp"
 #include "emitter.hpp"
 #include "fn_utils.hpp"
+#include "fn_numbers.hpp"
+#include "fn_selectors.hpp"
 
 namespace Sass {
   using namespace Constants;

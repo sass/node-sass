@@ -28,9 +28,6 @@ namespace Sass {
   #define COLOR_NUM(argname) color_num(argname, env, sig, pstate, traces) // double
   #define ALPHA_NUM(argname) alpha_num(argname, env, sig, pstate, traces) // double
 
-  #define ARGSEL(argname) get_arg_sel(argname, env, sig, pstate, traces, ctx)
-  #define ARGSELS(argname) get_arg_sels(argname, env, sig, pstate, traces, ctx)
-
   typedef const char* Signature;
 
   typedef Expression_Ptr (*Native_Function)(Env&, Env&, Context&, Signature, ParserState, Backtraces, SelectorStack);
