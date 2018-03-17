@@ -1,3 +1,4 @@
+#include <cctype>
 #include <iomanip>
 #include "ast.hpp"
 #include "fn_utils.hpp"

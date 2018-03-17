@@ -98,8 +98,6 @@ namespace Sass {
 
   };
 
-  Expression_Ptr cval_to_astnode(union Sass_Value* v, Backtraces traces, ParserState pstate = ParserState("[AST]"));
-
 }
 
 #endif

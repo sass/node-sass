@@ -1,5 +1,5 @@
-#ifndef SASS_TO_C_H
-#define SASS_TO_C_H
+#ifndef SASS_AST2C_H
+#define SASS_AST2C_H
 
 #include "ast_fwd_decl.hpp"
 #include "operation.hpp"
@@ -7,14 +7,12 @@
 
 namespace Sass {
 
-  class To_C : public Operation_CRTP<union Sass_Value*, To_C> {
-    // override this to define a catch-all
-    union Sass_Value* fallback_impl(AST_Node_Ptr n);
+  class AST2C : public Operation_CRTP<union Sass_Value*, AST2C> {
 
   public:
 
-    To_C() { }
-    ~To_C() { }
+    AST2C() { }
+    ~AST2C() { }
 
     union Sass_Value* operator()(Boolean_Ptr);
     union Sass_Value* operator()(Number_Ptr);
@@ -29,9 +27,10 @@ namespace Sass {
     union Sass_Value* operator()(Arguments_Ptr);
     union Sass_Value* operator()(Argument_Ptr);
 
-    // dispatch to fallback implementation
+    // return sass error if type is not supported
     union Sass_Value* fallback(AST_Node_Ptr x)
-    { return fallback_impl(x); }
+    { return sass_make_error("unknown type for C-API"); }
+
   };
 
 }

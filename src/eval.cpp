@@ -17,7 +17,8 @@
 #include "position.hpp"
 #include "sass/values.h"
 #include "to_value.hpp"
-#include "to_c.hpp"
+#include "ast2c.hpp"
+#include "c2ast.hpp"
 #include "context.hpp"
 #include "backtrace.hpp"
 #include "lexer.hpp"
@@ -333,9 +334,9 @@ namespace Sass {
       Sass_Function_Entry c_function = def->c_function();
       Sass_Function_Fn c_func = sass_function_get_function(c_function);
 
-      To_C to_c;
+      AST2C ast2c;
       union Sass_Value* c_args = sass_make_list(1, SASS_COMMA, false);
-      sass_list_set_value(c_args, 0, message->perform(&to_c));
+      sass_list_set_value(c_args, 0, message->perform(&ast2c));
       union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_compiler);
       ctx.c_options.output_style = outstyle;
       ctx.callee_stack.pop_back();
@@ -381,9 +382,9 @@ namespace Sass {
       Sass_Function_Entry c_function = def->c_function();
       Sass_Function_Fn c_func = sass_function_get_function(c_function);
 
-      To_C to_c;
+      AST2C ast2c;
       union Sass_Value* c_args = sass_make_list(1, SASS_COMMA, false);
-      sass_list_set_value(c_args, 0, message->perform(&to_c));
+      sass_list_set_value(c_args, 0, message->perform(&ast2c));
       union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_compiler);
       ctx.c_options.output_style = outstyle;
       ctx.callee_stack.pop_back();
@@ -425,9 +426,9 @@ namespace Sass {
       Sass_Function_Entry c_function = def->c_function();
       Sass_Function_Fn c_func = sass_function_get_function(c_function);
 
-      To_C to_c;
+      AST2C ast2c;
       union Sass_Value* c_args = sass_make_list(1, SASS_COMMA, false);
-      sass_list_set_value(c_args, 0, message->perform(&to_c));
+      sass_list_set_value(c_args, 0, message->perform(&ast2c));
       union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_compiler);
       ctx.c_options.output_style = outstyle;
       ctx.callee_stack.pop_back();
@@ -1054,14 +1055,14 @@ namespace Sass {
         { env }
       });
 
-      To_C to_c;
+      AST2C ast2c;
       union Sass_Value* c_args = sass_make_list(params->length(), SASS_COMMA, false);
       for(size_t i = 0; i < params->length(); i++) {
         Parameter_Obj param = params->at(i);
         std::string key = param->name();
         AST_Node_Obj node = fn_env.get_local(key);
         Expression_Obj arg = Cast<Expression>(node);
-        sass_list_set_value(c_args, i, arg->perform(&to_c));
+        sass_list_set_value(c_args, i, arg->perform(&ast2c));
       }
       union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_compiler);
       if (sass_value_get_tag(c_val) == SASS_ERROR) {
@@ -1069,7 +1070,7 @@ namespace Sass {
       } else if (sass_value_get_tag(c_val) == SASS_WARNING) {
         error("warning in C function " + c->name() + ": " + sass_warning_get_message(c_val), c->pstate(), traces);
       }
-      result = cval_to_astnode(c_val, traces, c->pstate());
+      result = c2ast(c_val, traces, c->pstate());
 
       ctx.callee_stack.pop_back();
       traces.pop_back();
@@ -1465,61 +1466,6 @@ namespace Sass {
   Expression_Ptr Eval::operator()(Comment_Ptr c)
   {
     return 0;
-  }
-
-  // All the binary helpers.
-
-  Expression_Ptr cval_to_astnode(union Sass_Value* v, Backtraces traces, ParserState pstate)
-  {
-    using std::strlen;
-    using std::strcpy;
-    Expression_Ptr e = NULL;
-    switch (sass_value_get_tag(v)) {
-      case SASS_BOOLEAN: {
-        e = SASS_MEMORY_NEW(Boolean, pstate, !!sass_boolean_get_value(v));
-      } break;
-      case SASS_NUMBER: {
-        e = SASS_MEMORY_NEW(Number, pstate, sass_number_get_value(v), sass_number_get_unit(v));
-      } break;
-      case SASS_COLOR: {
-        e = SASS_MEMORY_NEW(Color, pstate, sass_color_get_r(v), sass_color_get_g(v), sass_color_get_b(v), sass_color_get_a(v));
-      } break;
-      case SASS_STRING: {
-        if (sass_string_is_quoted(v))
-          e = SASS_MEMORY_NEW(String_Quoted, pstate, sass_string_get_value(v));
-        else {
-          e = SASS_MEMORY_NEW(String_Constant, pstate, sass_string_get_value(v));
-        }
-      } break;
-      case SASS_LIST: {
-        List_Ptr l = SASS_MEMORY_NEW(List, pstate, sass_list_get_length(v), sass_list_get_separator(v));
-        for (size_t i = 0, L = sass_list_get_length(v); i < L; ++i) {
-          l->append(cval_to_astnode(sass_list_get_value(v, i), traces, pstate));
-        }
-        l->is_bracketed(sass_list_get_is_bracketed(v));
-        e = l;
-      } break;
-      case SASS_MAP: {
-        Map_Ptr m = SASS_MEMORY_NEW(Map, pstate);
-        for (size_t i = 0, L = sass_map_get_length(v); i < L; ++i) {
-          *m << std::make_pair(
-            cval_to_astnode(sass_map_get_key(v, i), traces, pstate),
-            cval_to_astnode(sass_map_get_value(v, i), traces, pstate));
-        }
-        e = m;
-      } break;
-      case SASS_NULL: {
-        e = SASS_MEMORY_NEW(Null, pstate);
-      } break;
-      case SASS_ERROR: {
-        error("Error in C function: " + std::string(sass_error_get_message(v)), pstate, traces);
-      } break;
-      case SASS_WARNING: {
-        error("Warning in C function: " + std::string(sass_warning_get_message(v)), pstate, traces);
-      } break;
-      default: break;
-    }
-    return e;
   }
 
   Selector_List_Ptr Eval::operator()(Selector_List_Ptr s)

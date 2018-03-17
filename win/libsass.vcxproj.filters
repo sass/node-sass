@@ -198,7 +198,10 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\subset_map.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\to_c.hpp">
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast2c.hpp">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\c2ast.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\to_value.hpp">
@@ -383,7 +386,10 @@
     <ClCompile Include="$(LIBSASS_SRC_DIR)\subset_map.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="$(LIBSASS_SRC_DIR)\to_c.cpp">
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\ast2c.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\c2ast.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="$(LIBSASS_SRC_DIR)\to_value.cpp">
