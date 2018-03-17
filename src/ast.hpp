@@ -209,14 +209,14 @@ namespace Sass {
   //////////////////////////////////////////////////////////////////////
   // base class for values that support operations
   //////////////////////////////////////////////////////////////////////
-  class Value : public Expression {
+  class Value : public PreValue {
   public:
     Value(ParserState pstate,
           bool d = false, bool e = false, bool i = false, Concrete_Type ct = NONE)
-    : Expression(pstate, d, e, i, ct)
+    : PreValue(pstate, d, e, i, ct)
     { }
     Value(const Value* ptr)
-    : Expression(ptr)
+    : PreValue(ptr)
     { }
     ATTACH_VIRTUAL_AST_OPERATIONS(Value);
     virtual bool operator== (const Expression& rhs) const = 0;
