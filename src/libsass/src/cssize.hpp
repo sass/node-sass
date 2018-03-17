@@ -13,14 +13,14 @@ namespace Sass {
   class Cssize : public Operation_CRTP<Statement_Ptr, Cssize> {
 
     Context&                    ctx;
-    std::vector<Block_Ptr>         block_stack;
-    std::vector<Statement_Ptr>     p_stack;
-    Backtrace*                  backtrace;
+    Backtraces&                 traces;
+    std::vector<Block_Ptr>      block_stack;
+    std::vector<Statement_Ptr>  p_stack;
 
     Statement_Ptr fallback_impl(AST_Node_Ptr n);
 
   public:
-    Cssize(Context&, Backtrace*);
+    Cssize(Context&);
     ~Cssize() { }
 
     Selector_List_Ptr selector();

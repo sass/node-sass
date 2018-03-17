@@ -1718,7 +1718,7 @@ namespace Sass {
           err << "You may only @extend selectors within the same directive.\n";
           err << "From \"@extend " << ext.second->to_string() << "\"";
           err << " on line " << pstate.line+1 << " of " << rel_path << "\n";
-          error(err.str(), selector->pstate());
+          error(err.str(), selector->pstate(), eval->exp.traces);
         }
         if (entries.size() > 0) hasExtension = true;
       }
@@ -2098,7 +2098,7 @@ namespace Sass {
         error("\"" + str_sel + "\" failed to @extend \"" + str_ext + "\".\n"
               "The selector \"" + str_ext + "\" was not found.\n"
               "Use \"@extend " + str_ext + " !optional\" if the"
-              " extend should be able to fail.", (ext ? ext->pstate() : NULL));
+              " extend should be able to fail.", (ext ? ext->pstate() : NULL), eval->exp.traces);
       }
     }
 

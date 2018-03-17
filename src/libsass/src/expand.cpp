@@ -16,8 +16,9 @@ namespace Sass {
   // simple endless recursion protection
   const size_t maxRecursion = 500;
 
-  Expand::Expand(Context& ctx, Env* env, Backtrace* bt, std::vector<Selector_List_Obj>* stack)
+  Expand::Expand(Context& ctx, Env* env, std::vector<Selector_List_Obj>* stack)
   : ctx(ctx),
+    traces(ctx.traces),
     eval(Eval(*this)),
     recursions(0),
     in_keyframes(false),
@@ -27,8 +28,7 @@ namespace Sass {
     block_stack(std::vector<Block_Ptr>()),
     call_stack(std::vector<AST_Node_Obj>()),
     selector_stack(std::vector<Selector_List_Obj>()),
-    media_block_stack(std::vector<Media_Block_Ptr>()),
-    backtrace_stack(std::vector<Backtrace*>())
+    media_block_stack(std::vector<Media_Block_Ptr>())
   {
     env_stack.push_back(0);
     env_stack.push_back(env);
@@ -37,8 +37,6 @@ namespace Sass {
     if (stack == NULL) { selector_stack.push_back(0); }
     else { selector_stack.insert(selector_stack.end(), stack->begin(), stack->end()); }
     media_block_stack.push_back(0);
-    backtrace_stack.push_back(0);
-    backtrace_stack.push_back(bt);
   }
 
   Env* Expand::environment()
@@ -52,13 +50,6 @@ namespace Sass {
   {
     if (selector_stack.size() > 0)
       return selector_stack.back();
-    return 0;
-  }
-
-  Backtrace* Expand::backtrace()
-  {
-    if (backtrace_stack.size() > 0)
-      return backtrace_stack.back();
     return 0;
   }
 
@@ -126,7 +117,7 @@ namespace Sass {
               Parent_Selector_Ptr ptr = Cast<Parent_Selector>(header);
               if (ptr == NULL || (!ptr->real() || has_parent_selector)) continue;
               std::string sel_str(complex_selector->to_string(ctx.c_options));
-              error("Base-level rules cannot contain the parent-selector-referencing character '&'.", header->pstate(), backtrace());
+              error("Base-level rules cannot contain the parent-selector-referencing character '&'.", header->pstate(), traces);
             }
             tail = tail->tail();
           }
@@ -136,7 +127,7 @@ namespace Sass {
     else {
       if (sel->length() == 0 || sel->has_parent_ref()) {
         if (sel->has_real_parent_ref() && !has_parent_selector) {
-          error("Base-level rules cannot contain the parent-selector-referencing character '&'.", sel->pstate(), backtrace());
+          error("Base-level rules cannot contain the parent-selector-referencing character '&'.", sel->pstate(), traces);
         }
       }
     }
@@ -189,7 +180,7 @@ namespace Sass {
     std::string str_mq(mq->to_string(ctx.c_options));
     char* str = sass_copy_c_string(str_mq.c_str());
     ctx.strings.push_back(str);
-    Parser p(Parser::from_c_str(str, ctx, mq->pstate()));
+    Parser p(Parser::from_c_str(str, ctx, traces, mq->pstate()));
     mq = p.parse_media_queries(); // re-assign now
     cpy->media_queries(mq);
     media_block_stack.push_back(cpy);
@@ -349,10 +340,11 @@ namespace Sass {
 
   Statement_Ptr Expand::operator()(Import_Stub_Ptr i)
   {
+    traces.push_back(Backtrace(i->pstate()));
     // get parent node from call stack
     AST_Node_Obj parent = call_stack.back();
     if (Cast<Block>(parent) == NULL) {
-      error("Import directives may not be used within control directives or mixins.", i->pstate());
+      error("Import directives may not be used within control directives or mixins.", i->pstate(), traces);
     }
     // we don't seem to need that actually afterall
     Sass_Import_Entry import = sass_make_import(
@@ -361,10 +353,18 @@ namespace Sass {
       0, 0
     );
     ctx.import_stack.push_back(import);
+
+    Block_Obj trace_block = SASS_MEMORY_NEW(Block, i->pstate());
+    Trace_Obj trace = SASS_MEMORY_NEW(Trace, i->pstate(), i->imp_path(), trace_block, 'i');
+    block_stack.back()->append(trace);
+    block_stack.push_back(trace_block);
+
     const std::string& abs_path(i->resource().abs_path);
     append_block(ctx.sheets.at(abs_path).root);
     sass_delete_import(ctx.import_stack.back());
     ctx.import_stack.pop_back();
+    block_stack.pop_back();
+    traces.pop_back();
     return 0;
   }
 
@@ -428,11 +428,13 @@ namespace Sass {
     std::string variable(f->variable());
     Expression_Obj low = f->lower_bound()->perform(&eval);
     if (low->concrete_type() != Expression::NUMBER) {
-      throw Exception::TypeMismatch(*low, "integer");
+      traces.push_back(Backtrace(low->pstate()));
+      throw Exception::TypeMismatch(traces, *low, "integer");
     }
     Expression_Obj high = f->upper_bound()->perform(&eval);
     if (high->concrete_type() != Expression::NUMBER) {
-      throw Exception::TypeMismatch(*high, "integer");
+      traces.push_back(Backtrace(high->pstate()));
+      throw Exception::TypeMismatch(traces, *high, "integer");
     }
     Number_Obj sass_start = Cast<Number>(low);
     Number_Obj sass_end = Cast<Number>(high);
@@ -441,7 +443,7 @@ namespace Sass {
       std::stringstream msg; msg << "Incompatible units: '"
         << sass_start->unit() << "' and '"
         << sass_end->unit() << "'.";
-      error(msg.str(), low->pstate(), backtrace());
+      error(msg.str(), low->pstate(), traces);
     }
     double start = sass_start->value();
     double end = sass_end->value();
@@ -579,7 +581,7 @@ namespace Sass {
 
   Statement_Ptr Expand::operator()(Return_Ptr r)
   {
-    error("@return may only be used within a function", r->pstate(), backtrace());
+    error("@return may only be used within a function", r->pstate(), traces);
     return 0;
   }
 
@@ -593,7 +595,7 @@ namespace Sass {
           if (tail->head()) for (Simple_Selector_Obj header : tail->head()->elements()) {
             if (Cast<Parent_Selector>(header) == NULL) continue; // skip all others
             std::string sel_str(complex_selector->to_string(ctx.c_options));
-            error("Can't extend " + sel_str + ": can't extend parent selectors", header->pstate(), backtrace());
+            error("Can't extend " + sel_str + ": can't extend parent selectors", header->pstate(), traces);
           }
           tail = tail->tail();
         }
@@ -607,7 +609,7 @@ namespace Sass {
       Complex_Selector_Obj c = complex_sel;
       if (!c->head() || c->tail()) {
         std::string sel_str(contextualized->to_string(ctx.c_options));
-        error("Can't extend " + sel_str + ": can't extend nested selectors", c->pstate(), backtrace());
+        error("Can't extend " + sel_str + ": can't extend nested selectors", c->pstate(), traces);
       }
       Compound_Selector_Obj target = c->head();
       if (contextualized->is_optional()) target->is_optional(true);
@@ -694,7 +696,7 @@ namespace Sass {
   Statement_Ptr Expand::operator()(Mixin_Call_Ptr c)
   {
     if (recursions > maxRecursion) {
-      throw Exception::StackError(*c);
+      throw Exception::StackError(traces, *c);
     }
 
     recursions ++;
@@ -702,19 +704,19 @@ namespace Sass {
     Env* env = environment();
     std::string full_name(c->name() + "[m]");
     if (!env->has(full_name)) {
-      error("no mixin named " + c->name(), c->pstate(), backtrace());
+      error("no mixin named " + c->name(), c->pstate(), traces);
     }
     Definition_Obj def = Cast<Definition>((*env)[full_name]);
     Block_Obj body = def->block();
     Parameters_Obj params = def->parameters();
 
     if (c->block() && c->name() != "@content" && !body->has_content()) {
-      error("Mixin \"" + c->name() + "\" does not accept a content block.", c->pstate(), backtrace());
+      error("Mixin \"" + c->name() + "\" does not accept a content block.", c->pstate(), traces);
     }
     Expression_Obj rv = c->arguments()->perform(&eval);
     Arguments_Obj args = Cast<Arguments>(rv);
-    Backtrace new_bt(backtrace(), c->pstate(), ", in mixin `" + c->name() + "`");
-    backtrace_stack.push_back(&new_bt);
+    std::string msg(", in mixin `" + c->name() + "`");
+    traces.push_back(Backtrace(c->pstate(), msg));
     ctx.callee_stack.push_back({
       c->name().c_str(),
       c->pstate().path,
@@ -758,9 +760,9 @@ namespace Sass {
     block_stack.pop_back();
     env->del_global("is_in_mixin");
 
-    env_stack.pop_back();
-    backtrace_stack.pop_back();
     ctx.callee_stack.pop_back();
+    env_stack.pop_back();
+    traces.pop_back();
 
     recursions --;
     return trace.detach();
@@ -795,7 +797,7 @@ namespace Sass {
   {
     std::string err =std:: string("`Expand` doesn't handle ") + typeid(*n).name();
     String_Quoted_Obj msg = SASS_MEMORY_NEW(String_Quoted, ParserState("[WARN]"), err);
-    error("unknown internal error; please contact the LibSass maintainers", n->pstate(), backtrace());
+    error("unknown internal error; please contact the LibSass maintainers", n->pstate(), traces);
     return SASS_MEMORY_NEW(Warning, ParserState("[WARN]"), msg);
   }
 

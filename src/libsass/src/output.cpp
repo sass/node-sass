@@ -19,13 +19,14 @@ namespace Sass {
 
   void Output::operator()(Number_Ptr n)
   {
-    // use values to_string facility
-    std::string res = n->to_string(opt);
     // check for a valid unit here
     // includes result for reporting
     if (!n->is_valid_css_unit()) {
-      throw Exception::InvalidValue(*n);
+      // should be handle in check_expression
+      throw Exception::InvalidValue({}, *n);
     }
+    // use values to_string facility
+    std::string res = n->to_string(opt);
     // output the final token
     append_token(res, n);
   }
@@ -37,8 +38,8 @@ namespace Sass {
 
   void Output::operator()(Map_Ptr m)
   {
-    std::string dbg(m->to_string(opt));
-    error(dbg + " isn't a valid CSS value.", m->pstate());
+    // should be handle in check_expression
+    throw Exception::InvalidValue({}, *m);
   }
 
   OutputBuffer Output::get_buffer(void)

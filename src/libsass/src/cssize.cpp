@@ -5,15 +5,14 @@
 
 #include "cssize.hpp"
 #include "context.hpp"
-#include "backtrace.hpp"
 
 namespace Sass {
 
-  Cssize::Cssize(Context& ctx, Backtrace* bt)
+  Cssize::Cssize(Context& ctx)
   : ctx(ctx),
+    traces(ctx.traces),
     block_stack(std::vector<Block_Ptr>()),
-    p_stack(std::vector<Statement_Ptr>()),
-    backtrace(bt)
+    p_stack(std::vector<Statement_Ptr>())
   { }
 
   Statement_Ptr Cssize::parent()
@@ -33,7 +32,10 @@ namespace Sass {
 
   Statement_Ptr Cssize::operator()(Trace_Ptr t)
   {
-    return t->block()->perform(this);
+    traces.push_back(Backtrace(t->pstate()));
+    auto result = t->block()->perform(this);
+    traces.pop_back();
+    return result;
   }
 
   Statement_Ptr Cssize::operator()(Declaration_Ptr d)
@@ -149,7 +151,7 @@ namespace Sass {
     // this should protect us (at least a bit) from our mess
     // fixing this properly is harder that it should be ...
     if (Cast<Statement>(bb) == NULL) {
-      error("Illegal nesting: Only properties may be nested beneath properties.", r->block()->pstate());
+      error("Illegal nesting: Only properties may be nested beneath properties.", r->block()->pstate(), traces);
     }
     Ruleset_Obj rr = SASS_MEMORY_NEW(Ruleset,
                                   r->pstate(),
@@ -161,7 +163,7 @@ namespace Sass {
     p_stack.pop_back();
 
     if (!rr->block()) {
-      error("Illegal nesting: Only properties may be nested beneath properties.", r->block()->pstate());
+      error("Illegal nesting: Only properties may be nested beneath properties.", r->block()->pstate(), traces);
     }
 
     Block_Obj props = SASS_MEMORY_NEW(Block, rr->block()->pstate());

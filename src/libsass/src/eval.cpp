@@ -12,6 +12,7 @@
 #include "bind.hpp"
 #include "util.hpp"
 #include "inspect.hpp"
+#include "operators.hpp"
 #include "environment.hpp"
 #include "position.hpp"
 #include "sass/values.h"
@@ -28,28 +29,10 @@
 
 namespace Sass {
 
-  inline double add(double x, double y) { return x + y; }
-  inline double sub(double x, double y) { return x - y; }
-  inline double mul(double x, double y) { return x * y; }
-  inline double div(double x, double y) { return x / y; } // x/0 checked by caller
-  inline double mod(double x, double y) { // x/0 checked by caller
-    if ((x > 0 && y < 0) || (x < 0 && y > 0)) {
-      double ret = std::fmod(x, y);
-      return ret ? ret + y : ret;
-    } else {
-      return std::fmod(x, y);
-    }
-  }
-  typedef double (*bop)(double, double);
-  bop ops[Sass_OP::NUM_OPS] = {
-    0, 0, // and, or
-    0, 0, 0, 0, 0, 0, // eq, neq, gt, gte, lt, lte
-    add, sub, mul, div, mod
-  };
-
   Eval::Eval(Expand& exp)
   : exp(exp),
     ctx(exp.ctx),
+    traces(exp.traces),
     force(false),
     is_in_comment(false),
     is_in_selector_schema(false)
@@ -67,11 +50,6 @@ namespace Sass {
   Selector_List_Obj Eval::selector()
   {
     return exp.selector();
-  }
-
-  Backtrace* Eval::backtrace()
-  {
-    return exp.backtrace();
   }
 
   Expression_Ptr Eval::operator()(Block_Ptr b)
@@ -169,11 +147,13 @@ namespace Sass {
     std::string variable(f->variable());
     Expression_Obj low = f->lower_bound()->perform(this);
     if (low->concrete_type() != Expression::NUMBER) {
-      throw Exception::TypeMismatch(*low, "integer");
+      traces.push_back(Backtrace(low->pstate()));
+      throw Exception::TypeMismatch(traces, *low, "integer");
     }
     Expression_Obj high = f->upper_bound()->perform(this);
     if (high->concrete_type() != Expression::NUMBER) {
-      throw Exception::TypeMismatch(*high, "integer");
+      traces.push_back(Backtrace(high->pstate()));
+      throw Exception::TypeMismatch(traces, *high, "integer");
     }
     Number_Obj sass_start = Cast<Number>(low);
     Number_Obj sass_end = Cast<Number>(high);
@@ -182,7 +162,7 @@ namespace Sass {
       std::stringstream msg; msg << "Incompatible units: '"
         << sass_end->unit() << "' and '"
         << sass_start->unit() << "'.";
-      error(msg.str(), low->pstate(), backtrace());
+      error(msg.str(), low->pstate(), traces);
     }
     double start = sass_start->value();
     double end = sass_end->value();
@@ -366,11 +346,12 @@ namespace Sass {
     }
 
     std::string result(unquote(message->to_sass()));
-    Backtrace top(backtrace(), w->pstate(), "");
-    std::cerr << "WARNING: " << result;
-    std::cerr << top.to_string();
-    std::cerr << std::endl << std::endl;
+    std::cerr << "WARNING: " << result << std::endl;
+    traces.push_back(Backtrace(w->pstate()));
+    std::cerr << traces_to_string(traces, "         ");
+    std::cerr << std::endl;
     ctx.c_options.output_style = outstyle;
+    traces.pop_back();
     return 0;
   }
 
@@ -414,7 +395,7 @@ namespace Sass {
 
     std::string result(unquote(message->to_sass()));
     ctx.c_options.output_style = outstyle;
-    error(result, e->pstate());
+    error(result, e->pstate(), traces);
     return 0;
   }
 
@@ -484,7 +465,8 @@ namespace Sass {
         *lm << std::make_pair(key, val);
       }
       if (lm->has_duplicate_key()) {
-        throw Exception::DuplicateKeyError(*lm, *l);
+        traces.push_back(Backtrace(l->pstate()));
+        throw Exception::DuplicateKeyError(traces, *lm, *l);
       }
 
       lm->is_interpolant(l->is_interpolant());
@@ -515,7 +497,8 @@ namespace Sass {
     // make sure we're not starting with duplicate keys.
     // the duplicate key state will have been set in the parser phase.
     if (m->has_duplicate_key()) {
-      throw Exception::DuplicateKeyError(*m, *m);
+      traces.push_back(Backtrace(m->pstate()));
+      throw Exception::DuplicateKeyError(traces, *m, *m);
     }
 
     Map_Obj mm = SASS_MEMORY_NEW(Map,
@@ -531,7 +514,8 @@ namespace Sass {
 
     // check the evaluated keys aren't duplicates.
     if (mm->has_duplicate_key()) {
-      throw Exception::DuplicateKeyError(*mm, *m);
+      traces.push_back(Backtrace(m->pstate()));
+      throw Exception::DuplicateKeyError(traces, *mm, *m);
     }
 
     mm->is_expanded(true);
@@ -599,13 +583,14 @@ namespace Sass {
             case Sass_OP::LTE: return *l_n < *r_n || *l_n == *r_n ? bool_true : bool_false;
             case Sass_OP::GT: return *l_n < *r_n || *l_n == *r_n ? bool_false : bool_true;
             case Sass_OP::ADD: case Sass_OP::SUB: case Sass_OP::MUL: case Sass_OP::DIV: case Sass_OP::MOD:
-              return op_numbers(op_type, *l_n, *r_n, ctx.c_options, b_in->pstate());
+              return Operators::op_numbers(op_type, *l_n, *r_n, ctx.c_options, b_in->pstate());
             default: break;
           }
         }
         catch (Exception::OperationError& err)
         {
-          throw Exception::SassValueError(b_in->pstate(), err);
+          traces.push_back(Backtrace(b_in->pstate()));
+          throw Exception::SassValueError(traces, b_in->pstate(), err);
         }
       }
       // lhs is number and rhs is color
@@ -619,13 +604,14 @@ namespace Sass {
             case Sass_OP::LTE: return *l_n < *r_c || *l_n == *r_c ? bool_true : bool_false;
             case Sass_OP::GT: return *l_n < *r_c || *l_n == *r_c ? bool_false : bool_true;
             case Sass_OP::ADD: case Sass_OP::SUB: case Sass_OP::MUL: case Sass_OP::DIV: case Sass_OP::MOD:
-              return op_number_color(op_type, *l_n, *r_c, ctx.c_options, b_in->pstate());
+              return Operators::op_number_color(op_type, *l_n, *r_c, ctx.c_options, b_in->pstate());
             default: break;
           }
         }
         catch (Exception::OperationError& err)
         {
-          throw Exception::SassValueError(b_in->pstate(), err);
+          traces.push_back(Backtrace(b_in->pstate()));
+          throw Exception::SassValueError(traces, b_in->pstate(), err);
         }
       }
     }
@@ -641,13 +627,14 @@ namespace Sass {
             case Sass_OP::LTE: return *l_c < *r_c || *l_c == *r_c ? bool_true : bool_false;
             case Sass_OP::GT: return *l_c < *r_c || *l_c == *r_c ? bool_false : bool_true;
             case Sass_OP::ADD: case Sass_OP::SUB: case Sass_OP::MUL: case Sass_OP::DIV: case Sass_OP::MOD:
-              return op_colors(op_type, *l_c, *r_c, ctx.c_options, b_in->pstate());
+              return Operators::op_colors(op_type, *l_c, *r_c, ctx.c_options, b_in->pstate());
             default: break;
           }
         }
         catch (Exception::OperationError& err)
         {
-          throw Exception::SassValueError(b_in->pstate(), err);
+          traces.push_back(Backtrace(b_in->pstate()));
+          throw Exception::SassValueError(traces, b_in->pstate(), err);
         }
       }
       // lhs is color and rhs is number
@@ -661,13 +648,14 @@ namespace Sass {
             case Sass_OP::LTE: return *l_c < *r_n || *l_c == *r_n ? bool_true : bool_false;
             case Sass_OP::GT: return *l_c < *r_n || *l_c == *r_n ? bool_false : bool_true;
             case Sass_OP::ADD: case Sass_OP::SUB: case Sass_OP::MUL: case Sass_OP::DIV: case Sass_OP::MOD:
-              return op_color_number(op_type, *l_c, *r_n, ctx.c_options, b_in->pstate());
+              return Operators::op_color_number(op_type, *l_c, *r_n, ctx.c_options, b_in->pstate());
             default: break;
           }
         }
         catch (Exception::OperationError& err)
         {
-          throw Exception::SassValueError(b_in->pstate(), err);
+          traces.push_back(Backtrace(b_in->pstate()));
+          throw Exception::SassValueError(traces, b_in->pstate(), err);
         }
       }
     }
@@ -786,19 +774,20 @@ namespace Sass {
     // see if it's a relational expression
     try {
       switch(op_type) {
-        case Sass_OP::EQ:  return SASS_MEMORY_NEW(Boolean, b->pstate(), eq(lhs, rhs));
-        case Sass_OP::NEQ: return SASS_MEMORY_NEW(Boolean, b->pstate(), !eq(lhs, rhs));
-        case Sass_OP::GT:  return SASS_MEMORY_NEW(Boolean, b->pstate(), !lt(lhs, rhs, "gt") && !eq(lhs, rhs));
-        case Sass_OP::GTE: return SASS_MEMORY_NEW(Boolean, b->pstate(), !lt(lhs, rhs, "gte"));
-        case Sass_OP::LT:  return SASS_MEMORY_NEW(Boolean, b->pstate(), lt(lhs, rhs, "lt"));
-        case Sass_OP::LTE: return SASS_MEMORY_NEW(Boolean, b->pstate(), lt(lhs, rhs, "lte") || eq(lhs, rhs));
-        default:                     break;
+        case Sass_OP::EQ:  return SASS_MEMORY_NEW(Boolean, b->pstate(), Operators::eq(lhs, rhs));
+        case Sass_OP::NEQ: return SASS_MEMORY_NEW(Boolean, b->pstate(), Operators::neq(lhs, rhs));
+        case Sass_OP::GT:  return SASS_MEMORY_NEW(Boolean, b->pstate(), Operators::gt(lhs, rhs));
+        case Sass_OP::GTE: return SASS_MEMORY_NEW(Boolean, b->pstate(), Operators::gte(lhs, rhs));
+        case Sass_OP::LT:  return SASS_MEMORY_NEW(Boolean, b->pstate(), Operators::lt(lhs, rhs));
+        case Sass_OP::LTE: return SASS_MEMORY_NEW(Boolean, b->pstate(), Operators::lte(lhs, rhs));
+        default: break;
       }
     }
     catch (Exception::OperationError& err)
     {
       // throw Exception::Base(b->pstate(), err.what());
-      throw Exception::SassValueError(b->pstate(), err);
+      traces.push_back(Backtrace(b->pstate()));
+      throw Exception::SassValueError(traces, b->pstate(), err);
     }
 
     l_type = lhs->concrete_type();
@@ -813,22 +802,22 @@ namespace Sass {
         Number_Ptr l_n = Cast<Number>(lhs);
         Number_Ptr r_n = Cast<Number>(rhs);
         l_n->reduce(); r_n->reduce();
-        rv = op_numbers(op_type, *l_n, *r_n, ctx.c_options, pstate);
+        rv = Operators::op_numbers(op_type, *l_n, *r_n, ctx.c_options, pstate);
       }
       else if (l_type == Expression::NUMBER && r_type == Expression::COLOR) {
         Number_Ptr l_n = Cast<Number>(lhs);
         Color_Ptr r_c = Cast<Color>(rhs);
-        rv = op_number_color(op_type, *l_n, *r_c, ctx.c_options, pstate);
+        rv = Operators::op_number_color(op_type, *l_n, *r_c, ctx.c_options, pstate);
       }
       else if (l_type == Expression::COLOR && r_type == Expression::NUMBER) {
         Color_Ptr l_c = Cast<Color>(lhs);
         Number_Ptr r_n = Cast<Number>(rhs);
-        rv = op_color_number(op_type, *l_c, *r_n, ctx.c_options, pstate);
+        rv = Operators::op_color_number(op_type, *l_c, *r_n, ctx.c_options, pstate);
       }
       else if (l_type == Expression::COLOR && r_type == Expression::COLOR) {
         Color_Ptr l_c = Cast<Color>(lhs);
         Color_Ptr r_c = Cast<Color>(rhs);
-        rv = op_colors(op_type, *l_c, *r_c, ctx.c_options, pstate);
+        rv = Operators::op_colors(op_type, *l_c, *r_c, ctx.c_options, pstate);
       }
       else {
         To_Value to_value(ctx);
@@ -842,12 +831,14 @@ namespace Sass {
         // if (op_type == Sass_OP::DIV) interpolant = true;
         // check for type violations
         if (l_type == Expression::MAP || l_type == Expression::FUNCTION_VAL) {
-          throw Exception::InvalidValue(*v_l);
+          traces.push_back(Backtrace(v_l->pstate()));
+          throw Exception::InvalidValue(traces, *v_l);
         }
         if (r_type == Expression::MAP || l_type == Expression::FUNCTION_VAL) {
-          throw Exception::InvalidValue(*v_r);
+          traces.push_back(Backtrace(v_r->pstate()));
+          throw Exception::InvalidValue(traces, *v_r);
         }
-        Value_Ptr ex = op_strings(b->op(), *v_l, *v_r, ctx.c_options, pstate, !interpolant); // pass true to compress
+        Value_Ptr ex = Operators::op_strings(b->op(), *v_l, *v_r, ctx.c_options, pstate, !interpolant); // pass true to compress
         if (String_Constant_Ptr str = Cast<String_Constant>(ex))
         {
           if (str->concrete_type() == Expression::STRING)
@@ -866,8 +857,9 @@ namespace Sass {
     }
     catch (Exception::OperationError& err)
     {
+      traces.push_back(Backtrace(b->pstate()));
       // throw Exception::Base(b->pstate(), err.what());
-      throw Exception::SassValueError(b->pstate(), err);
+      throw Exception::SassValueError(traces, b->pstate(), err);
     }
 
     if (rv) {
@@ -932,11 +924,11 @@ namespace Sass {
 
   Expression_Ptr Eval::operator()(Function_Call_Ptr c)
   {
-    if (backtrace()->parent != NULL && backtrace()->depth() > Constants::MaxCallStack) {
+    if (traces.size() > Constants::MaxCallStack) {
         // XXX: this is never hit via spec tests
         std::ostringstream stm;
         stm << "Stack depth exceeded max of " << Constants::MaxCallStack;
-        error(stm.str(), c->pstate(), backtrace());
+        error(stm.str(), c->pstate(), traces);
     }
     std::string name(Util::normalize_underscores(c->name()));
     std::string full_name(name + "[f]");
@@ -948,7 +940,7 @@ namespace Sass {
       if (!env->has("*[f]")) {
         for (Argument_Obj arg : args->elements()) {
           if (List_Obj ls = Cast<List>(arg->value())) {
-            if (ls->size() == 0) error("() isn't a valid CSS value.", c->pstate());
+            if (ls->size() == 0) error("() isn't a valid CSS value.", c->pstate(), traces);
           }
         }
         args = Cast<Arguments>(args->perform(this));
@@ -957,7 +949,7 @@ namespace Sass {
                                              c->name(),
                                              args);
         if (args->has_named_arguments()) {
-          error("Function " + c->name() + " doesn't support keyword arguments", c->pstate());
+          error("Function " + c->name() + " doesn't support keyword arguments", c->pstate(), traces);
         }
         String_Quoted_Ptr str = SASS_MEMORY_NEW(String_Quoted,
                                              c->pstate(),
@@ -994,7 +986,7 @@ namespace Sass {
       ss << full_name << L;
       full_name = ss.str();
       std::string resolved_name(full_name);
-      if (!env->has(resolved_name)) error("overloaded function `" + std::string(c->name()) + "` given wrong number of arguments", c->pstate());
+      if (!env->has(resolved_name)) error("overloaded function `" + std::string(c->name()) + "` given wrong number of arguments", c->pstate(), traces);
       def = Cast<Definition>((*env)[resolved_name]);
     }
 
@@ -1011,8 +1003,8 @@ namespace Sass {
 
     if (func || body) {
       bind(std::string("Function"), c->name(), params, args, &ctx, &fn_env, this);
-      Backtrace here(backtrace(), c->pstate(), ", in function `" + c->name() + "`");
-      exp.backtrace_stack.push_back(&here);
+      std::string msg(", in function `" + c->name() + "`");
+      traces.push_back(Backtrace(c->pstate(), msg));
       ctx.callee_stack.push_back({
         c->name().c_str(),
         c->pstate().path,
@@ -1027,13 +1019,13 @@ namespace Sass {
         result = body->perform(this);
       }
       else if (func) {
-        result = func(fn_env, *env, ctx, def->signature(), c->pstate(), backtrace(), exp.selector_stack);
+        result = func(fn_env, *env, ctx, def->signature(), c->pstate(), traces, exp.selector_stack);
       }
       if (!result) {
-        error(std::string("Function ") + c->name() + " did not return a value", c->pstate());
+        error(std::string("Function ") + c->name() + " finished without @return", c->pstate(), traces);
       }
-      exp.backtrace_stack.pop_back();
       ctx.callee_stack.pop_back();
+      traces.pop_back();
     }
 
     // else if it's a user-defined c function
@@ -1051,9 +1043,8 @@ namespace Sass {
       // populates env with default values for params
       std::string ff(c->name());
       bind(std::string("Function"), c->name(), params, args, &ctx, &fn_env, this);
-
-      Backtrace here(backtrace(), c->pstate(), ", in function `" + c->name() + "`");
-      exp.backtrace_stack.push_back(&here);
+      std::string msg(", in function `" + c->name() + "`");
+      traces.push_back(Backtrace(c->pstate(), msg));
       ctx.callee_stack.push_back({
         c->name().c_str(),
         c->pstate().path,
@@ -1074,14 +1065,14 @@ namespace Sass {
       }
       union Sass_Value* c_val = c_func(c_args, c_function, ctx.c_compiler);
       if (sass_value_get_tag(c_val) == SASS_ERROR) {
-        error("error in C function " + c->name() + ": " + sass_error_get_message(c_val), c->pstate(), backtrace());
+        error("error in C function " + c->name() + ": " + sass_error_get_message(c_val), c->pstate(), traces);
       } else if (sass_value_get_tag(c_val) == SASS_WARNING) {
-        error("warning in C function " + c->name() + ": " + sass_warning_get_message(c_val), c->pstate(), backtrace());
+        error("warning in C function " + c->name() + ": " + sass_warning_get_message(c_val), c->pstate(), traces);
       }
-      result = cval_to_astnode(c_val, backtrace(), c->pstate());
+      result = cval_to_astnode(c_val, traces, c->pstate());
 
-      exp.backtrace_stack.pop_back();
       ctx.callee_stack.pop_back();
+      traces.pop_back();
       sass_delete_value(c_args);
       if (c_val != c_args)
         sass_delete_value(c_val);
@@ -1115,7 +1106,7 @@ namespace Sass {
     const std::string& name(v->name());
     EnvResult rv(env->find(name));
     if (rv.found) value = static_cast<Expression*>(rv.it->second.ptr());
-    else error("Undefined variable: \"" + v->name() + "\".", v->pstate());
+    else error("Undefined variable: \"" + v->name() + "\".", v->pstate(), traces);
     if (Argument_Ptr arg = Cast<Argument>(value)) value = arg->value();
     if (Number_Ptr nr = Cast<Number>(value)) nr->zero(true); // force flag
     value->is_interpolant(v->is_interpolant());
@@ -1159,7 +1150,8 @@ namespace Sass {
       Number reduced(nr);
       reduced.reduce();
       if (!reduced.is_valid_css_unit()) {
-        throw Exception::InvalidValue(*nr);
+        traces.push_back(Backtrace(nr->pstate()));
+        throw Exception::InvalidValue(traces, *nr);
       }
     }
     if (Argument_Ptr arg = Cast<Argument>(ex)) {
@@ -1258,10 +1250,10 @@ namespace Sass {
     }
     if (!s->is_interpolant()) {
       if (s->length() > 1 && res == "") return SASS_MEMORY_NEW(Null, s->pstate());
-      return SASS_MEMORY_NEW(String_Constant, s->pstate(), res);
+      return SASS_MEMORY_NEW(String_Constant, s->pstate(), res, s->css());
     }
     // string schema seems to have a special unquoting behavior (also handles "nested" quotes)
-    String_Quoted_Obj str = SASS_MEMORY_NEW(String_Quoted, s->pstate(), res, 0, false, false, false);
+    String_Quoted_Obj str = SASS_MEMORY_NEW(String_Quoted, s->pstate(), res, 0, false, false, false, s->css());
     // if (s->is_interpolant()) str->quote_mark(0);
     // String_Constant_Ptr str = SASS_MEMORY_NEW(String_Constant, s->pstate(), res);
     if (str->quote_mark()) str->quote_mark('*');
@@ -1482,206 +1474,7 @@ namespace Sass {
 
   // All the binary helpers.
 
-  bool Eval::eq(Expression_Obj lhs, Expression_Obj rhs)
-  {
-    // use compare operator from ast node
-    return lhs && rhs && *lhs == *rhs;
-  }
-
-  bool Eval::lt(Expression_Obj lhs, Expression_Obj rhs, std::string op)
-  {
-    Number_Obj l = Cast<Number>(lhs);
-    Number_Obj r = Cast<Number>(rhs);
-    // use compare operator from ast node
-    if (!l || !r) throw Exception::UndefinedOperation(lhs, rhs, op);
-    // use compare operator from ast node
-    return *l < *r;
-  }
-
-  Value_Ptr Eval::op_numbers(enum Sass_OP op, const Number& l, const Number& r, struct Sass_Inspect_Options opt, const ParserState& pstate)
-  {
-    double lv = l.value();
-    double rv = r.value();
-
-    if (op == Sass_OP::DIV && rv == 0) {
-      // XXX: this is never hit via spec tests
-      return SASS_MEMORY_NEW(String_Quoted, pstate, lv ? "Infinity" : "NaN");
-    }
-
-    if (op == Sass_OP::MOD && !rv) {
-      // XXX: this is never hit via spec tests
-      throw Exception::ZeroDivisionError(l, r);
-    }
-
-    size_t l_n_units = l.numerators.size();
-    size_t l_d_units = l.numerators.size();
-    size_t r_n_units = r.denominators.size();
-    size_t r_d_units = r.denominators.size();
-    // optimize out the most common and simplest case
-    if (l_n_units == r_n_units && l_d_units == r_d_units) {
-      if (l_n_units + l_d_units <= 1 && r_n_units + r_d_units <= 1) {
-        if (l.numerators == r.numerators) {
-          if (l.denominators == r.denominators) {
-            Number_Ptr v = SASS_MEMORY_COPY(&l);
-            v->value(ops[op](lv, rv));
-            return v;
-          }
-        }
-      }
-    }
-
-    Number_Obj v = SASS_MEMORY_COPY(&l);
-    
-    if (l.is_unitless() && (op == Sass_OP::ADD || op == Sass_OP::SUB || op == Sass_OP::MOD)) {
-      v->numerators = r.numerators;
-      v->denominators = r.denominators;
-    }
-
-    if (op == Sass_OP::MUL) {
-      v->value(ops[op](lv, rv));
-      v->numerators.insert(v->numerators.end(),
-        r.numerators.begin(), r.numerators.end()
-      );
-      v->denominators.insert(v->denominators.end(),
-        r.denominators.begin(), r.denominators.end()
-      );
-    }
-    else if (op == Sass_OP::DIV) {
-      v->value(ops[op](lv, rv));
-      v->numerators.insert(v->numerators.end(),
-        r.denominators.begin(), r.denominators.end()
-      );
-      v->denominators.insert(v->denominators.end(),
-        r.numerators.begin(), r.numerators.end()
-      );
-    }
-    else {
-      Number ln(l), rn(r);
-      ln.reduce(); rn.reduce();
-      double f(rn.convert_factor(ln));
-      v->value(ops[op](lv, rn.value() * f));
-    }
-
-    v->reduce();
-    v->pstate(pstate);
-    return v.detach();
-  }
-
-  Value_Ptr Eval::op_number_color(enum Sass_OP op, const Number& l, const Color& r, struct Sass_Inspect_Options opt, const ParserState& pstate)
-  {
-    double lv = l.value();
-    switch (op) {
-      case Sass_OP::ADD:
-      case Sass_OP::MUL: {
-        return SASS_MEMORY_NEW(Color,
-                               pstate,
-                               ops[op](lv, r.r()),
-                               ops[op](lv, r.g()),
-                               ops[op](lv, r.b()),
-                               r.a());
-      }
-      case Sass_OP::SUB:
-      case Sass_OP::DIV: {
-        std::string sep(op == Sass_OP::SUB ? "-" : "/");
-        std::string color(r.to_string(opt));
-        return SASS_MEMORY_NEW(String_Quoted,
-                               pstate,
-                               l.to_string(opt)
-                               + sep
-                               + color);
-      }
-      case Sass_OP::MOD: {
-        throw Exception::UndefinedOperation(&l, &r, sass_op_to_name(op));
-      }
-      default: break; // caller should ensure that we don't get here
-    }
-    // unreachable
-    return NULL;
-  }
-
-  Value_Ptr Eval::op_color_number(enum Sass_OP op, const Color& l, const Number& r, struct Sass_Inspect_Options opt, const ParserState& pstate)
-  {
-    double rv = r.value();
-    if (op == Sass_OP::DIV && !rv) {
-      // comparison of Fixnum with Float failed?
-      throw Exception::ZeroDivisionError(l, r);
-    }
-    return SASS_MEMORY_NEW(Color,
-                           pstate,
-                           ops[op](l.r(), rv),
-                           ops[op](l.g(), rv),
-                           ops[op](l.b(), rv),
-                           l.a());
-  }
-
-  Value_Ptr Eval::op_colors(enum Sass_OP op, const Color& l, const Color& r, struct Sass_Inspect_Options opt, const ParserState& pstate)
-  {
-    if (l.a() != r.a()) {
-      throw Exception::AlphaChannelsNotEqual(&l, &r, "+");
-    }
-    if (op == Sass_OP::DIV && (!r.r() || !r.g() ||!r.b())) {
-      // comparison of Fixnum with Float failed?
-      throw Exception::ZeroDivisionError(l, r);
-    }
-    return SASS_MEMORY_NEW(Color,
-                           pstate,
-                           ops[op](l.r(), r.r()),
-                           ops[op](l.g(), r.g()),
-                           ops[op](l.b(), r.b()),
-                           l.a());
-  }
-
-  Value_Ptr Eval::op_strings(Sass::Operand operand, Value& lhs, Value& rhs, struct Sass_Inspect_Options opt, const ParserState& pstate, bool delayed)
-  {
-    Expression::Concrete_Type ltype = lhs.concrete_type();
-    Expression::Concrete_Type rtype = rhs.concrete_type();
-    enum Sass_OP op = operand.operand;
-
-    String_Quoted_Ptr lqstr = Cast<String_Quoted>(&lhs);
-    String_Quoted_Ptr rqstr = Cast<String_Quoted>(&rhs);
-
-    std::string lstr(lqstr ? lqstr->value() : lhs.to_string(opt));
-    std::string rstr(rqstr ? rqstr->value() : rhs.to_string(opt));
-
-    if (ltype == Expression::NULL_VAL) throw Exception::InvalidNullOperation(&lhs, &rhs, sass_op_to_name(op));
-    if (rtype == Expression::NULL_VAL) throw Exception::InvalidNullOperation(&lhs, &rhs, sass_op_to_name(op));
-    std::string sep;
-    switch (op) {
-      case Sass_OP::SUB: sep = "-"; break;
-      case Sass_OP::DIV: sep = "/"; break;
-      // cases are already handled above
-      case Sass_OP::EQ:  sep = "=="; break;
-      case Sass_OP::NEQ:  sep = "!="; break;
-      case Sass_OP::LT:  sep = "<"; break;
-      case Sass_OP::GT:  sep = ">"; break;
-      case Sass_OP::LTE:  sep = "<="; break;
-      case Sass_OP::GTE:  sep = ">="; break;
-      case Sass_OP::MUL: throw Exception::UndefinedOperation(&lhs, &rhs, sass_op_to_name(op));
-      case Sass_OP::MOD: throw Exception::UndefinedOperation(&lhs, &rhs, sass_op_to_name(op));
-      default:                      break;
-    }
-
-    if ( (sep == "") /* &&
-         (sep != "/" || !rqstr || !rqstr->quote_mark()) */
-    ) {
-      // create a new string that might be quoted on output (but do not unquote what we pass)
-      return SASS_MEMORY_NEW(String_Quoted, pstate, lstr + rstr, 0, false, true);
-    }
-
-    if (sep != "" && !delayed) {
-      if (operand.ws_before) sep = " " + sep;
-      if (operand.ws_after) sep = sep + " ";
-    }
-
-    if (op == Sass_OP::SUB || op == Sass_OP::DIV) {
-      if (lqstr && lqstr->quote_mark()) lstr = quote(lstr);
-      if (rqstr && rqstr->quote_mark()) rstr = quote(rstr);
-    }
-
-    return SASS_MEMORY_NEW(String_Constant, pstate, lstr + sep + rstr);
-  }
-
-  Expression_Ptr cval_to_astnode(union Sass_Value* v, Backtrace* backtrace, ParserState pstate)
+  Expression_Ptr cval_to_astnode(union Sass_Value* v, Backtraces traces, ParserState pstate)
   {
     using std::strlen;
     using std::strcpy;
@@ -1706,7 +1499,7 @@ namespace Sass {
       case SASS_LIST: {
         List_Ptr l = SASS_MEMORY_NEW(List, pstate, sass_list_get_length(v), sass_list_get_separator(v));
         for (size_t i = 0, L = sass_list_get_length(v); i < L; ++i) {
-          l->append(cval_to_astnode(sass_list_get_value(v, i), backtrace, pstate));
+          l->append(cval_to_astnode(sass_list_get_value(v, i), traces, pstate));
         }
         l->is_bracketed(sass_list_get_is_bracketed(v));
         e = l;
@@ -1715,8 +1508,8 @@ namespace Sass {
         Map_Ptr m = SASS_MEMORY_NEW(Map, pstate);
         for (size_t i = 0, L = sass_map_get_length(v); i < L; ++i) {
           *m << std::make_pair(
-            cval_to_astnode(sass_map_get_key(v, i), backtrace, pstate),
-            cval_to_astnode(sass_map_get_value(v, i), backtrace, pstate));
+            cval_to_astnode(sass_map_get_key(v, i), traces, pstate),
+            cval_to_astnode(sass_map_get_value(v, i), traces, pstate));
         }
         e = m;
       } break;
@@ -1724,10 +1517,10 @@ namespace Sass {
         e = SASS_MEMORY_NEW(Null, pstate);
       } break;
       case SASS_ERROR: {
-        error("Error in C function: " + std::string(sass_error_get_message(v)), pstate, backtrace);
+        error("Error in C function: " + std::string(sass_error_get_message(v)), pstate, traces);
       } break;
       case SASS_WARNING: {
-        error("Warning in C function: " + std::string(sass_warning_get_message(v)), pstate, backtrace);
+        error("Warning in C function: " + std::string(sass_warning_get_message(v)), pstate, traces);
       } break;
       default: break;
     }
@@ -1771,7 +1564,7 @@ namespace Sass {
   {
     bool implicit_parent = !exp.old_at_root_without_rule;
     if (is_in_selector_schema) exp.selector_stack.push_back(0);
-    Selector_List_Obj resolved = s->resolve_parent_refs(exp.selector_stack, implicit_parent);
+    Selector_List_Obj resolved = s->resolve_parent_refs(exp.selector_stack, traces, implicit_parent);
     if (is_in_selector_schema) exp.selector_stack.pop_back();
     for (size_t i = 0; i < resolved->length(); i++) {
       Complex_Selector_Ptr is = resolved->at(i)->first();
@@ -1807,7 +1600,7 @@ namespace Sass {
     result_str = unquote(Util::rtrim(result_str));
     char* temp_cstr = sass_copy_c_string(result_str.c_str());
     ctx.strings.push_back(temp_cstr); // attach to context
-    Parser p = Parser::from_c_str(temp_cstr, ctx, s->pstate());
+    Parser p = Parser::from_c_str(temp_cstr, ctx, traces, s->pstate());
     p.last_media_block = s->media_block();
     // a selector schema may or may not connect to parent?
     bool chroot = s->connect_parent() == false;

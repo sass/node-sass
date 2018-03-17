@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "memory/SharedPtr.hpp"
+#include "sass/functions.h"
 
 /////////////////////////////////////////////
 // Forward declarations for the AST visitors.
@@ -417,6 +418,8 @@ namespace Sass {
   typedef std::set<Complex_Selector_Obj, OrderNodes> ComplexSelectorSet;
   typedef std::set<Compound_Selector_Obj, OrderNodes> CompoundSelectorSet;
   typedef std::unordered_set<Simple_Selector_Obj, HashNodes, CompareNodes> SimpleSelectorDict;
+
+  typedef std::vector<Sass_Import_Entry>* ImporterStack;
 
   // only to switch implementations for testing
   #define environment_map std::map
