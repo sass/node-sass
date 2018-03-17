@@ -32,6 +32,7 @@
 #include "fn_utils.hpp"
 #include "fn_colors.hpp"
 #include "fn_numbers.hpp"
+#include "fn_strings.hpp"
 #include "fn_selectors.hpp"
 
 namespace Sass {

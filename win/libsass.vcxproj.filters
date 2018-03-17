@@ -120,6 +120,9 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\fn_numbers.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\fn_strings.hpp">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\fn_selectors.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -288,6 +291,9 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="$(LIBSASS_SRC_DIR)\fn_numbers.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\fn_strings.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="$(LIBSASS_SRC_DIR)\fn_selectors.cpp">
