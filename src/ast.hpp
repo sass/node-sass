@@ -135,7 +135,7 @@ namespace Sass {
   public:
     Offset off() { return pstate(); }
     Position pos() { return pstate(); }
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
   inline AST_Node::~AST_Node() { }
 
@@ -504,7 +504,7 @@ namespace Sass {
       return Statement::has_content();
     }
     ATTACH_AST_OPERATIONS(Block)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////////////////////////////////////////////////////////
@@ -545,7 +545,7 @@ namespace Sass {
     { statement_type(RULESET); }
     bool is_invisible() const;
     ATTACH_AST_OPERATIONS(Ruleset)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   /////////////////
@@ -565,7 +565,7 @@ namespace Sass {
     { }
     bool bubbles() { return true; }
     ATTACH_AST_OPERATIONS(Bubble)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   /////////////////
@@ -584,7 +584,7 @@ namespace Sass {
       name_(ptr->name_)
     { }
     ATTACH_AST_OPERATIONS(Trace)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   /////////////////
@@ -602,7 +602,7 @@ namespace Sass {
     bool bubbles() { return true; }
     bool is_invisible() const;
     ATTACH_AST_OPERATIONS(Media_Block)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ///////////////////////////////////////////////////////////////////////
@@ -637,7 +637,7 @@ namespace Sass {
              keyword_.compare("@keyframes") == 0;
     }
     ATTACH_AST_OPERATIONS(Directive)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ///////////////////////////////////////////////////////////////////////
@@ -655,7 +655,7 @@ namespace Sass {
     : Has_Block(ptr), name_(ptr->name_)
     { statement_type(KEYFRAMERULE); }
     ATTACH_AST_OPERATIONS(Keyframe_Rule)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////////////////////////////////////////////////////////
@@ -682,7 +682,7 @@ namespace Sass {
     { statement_type(DECLARATION); }
     virtual bool is_invisible() const;
     ATTACH_AST_OPERATIONS(Declaration)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   /////////////////////////////////////
@@ -708,7 +708,7 @@ namespace Sass {
       is_global_(ptr->is_global_)
     { statement_type(ASSIGNMENT); }
     ATTACH_AST_OPERATIONS(Assignment)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -735,7 +735,7 @@ namespace Sass {
     std::vector<Expression_Obj>& urls() { return urls_; }
     std::vector<Include>& incs() { return incs_; }
     ATTACH_AST_OPERATIONS(Import)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   // not yet resolved single import
@@ -754,7 +754,7 @@ namespace Sass {
     : Statement(ptr), resource_(ptr->resource_)
     { statement_type(IMPORT_STUB); }
     ATTACH_AST_OPERATIONS(Import_Stub)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   //////////////////////////////
@@ -770,7 +770,7 @@ namespace Sass {
     : Statement(ptr), message_(ptr->message_)
     { statement_type(WARNING); }
     ATTACH_AST_OPERATIONS(Warning)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ///////////////////////////////
@@ -786,7 +786,7 @@ namespace Sass {
     : Statement(ptr), message_(ptr->message_)
     { statement_type(ERROR); }
     ATTACH_AST_OPERATIONS(Error)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ///////////////////////////////
@@ -802,7 +802,7 @@ namespace Sass {
     : Statement(ptr), value_(ptr->value_)
     { statement_type(DEBUGSTMT); }
     ATTACH_AST_OPERATIONS(Debug)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ///////////////////////////////////////////
@@ -823,7 +823,7 @@ namespace Sass {
     virtual bool is_invisible() const
     { return /* is_important() == */ false; }
     ATTACH_AST_OPERATIONS(Comment)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////////////////////
@@ -846,7 +846,7 @@ namespace Sass {
       return Has_Block::has_content() || (alternative_ && alternative_->has_content());
     }
     ATTACH_AST_OPERATIONS(If)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   /////////////////////////////////////
@@ -871,7 +871,7 @@ namespace Sass {
       is_inclusive_(ptr->is_inclusive_)
     { statement_type(FOR); }
     ATTACH_AST_OPERATIONS(For)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   //////////////////////////////////////
@@ -888,7 +888,7 @@ namespace Sass {
     : Has_Block(ptr), variables_(ptr->variables_), list_(ptr->list_)
     { statement_type(EACH); }
     ATTACH_AST_OPERATIONS(Each)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ///////////////////////////////////////
@@ -904,7 +904,7 @@ namespace Sass {
     : Has_Block(ptr), predicate_(ptr->predicate_)
     { statement_type(WHILE); }
     ATTACH_AST_OPERATIONS(While)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   /////////////////////////////////////////////////////////////
@@ -920,7 +920,7 @@ namespace Sass {
     : Statement(ptr), value_(ptr->value_)
     { statement_type(RETURN); }
     ATTACH_AST_OPERATIONS(Return)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////////////////
@@ -936,7 +936,7 @@ namespace Sass {
     : Statement(ptr), selector_(ptr->selector_)
     { statement_type(EXTEND); }
     ATTACH_AST_OPERATIONS(Extension)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   /////////////////////////////////////////////////////////////////////////////
@@ -1023,7 +1023,7 @@ namespace Sass {
       signature_(sig)
     { }
     ATTACH_AST_OPERATIONS(Definition)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   //////////////////////////////////////
@@ -1042,7 +1042,7 @@ namespace Sass {
       arguments_(ptr->arguments_)
     { }
     ATTACH_AST_OPERATIONS(Mixin_Call)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ///////////////////////////////////////////////////
@@ -1060,7 +1060,7 @@ namespace Sass {
       media_block_(ptr->media_block_)
     { statement_type(CONTENT); }
     ATTACH_AST_OPERATIONS(Content)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ///////////////////////////////////////////////////////////////////////
@@ -1123,7 +1123,7 @@ namespace Sass {
     virtual bool operator== (const Expression& rhs) const;
 
     ATTACH_AST_OPERATIONS(List)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ///////////////////////////////////////////////////////////////////////
@@ -1161,7 +1161,7 @@ namespace Sass {
     virtual bool operator== (const Expression& rhs) const;
 
     ATTACH_AST_OPERATIONS(Map)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   inline static const std::string sass_op_to_name(enum Sass_OP op) {
@@ -1275,7 +1275,7 @@ namespace Sass {
     }
     enum Sass_OP optype() const { return op_.operand; }
     ATTACH_AST_OPERATIONS(Binary_Expression)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -1331,7 +1331,7 @@ namespace Sass {
       return hash_;
     }
     ATTACH_AST_OPERATIONS(Unary_Expression)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////////////////////////////////////////////
@@ -1390,7 +1390,7 @@ namespace Sass {
     }
 
     ATTACH_AST_OPERATIONS(Argument)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////////////////////////////////////////////////////////
@@ -1426,7 +1426,7 @@ namespace Sass {
     Argument_Obj get_keyword_argument();
 
     ATTACH_AST_OPERATIONS(Arguments)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////////////////////////////////////
@@ -1458,7 +1458,7 @@ namespace Sass {
     virtual bool operator== (const Expression& rhs) const;
 
     ATTACH_AST_OPERATIONS(Function)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   //////////////////
@@ -1524,7 +1524,7 @@ namespace Sass {
       return hash_;
     }
     ATTACH_AST_OPERATIONS(Function_Call)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   /////////////////////////
@@ -1543,7 +1543,7 @@ namespace Sass {
       arguments_(ptr->arguments_)
     { concrete_type(STRING); }
     ATTACH_AST_OPERATIONS(Function_Call_Schema)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ///////////////////////
@@ -1579,7 +1579,7 @@ namespace Sass {
     }
 
     ATTACH_AST_OPERATIONS(Variable)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////////////////////////////////
@@ -1622,7 +1622,7 @@ namespace Sass {
     virtual bool operator== (const Number& rhs) const;
     virtual bool operator== (const Expression& rhs) const;
     ATTACH_AST_OPERATIONS(Number)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   //////////
@@ -1666,7 +1666,7 @@ namespace Sass {
     virtual bool operator== (const Expression& rhs) const;
 
     ATTACH_AST_OPERATIONS(Color)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   //////////////////////////////
@@ -1683,7 +1683,7 @@ namespace Sass {
     { concrete_type(C_ERROR); }
     virtual bool operator== (const Expression& rhs) const;
     ATTACH_AST_OPERATIONS(Custom_Error)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   //////////////////////////////
@@ -1700,7 +1700,7 @@ namespace Sass {
     { concrete_type(C_WARNING); }
     virtual bool operator== (const Expression& rhs) const;
     ATTACH_AST_OPERATIONS(Custom_Warning)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////
@@ -1735,7 +1735,7 @@ namespace Sass {
     virtual bool operator== (const Expression& rhs) const;
 
     ATTACH_AST_OPERATIONS(Boolean)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////////////////////////////////////////////////////////
@@ -1758,7 +1758,7 @@ namespace Sass {
       return this->to_string() < rhs.to_string();
     };
     ATTACH_VIRTUAL_AST_OPERATIONS(String);
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
   inline String::~String() { };
 
@@ -1809,7 +1809,7 @@ namespace Sass {
 
     virtual bool operator==(const Expression& rhs) const;
     ATTACH_AST_OPERATIONS(String_Schema)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////////////////////////////////////////
@@ -1862,7 +1862,7 @@ namespace Sass {
     static char single_quote() { return '\''; }
 
     ATTACH_AST_OPERATIONS(String_Constant)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////////////////////////////////////////
@@ -1886,7 +1886,7 @@ namespace Sass {
     virtual bool operator==(const Expression& rhs) const;
     virtual std::string inspect() const; // quotes are forced on inspection
     ATTACH_AST_OPERATIONS(String_Quoted)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   /////////////////
@@ -1911,7 +1911,7 @@ namespace Sass {
       is_restricted_(ptr->is_restricted_)
     { }
     ATTACH_AST_OPERATIONS(Media_Query)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////////////////////////////////////
@@ -1933,7 +1933,7 @@ namespace Sass {
       is_interpolated_(ptr->is_interpolated_)
     { }
     ATTACH_AST_OPERATIONS(Media_Query_Expression)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////
@@ -1950,7 +1950,7 @@ namespace Sass {
     { statement_type(SUPPORTS); }
     bool bubbles() { return true; }
     ATTACH_AST_OPERATIONS(Supports_Block)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   //////////////////////////////////////////////////////
@@ -1966,7 +1966,7 @@ namespace Sass {
     { }
     virtual bool needs_parens(Supports_Condition_Obj cond) const { return false; }
     ATTACH_AST_OPERATIONS(Supports_Condition)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////////////////////////////////////////////
@@ -1991,7 +1991,7 @@ namespace Sass {
     { }
     virtual bool needs_parens(Supports_Condition_Obj cond) const;
     ATTACH_AST_OPERATIONS(Supports_Operator)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   //////////////////////////////////////////
@@ -2009,7 +2009,7 @@ namespace Sass {
     { }
     virtual bool needs_parens(Supports_Condition_Obj cond) const;
     ATTACH_AST_OPERATIONS(Supports_Negation)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   /////////////////////////////////////////////////////
@@ -2030,7 +2030,7 @@ namespace Sass {
     { }
     virtual bool needs_parens(Supports_Condition_Obj cond) const { return false; }
     ATTACH_AST_OPERATIONS(Supports_Declaration)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ///////////////////////////////////////////////
@@ -2049,7 +2049,7 @@ namespace Sass {
     { }
     virtual bool needs_parens(Supports_Condition_Obj cond) const { return false; }
     ATTACH_AST_OPERATIONS(Supports_Interpolation)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   /////////////////////////////////////////////////
@@ -2070,7 +2070,7 @@ namespace Sass {
     { }
     bool exclude(std::string str);
     ATTACH_AST_OPERATIONS(At_Root_Query)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ///////////
@@ -2120,7 +2120,7 @@ namespace Sass {
       return false;
     }
     ATTACH_AST_OPERATIONS(At_Root_Block)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   //////////////////
@@ -2144,7 +2144,7 @@ namespace Sass {
     virtual bool operator== (const Expression& rhs) const;
 
     ATTACH_AST_OPERATIONS(Null)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   /////////////////////////////////
@@ -2190,7 +2190,7 @@ namespace Sass {
       // }
     }
     ATTACH_AST_OPERATIONS(Parameter)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   /////////////////////////////////////////////////////////////////////////
@@ -2239,7 +2239,7 @@ namespace Sass {
       has_rest_parameter_(ptr->has_rest_parameter_)
     { }
     ATTACH_AST_OPERATIONS(Parameters)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   /////////////////////////////////////////
@@ -2338,7 +2338,7 @@ namespace Sass {
       return hash_;
     }
     ATTACH_AST_OPERATIONS(Selector_Schema)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////////////////////////////
@@ -2433,7 +2433,7 @@ namespace Sass {
     bool operator<(const Simple_Selector& rhs) const;
     // default implementation should work for most of the simple selectors (otherwise overload)
     ATTACH_VIRTUAL_AST_OPERATIONS(Simple_Selector);
-    ATTACH_OPERATIONS();
+    ATTACH_CRTP_PERFORM_METHODS();
   };
   inline Simple_Selector::~Simple_Selector() { }
 
@@ -2463,7 +2463,7 @@ namespace Sass {
     std::string type() const { return "selector"; }
     static std::string type_name() { return "selector"; }
     ATTACH_AST_OPERATIONS(Parent_Selector)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   /////////////////////////////////////////////////////////////////////////
@@ -2486,7 +2486,7 @@ namespace Sass {
     }
     virtual ~Placeholder_Selector() {};
     ATTACH_AST_OPERATIONS(Placeholder_Selector)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   /////////////////////////////////////////////////////////////////////
@@ -2512,7 +2512,7 @@ namespace Sass {
     virtual bool operator<(const Simple_Selector& rhs) const;
     virtual bool operator<(const Element_Selector& rhs) const;
     ATTACH_AST_OPERATIONS(Element_Selector)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////////////////////////////////
@@ -2532,7 +2532,7 @@ namespace Sass {
     }
     virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr);
     ATTACH_AST_OPERATIONS(Class_Selector)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////////////////////////////////
@@ -2552,7 +2552,7 @@ namespace Sass {
     }
     virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr);
     ATTACH_AST_OPERATIONS(Id_Selector)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ///////////////////////////////////////////////////
@@ -2591,7 +2591,7 @@ namespace Sass {
     virtual bool operator<(const Simple_Selector& rhs) const;
     virtual bool operator<(const Attribute_Selector& rhs) const;
     ATTACH_AST_OPERATIONS(Attribute_Selector)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   //////////////////////////////////////////////////////////////////
@@ -2653,7 +2653,7 @@ namespace Sass {
     virtual bool operator<(const Pseudo_Selector& rhs) const;
     virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr);
     ATTACH_AST_OPERATIONS(Pseudo_Selector)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   /////////////////////////////////////////////////
@@ -2682,7 +2682,7 @@ namespace Sass {
     virtual bool operator<(const Wrapped_Selector& rhs) const;
     virtual void cloneChildren();
     ATTACH_AST_OPERATIONS(Wrapped_Selector)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -2787,7 +2787,7 @@ namespace Sass {
     Compound_Selector_Ptr minus(Compound_Selector_Ptr rhs);
     virtual void cloneChildren();
     ATTACH_AST_OPERATIONS(Compound_Selector)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ////////////////////////////////////////////////////////////////////////////
@@ -2952,7 +2952,7 @@ namespace Sass {
 
     virtual void cloneChildren();
     ATTACH_AST_OPERATIONS(Complex_Selector)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   ///////////////////////////////////
@@ -3029,7 +3029,7 @@ namespace Sass {
     virtual bool operator==(const Expression& rhs) const;
     virtual void cloneChildren();
     ATTACH_AST_OPERATIONS(Selector_List)
-    ATTACH_OPERATIONS()
+    ATTACH_CRTP_PERFORM_METHODS()
   };
 
   // compare function for sorting and probably other other uses

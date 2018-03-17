@@ -38,8 +38,6 @@ namespace Sass {
 
     Boolean_Obj bool_true;
 
-    Statement_Ptr fallback_impl(AST_Node_Ptr n);
-
   private:
     void expand_selector_list(Selector_Obj, Selector_List_Obj extender);
 
@@ -71,10 +69,8 @@ namespace Sass {
     Statement_Ptr operator()(Mixin_Call_Ptr);
     Statement_Ptr operator()(Content_Ptr);
 
-    template <typename U>
-    Statement_Ptr fallback(U x) { return fallback_impl(x); }
-
     void append_block(Block_Ptr);
+
   };
 
 }

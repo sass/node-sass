@@ -13,8 +13,6 @@ namespace Sass {
     // import all the class-specific methods and override as desired
     using Operation_CRTP<void, Inspect>::operator();
 
-    void fallback_impl(AST_Node_Ptr n);
-
   public:
 
     Inspect(const Emitter& emi);
@@ -95,8 +93,6 @@ namespace Sass {
     virtual std::string lbracket(List_Ptr);
     virtual std::string rbracket(List_Ptr);
 
-    // template <typename U>
-    // void fallback(U x) { fallback_impl(reinterpret_cast<AST_Node_Ptr>(x)); }
   };
 
 }

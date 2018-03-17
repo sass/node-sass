@@ -1467,11 +1467,6 @@ namespace Sass {
     return 0;
   }
 
-  inline Expression_Ptr Eval::fallback_impl(AST_Node_Ptr n)
-  {
-    return static_cast<Expression_Ptr>(n);
-  }
-
   // All the binary helpers.
 
   Expression_Ptr cval_to_astnode(union Sass_Value* v, Backtraces traces, ParserState pstate)

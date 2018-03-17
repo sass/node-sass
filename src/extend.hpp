@@ -20,8 +20,6 @@ namespace Sass {
     Subset_Map& subset_map;
     Eval* eval;
 
-    void fallback_impl(AST_Node_Ptr n) { }
-
   private:
 
     std::unordered_map<
@@ -77,8 +75,10 @@ namespace Sass {
     void operator()(Media_Block_Ptr);
     void operator()(Directive_Ptr);
 
+    // ignore missed types
     template <typename U>
-    void fallback(U x) { return fallback_impl(x); }
+    void fallback(U x) {}
+
   };
 
 }

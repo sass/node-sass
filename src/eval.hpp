@@ -14,9 +14,6 @@ namespace Sass {
 
   class Eval : public Operation_CRTP<Expression_Ptr, Eval> {
 
-   private:
-    Expression_Ptr fallback_impl(AST_Node_Ptr n);
-
    public:
     Expand& exp;
     Context& ctx;
@@ -78,18 +75,23 @@ namespace Sass {
     Compound_Selector_Ptr operator()(Compound_Selector_Ptr);
     Simple_Selector_Ptr operator()(Simple_Selector_Ptr s);
     Wrapped_Selector_Ptr operator()(Wrapped_Selector_Ptr s);
+
     // they don't have any specific implementation (yet)
-    // Element_Selector_Ptr operator()(Element_Selector_Ptr s) { return s; };
-    // Pseudo_Selector_Ptr operator()(Pseudo_Selector_Ptr s) { return s; };
-    // Class_Selector_Ptr operator()(Class_Selector_Ptr s) { return s; };
-    // Id_Selector_Ptr operator()(Id_Selector_Ptr s) { return s; };
-    // Placeholder_Selector_Ptr operator()(Placeholder_Selector_Ptr s) { return s; };
+    Id_Selector_Ptr operator()(Id_Selector_Ptr s) { return s; };
+    Class_Selector_Ptr operator()(Class_Selector_Ptr s) { return s; };
+    Pseudo_Selector_Ptr operator()(Pseudo_Selector_Ptr s) { return s; };
+    Element_Selector_Ptr operator()(Element_Selector_Ptr s) { return s; };
+    Attribute_Selector_Ptr operator()(Attribute_Selector_Ptr s) { return s; };
+    Placeholder_Selector_Ptr operator()(Placeholder_Selector_Ptr s) { return s; };
+
     // actual evaluated selectors
     Selector_List_Ptr operator()(Selector_Schema_Ptr);
     Expression_Ptr operator()(Parent_Selector_Ptr);
 
+    // generic fallback
     template <typename U>
-    Expression_Ptr fallback(U x) { return fallback_impl(x); }
+    Expression_Ptr fallback(U x)
+    { return Cast<Expression>(x); }
 
   private:
     void interpolation(Context& ctx, std::string& res, Expression_Obj ex, bool into_quotes, bool was_itpl = false);

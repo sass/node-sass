@@ -509,11 +509,6 @@ namespace Sass {
     return flatten(result);
   }
 
-  Statement_Ptr Cssize::fallback_impl(AST_Node_Ptr n)
-  {
-    return static_cast<Statement_Ptr>(n);
-  }
-
   void Cssize::append_block(Block_Ptr b, Block_Ptr cur)
   {
     for (size_t i = 0, L = b->length(); i < L; ++i) {

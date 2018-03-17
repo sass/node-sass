@@ -13,7 +13,6 @@ namespace Sass {
     Statement_Ptr               parent;
     Definition_Ptr              current_mixin_definition;
 
-    Statement_Ptr fallback_impl(Statement_Ptr);
     Statement_Ptr before(Statement_Ptr);
     Statement_Ptr visit_children(Statement_Ptr);
 
@@ -27,11 +26,13 @@ namespace Sass {
 
     template <typename U>
     Statement_Ptr fallback(U x) {
-      Statement_Ptr n = Cast<Statement>(x);
-      if (this->should_visit(n)) {
-        return fallback_impl(n);
+      Statement_Ptr s = Cast<Statement>(x);
+      if (s && this->should_visit(s)) {
+        Block_Ptr b1 = Cast<Block>(s);
+        Has_Block_Ptr b2 = Cast<Has_Block>(s);
+        if (b1 || b2) return visit_children(s);
       }
-      return NULL;
+      return s;
     }
 
   private:

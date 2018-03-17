@@ -1131,8 +1131,4 @@ namespace Sass {
 
   }
 
-  void Inspect::fallback_impl(AST_Node_Ptr n)
-  {
-  }
-
 }

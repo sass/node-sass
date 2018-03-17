@@ -792,15 +792,6 @@ namespace Sass {
     return trace.detach();
   }
 
-  // produce an error if something is not implemented
-  inline Statement_Ptr Expand::fallback_impl(AST_Node_Ptr n)
-  {
-    std::string err =std:: string("`Expand` doesn't handle ") + typeid(*n).name();
-    String_Quoted_Obj msg = SASS_MEMORY_NEW(String_Quoted, ParserState("[WARN]"), err);
-    error("unknown internal error; please contact the LibSass maintainers", n->pstate(), traces);
-    return SASS_MEMORY_NEW(Warning, ParserState("[WARN]"), msg);
-  }
-
   // process and add to last block on stack
   inline void Expand::append_block(Block_Ptr b)
   {
