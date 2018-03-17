@@ -7,6 +7,7 @@
 
 namespace Sass {
 
+  // this defeats the whole purpose of environment being templatable!!
   typedef environment_map<std::string, AST_Node_Obj>::iterator EnvIter;
 
   class EnvResult {
@@ -91,6 +92,10 @@ namespace Sass {
     // look on the full stack for key
     // include all scopes available
     bool has(const std::string& key) const;
+
+    // look on the full stack for key
+    // include all scopes available
+    T& get(const std::string& key);
 
     // look on the full stack for key
     // include all scopes available
