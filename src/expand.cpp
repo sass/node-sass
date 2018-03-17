@@ -24,7 +24,7 @@ namespace Sass {
     in_keyframes(false),
     at_root_without_rule(false),
     old_at_root_without_rule(false),
-    env_stack(std::vector<Env*>()),
+    env_stack(EnvStack()),
     block_stack(BlockStack()),
     call_stack(CallStack()),
     selector_stack(SelectorStack()),

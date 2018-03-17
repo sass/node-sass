@@ -30,7 +30,7 @@ namespace Sass {
     bool              old_at_root_without_rule;
 
     // it's easier to work with vectors
-    std::vector<Env*>              env_stack;
+    EnvStack      env_stack;
     BlockStack    block_stack;
     CallStack     call_stack;
     SelectorStack selector_stack;

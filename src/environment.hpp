@@ -112,6 +112,7 @@ namespace Sass {
 
   // define typedef for our use case
   typedef Environment<AST_Node_Obj> Env;
+  typedef std::vector<Env*> EnvStack;
 
 }
 
