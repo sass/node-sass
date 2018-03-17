@@ -1590,8 +1590,8 @@ namespace Sass {
   bool Selector_Schema::has_real_parent_ref() const
   {
     if (String_Schema_Obj schema = Cast<String_Schema>(contents())) {
-      Parent_Selector_Obj p = Cast<Parent_Selector>(schema->at(0));
-      return schema->length() > 0 && p && p->is_real_parent_ref();
+      if (schema->length() == 0) return false;
+      return Cast<Parent_Reference>(schema->at(0));
     }
     return false;
   }
@@ -2188,6 +2188,7 @@ namespace Sass {
   IMPLEMENT_AST_OPERATORS(Color);
   IMPLEMENT_AST_OPERATORS(Null);
   IMPLEMENT_AST_OPERATORS(Parent_Selector);
+  IMPLEMENT_AST_OPERATORS(Parent_Reference);
   IMPLEMENT_AST_OPERATORS(Import);
   IMPLEMENT_AST_OPERATORS(Import_Stub);
   IMPLEMENT_AST_OPERATORS(Function_Call);

@@ -1173,6 +1173,11 @@ namespace Sass {
       // XXX: this is never hit via spec tests
       ex = ex->perform(this);
     }
+    // parent selector needs another go
+    if (Cast<Parent_Reference>(ex)) {
+      // XXX: this is never hit via spec tests
+      ex = ex->perform(this);
+    }
 
     if (List_Ptr l = Cast<List>(ex)) {
       List_Obj ll = SASS_MEMORY_NEW(List, l->pstate(), 0, l->separator());
@@ -1564,6 +1569,18 @@ namespace Sass {
   }
 
   Expression_Ptr Eval::operator()(Parent_Selector_Ptr p)
+  {
+    if (Selector_List_Obj pr = selector()) {
+      exp.selector_stack.pop_back();
+      Selector_List_Obj rv = operator()(pr);
+      exp.selector_stack.push_back(rv);
+      return rv.detach();
+    } else {
+      return SASS_MEMORY_NEW(Null, p->pstate());
+    }
+  }
+
+  Expression_Ptr Eval::operator()(Parent_Reference_Ptr p)
   {
     if (Selector_List_Obj pr = selector()) {
       exp.selector_stack.pop_back();

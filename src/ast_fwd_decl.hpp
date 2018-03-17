@@ -30,6 +30,10 @@ namespace Sass {
   typedef Simple_Selector* Simple_Selector_Ptr;
   typedef Simple_Selector const* Simple_Selector_Ptr_Const;
 
+  class Parent_Reference;
+  typedef Parent_Reference* Parent_Reference_Ptr;
+  typedef Parent_Reference const* Parent_Reference_Ptr_Const;
+
   class PreValue;
   typedef PreValue* PreValue_Ptr;
   typedef PreValue const* PreValue_Ptr_Const;
@@ -336,6 +340,7 @@ namespace Sass {
   IMPL_MEM_OBJ(At_Root_Query);
   IMPL_MEM_OBJ(Null);
   IMPL_MEM_OBJ(Parent_Selector);
+  IMPL_MEM_OBJ(Parent_Reference);
   IMPL_MEM_OBJ(Parameter);
   IMPL_MEM_OBJ(Parameters);
   IMPL_MEM_OBJ(Argument);

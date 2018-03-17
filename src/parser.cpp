@@ -1637,7 +1637,7 @@ namespace Sass {
       if (match< ampersand >()) {
         warning("In Sass, \"&&\" means two copies of the parent selector. You probably want to use \"and\" instead.", pstate);
       }
-      return SASS_MEMORY_NEW(Parent_Selector, pstate); }
+      return SASS_MEMORY_NEW(Parent_Reference, pstate); }
 
     if (lex< kwd_important >())
     { return SASS_MEMORY_NEW(String_Constant, pstate, "!important"); }

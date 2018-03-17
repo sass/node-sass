@@ -86,6 +86,7 @@ namespace Sass {
     // actual evaluated selectors
     Selector_List_Ptr operator()(Selector_Schema_Ptr);
     Expression_Ptr operator()(Parent_Selector_Ptr);
+    Expression_Ptr operator()(Parent_Reference_Ptr);
 
     // generic fallback
     template <typename U>

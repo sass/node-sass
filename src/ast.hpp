@@ -2403,6 +2403,24 @@ namespace Sass {
     ATTACH_CRTP_PERFORM_METHODS()
   };
 
+  //////////////////////////////////
+  // The Parent Reference Expression.
+  //////////////////////////////////
+  class Parent_Reference : public Value {
+  public:
+    Parent_Reference(ParserState pstate)
+    : Value(pstate) {}
+    Parent_Reference(const Parent_Reference* ptr)
+    : Value(ptr) {}
+    std::string type() const { return "parent"; }
+    static std::string type_name() { return "parent"; }
+    virtual bool operator==(const Expression& rhs) const {
+      return true; // can they ever be not equal?
+    };
+    ATTACH_AST_OPERATIONS(Parent_Reference)
+    ATTACH_CRTP_PERFORM_METHODS()
+  };
+
   /////////////////////////////////////////////////////////////////////////
   // Placeholder selectors (e.g., "%foo") for use in extend-only selectors.
   /////////////////////////////////////////////////////////////////////////
