@@ -2,6 +2,7 @@
 #include "bind.hpp"
 #include "ast.hpp"
 #include "context.hpp"
+#include "expand.hpp"
 #include "eval.hpp"
 #include <map>
 #include <iostream>
@@ -53,7 +54,7 @@ namespace Sass {
         std::stringstream msg;
         msg << "wrong number of arguments (" << LA << " for " << LP << ")";
         msg << " for `" << name << "'";
-        return error(msg.str(), as->pstate());
+        return error(msg.str(), as->pstate(), eval->exp.traces);
       }
       Parameter_Obj p = ps->at(ip);
 
@@ -106,7 +107,8 @@ namespace Sass {
                                               false,
                                               false));
             } else {
-              throw Exception::InvalidVarKwdType(key->pstate(), key->inspect(), a);
+              eval->exp.traces.push_back(Backtrace(key->pstate()));
+              throw Exception::InvalidVarKwdType(key->pstate(), eval->exp.traces, key->inspect(), a);
             }
           }
 
@@ -219,13 +221,16 @@ namespace Sass {
 
         for (auto key : argmap->keys()) {
           String_Constant_Ptr val = Cast<String_Constant>(key);
-          if (val == NULL) throw Exception::InvalidVarKwdType(key->pstate(), key->inspect(), a);
+          if (val == NULL) {
+            eval->exp.traces.push_back(Backtrace(key->pstate()));
+            throw Exception::InvalidVarKwdType(key->pstate(), eval->exp.traces, key->inspect(), a);
+          }
           std::string param = "$" + unquote(val->value());
 
           if (!param_map.count(param)) {
             std::stringstream msg;
             msg << callee << " has no parameter named " << param;
-            error(msg.str(), a->pstate());
+            error(msg.str(), a->pstate(), eval->exp.traces);
           }
           env->local_frame()[param] = argmap->at(key);
         }
@@ -240,7 +245,7 @@ namespace Sass {
           std::stringstream msg;
           msg << "parameter " << p->name()
           << " provided more than once in call to " << callee;
-          error(msg.str(), a->pstate());
+          error(msg.str(), a->pstate(), eval->exp.traces);
         }
         // ordinal arg -- bind it to the next param
         env->local_frame()[p->name()] = a->value();
@@ -254,7 +259,7 @@ namespace Sass {
           } else {
             std::stringstream msg;
             msg << callee << " has no parameter named " << a->name();
-            error(msg.str(), a->pstate());
+            error(msg.str(), a->pstate(), eval->exp.traces);
           }
         }
         if (param_map[a->name()]) {
@@ -262,14 +267,14 @@ namespace Sass {
             std::stringstream msg;
             msg << "argument " << a->name() << " of " << callee
                 << "cannot be used as named argument";
-            error(msg.str(), a->pstate());
+            error(msg.str(), a->pstate(), eval->exp.traces);
           }
         }
         if (env->has_local(a->name())) {
           std::stringstream msg;
           msg << "parameter " << p->name()
               << "provided more than once in call to " << callee;
-          error(msg.str(), a->pstate());
+          error(msg.str(), a->pstate(), eval->exp.traces);
         }
         env->local_frame()[a->name()] = a->value();
       }
@@ -294,7 +299,7 @@ namespace Sass {
         }
         else {
           // param is unbound and has no default value -- error
-          throw Exception::MissingArgument(as->pstate(), name, leftover->name(), type);
+          throw Exception::MissingArgument(as->pstate(), eval->exp.traces, name, leftover->name(), type);
         }
       }
     }

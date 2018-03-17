@@ -45,22 +45,26 @@ namespace Sass {
     Position before_token;
     Position after_token;
     ParserState pstate;
+    Backtraces traces;
     size_t indentation;
     size_t nestings;
 
     Token lexed;
 
-    Parser(Context& ctx, const ParserState& pstate)
+    Parser(Context& ctx, const ParserState& pstate, Backtraces traces)
     : ParserState(pstate), ctx(ctx), block_stack(), stack(0), last_media_block(),
-      source(0), position(0), end(0), before_token(pstate), after_token(pstate), pstate(pstate), indentation(0), nestings(0)
-    { stack.push_back(Scope::Root); }
+      source(0), position(0), end(0), before_token(pstate), after_token(pstate),
+      pstate(pstate), traces(traces), indentation(0), nestings(0)
+    { 
+      stack.push_back(Scope::Root);
+    }
 
     // static Parser from_string(const std::string& src, Context& ctx, ParserState pstate = ParserState("[STRING]"));
-    static Parser from_c_str(const char* src, Context& ctx, ParserState pstate = ParserState("[CSTRING]"), const char* source = 0);
-    static Parser from_c_str(const char* beg, const char* end, Context& ctx, ParserState pstate = ParserState("[CSTRING]"), const char* source = 0);
-    static Parser from_token(Token t, Context& ctx, ParserState pstate = ParserState("[TOKEN]"), const char* source = 0);
+    static Parser from_c_str(const char* src, Context& ctx, Backtraces, ParserState pstate = ParserState("[CSTRING]"), const char* source = 0);
+    static Parser from_c_str(const char* beg, const char* end, Context& ctx, Backtraces, ParserState pstate = ParserState("[CSTRING]"), const char* source = 0);
+    static Parser from_token(Token t, Context& ctx, Backtraces, ParserState pstate = ParserState("[TOKEN]"), const char* source = 0);
     // special static parsers to convert strings into certain selectors
-    static Selector_List_Obj parse_selector(const char* src, Context& ctx, ParserState pstate = ParserState("[SELECTOR]"), const char* source = 0);
+    static Selector_List_Obj parse_selector(const char* src, Context& ctx, Backtraces, ParserState pstate = ParserState("[SELECTOR]"), const char* source = 0);
 
 #ifdef __clang__
 
@@ -232,6 +236,7 @@ namespace Sass {
 
 #endif
 
+    void error(std::string msg);
     void error(std::string msg, Position pos);
     // generate message with given and expected sample
     // text before and in the middle are configurable
@@ -283,7 +288,7 @@ namespace Sass {
     Function_Call_Schema_Obj parse_function_call_schema();
     String_Obj parse_url_function_string();
     String_Obj parse_url_function_argument();
-    String_Obj parse_interpolated_chunk(Token, bool constant = false);
+    String_Obj parse_interpolated_chunk(Token, bool constant = false, bool css = true);
     String_Obj parse_string();
     String_Constant_Obj parse_static_value();
     String_Schema_Obj parse_css_variable_value(bool top_level = true);

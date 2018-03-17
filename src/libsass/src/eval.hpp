@@ -18,8 +18,9 @@ namespace Sass {
     Expression_Ptr fallback_impl(AST_Node_Ptr n);
 
    public:
-    Expand&  exp;
+    Expand& exp;
     Context& ctx;
+    Backtraces& traces;
     Eval(Expand& exp);
     ~Eval();
 
@@ -31,7 +32,6 @@ namespace Sass {
     Boolean_Obj bool_false;
 
     Env* environment();
-    Backtrace* backtrace();
     Selector_List_Obj selector();
 
     // for evaluating function bodies
@@ -91,22 +91,12 @@ namespace Sass {
     template <typename U>
     Expression_Ptr fallback(U x) { return fallback_impl(x); }
 
-    // -- only need to define two comparisons, and the rest can be implemented in terms of them
-    static bool eq(Expression_Obj, Expression_Obj);
-    static bool lt(Expression_Obj, Expression_Obj, std::string op);
-    // -- arithmetic on the combinations that matter
-    static Value_Ptr op_numbers(enum Sass_OP, const Number&, const Number&, struct Sass_Inspect_Options opt, const ParserState& pstate);
-    static Value_Ptr op_number_color(enum Sass_OP, const Number&, const Color&, struct Sass_Inspect_Options opt, const ParserState& pstate);
-    static Value_Ptr op_color_number(enum Sass_OP, const Color&, const Number&, struct Sass_Inspect_Options opt, const ParserState& pstate);
-    static Value_Ptr op_colors(enum Sass_OP, const Color&, const Color&, struct Sass_Inspect_Options opt, const ParserState& pstate);
-    static Value_Ptr op_strings(Sass::Operand, Value&, Value&, struct Sass_Inspect_Options opt, const ParserState& pstate, bool interpolant = false);
-
   private:
     void interpolation(Context& ctx, std::string& res, Expression_Obj ex, bool into_quotes, bool was_itpl = false);
 
   };
 
-  Expression_Ptr cval_to_astnode(union Sass_Value* v, Backtrace* backtrace, ParserState pstate = ParserState("[AST]"));
+  Expression_Ptr cval_to_astnode(union Sass_Value* v, Backtraces traces, ParserState pstate = ParserState("[AST]"));
 
 }
 

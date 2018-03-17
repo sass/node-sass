@@ -35,7 +35,6 @@ namespace Sass {
     catch (Exception::Base& e) {
       std::stringstream msg_stream;
       std::string cwd(Sass::File::get_cwd());
-
       std::string msg_prefix(e.errtype());
       bool got_newline = false;
       msg_stream << msg_prefix << ": ";
@@ -55,19 +54,16 @@ namespace Sass {
         ++msg;
       }
       if (!got_newline) msg_stream << "\n";
-      if (e.import_stack) {
-        for (size_t i = 1; i < e.import_stack->size() - 1; ++i) {
-          std::string path((*e.import_stack)[i]->imp_path);
-          std::string rel_path(Sass::File::abs2rel(path, cwd, cwd));
-          msg_stream << std::string(msg_prefix.size() + 2, ' ');
-          msg_stream << (i == 1 ? " on line " : " from line ");
-          msg_stream << e.pstate.line + 1 << " of " << rel_path << "\n";
-        }
-      }
-      else {
+
+      if (e.traces.empty()) {
+        // we normally should have some traces, still here as a fallback
         std::string rel_path(Sass::File::abs2rel(e.pstate.path, cwd, cwd));
         msg_stream << std::string(msg_prefix.size() + 2, ' ');
         msg_stream << " on line " << e.pstate.line + 1 << " of " << rel_path << "\n";
+      }
+      else {
+        std::string rel_path(Sass::File::abs2rel(e.pstate.path, cwd, cwd));
+        msg_stream << traces_to_string(e.traces, "        ");
       }
 
       // now create the code trace (ToDo: maybe have util functions?)

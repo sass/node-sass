@@ -302,6 +302,12 @@
     <ClCompile Include="$(LIBSASS_SRC_DIR)\prelexer.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\backtrace.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\operators.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
     <ClCompile Include="$(LIBSASS_SRC_DIR)\remove_placeholders.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
