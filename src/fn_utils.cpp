@@ -53,21 +53,17 @@ namespace Sass {
 
     Map_Ptr get_arg_m(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces)
     {
-      // Minimal error handling -- the expectation is that built-ins will be written correctly!
-      Map_Ptr val = Cast<Map>(env[argname]);
-      if (val) return val;
-
-      List_Ptr lval = Cast<List>(env[argname]);
-      if (lval && lval->length() == 0) return SASS_MEMORY_NEW(Map, pstate, 0);
-
-      // fallback on get_arg for error handling
-      val = get_arg<Map>(argname, env, sig, pstate, traces);
-      return val;
+      AST_Node_Ptr value = env[argname];
+      if (Map_Ptr map = Cast<Map>(value)) return map;
+      List_Ptr list = Cast<List>(value);
+      if (list && list->length() == 0) {
+        return SASS_MEMORY_NEW(Map, pstate, 0);
+      }
+      return get_arg<Map>(argname, env, sig, pstate, traces);
     }
 
     double get_arg_r(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, double lo, double hi)
     {
-      // Minimal error handling -- the expectation is that built-ins will be written correctly!
       Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, traces);
       Number tmpnr(val);
       tmpnr.reduce();

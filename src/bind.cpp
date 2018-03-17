@@ -1,6 +1,7 @@
 #include "sass.hpp"
 #include "bind.hpp"
 #include "ast.hpp"
+#include "backtrace.hpp"
 #include "context.hpp"
 #include "expand.hpp"
 #include "eval.hpp"

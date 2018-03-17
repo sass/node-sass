@@ -8,7 +8,8 @@
 
 namespace Sass {
 
-  void bind(std::string type, std::string name, Parameters_Obj, Arguments_Obj, Env*, Eval*, Backtraces traces);
+  void bind(std::string type, std::string name, Parameters_Obj, Arguments_Obj, Env*, Eval*, Backtraces& traces);
+
 }
 
 #endif
