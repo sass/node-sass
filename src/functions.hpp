@@ -17,13 +17,6 @@ namespace Sass {
 
   namespace Functions {
 
-    extern Signature length_sig;
-    extern Signature nth_sig;
-    extern Signature index_sig;
-    extern Signature join_sig;
-    extern Signature append_sig;
-    extern Signature zip_sig;
-    extern Signature list_separator_sig;
     extern Signature type_of_sig;
     extern Signature variable_exists_sig;
     extern Signature global_variable_exists_sig;
@@ -39,19 +32,9 @@ namespace Sass {
     extern Signature map_keys_sig;
     extern Signature map_values_sig;
     extern Signature map_has_key_sig;
-    extern Signature keywords_sig;
-    extern Signature set_nth_sig;
-    extern Signature is_bracketed_sig;
     extern Signature content_exists_sig;
     extern Signature get_function_sig;
 
-    BUILT_IN(length);
-    BUILT_IN(nth);
-    BUILT_IN(index);
-    BUILT_IN(join);
-    BUILT_IN(append);
-    BUILT_IN(zip);
-    BUILT_IN(list_separator);
     BUILT_IN(type_of);
     BUILT_IN(variable_exists);
     BUILT_IN(global_variable_exists);
@@ -67,9 +50,6 @@ namespace Sass {
     BUILT_IN(map_keys);
     BUILT_IN(map_values);
     BUILT_IN(map_has_key);
-    BUILT_IN(keywords);
-    BUILT_IN(set_nth);
-    BUILT_IN(is_bracketed);
     BUILT_IN(content_exists);
     BUILT_IN(get_function);
   }
