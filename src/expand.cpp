@@ -740,7 +740,7 @@ namespace Sass {
       new_env.local_frame()["@content[m]"] = thunk;
     }
 
-    bind(std::string("Mixin"), c->name(), params, args, &ctx, &new_env, &eval);
+    bind(std::string("Mixin"), c->name(), params, args, &new_env, &eval);
 
     Block_Obj trace_block = SASS_MEMORY_NEW(Block, c->pstate());
     Trace_Obj trace = SASS_MEMORY_NEW(Trace, c->pstate(), c->name(), trace_block);

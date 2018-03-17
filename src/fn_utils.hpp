@@ -16,8 +16,6 @@ namespace Sass {
   // special function for weird hsla percent (10px == 10% == 10 != 0.1)
   #define ARGVAL(argname) get_arg_val(argname, env, sig, pstate, traces) // double
 
-  typedef const char* Signature;
-
   typedef Expression_Ptr (*Native_Function)(Env&, Env&, Context&, Signature, ParserState, Backtraces, SelectorStack);
 
   Definition_Ptr make_native_function(Signature, Native_Function, Context& ctx);

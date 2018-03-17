@@ -1003,7 +1003,7 @@ namespace Sass {
     exp.env_stack.push_back(&fn_env);
 
     if (func || body) {
-      bind(std::string("Function"), c->name(), params, args, &ctx, &fn_env, this);
+      bind(std::string("Function"), c->name(), params, args, &fn_env, this);
       std::string msg(", in function `" + c->name() + "`");
       traces.push_back(Backtrace(c->pstate(), msg));
       ctx.callee_stack.push_back({
@@ -1043,7 +1043,7 @@ namespace Sass {
 
       // populates env with default values for params
       std::string ff(c->name());
-      bind(std::string("Function"), c->name(), params, args, &ctx, &fn_env, this);
+      bind(std::string("Function"), c->name(), params, args, &fn_env, this);
       std::string msg(", in function `" + c->name() + "`");
       traces.push_back(Backtrace(c->pstate(), msg));
       ctx.callee_stack.push_back({

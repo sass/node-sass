@@ -426,7 +426,6 @@ namespace Sass {
   typedef std::vector<Sass_Import_Entry> ImporterStack;
 
   typedef const char* Signature;
-
   // only to switch implementations for testing
   #define environment_map std::map
 

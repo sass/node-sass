@@ -10,7 +10,7 @@
 
 namespace Sass {
 
-  void bind(std::string type, std::string name, Parameters_Obj ps, Arguments_Obj as, Context* ctx, Env* env, Eval* eval)
+  void bind(std::string type, std::string name, Parameters_Obj ps, Arguments_Obj as, Env* env, Eval* eval)
   {
     std::string callee(type + " " + name);
 

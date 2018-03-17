@@ -7,7 +7,7 @@
 
 namespace Sass {
 
-  void bind(std::string type, std::string name, Parameters_Obj, Arguments_Obj, Context*, Env*, Eval*);
+  void bind(std::string type, std::string name, Parameters_Obj, Arguments_Obj, Env*, Eval*);
 }
 
 #endif
