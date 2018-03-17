@@ -4,13 +4,6 @@
 
 namespace Sass {
 
-  Value_Ptr To_Value::fallback_impl(AST_Node_Ptr n)
-  {
-    // throw a runtime error if this happens
-    // we want a well defined set of possible nodes
-    throw std::runtime_error("invalid node for to_value");
-  }
-
   // Custom_Error is a valid value
   Value_Ptr To_Value::operator()(Custom_Error_Ptr e)
   {

@@ -78,9 +78,4 @@ namespace Sass {
     return l.detach();
   }
 
-  Expression_Ptr Listize::fallback_impl(AST_Node_Ptr n)
-  {
-    return Cast<Expression>(n);
-  }
-
 }

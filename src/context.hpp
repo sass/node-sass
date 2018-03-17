@@ -46,14 +46,14 @@ namespace Sass {
 
     // generic ast node garbage container
     // used to avoid possible circular refs
-    std::vector<AST_Node_Obj> ast_gc;
+    CallStack ast_gc;
     // resources add under our control
     // these are guaranteed to be freed
     std::vector<char*> strings;
     std::vector<Resource> resources;
     std::map<const std::string, StyleSheet> sheets;
     Subset_Map subset_map;
-    std::vector<Sass_Import_Entry> import_stack;
+    ImporterStack import_stack;
     std::vector<Sass_Callee> callee_stack;
     std::vector<Backtrace> traces;
 

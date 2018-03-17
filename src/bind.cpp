@@ -1,6 +1,7 @@
 #include "sass.hpp"
 #include "bind.hpp"
 #include "ast.hpp"
+#include "backtrace.hpp"
 #include "context.hpp"
 #include "expand.hpp"
 #include "eval.hpp"
@@ -10,7 +11,7 @@
 
 namespace Sass {
 
-  void bind(std::string type, std::string name, Parameters_Obj ps, Arguments_Obj as, Context* ctx, Env* env, Eval* eval)
+  void bind(std::string type, std::string name, Parameters_Obj ps, Arguments_Obj as, Env* env, Eval* eval, Backtraces& traces)
   {
     std::string callee(type + " " + name);
 
@@ -54,7 +55,7 @@ namespace Sass {
         std::stringstream msg;
         msg << "wrong number of arguments (" << LA << " for " << LP << ")";
         msg << " for `" << name << "'";
-        return error(msg.str(), as->pstate(), eval->exp.traces);
+        return error(msg.str(), as->pstate(), traces);
       }
       Parameter_Obj p = ps->at(ip);
 
@@ -107,8 +108,8 @@ namespace Sass {
                                               false,
                                               false));
             } else {
-              eval->exp.traces.push_back(Backtrace(key->pstate()));
-              throw Exception::InvalidVarKwdType(key->pstate(), eval->exp.traces, key->inspect(), a);
+              traces.push_back(Backtrace(key->pstate()));
+              throw Exception::InvalidVarKwdType(key->pstate(), traces, key->inspect(), a);
             }
           }
 
@@ -222,15 +223,15 @@ namespace Sass {
         for (auto key : argmap->keys()) {
           String_Constant_Ptr val = Cast<String_Constant>(key);
           if (val == NULL) {
-            eval->exp.traces.push_back(Backtrace(key->pstate()));
-            throw Exception::InvalidVarKwdType(key->pstate(), eval->exp.traces, key->inspect(), a);
+            traces.push_back(Backtrace(key->pstate()));
+            throw Exception::InvalidVarKwdType(key->pstate(), traces, key->inspect(), a);
           }
           std::string param = "$" + unquote(val->value());
 
           if (!param_map.count(param)) {
             std::stringstream msg;
             msg << callee << " has no parameter named " << param;
-            error(msg.str(), a->pstate(), eval->exp.traces);
+            error(msg.str(), a->pstate(), traces);
           }
           env->local_frame()[param] = argmap->at(key);
         }
@@ -245,7 +246,7 @@ namespace Sass {
           std::stringstream msg;
           msg << "parameter " << p->name()
           << " provided more than once in call to " << callee;
-          error(msg.str(), a->pstate(), eval->exp.traces);
+          error(msg.str(), a->pstate(), traces);
         }
         // ordinal arg -- bind it to the next param
         env->local_frame()[p->name()] = a->value();
@@ -259,7 +260,7 @@ namespace Sass {
           } else {
             std::stringstream msg;
             msg << callee << " has no parameter named " << a->name();
-            error(msg.str(), a->pstate(), eval->exp.traces);
+            error(msg.str(), a->pstate(), traces);
           }
         }
         if (param_map[a->name()]) {
@@ -267,14 +268,14 @@ namespace Sass {
             std::stringstream msg;
             msg << "argument " << a->name() << " of " << callee
                 << "cannot be used as named argument";
-            error(msg.str(), a->pstate(), eval->exp.traces);
+            error(msg.str(), a->pstate(), traces);
           }
         }
         if (env->has_local(a->name())) {
           std::stringstream msg;
           msg << "parameter " << p->name()
               << "provided more than once in call to " << callee;
-          error(msg.str(), a->pstate(), eval->exp.traces);
+          error(msg.str(), a->pstate(), traces);
         }
         env->local_frame()[a->name()] = a->value();
       }
@@ -299,7 +300,7 @@ namespace Sass {
         }
         else {
           // param is unbound and has no default value -- error
-          throw Exception::MissingArgument(as->pstate(), eval->exp.traces, name, leftover->name(), type);
+          throw Exception::MissingArgument(as->pstate(), traces, name, leftover->name(), type);
         }
       }
     }

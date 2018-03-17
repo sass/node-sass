@@ -30,21 +30,19 @@ namespace Sass {
     bool              old_at_root_without_rule;
 
     // it's easier to work with vectors
-    std::vector<Env*>              env_stack;
-    std::vector<Block_Ptr>         block_stack;
-    std::vector<AST_Node_Obj>      call_stack;
-    std::vector<Selector_List_Obj> selector_stack;
-    std::vector<Media_Block_Ptr>   media_block_stack;
+    EnvStack      env_stack;
+    BlockStack    block_stack;
+    CallStack     call_stack;
+    SelectorStack selector_stack;
+    MediaStack    media_stack;
 
     Boolean_Obj bool_true;
-
-    Statement_Ptr fallback_impl(AST_Node_Ptr n);
 
   private:
     void expand_selector_list(Selector_Obj, Selector_List_Obj extender);
 
   public:
-    Expand(Context&, Env*, std::vector<Selector_List_Obj>* stack = NULL);
+    Expand(Context&, Env*, SelectorStack* stack = NULL);
     ~Expand() { }
 
     Block_Ptr operator()(Block_Ptr);
@@ -71,10 +69,8 @@ namespace Sass {
     Statement_Ptr operator()(Mixin_Call_Ptr);
     Statement_Ptr operator()(Content_Ptr);
 
-    template <typename U>
-    Statement_Ptr fallback(U x) { return fallback_impl(x); }
-
     void append_block(Block_Ptr);
+
   };
 
 }

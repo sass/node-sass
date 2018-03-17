@@ -16,7 +16,7 @@ namespace Sass {
   // simple endless recursion protection
   const size_t maxRecursion = 500;
 
-  Expand::Expand(Context& ctx, Env* env, std::vector<Selector_List_Obj>* stack)
+  Expand::Expand(Context& ctx, Env* env, SelectorStack* stack)
   : ctx(ctx),
     traces(ctx.traces),
     eval(Eval(*this)),
@@ -24,11 +24,11 @@ namespace Sass {
     in_keyframes(false),
     at_root_without_rule(false),
     old_at_root_without_rule(false),
-    env_stack(std::vector<Env*>()),
-    block_stack(std::vector<Block_Ptr>()),
-    call_stack(std::vector<AST_Node_Obj>()),
-    selector_stack(std::vector<Selector_List_Obj>()),
-    media_block_stack(std::vector<Media_Block_Ptr>())
+    env_stack(EnvStack()),
+    block_stack(BlockStack()),
+    call_stack(CallStack()),
+    selector_stack(SelectorStack()),
+    media_stack(MediaStack())
   {
     env_stack.push_back(0);
     env_stack.push_back(env);
@@ -36,7 +36,7 @@ namespace Sass {
     call_stack.push_back(0);
     if (stack == NULL) { selector_stack.push_back(0); }
     else { selector_stack.insert(selector_stack.end(), stack->begin(), stack->end()); }
-    media_block_stack.push_back(0);
+    media_stack.push_back(0);
   }
 
   Env* Expand::environment()
@@ -139,7 +139,7 @@ namespace Sass {
     if (block_stack.back()->is_root()) {
       env_stack.push_back(&env);
     }
-    sel->set_media_block(media_block_stack.back());
+    sel->set_media_block(media_stack.back());
     Block_Obj blk = 0;
     if (r->block()) blk = operator()(r->block());
     Ruleset_Ptr rr = SASS_MEMORY_NEW(Ruleset,
@@ -183,13 +183,13 @@ namespace Sass {
     Parser p(Parser::from_c_str(str, ctx, traces, mq->pstate()));
     mq = p.parse_media_queries(); // re-assign now
     cpy->media_queries(mq);
-    media_block_stack.push_back(cpy);
+    media_stack.push_back(cpy);
     Block_Obj blk = operator()(m->block());
     Media_Block_Ptr mm = SASS_MEMORY_NEW(Media_Block,
                                       m->pstate(),
                                       mq,
                                       blk);
-    media_block_stack.pop_back();
+    media_stack.pop_back();
     mm->tabs(m->tabs());
     return mm;
   }
@@ -658,7 +658,7 @@ namespace Sass {
       }
       for (Complex_Selector_Obj cs : sl->elements()) {
         if (!cs.isNull() && !cs->head().isNull()) {
-          cs->head()->media_block(media_block_stack.back());
+          cs->head()->media_block(media_stack.back());
         }
       }
       selector_stack.push_back(0);
@@ -740,7 +740,7 @@ namespace Sass {
       new_env.local_frame()["@content[m]"] = thunk;
     }
 
-    bind(std::string("Mixin"), c->name(), params, args, &ctx, &new_env, &eval);
+    bind(std::string("Mixin"), c->name(), params, args, &new_env, &eval, traces);
 
     Block_Obj trace_block = SASS_MEMORY_NEW(Block, c->pstate());
     Trace_Obj trace = SASS_MEMORY_NEW(Trace, c->pstate(), c->name(), trace_block);
@@ -790,15 +790,6 @@ namespace Sass {
     }
 
     return trace.detach();
-  }
-
-  // produce an error if something is not implemented
-  inline Statement_Ptr Expand::fallback_impl(AST_Node_Ptr n)
-  {
-    std::string err =std:: string("`Expand` doesn't handle ") + typeid(*n).name();
-    String_Quoted_Obj msg = SASS_MEMORY_NEW(String_Quoted, ParserState("[WARN]"), err);
-    error("unknown internal error; please contact the LibSass maintainers", n->pstate(), traces);
-    return SASS_MEMORY_NEW(Warning, ParserState("[WARN]"), msg);
   }
 
   // process and add to last block on stack

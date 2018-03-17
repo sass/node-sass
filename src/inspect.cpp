@@ -42,9 +42,7 @@ namespace Sass {
   void Inspect::operator()(Ruleset_Ptr ruleset)
   {
     if (ruleset->selector()) {
-      opt.in_selector = true;
       ruleset->selector()->perform(this);
-      opt.in_selector = false;
     }
     if (ruleset->block()) {
       ruleset->block()->perform(this);
@@ -513,12 +511,6 @@ namespace Sass {
     call->arguments()->perform(this);
   }
 
-  void Inspect::operator()(Function_Call_Schema_Ptr call)
-  {
-    call->name()->perform(this);
-    call->arguments()->perform(this);
-  }
-
   void Inspect::operator()(Variable_Ptr var)
   {
     append_token(var->name(), var);
@@ -629,11 +621,6 @@ namespace Sass {
     // maybe an unknown token
     std::string name = c->disp();
 
-    if (opt.in_selector && name != "") {
-      append_token(name, c);
-      return;
-    }
-
     // resolved color
     std::string res_name = name;
 
@@ -658,6 +645,9 @@ namespace Sass {
     }
 
     std::stringstream hexlet;
+    // dart sass compressed all colors in regular css always
+    // ruby sass and libsass does it only when not delayed
+    // since color math is going to be removed, this can go too
     bool compressed = opt.output_style == COMPRESSED;
     hexlet << '#' << std::setw(1) << std::setfill('0');
     // create a short color hexlet if there is any need for it
@@ -921,9 +911,7 @@ namespace Sass {
 
   void Inspect::operator()(Selector_Schema_Ptr s)
   {
-    opt.in_selector = true;
     s->contents()->perform(this);
-    opt.in_selector = false;
   }
 
   void Inspect::operator()(Parent_Selector_Ptr p)
@@ -1129,10 +1117,6 @@ namespace Sass {
       append_string(")");
     }
 
-  }
-
-  void Inspect::fallback_impl(AST_Node_Ptr n)
-  {
   }
 
 }

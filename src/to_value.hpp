@@ -9,8 +9,6 @@ namespace Sass {
 
   class To_Value : public Operation_CRTP<Value_Ptr, To_Value> {
 
-    Value_Ptr fallback_impl(AST_Node_Ptr n);
-
   private:
 
     Context& ctx;
@@ -40,9 +38,6 @@ namespace Sass {
     Value_Ptr operator()(Selector_List_Ptr);
     Value_Ptr operator()(Binary_Expression_Ptr);
 
-    // fallback throws error
-    template <typename U>
-    Value_Ptr fallback(U x) { return fallback_impl(x); }
   };
 
 }

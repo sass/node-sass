@@ -1,15 +1,33 @@
 #ifndef SASS_OPERATION_H
 #define SASS_OPERATION_H
 
+// base classes to implement curiously recurring template pattern (CRTP)
+// https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern
+
 #include "ast_fwd_decl.hpp"
+#include "ast_def_macros.hpp"
 
 namespace Sass {
+
+  // you must add operators to every class
+  // ensures `this` of actual instance type
+  // we therefore call the specific operator
+  // they are virtual so most specific is used
+  #define ATTACH_CRTP_PERFORM_METHODS()\
+    virtual void perform(Operation<void>* op) { return (*op)(this); } \
+    virtual Value_Ptr perform(Operation<Value_Ptr>* op) { return (*op)(this); } \
+    virtual std::string perform(Operation<std::string>* op) { return (*op)(this); } \
+    virtual AST_Node_Ptr perform(Operation<AST_Node_Ptr>* op) { return (*op)(this); } \
+    virtual Selector_Ptr perform(Operation<Selector_Ptr>* op) { return (*op)(this); } \
+    virtual Statement_Ptr perform(Operation<Statement_Ptr>* op) { return (*op)(this); } \
+    virtual Expression_Ptr perform(Operation<Expression_Ptr>* op) { return (*op)(this); } \
+    virtual union Sass_Value* perform(Operation<union Sass_Value*>* op) { return (*op)(this); } \
+    virtual Supports_Condition_Ptr perform(Operation<Supports_Condition_Ptr>* op) { return (*op)(this); } \
 
   template<typename T>
   class Operation {
   public:
     virtual T operator()(AST_Node_Ptr x)               = 0;
-    virtual ~Operation()                            { }
     // statements
     virtual T operator()(Block_Ptr x)                  = 0;
     virtual T operator()(Ruleset_Ptr x)                = 0;
@@ -38,13 +56,13 @@ namespace Sass {
     virtual T operator()(Definition_Ptr x)             = 0;
     virtual T operator()(Mixin_Call_Ptr x)             = 0;
     // expressions
+    virtual T operator()(Null_Ptr x)                   = 0;
     virtual T operator()(List_Ptr x)                   = 0;
     virtual T operator()(Map_Ptr x)                    = 0;
     virtual T operator()(Function_Ptr x)               = 0;
     virtual T operator()(Binary_Expression_Ptr x)      = 0;
     virtual T operator()(Unary_Expression_Ptr x)       = 0;
     virtual T operator()(Function_Call_Ptr x)          = 0;
-    virtual T operator()(Function_Call_Schema_Ptr x)   = 0;
     virtual T operator()(Custom_Warning_Ptr x)         = 0;
     virtual T operator()(Custom_Error_Ptr x)           = 0;
     virtual T operator()(Variable_Ptr x)               = 0;
@@ -62,8 +80,8 @@ namespace Sass {
     virtual T operator()(Media_Query_Ptr x)            = 0;
     virtual T operator()(Media_Query_Expression_Ptr x) = 0;
     virtual T operator()(At_Root_Query_Ptr x)          = 0;
-    virtual T operator()(Null_Ptr x)                   = 0;
     virtual T operator()(Parent_Selector_Ptr x)        = 0;
+    virtual T operator()(Parent_Reference_Ptr x)        = 0;
     // parameters and arguments
     virtual T operator()(Parameter_Ptr x)              = 0;
     virtual T operator()(Parameters_Ptr x)             = 0;
@@ -81,15 +99,14 @@ namespace Sass {
     virtual T operator()(Compound_Selector_Ptr x)= 0;
     virtual T operator()(Complex_Selector_Ptr x)      = 0;
     virtual T operator()(Selector_List_Ptr x) = 0;
-
-    template <typename U>
-    T fallback(U x) { return T(); }
   };
 
+  // example: Operation_CRTP<Expression_Ptr, Eval>
+  // T is the base return type of all visitors
+  // D is the class derived visitor class
+  // normaly you want to implement all operators
   template <typename T, typename D>
   class Operation_CRTP : public Operation<T> {
-  public:
-    D& impl() { return static_cast<D&>(*this); }
   public:
     T operator()(AST_Node_Ptr x)               { return static_cast<D*>(this)->fallback(x); }
     // statements
@@ -120,13 +137,13 @@ namespace Sass {
     T operator()(Definition_Ptr x)             { return static_cast<D*>(this)->fallback(x); }
     T operator()(Mixin_Call_Ptr x)             { return static_cast<D*>(this)->fallback(x); }
     // expressions
+    T operator()(Null_Ptr x)                   { return static_cast<D*>(this)->fallback(x); }
     T operator()(List_Ptr x)                   { return static_cast<D*>(this)->fallback(x); }
     T operator()(Map_Ptr x)                    { return static_cast<D*>(this)->fallback(x); }
     T operator()(Function_Ptr x)               { return static_cast<D*>(this)->fallback(x); }
     T operator()(Binary_Expression_Ptr x)      { return static_cast<D*>(this)->fallback(x); }
     T operator()(Unary_Expression_Ptr x)       { return static_cast<D*>(this)->fallback(x); }
     T operator()(Function_Call_Ptr x)          { return static_cast<D*>(this)->fallback(x); }
-    T operator()(Function_Call_Schema_Ptr x)   { return static_cast<D*>(this)->fallback(x); }
     T operator()(Custom_Warning_Ptr x)         { return static_cast<D*>(this)->fallback(x); }
     T operator()(Custom_Error_Ptr x)           { return static_cast<D*>(this)->fallback(x); }
     T operator()(Variable_Ptr x)               { return static_cast<D*>(this)->fallback(x); }
@@ -144,8 +161,8 @@ namespace Sass {
     T operator()(Media_Query_Ptr x)            { return static_cast<D*>(this)->fallback(x); }
     T operator()(Media_Query_Expression_Ptr x) { return static_cast<D*>(this)->fallback(x); }
     T operator()(At_Root_Query_Ptr x)          { return static_cast<D*>(this)->fallback(x); }
-    T operator()(Null_Ptr x)                   { return static_cast<D*>(this)->fallback(x); }
     T operator()(Parent_Selector_Ptr x)        { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Parent_Reference_Ptr x)        { return static_cast<D*>(this)->fallback(x); }
     // parameters and arguments
     T operator()(Parameter_Ptr x)              { return static_cast<D*>(this)->fallback(x); }
     T operator()(Parameters_Ptr x)             { return static_cast<D*>(this)->fallback(x); }
@@ -164,8 +181,15 @@ namespace Sass {
     T operator()(Complex_Selector_Ptr x)      { return static_cast<D*>(this)->fallback(x); }
     T operator()(Selector_List_Ptr x) { return static_cast<D*>(this)->fallback(x); }
 
-    template <typename U>
-    T fallback(U x)                         { return T(); }
+    // fallback with specific type U
+    // will be called if not overloaded
+    template <typename U> T fallback(U x)
+    { 
+      std::string msg(typeid(*this).name());
+      msg += ": CRTP not implemented for ";
+      throw std::runtime_error(msg + typeid(*x).name());
+    }
+
   };
 
 }

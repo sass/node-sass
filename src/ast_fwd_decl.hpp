@@ -30,6 +30,10 @@ namespace Sass {
   typedef Simple_Selector* Simple_Selector_Ptr;
   typedef Simple_Selector const* Simple_Selector_Ptr_Const;
 
+  class Parent_Reference;
+  typedef Parent_Reference* Parent_Reference_Ptr;
+  typedef Parent_Reference const* Parent_Reference_Ptr_Const;
+
   class PreValue;
   typedef PreValue* PreValue_Ptr;
   typedef PreValue const* PreValue_Ptr_Const;
@@ -149,9 +153,6 @@ namespace Sass {
   class Function_Call;
   typedef Function_Call* Function_Call_Ptr;
   typedef Function_Call const* Function_Call_Ptr_Const;
-  class Function_Call_Schema;
-  typedef Function_Call_Schema* Function_Call_Schema_Ptr;
-  typedef Function_Call_Schema const* Function_Call_Schema_Ptr_Const;
   class Custom_Warning;
   typedef Custom_Warning* Custom_Warning_Ptr;
   typedef Custom_Warning const* Custom_Warning_Ptr_Const;
@@ -319,7 +320,6 @@ namespace Sass {
   IMPL_MEM_OBJ(Binary_Expression);
   IMPL_MEM_OBJ(Unary_Expression);
   IMPL_MEM_OBJ(Function_Call);
-  IMPL_MEM_OBJ(Function_Call_Schema);
   IMPL_MEM_OBJ(Custom_Warning);
   IMPL_MEM_OBJ(Custom_Error);
   IMPL_MEM_OBJ(Variable);
@@ -340,6 +340,7 @@ namespace Sass {
   IMPL_MEM_OBJ(At_Root_Query);
   IMPL_MEM_OBJ(Null);
   IMPL_MEM_OBJ(Parent_Selector);
+  IMPL_MEM_OBJ(Parent_Reference);
   IMPL_MEM_OBJ(Parameter);
   IMPL_MEM_OBJ(Parameters);
   IMPL_MEM_OBJ(Argument);
@@ -419,7 +420,12 @@ namespace Sass {
   typedef std::set<Compound_Selector_Obj, OrderNodes> CompoundSelectorSet;
   typedef std::unordered_set<Simple_Selector_Obj, HashNodes, CompareNodes> SimpleSelectorDict;
 
-  typedef std::vector<Sass_Import_Entry>* ImporterStack;
+  typedef std::vector<Block_Ptr> BlockStack;
+  typedef std::vector<Sass_Callee> CalleeStack;
+  typedef std::vector<AST_Node_Obj> CallStack;
+  typedef std::vector<Media_Block_Ptr> MediaStack;
+  typedef std::vector<Selector_List_Obj> SelectorStack;
+  typedef std::vector<Sass_Import_Entry> ImporterStack;
 
   // only to switch implementations for testing
   #define environment_map std::map

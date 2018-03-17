@@ -11,8 +11,6 @@ namespace Sass {
 
     class Remove_Placeholders : public Operation_CRTP<void, Remove_Placeholders> {
 
-        void fallback_impl(AST_Node_Ptr n) {}
-
     public:
       Selector_List_Ptr remove_placeholders(Selector_List_Ptr);
 
@@ -26,8 +24,9 @@ namespace Sass {
         void operator()(Supports_Block_Ptr);
         void operator()(Directive_Ptr);
 
+      // ignore missed types
         template <typename U>
-        void fallback(U x) { return fallback_impl(x); }
+      void fallback(U x) {}
     };
 
 }

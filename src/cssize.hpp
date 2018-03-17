@@ -14,10 +14,8 @@ namespace Sass {
 
     Context&                    ctx;
     Backtraces&                 traces;
-    std::vector<Block_Ptr>      block_stack;
+    BlockStack      block_stack;
     std::vector<Statement_Ptr>  p_stack;
-
-    Statement_Ptr fallback_impl(AST_Node_Ptr n);
 
   public:
     Cssize(Context&);
@@ -66,8 +64,10 @@ namespace Sass {
     List_Ptr merge_media_queries(Media_Block_Ptr, Media_Block_Ptr);
     Media_Query_Ptr merge_media_query(Media_Query_Ptr, Media_Query_Ptr);
 
+    // generic fallback
     template <typename U>
-    Statement_Ptr fallback(U x) { return fallback_impl(x); }
+    Statement_Ptr fallback(U x)
+    { return Cast<Statement>(x); }
 
     void append_block(Block_Ptr, Block_Ptr);
   };

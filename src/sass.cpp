@@ -7,6 +7,7 @@
 #include "sass.h"
 #include "file.hpp"
 #include "util.hpp"
+#include "context.hpp"
 #include "sass_context.hpp"
 #include "sass_functions.hpp"
 

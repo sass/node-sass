@@ -132,13 +132,6 @@ namespace Sass {
     return i;
   }
 
-  Statement_Ptr CheckNesting::fallback_impl(Statement_Ptr s)
-  {
-    Block_Ptr b1 = Cast<Block>(s);
-    Has_Block_Ptr b2 = Cast<Has_Block>(s);
-    return b1 || b2 ? visit_children(s) : s;
-  }
-
   bool CheckNesting::should_visit(Statement_Ptr node)
   {
     if (!this->parent) return true;

@@ -208,6 +208,20 @@ namespace Sass {
 
   // use array access for getter and setter functions
   template <typename T>
+  T& Environment<T>::get(const std::string& key)
+  {
+    auto cur = this;
+    while (cur) {
+      if (cur->has_local(key)) {
+        return cur->get_local(key);
+      }
+      cur = cur->parent_;
+    }
+    return get_local(key);
+  }
+
+  // use array access for getter and setter functions
+  template <typename T>
   T& Environment<T>::operator[](const std::string& key)
   {
     auto cur = this;
