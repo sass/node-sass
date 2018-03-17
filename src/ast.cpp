@@ -1259,7 +1259,7 @@ namespace Sass {
     return list;
   }
 
-  Selector_List_Ptr Selector_List::resolve_parent_refs(std::vector<Selector_List_Obj>& pstack, Backtraces& traces, bool implicit_parent)
+  Selector_List_Ptr Selector_List::resolve_parent_refs(SelectorStack& pstack, Backtraces& traces, bool implicit_parent)
   {
     if (!this->has_parent_ref()) return this;
     Selector_List_Ptr ss = SASS_MEMORY_NEW(Selector_List, pstate());
@@ -1273,7 +1273,7 @@ namespace Sass {
     return ss;
   }
 
-  Selector_List_Ptr Complex_Selector::resolve_parent_refs(std::vector<Selector_List_Obj>& pstack, Backtraces& traces, bool implicit_parent)
+  Selector_List_Ptr Complex_Selector::resolve_parent_refs(SelectorStack& pstack, Backtraces& traces, bool implicit_parent)
   {
     Complex_Selector_Obj tail = this->tail();
     Compound_Selector_Obj head = this->head();

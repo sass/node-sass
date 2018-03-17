@@ -9,7 +9,7 @@
 namespace Sass {
 
   #define BUILT_IN(name) Expression_Ptr \
-    name(Env& env, Env& d_env, Context& ctx, Signature sig, ParserState pstate, Backtraces traces, std::vector<Selector_List_Obj> selector_stack)
+    name(Env& env, Env& d_env, Context& ctx, Signature sig, ParserState pstate, Backtraces traces, SelectorStack selector_stack)
 
   #define ARG(argname, argtype) get_arg<argtype>(argname, env, sig, pstate, traces)
 

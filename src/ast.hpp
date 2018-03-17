@@ -944,7 +944,7 @@ namespace Sass {
   // by a type tag.
   /////////////////////////////////////////////////////////////////////////////
   struct Backtrace;
-  typedef Expression_Ptr (*Native_Function)(Env&, Env&, Context&, Signature, ParserState, Backtraces, std::vector<Selector_List_Obj>);
+  typedef Expression_Ptr (*Native_Function)(Env&, Env&, Context&, Signature, ParserState, Backtraces, SelectorStack);
   class Definition : public Has_Block {
   public:
     enum Type { MIXIN, FUNCTION };
@@ -2860,7 +2860,7 @@ namespace Sass {
     Complex_Selector_Obj innermost() { return last(); };
 
     size_t length() const;
-    Selector_List_Ptr resolve_parent_refs(std::vector<Selector_List_Obj>& pstack, Backtraces& traces, bool implicit_parent = true);
+    Selector_List_Ptr resolve_parent_refs(SelectorStack& pstack, Backtraces& traces, bool implicit_parent = true);
     virtual bool is_superselector_of(Compound_Selector_Obj sub, std::string wrapping = "");
     virtual bool is_superselector_of(Complex_Selector_Obj sub, std::string wrapping = "");
     virtual bool is_superselector_of(Selector_List_Obj sub, std::string wrapping = "");
@@ -2982,7 +2982,7 @@ namespace Sass {
     virtual bool has_parent_ref() const;
     virtual bool has_real_parent_ref() const;
     void remove_parent_selectors();
-    Selector_List_Ptr resolve_parent_refs(std::vector<Selector_List_Obj>& pstack, Backtraces& traces, bool implicit_parent = true);
+    Selector_List_Ptr resolve_parent_refs(SelectorStack& pstack, Backtraces& traces, bool implicit_parent = true);
     virtual bool is_superselector_of(Compound_Selector_Obj sub, std::string wrapping = "");
     virtual bool is_superselector_of(Complex_Selector_Obj sub, std::string wrapping = "");
     virtual bool is_superselector_of(Selector_List_Obj sub, std::string wrapping = "");

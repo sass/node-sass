@@ -1529,7 +1529,7 @@ namespace Sass {
 
   Selector_List_Ptr Eval::operator()(Selector_List_Ptr s)
   {
-    std::vector<Selector_List_Obj> rv;
+    SelectorStack rv;
     Selector_List_Obj sl = SASS_MEMORY_NEW(Selector_List, s->pstate());
     sl->is_optional(s->is_optional());
     sl->media_block(s->media_block());

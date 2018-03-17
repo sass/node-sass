@@ -31,10 +31,10 @@ namespace Sass {
 
     // it's easier to work with vectors
     std::vector<Env*>              env_stack;
-    std::vector<Block_Ptr>         block_stack;
-    std::vector<AST_Node_Obj>      call_stack;
-    std::vector<Selector_List_Obj> selector_stack;
-    std::vector<Media_Block_Ptr>   media_block_stack;
+    BlockStack         block_stack;
+    CallStack      call_stack;
+    SelectorStack selector_stack;
+    MediaStack   media_block_stack;
 
     Boolean_Obj bool_true;
 
@@ -44,7 +44,7 @@ namespace Sass {
     void expand_selector_list(Selector_Obj, Selector_List_Obj extender);
 
   public:
-    Expand(Context&, Env*, std::vector<Selector_List_Obj>* stack = NULL);
+    Expand(Context&, Env*, SelectorStack* stack = NULL);
     ~Expand() { }
 
     Block_Ptr operator()(Block_Ptr);

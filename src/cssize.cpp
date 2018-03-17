@@ -11,7 +11,7 @@ namespace Sass {
   Cssize::Cssize(Context& ctx)
   : ctx(ctx),
     traces(ctx.traces),
-    block_stack(std::vector<Block_Ptr>()),
+    block_stack(BlockStack()),
     p_stack(std::vector<Statement_Ptr>())
   { }
 

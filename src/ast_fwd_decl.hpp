@@ -423,7 +423,7 @@ namespace Sass {
   typedef std::vector<AST_Node_Obj> CallStack;
   typedef std::vector<Media_Block_Ptr> MediaStack;
   typedef std::vector<Selector_List_Obj> SelectorStack;
-  typedef std::vector<Sass_Import_Entry>* ImporterStack;
+  typedef std::vector<Sass_Import_Entry> ImporterStack;
 
   typedef const char* Signature;
 

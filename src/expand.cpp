@@ -16,7 +16,7 @@ namespace Sass {
   // simple endless recursion protection
   const size_t maxRecursion = 500;
 
-  Expand::Expand(Context& ctx, Env* env, std::vector<Selector_List_Obj>* stack)
+  Expand::Expand(Context& ctx, Env* env, SelectorStack* stack)
   : ctx(ctx),
     traces(ctx.traces),
     eval(Eval(*this)),
@@ -25,10 +25,10 @@ namespace Sass {
     at_root_without_rule(false),
     old_at_root_without_rule(false),
     env_stack(std::vector<Env*>()),
-    block_stack(std::vector<Block_Ptr>()),
-    call_stack(std::vector<AST_Node_Obj>()),
-    selector_stack(std::vector<Selector_List_Obj>()),
-    media_block_stack(std::vector<Media_Block_Ptr>())
+    block_stack(BlockStack()),
+    call_stack(CallStack()),
+    selector_stack(SelectorStack()),
+    media_block_stack(MediaStack())
   {
     env_stack.push_back(0);
     env_stack.push_back(env);

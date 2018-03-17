@@ -14,7 +14,7 @@ namespace Sass {
 
     Context&                    ctx;
     Backtraces&                 traces;
-    std::vector<Block_Ptr>      block_stack;
+    BlockStack      block_stack;
     std::vector<Statement_Ptr>  p_stack;
 
     Statement_Ptr fallback_impl(AST_Node_Ptr n);
