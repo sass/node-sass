@@ -290,7 +290,7 @@ namespace Sass {
     String_Obj parse_url_function_argument();
     String_Obj parse_interpolated_chunk(Token, bool constant = false, bool css = true);
     String_Obj parse_string();
-    String_Constant_Obj parse_static_value();
+    Value_Obj parse_static_value();
     String_Schema_Obj parse_css_variable_value(bool top_level = true);
     String_Schema_Obj parse_css_variable_value_token(bool top_level = true);
     String_Obj parse_ie_property();
@@ -324,6 +324,8 @@ namespace Sass {
     Warning_Obj parse_warning();
     Error_Obj parse_error();
     Debug_Obj parse_debug();
+
+    Value_Ptr color_or_string(const std::string& lexed) const;
 
     // be more like ruby sass
     Expression_Obj lex_almost_any_value_token();
@@ -380,12 +382,12 @@ namespace Sass {
     static Number_Ptr lexed_number(const ParserState& pstate, const std::string& parsed);
     static Number_Ptr lexed_dimension(const ParserState& pstate, const std::string& parsed);
     static Number_Ptr lexed_percentage(const ParserState& pstate, const std::string& parsed);
-    static Expression_Ptr lexed_hex_color(const ParserState& pstate, const std::string& parsed);
+    static Value_Ptr lexed_hex_color(const ParserState& pstate, const std::string& parsed);
   private:
     Number_Ptr lexed_number(const std::string& parsed) { return lexed_number(pstate, parsed); };
     Number_Ptr lexed_dimension(const std::string& parsed) { return lexed_dimension(pstate, parsed); };
     Number_Ptr lexed_percentage(const std::string& parsed) { return lexed_percentage(pstate, parsed); };
-    Expression_Ptr lexed_hex_color(const std::string& parsed) { return lexed_hex_color(pstate, parsed); };
+    Value_Ptr lexed_hex_color(const std::string& parsed) { return lexed_hex_color(pstate, parsed); };
 
     static const char* re_attr_sensitive_close(const char* src);
     static const char* re_attr_insensitive_close(const char* src);

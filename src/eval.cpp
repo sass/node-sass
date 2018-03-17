@@ -599,10 +599,6 @@ namespace Sass {
           switch (op_type) {
             case Sass_OP::EQ: return *l_n == *r_c ? bool_true : bool_false;
             case Sass_OP::NEQ: return *l_n == *r_c ? bool_false : bool_true;
-            case Sass_OP::LT: return *l_n < *r_c ? bool_true : bool_false;
-            case Sass_OP::GTE: return *l_n < *r_c ? bool_false : bool_true;
-            case Sass_OP::LTE: return *l_n < *r_c || *l_n == *r_c ? bool_true : bool_false;
-            case Sass_OP::GT: return *l_n < *r_c || *l_n == *r_c ? bool_false : bool_true;
             case Sass_OP::ADD: case Sass_OP::SUB: case Sass_OP::MUL: case Sass_OP::DIV: case Sass_OP::MOD:
               return Operators::op_number_color(op_type, *l_n, *r_c, ctx.c_options, b_in->pstate());
             default: break;
@@ -643,10 +639,6 @@ namespace Sass {
           switch (op_type) {
             case Sass_OP::EQ: return *l_c == *r_n ? bool_true : bool_false;
             case Sass_OP::NEQ: return *l_c == *r_n ? bool_false : bool_true;
-            case Sass_OP::LT: return *l_c < *r_n ? bool_true : bool_false;
-            case Sass_OP::GTE: return *l_c < *r_n ? bool_false : bool_true;
-            case Sass_OP::LTE: return *l_c < *r_n || *l_c == *r_n ? bool_true : bool_false;
-            case Sass_OP::GT: return *l_c < *r_n || *l_c == *r_n ? bool_false : bool_true;
             case Sass_OP::ADD: case Sass_OP::SUB: case Sass_OP::MUL: case Sass_OP::DIV: case Sass_OP::MOD:
               return Operators::op_color_number(op_type, *l_c, *r_n, ctx.c_options, b_in->pstate());
             default: break;
@@ -1265,13 +1257,6 @@ namespace Sass {
 
   Expression_Ptr Eval::operator()(String_Constant_Ptr s)
   {
-    if (!s->is_delayed() && name_to_color(s->value())) {
-      Color_Ptr c = SASS_MEMORY_COPY(name_to_color(s->value())); // copy
-      c->pstate(s->pstate());
-      c->disp(s->value());
-      c->is_delayed(true);
-      return c;
-    }
     return s;
   }
 
