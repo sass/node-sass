@@ -2,7 +2,6 @@
 #include "parser.hpp"
 #include "fn_utils.hpp"
 #include "functions.hpp"
-#include "error_handling.hpp"
 
 namespace Sass {
 

@@ -34,6 +34,7 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\file.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\fn_utils.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\functions.hpp" />
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\fn_colors.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\fn_numbers.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\fn_selectors.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\inspect.hpp" />
@@ -90,6 +91,7 @@
     <ClCompile Include="$(LIBSASS_SRC_DIR)\extend.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\file.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\fn_utils.cpp" />
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\fn_colors.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\fn_numbers.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\fn_selectors.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\functions.cpp" />

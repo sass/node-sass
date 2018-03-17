@@ -1,9 +1,10 @@
 #ifndef SASS_FN_UTILS_H
 #define SASS_FN_UTILS_H
-
+#include "units.hpp"
 #include "backtrace.hpp"
 #include "environment.hpp"
 #include "ast_fwd_decl.hpp"
+#include "error_handling.hpp"
 
 namespace Sass {
 
