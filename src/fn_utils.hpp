@@ -13,9 +13,6 @@ namespace Sass {
   #define ARG(argname, argtype) get_arg<argtype>(argname, env, sig, pstate, traces)
   #define ARGM(argname, argtype, ctx) get_arg_m(argname, env, sig, pstate, traces)
 
-  // return a number object (copied since we want to have reduced units)
-  #define ARGN(argname) get_arg_n(argname, env, sig, pstate, traces) // Number copy
-
   // special function for weird hsla percent (10px == 10% == 10 != 0.1)
   #define ARGVAL(argname) get_arg_val(argname, env, sig, pstate, traces) // double
 

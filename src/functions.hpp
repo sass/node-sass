@@ -55,15 +55,6 @@ namespace Sass {
     extern Signature str_slice_sig;
     extern Signature to_upper_case_sig;
     extern Signature to_lower_case_sig;
-    extern Signature percentage_sig;
-    extern Signature round_sig;
-    extern Signature ceil_sig;
-    extern Signature floor_sig;
-    extern Signature abs_sig;
-    extern Signature min_sig;
-    extern Signature max_sig;
-    extern Signature inspect_sig;
-    extern Signature random_sig;
     extern Signature length_sig;
     extern Signature nth_sig;
     extern Signature index_sig;
@@ -72,9 +63,6 @@ namespace Sass {
     extern Signature zip_sig;
     extern Signature list_separator_sig;
     extern Signature type_of_sig;
-    extern Signature unit_sig;
-    extern Signature unitless_sig;
-    extern Signature comparable_sig;
     extern Signature variable_exists_sig;
     extern Signature global_variable_exists_sig;
     extern Signature function_exists_sig;
@@ -91,7 +79,6 @@ namespace Sass {
     extern Signature map_has_key_sig;
     extern Signature keywords_sig;
     extern Signature set_nth_sig;
-    extern Signature unique_id_sig;
     extern Signature selector_nest_sig;
     extern Signature selector_append_sig;
     extern Signature selector_extend_sig;
@@ -139,15 +126,7 @@ namespace Sass {
     BUILT_IN(str_slice);
     BUILT_IN(to_upper_case);
     BUILT_IN(to_lower_case);
-    BUILT_IN(percentage);
-    BUILT_IN(round);
-    BUILT_IN(ceil);
-    BUILT_IN(floor);
-    BUILT_IN(abs);
-    BUILT_IN(min);
-    BUILT_IN(max);
     BUILT_IN(inspect);
-    BUILT_IN(random);
     BUILT_IN(length);
     BUILT_IN(nth);
     BUILT_IN(index);
@@ -156,9 +135,6 @@ namespace Sass {
     BUILT_IN(zip);
     BUILT_IN(list_separator);
     BUILT_IN(type_of);
-    BUILT_IN(unit);
-    BUILT_IN(unitless);
-    BUILT_IN(comparable);
     BUILT_IN(variable_exists);
     BUILT_IN(global_variable_exists);
     BUILT_IN(function_exists);
@@ -175,7 +151,6 @@ namespace Sass {
     BUILT_IN(map_has_key);
     BUILT_IN(keywords);
     BUILT_IN(set_nth);
-    BUILT_IN(unique_id);
     BUILT_IN(selector_nest);
     BUILT_IN(selector_append);
     BUILT_IN(selector_extend);
