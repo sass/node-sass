@@ -8,15 +8,22 @@
 
 namespace Sass {
 
-  #define BUILT_IN(name) Expression_Ptr \
-    name(Env& env, Env& d_env, Context& ctx, Signature sig, ParserState pstate, Backtraces traces, SelectorStack selector_stack)
+  #define FN_PROTOTYPE \
+    Env& env, \
+    Env& d_env, \
+    Context& ctx, \
+    Signature sig, \
+    ParserState pstate, \
+    Backtraces& traces, \
+    SelectorStack& selector_stack
+
+  typedef const char* Signature;
+  typedef PreValue_Ptr (*Native_Function)(FN_PROTOTYPE);
+  #define BUILT_IN(name) PreValue_Ptr name(FN_PROTOTYPE)
 
   #define ARG(argname, argtype) get_arg<argtype>(argname, env, sig, pstate, traces)
-
   // special function for weird hsla percent (10px == 10% == 10 != 0.1)
   #define ARGVAL(argname) get_arg_val(argname, env, sig, pstate, traces) // double
-
-  typedef Expression_Ptr (*Native_Function)(Env&, Env&, Context&, Signature, ParserState, Backtraces, SelectorStack);
 
   Definition_Ptr make_native_function(Signature, Native_Function, Context& ctx);
   Definition_Ptr make_c_function(Sass_Function_Entry c_func, Context& ctx);

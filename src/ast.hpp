@@ -27,6 +27,7 @@
 #include "ast_def_macros.hpp"
 #include "ast_fwd_decl.hpp"
 #include "source_map.hpp"
+#include "fn_utils.hpp"
 
 #include "sass.h"
 
@@ -913,8 +914,6 @@ namespace Sass {
   // Definitions for both mixins and functions. The two cases are distinguished
   // by a type tag.
   /////////////////////////////////////////////////////////////////////////////
-  struct Backtrace;
-  typedef Expression_Ptr (*Native_Function)(Env&, Env&, Context&, Signature, ParserState, Backtraces, SelectorStack);
   class Definition : public Has_Block {
   public:
     enum Type { MIXIN, FUNCTION };

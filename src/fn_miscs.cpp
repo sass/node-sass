@@ -146,7 +146,7 @@ namespace Sass {
       Expand expand(ctx, &d_env, &selector_stack);
       func->via_call(true); // calc invoke is allowed
       if (ff) func->func(ff);
-      return func->perform(&expand.eval);
+      return Cast<PreValue>(func->perform(&expand.eval));
     }
 
     ////////////////////
