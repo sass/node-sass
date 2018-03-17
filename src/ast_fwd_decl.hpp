@@ -421,6 +421,7 @@ namespace Sass {
   typedef std::unordered_set<Simple_Selector_Obj, HashNodes, CompareNodes> SimpleSelectorDict;
 
   typedef std::vector<Block_Ptr> BlockStack;
+  typedef std::vector<Sass_Callee> CalleeStack;
   typedef std::vector<AST_Node_Obj> CallStack;
   typedef std::vector<Media_Block_Ptr> MediaStack;
   typedef std::vector<Selector_List_Obj> SelectorStack;

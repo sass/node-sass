@@ -29,7 +29,15 @@ namespace Sass {
     Boolean_Obj bool_false;
 
     Env* environment();
+    EnvStack& env_stack();
+    const std::string cwd();
     Selector_List_Obj selector();
+    CalleeStack& callee_stack();
+    SelectorStack& selector_stack();
+    bool& old_at_root_without_rule();
+    struct Sass_Inspect_Options& options();
+    struct Sass_Inspect_Options options2();
+    struct Sass_Compiler* compiler();
 
     // for evaluating function bodies
     Expression_Ptr operator()(Block_Ptr);
