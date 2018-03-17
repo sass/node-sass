@@ -977,9 +977,7 @@ namespace Sass {
                Signature sig,
                std::string n,
                Parameters_Obj params,
-               Sass_Function_Entry c_func,
-               bool whatever,
-               bool whatever2)
+               Sass_Function_Entry c_func)
     : Has_Block(pstate, 0),
       name_(n),
       parameters_(params),

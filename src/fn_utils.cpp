@@ -39,8 +39,7 @@ namespace Sass {
                           sig,
                           name,
                           params,
-                          c_func,
-                          false, true);
+                          c_func);
   }
 
   namespace Functions {

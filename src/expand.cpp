@@ -28,7 +28,7 @@ namespace Sass {
     block_stack(BlockStack()),
     call_stack(CallStack()),
     selector_stack(SelectorStack()),
-    media_block_stack(MediaStack())
+    media_stack(MediaStack())
   {
     env_stack.push_back(0);
     env_stack.push_back(env);
@@ -36,7 +36,7 @@ namespace Sass {
     call_stack.push_back(0);
     if (stack == NULL) { selector_stack.push_back(0); }
     else { selector_stack.insert(selector_stack.end(), stack->begin(), stack->end()); }
-    media_block_stack.push_back(0);
+    media_stack.push_back(0);
   }
 
   Env* Expand::environment()
@@ -139,7 +139,7 @@ namespace Sass {
     if (block_stack.back()->is_root()) {
       env_stack.push_back(&env);
     }
-    sel->set_media_block(media_block_stack.back());
+    sel->set_media_block(media_stack.back());
     Block_Obj blk = 0;
     if (r->block()) blk = operator()(r->block());
     Ruleset_Ptr rr = SASS_MEMORY_NEW(Ruleset,
@@ -183,13 +183,13 @@ namespace Sass {
     Parser p(Parser::from_c_str(str, ctx, traces, mq->pstate()));
     mq = p.parse_media_queries(); // re-assign now
     cpy->media_queries(mq);
-    media_block_stack.push_back(cpy);
+    media_stack.push_back(cpy);
     Block_Obj blk = operator()(m->block());
     Media_Block_Ptr mm = SASS_MEMORY_NEW(Media_Block,
                                       m->pstate(),
                                       mq,
                                       blk);
-    media_block_stack.pop_back();
+    media_stack.pop_back();
     mm->tabs(m->tabs());
     return mm;
   }
@@ -658,7 +658,7 @@ namespace Sass {
       }
       for (Complex_Selector_Obj cs : sl->elements()) {
         if (!cs.isNull() && !cs->head().isNull()) {
-          cs->head()->media_block(media_block_stack.back());
+          cs->head()->media_block(media_stack.back());
         }
       }
       selector_stack.push_back(0);
