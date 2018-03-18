@@ -103,7 +103,7 @@ namespace Sass {
     // selectors
     virtual T operator()(Selector_Schema_Ptr x)        = 0;
     virtual T operator()(Placeholder_Selector_Ptr x)   = 0;
-    virtual T operator()(Element_Selector_Ptr x)       = 0;
+    virtual T operator()(Type_Selector_Ptr x)       = 0;
     virtual T operator()(Class_Selector_Ptr x)         = 0;
     virtual T operator()(Id_Selector_Ptr x)            = 0;
     virtual T operator()(Attribute_Selector_Ptr x)     = 0;
@@ -184,7 +184,7 @@ namespace Sass {
     // selectors
     T operator()(Selector_Schema_Ptr x)        { return static_cast<D*>(this)->fallback(x); }
     T operator()(Placeholder_Selector_Ptr x)   { return static_cast<D*>(this)->fallback(x); }
-    T operator()(Element_Selector_Ptr x)       { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Type_Selector_Ptr x)       { return static_cast<D*>(this)->fallback(x); }
     T operator()(Class_Selector_Ptr x)         { return static_cast<D*>(this)->fallback(x); }
     T operator()(Id_Selector_Ptr x)            { return static_cast<D*>(this)->fallback(x); }
     T operator()(Attribute_Selector_Ptr x)     { return static_cast<D*>(this)->fallback(x); }

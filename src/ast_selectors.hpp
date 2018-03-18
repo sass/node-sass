@@ -319,14 +319,14 @@ namespace Sass {
   };
 
   /////////////////////////////////////////////////////////////////////
-  // Element selectors (and the universal selector) -- e.g., div, span, *.
+  // Type selectors (and the universal selector) -- e.g., div, span, *.
   /////////////////////////////////////////////////////////////////////
-  class Element_Selector final : public Simple_Selector {
+  class Type_Selector final : public Simple_Selector {
   public:
-    Element_Selector(ParserState pstate, std::string n)
+    Type_Selector(ParserState pstate, std::string n)
     : Simple_Selector(pstate, n)
     { simple_type(TYPE_SEL); }
-    Element_Selector(const Element_Selector* ptr)
+    Type_Selector(const Type_Selector* ptr)
     : Simple_Selector(ptr)
     { simple_type(TYPE_SEL); }
     unsigned long specificity() const override
@@ -342,9 +342,9 @@ namespace Sass {
     Compound_Selector_Ptr unify_with(Compound_Selector_Ptr) override;
     bool operator<(const Simple_Selector& rhs) const final override;
     bool operator==(const Simple_Selector& rhs) const final override;
-    bool operator<(const Element_Selector& rhs) const;
-    bool operator==(const Element_Selector& rhs) const;
-    ATTACH_AST_OPERATIONS(Element_Selector)
+    bool operator<(const Type_Selector& rhs) const;
+    bool operator==(const Type_Selector& rhs) const;
+    ATTACH_AST_OPERATIONS(Type_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
   };
 
@@ -599,7 +599,7 @@ namespace Sass {
     Simple_Selector_Ptr base() const {
       if (length() == 0) return 0;
       // ToDo: why is this needed?
-      if (Cast<Element_Selector>((*this)[0]))
+      if (Cast<Type_Selector>((*this)[0]))
         return (*this)[0];
       return 0;
     }

@@ -745,8 +745,8 @@ namespace Sass {
     AST_Node_Obj lu = lhs;
     AST_Node_Obj ru = rhs;
 
-    Expression::Concrete_Type l_type;
-    Expression::Concrete_Type r_type;
+    Expression::Type l_type;
+    Expression::Type r_type;
 
     // Is one of the operands an interpolant?
     String_Schema_Obj s1 = Cast<String_Schema>(b->left());

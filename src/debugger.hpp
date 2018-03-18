@@ -235,9 +235,9 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     std::cerr << (selector->has_line_break() ? " [line-break]": " -");
     std::cerr << (selector->has_line_feed() ? " [line-feed]": " -");
     std::cerr << std::endl;
-  } else if (Cast<Element_Selector>(node)) {
-    Element_Selector_Ptr selector = Cast<Element_Selector>(node);
-    std::cerr << ind << "Element_Selector " << selector;
+  } else if (Cast<Type_Selector>(node)) {
+    Type_Selector_Ptr selector = Cast<Type_Selector>(node);
+    std::cerr << ind << "Type_Selector " << selector;
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " <" << selector->hash() << ">";
     std::cerr << " <<" << selector->ns_name() << ">>";
@@ -682,21 +682,21 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     std::cerr << ind << "Expression " << expression;
     std::cerr << " (" << pstate_source_position(node) << ")";
     switch (expression->concrete_type()) {
-      case Expression::Concrete_Type::NONE: std::cerr << " [NONE]"; break;
-      case Expression::Concrete_Type::BOOLEAN: std::cerr << " [BOOLEAN]"; break;
-      case Expression::Concrete_Type::NUMBER: std::cerr << " [NUMBER]"; break;
-      case Expression::Concrete_Type::COLOR: std::cerr << " [COLOR]"; break;
-      case Expression::Concrete_Type::STRING: std::cerr << " [STRING]"; break;
-      case Expression::Concrete_Type::LIST: std::cerr << " [LIST]"; break;
-      case Expression::Concrete_Type::MAP: std::cerr << " [MAP]"; break;
-      case Expression::Concrete_Type::SELECTOR: std::cerr << " [SELECTOR]"; break;
-      case Expression::Concrete_Type::NULL_VAL: std::cerr << " [NULL_VAL]"; break;
-      case Expression::Concrete_Type::C_WARNING: std::cerr << " [C_WARNING]"; break;
-      case Expression::Concrete_Type::C_ERROR: std::cerr << " [C_ERROR]"; break;
-      case Expression::Concrete_Type::FUNCTION: std::cerr << " [FUNCTION]"; break;
-      case Expression::Concrete_Type::NUM_TYPES: std::cerr << " [NUM_TYPES]"; break;
-      case Expression::Concrete_Type::VARIABLE: std::cerr << " [VARIABLE]"; break;
-      case Expression::Concrete_Type::FUNCTION_VAL: std::cerr << " [FUNCTION_VAL]"; break;
+      case Expression::Type::NONE: std::cerr << " [NONE]"; break;
+      case Expression::Type::BOOLEAN: std::cerr << " [BOOLEAN]"; break;
+      case Expression::Type::NUMBER: std::cerr << " [NUMBER]"; break;
+      case Expression::Type::COLOR: std::cerr << " [COLOR]"; break;
+      case Expression::Type::STRING: std::cerr << " [STRING]"; break;
+      case Expression::Type::LIST: std::cerr << " [LIST]"; break;
+      case Expression::Type::MAP: std::cerr << " [MAP]"; break;
+      case Expression::Type::SELECTOR: std::cerr << " [SELECTOR]"; break;
+      case Expression::Type::NULL_VAL: std::cerr << " [NULL_VAL]"; break;
+      case Expression::Type::C_WARNING: std::cerr << " [C_WARNING]"; break;
+      case Expression::Type::C_ERROR: std::cerr << " [C_ERROR]"; break;
+      case Expression::Type::FUNCTION: std::cerr << " [FUNCTION]"; break;
+      case Expression::Type::NUM_TYPES: std::cerr << " [NUM_TYPES]"; break;
+      case Expression::Type::VARIABLE: std::cerr << " [VARIABLE]"; break;
+      case Expression::Type::FUNCTION_VAL: std::cerr << " [FUNCTION_VAL]"; break;
       case Expression::Type::PARENT: std::cerr << " [PARENT]"; break;
     }
     std::cerr << std::endl;

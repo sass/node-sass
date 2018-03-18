@@ -535,7 +535,7 @@ namespace Sass {
   {
     switch (simple_type()) {
       case ID_SEL: return (const Id_Selector&) *this == rhs; break;
-      case TYPE_SEL: return (const Element_Selector&) *this == rhs; break;
+      case TYPE_SEL: return (const Type_Selector&) *this == rhs; break;
       case CLASS_SEL: return (const Class_Selector&) *this == rhs; break;
       case PARENT_SEL: return (const Parent_Selector&) *this == rhs; break;
       case PSEUDO_SEL: return (const Pseudo_Selector&) *this == rhs; break;
@@ -555,9 +555,9 @@ namespace Sass {
     return sel ? *this == *sel : false;
   }
 
-  bool Element_Selector::operator== (const Simple_Selector& rhs) const
+  bool Type_Selector::operator== (const Simple_Selector& rhs) const
   {
-    auto sel = Cast<Element_Selector>(&rhs);
+    auto sel = Cast<Type_Selector>(&rhs);
     return sel ? *this == *sel : false;
   }
 
@@ -606,7 +606,7 @@ namespace Sass {
     return name() == rhs.name();
   }
 
-  bool Element_Selector::operator== (const Element_Selector& rhs) const
+  bool Type_Selector::operator== (const Type_Selector& rhs) const
   {
     return is_ns_eq(rhs) && name() == rhs.name();
   }
@@ -688,7 +688,7 @@ namespace Sass {
   {
     switch (simple_type()) {
       case ID_SEL: return (const Id_Selector&) *this < rhs; break;
-      case TYPE_SEL: return (const Element_Selector&) *this < rhs; break;
+      case TYPE_SEL: return (const Type_Selector&) *this < rhs; break;
       case CLASS_SEL: return (const Class_Selector&) *this < rhs; break;
       case PARENT_SEL: return (const Parent_Selector&) *this < rhs; break;
       case PSEUDO_SEL: return (const Pseudo_Selector&) *this < rhs; break;
@@ -719,7 +719,7 @@ namespace Sass {
     return *this < sel;
   }
 
-  bool Element_Selector::operator< (const Simple_Selector& rhs) const
+  bool Type_Selector::operator< (const Simple_Selector& rhs) const
   {
     switch (rhs.simple_type()) {
       case ID_SEL: return 'e' < '#'; break;
@@ -731,8 +731,8 @@ namespace Sass {
       case PLACEHOLDER_SEL: return 'e' < '%'; break;
       case TYPE_SEL: /* let if fall through */ break;
     }
-    const Element_Selector& sel =
-      (const Element_Selector&) rhs;
+    const Type_Selector& sel =
+      (const Type_Selector&) rhs;
     return *this < sel;
   }
 
@@ -847,7 +847,7 @@ namespace Sass {
     return name() < rhs.name();
   }
 
-  bool Element_Selector::operator< (const Element_Selector& rhs) const
+  bool Type_Selector::operator< (const Type_Selector& rhs) const
   {
     if (is_ns_eq(rhs))
     { 

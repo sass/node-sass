@@ -283,7 +283,7 @@ namespace Sass {
   static bool parentSuperselector(Complex_Selector_Ptr pOne, Complex_Selector_Ptr pTwo) {
     // TODO: figure out a better way to create a Complex_Selector from scratch
     // TODO: There's got to be a better way. This got ugly quick...
-    Element_Selector_Obj fakeParent = SASS_MEMORY_NEW(Element_Selector, ParserState("[FAKE]"), "temp");
+    Type_Selector_Obj fakeParent = SASS_MEMORY_NEW(Type_Selector, ParserState("[FAKE]"), "temp");
     Compound_Selector_Obj fakeHead = SASS_MEMORY_NEW(Compound_Selector, ParserState("[FAKE]"), 1 /*size*/);
     fakeHead->elements().push_back(fakeParent);
     Complex_Selector_Obj fakeParentContainer = SASS_MEMORY_NEW(Complex_Selector, ParserState("[FAKE]"), Complex_Selector::ANCESTOR_OF, fakeHead /*head*/, {} /*tail*/);
@@ -643,7 +643,7 @@ namespace Sass {
   static bool parentSuperselector(const Node& one, const Node& two) {
     // TODO: figure out a better way to create a Complex_Selector from scratch
     // TODO: There's got to be a better way. This got ugly quick...
-    Element_Selector_Obj fakeParent = SASS_MEMORY_NEW(Element_Selector, ParserState("[FAKE]"), "temp");
+    Type_Selector_Obj fakeParent = SASS_MEMORY_NEW(Type_Selector, ParserState("[FAKE]"), "temp");
     Compound_Selector_Obj fakeHead = SASS_MEMORY_NEW(Compound_Selector, ParserState("[FAKE]"), 1 /*size*/);
     fakeHead->elements().push_back(fakeParent);
     Complex_Selector_Obj fakeParentContainer = SASS_MEMORY_NEW(Complex_Selector, ParserState("[FAKE]"), Complex_Selector::ANCESTOR_OF, fakeHead /*head*/, {} /*tail*/);
@@ -1943,7 +1943,7 @@ namespace Sass {
                 // special case for ruby ass
                 if (sl->empty()) {
                   // this seems inconsistent but it is how ruby sass seems to remove parentheses
-                  cpy_head->append(SASS_MEMORY_NEW(Element_Selector, hs->pstate(), ws->name()));
+                  cpy_head->append(SASS_MEMORY_NEW(Type_Selector, hs->pstate(), ws->name()));
                 }
                 // has wrapped not selectors
                 else if (ws->name() == ":not") {

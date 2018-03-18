@@ -87,7 +87,7 @@ namespace Sass {
     Id_Selector_Ptr operator()(Id_Selector_Ptr s) { return s; };
     Class_Selector_Ptr operator()(Class_Selector_Ptr s) { return s; };
     Pseudo_Selector_Ptr operator()(Pseudo_Selector_Ptr s) { return s; };
-    Element_Selector_Ptr operator()(Element_Selector_Ptr s) { return s; };
+    Type_Selector_Ptr operator()(Type_Selector_Ptr s) { return s; };
     Attribute_Selector_Ptr operator()(Attribute_Selector_Ptr s) { return s; };
     Placeholder_Selector_Ptr operator()(Placeholder_Selector_Ptr s) { return s; };
 

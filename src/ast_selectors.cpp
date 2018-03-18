@@ -361,7 +361,7 @@ namespace Sass {
         Compound_Selector_Obj rh = last()->head();
         size_t i;
         size_t L = h->length();
-        if (Cast<Element_Selector>(h->first())) {
+        if (Cast<Type_Selector>(h->first())) {
           if (Class_Selector_Ptr cs = Cast<Class_Selector>(rh->last())) {
             Class_Selector_Ptr sqs = SASS_MEMORY_COPY(cs);
             sqs->name(sqs->name() + (*h)[0]->name());
@@ -376,8 +376,8 @@ namespace Sass {
             (*rh)[rh->length()-1] = sqs;
             rh->pstate(h->pstate());
             for (i = 1; i < L; ++i) rh->append((*h)[i]);
-          } else if (Element_Selector_Ptr ts = Cast<Element_Selector>(rh->last())) {
-            Element_Selector_Ptr tss = SASS_MEMORY_COPY(ts);
+          } else if (Type_Selector_Ptr ts = Cast<Type_Selector>(rh->last())) {
+            Type_Selector_Ptr tss = SASS_MEMORY_COPY(ts);
             tss->name(tss->name() + (*h)[0]->name());
             tss->pstate((*h)[0]->pstate());
             (*rh)[rh->length()-1] = tss;
@@ -899,7 +899,7 @@ namespace Sass {
   IMPLEMENT_AST_OPERATORS(Attribute_Selector);
   IMPLEMENT_AST_OPERATORS(Compound_Selector);
   IMPLEMENT_AST_OPERATORS(Complex_Selector);
-  IMPLEMENT_AST_OPERATORS(Element_Selector);
+  IMPLEMENT_AST_OPERATORS(Type_Selector);
   IMPLEMENT_AST_OPERATORS(Class_Selector);
   IMPLEMENT_AST_OPERATORS(Id_Selector);
   IMPLEMENT_AST_OPERATORS(Pseudo_Selector);

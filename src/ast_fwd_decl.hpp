@@ -239,9 +239,9 @@ namespace Sass {
   class Placeholder_Selector;
   typedef Placeholder_Selector* Placeholder_Selector_Ptr;
   typedef Placeholder_Selector const* Placeholder_Selector_Ptr_Const;
-  class Element_Selector;
-  typedef Element_Selector* Element_Selector_Ptr;
-  typedef Element_Selector const* Element_Selector_Ptr_Const;
+  class Type_Selector;
+  typedef Type_Selector* Type_Selector_Ptr;
+  typedef Type_Selector const* Type_Selector_Ptr_Const;
   class Class_Selector;
   typedef Class_Selector* Class_Selector_Ptr;
   typedef Class_Selector const* Class_Selector_Ptr_Const;
@@ -345,7 +345,7 @@ namespace Sass {
   IMPL_MEM_OBJ(Selector_Schema);
   IMPL_MEM_OBJ(Simple_Selector);
   IMPL_MEM_OBJ(Placeholder_Selector);
-  IMPL_MEM_OBJ(Element_Selector);
+  IMPL_MEM_OBJ(Type_Selector);
   IMPL_MEM_OBJ(Class_Selector);
   IMPL_MEM_OBJ(Id_Selector);
   IMPL_MEM_OBJ(Attribute_Selector);

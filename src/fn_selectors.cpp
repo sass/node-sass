@@ -128,7 +128,7 @@ namespace Sass {
             }
 
             // Cannot be a Universal selector
-            Element_Selector_Obj pType = Cast<Element_Selector>(childSeq->head()->first());
+            Type_Selector_Obj pType = Cast<Type_Selector>(childSeq->head()->first());
             if(pType && pType->name() == "*") {
               std::string msg("Can't append \"");
               msg += childSeq->to_string();
