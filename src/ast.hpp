@@ -188,6 +188,7 @@ namespace Sass {
       C_ERROR,
       FUNCTION,
       VARIABLE,
+      PARENT,
       NUM_TYPES
     };
   private:
@@ -214,9 +215,11 @@ namespace Sass {
     { }
     virtual operator bool() { return true; }
     virtual ~Expression() { }
-    virtual std::string type() const { return ""; /* TODO: raise an error? */ }
     virtual bool is_invisible() const { return false; }
+
+    virtual std::string type() const { return ""; }
     static std::string type_name() { return ""; }
+
     virtual bool is_false() { return false; }
     // virtual bool is_true() { return !is_false(); }
     virtual bool operator< (const Expression& rhs) const { return false; }
@@ -452,7 +455,6 @@ namespace Sass {
     void adjust_after_pushing(Statement_Obj s) override {}
   public:
     Block(ParserState pstate, size_t s = 0, bool r = false);
-    Block(const Block* ptr); // copy constructor
     bool has_content() override;
     ATTACH_AST_OPERATIONS(Block)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -480,7 +482,6 @@ namespace Sass {
     ADD_PROPERTY(bool, is_root);
   public:
     Ruleset(ParserState pstate, Selector_List_Obj s = {}, Block_Obj b = {});
-    Ruleset(const Ruleset* ptr);
     bool is_invisible() const override;
     ATTACH_AST_OPERATIONS(Ruleset)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -494,7 +495,6 @@ namespace Sass {
     ADD_PROPERTY(bool, group_end)
   public:
     Bubble(ParserState pstate, Statement_Obj n, Statement_Obj g = {}, size_t t = 0);
-    Bubble(const Bubble* ptr);
     bool bubbles();
     ATTACH_AST_OPERATIONS(Bubble)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -508,7 +508,6 @@ namespace Sass {
     ADD_CONSTREF(std::string, name)
   public:
     Trace(ParserState pstate, std::string n, Block_Obj b = {}, char type = 'm');
-    Trace(const Trace* ptr);
     ATTACH_AST_OPERATIONS(Trace)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -520,7 +519,6 @@ namespace Sass {
     ADD_PROPERTY(List_Obj, media_queries)
   public:
     Media_Block(ParserState pstate, List_Obj mqs, Block_Obj b);
-    Media_Block(const Media_Block* ptr);
     bool bubbles() override;
     bool is_invisible() const override;
     ATTACH_AST_OPERATIONS(Media_Block)
@@ -537,7 +535,6 @@ namespace Sass {
     ADD_PROPERTY(Expression_Obj, value)
   public:
     Directive(ParserState pstate, std::string kwd, Selector_List_Obj sel = {}, Block_Obj b = {}, Expression_Obj val = {});
-    Directive(const Directive* ptr);
     bool bubbles() override;
     bool is_media();
     bool is_keyframes();
@@ -554,7 +551,6 @@ namespace Sass {
     ADD_PROPERTY(Selector_List_Obj, name)
   public:
     Keyframe_Rule(ParserState pstate, Block_Obj b);
-    Keyframe_Rule(const Keyframe_Rule* ptr);
     ATTACH_AST_OPERATIONS(Keyframe_Rule)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -570,7 +566,6 @@ namespace Sass {
     ADD_PROPERTY(bool, is_indented)
   public:
     Declaration(ParserState pstate, String_Obj prop, Expression_Obj val, bool i = false, bool c = false, Block_Obj b = {});
-    Declaration(const Declaration* ptr);
     bool is_invisible() const override;
     ATTACH_AST_OPERATIONS(Declaration)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -586,7 +581,6 @@ namespace Sass {
     ADD_PROPERTY(bool, is_global)
   public:
     Assignment(ParserState pstate, std::string var, Expression_Obj val, bool is_default = false, bool is_global = false);
-    Assignment(const Assignment* ptr);
     ATTACH_AST_OPERATIONS(Assignment)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -601,7 +595,6 @@ namespace Sass {
     ADD_PROPERTY(List_Obj,      import_queries);
   public:
     Import(ParserState pstate);
-    Import(const Import* ptr);
     std::vector<Include>& incs();
     std::vector<Expression_Obj>& urls();
     ATTACH_AST_OPERATIONS(Import)
@@ -614,7 +607,6 @@ namespace Sass {
     Include resource_;
   public:
     Import_Stub(ParserState pstate, Include res);
-    Import_Stub(const Import_Stub* ptr);
     Include resource();
     std::string imp_path();
     std::string abs_path();
@@ -629,7 +621,6 @@ namespace Sass {
     ADD_PROPERTY(Expression_Obj, message)
   public:
     Warning(ParserState pstate, Expression_Obj msg);
-    Warning(const Warning* ptr);
     ATTACH_AST_OPERATIONS(Warning)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -641,7 +632,6 @@ namespace Sass {
     ADD_PROPERTY(Expression_Obj, message)
   public:
     Error(ParserState pstate, Expression_Obj msg);
-    Error(const Error* ptr);
     ATTACH_AST_OPERATIONS(Error)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -653,7 +643,6 @@ namespace Sass {
     ADD_PROPERTY(Expression_Obj, value)
   public:
     Debug(ParserState pstate, Expression_Obj val);
-    Debug(const Debug* ptr);
     ATTACH_AST_OPERATIONS(Debug)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -666,7 +655,6 @@ namespace Sass {
     ADD_PROPERTY(bool, is_important)
   public:
     Comment(ParserState pstate, String_Obj txt, bool is_important);
-    Comment(const Comment* ptr);
     virtual bool is_invisible() const override;
     ATTACH_AST_OPERATIONS(Comment)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -680,7 +668,6 @@ namespace Sass {
     ADD_PROPERTY(Block_Obj, alternative)
   public:
     If(ParserState pstate, Expression_Obj pred, Block_Obj con, Block_Obj alt = {});
-    If(const If* ptr);
     virtual bool has_content() override;
     ATTACH_AST_OPERATIONS(If)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -696,7 +683,6 @@ namespace Sass {
     ADD_PROPERTY(bool, is_inclusive)
   public:
     For(ParserState pstate, std::string var, Expression_Obj lo, Expression_Obj hi, Block_Obj b, bool inc);
-    For(const For* ptr);
     ATTACH_AST_OPERATIONS(For)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -709,7 +695,6 @@ namespace Sass {
     ADD_PROPERTY(Expression_Obj, list)
   public:
     Each(ParserState pstate, std::vector<std::string> vars, Expression_Obj lst, Block_Obj b);
-    Each(const Each* ptr);
     ATTACH_AST_OPERATIONS(Each)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -721,7 +706,6 @@ namespace Sass {
     ADD_PROPERTY(Expression_Obj, predicate)
   public:
     While(ParserState pstate, Expression_Obj pred, Block_Obj b);
-    While(const While* ptr);
     ATTACH_AST_OPERATIONS(While)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -733,7 +717,6 @@ namespace Sass {
     ADD_PROPERTY(Expression_Obj, value)
   public:
     Return(ParserState pstate, Expression_Obj val);
-    Return(const Return* ptr);
     ATTACH_AST_OPERATIONS(Return)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -745,7 +728,6 @@ namespace Sass {
     ADD_PROPERTY(Selector_List_Obj, selector)
   public:
     Extension(ParserState pstate, Selector_List_Obj s);
-    Extension(const Extension* ptr);
     ATTACH_AST_OPERATIONS(Extension)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -767,7 +749,6 @@ namespace Sass {
     ADD_PROPERTY(bool, is_overload_stub)
     ADD_PROPERTY(Signature, signature)
   public:
-    Definition(const Definition* ptr);
     Definition(ParserState pstate,
                std::string n,
                Parameters_Obj params,
@@ -797,7 +778,6 @@ namespace Sass {
     ADD_PROPERTY(Parameters_Obj, block_parameters)
   public:
     Mixin_Call(ParserState pstate, std::string n, Arguments_Obj args, Parameters_Obj b_params = {}, Block_Obj b = {});
-    Mixin_Call(const Mixin_Call* ptr);
     ATTACH_AST_OPERATIONS(Mixin_Call)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -809,7 +789,6 @@ namespace Sass {
     ADD_PROPERTY(Arguments_Obj, arguments)
   public:
     Content(ParserState pstate, Arguments_Obj args);
-    Content(const Content* ptr);
     ATTACH_AST_OPERATIONS(Content)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -826,7 +805,6 @@ namespace Sass {
     mutable size_t hash_;
   public:
     Unary_Expression(ParserState pstate, Type t, Expression_Obj o);
-    Unary_Expression(const Unary_Expression* ptr);
     const std::string type_name();
     virtual bool operator==(const Expression& rhs) const;
     size_t hash() const override;
@@ -845,7 +823,6 @@ namespace Sass {
     mutable size_t hash_;
   public:
     Argument(ParserState pstate, Expression_Obj val, std::string n = "", bool rest = false, bool keyword = false);
-    Argument(const Argument* ptr);
     void set_delayed(bool delayed) override;
     bool operator==(const Expression& rhs) const override;
     size_t hash() const override;
@@ -866,7 +843,6 @@ namespace Sass {
     void adjust_after_pushing(Argument_Obj a) override;
   public:
     Arguments(ParserState pstate);
-    Arguments(const Arguments* ptr);
     void set_delayed(bool delayed) override;
     Argument_Obj get_rest_argument();
     Argument_Obj get_keyword_argument();
@@ -884,7 +860,6 @@ namespace Sass {
     ADD_PROPERTY(bool, is_restricted)
   public:
     Media_Query(ParserState pstate, String_Obj t = {}, size_t s = 0, bool n = false, bool r = false);
-    Media_Query(const Media_Query* ptr);
     ATTACH_AST_OPERATIONS(Media_Query)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -898,7 +873,6 @@ namespace Sass {
     ADD_PROPERTY(bool, is_interpolated)
   public:
     Media_Query_Expression(ParserState pstate, Expression_Obj f, Expression_Obj v, bool i = false);
-    Media_Query_Expression(const Media_Query_Expression* ptr);
     ATTACH_AST_OPERATIONS(Media_Query_Expression)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -912,7 +886,6 @@ namespace Sass {
     ADD_PROPERTY(Expression_Obj, value)
   public:
     At_Root_Query(ParserState pstate, Expression_Obj f = {}, Expression_Obj v = {}, bool i = false);
-    At_Root_Query(const At_Root_Query* ptr);
     bool exclude(std::string str);
     ATTACH_AST_OPERATIONS(At_Root_Query)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -925,22 +898,10 @@ namespace Sass {
     ADD_PROPERTY(At_Root_Query_Obj, expression)
   public:
     At_Root_Block(ParserState pstate, Block_Obj b = {}, At_Root_Query_Obj e = {});
-    At_Root_Block(const At_Root_Block* ptr);
     bool bubbles();
     bool exclude_node(Statement_Obj s);
     ATTACH_AST_OPERATIONS(At_Root_Block)
     ATTACH_CRTP_PERFORM_METHODS()
-  };
-
-  /////////////////////////////////
-  // Thunks for delayed evaluation.
-  /////////////////////////////////
-  class Thunk : public Expression {
-    ADD_PROPERTY(Expression_Obj, expression)
-    ADD_PROPERTY(Env*, environment)
-  public:
-    Thunk(ParserState pstate, Expression_Obj exp, Env* env = 0);
-    Thunk(const Thunk* ptr);
   };
 
   /////////////////////////////////////////////////////////
@@ -952,7 +913,6 @@ namespace Sass {
     ADD_PROPERTY(bool, is_rest_parameter)
   public:
     Parameter(ParserState pstate, std::string n, Expression_Obj def = {}, bool rest = false);
-    Parameter(const Parameter* ptr);
     ATTACH_AST_OPERATIONS(Parameter)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -969,7 +929,6 @@ namespace Sass {
     void adjust_after_pushing(Parameter_Obj p);
   public:
     Parameters(ParserState pstate);
-    Parameters(const Parameters* ptr);
     ATTACH_AST_OPERATIONS(Parameters)
     ATTACH_CRTP_PERFORM_METHODS()
   };

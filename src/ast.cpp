@@ -22,6 +22,40 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////
 
+  void AST_Node::update_pstate(const ParserState& pstate)
+  {
+    pstate_.offset += pstate - pstate_ + pstate.offset;
+  }
+
+  const std::string AST_Node::to_string(Sass_Inspect_Options opt) const
+  {
+    Sass_Output_Options out(opt);
+    Emitter emitter(out);
+    Inspect i(emitter);
+    i.in_declaration = true;
+    // ToDo: inspect should be const
+    const_cast<AST_Node_Ptr>(this)->perform(&i);
+    return i.get_buffer();
+  }
+
+  const std::string AST_Node::to_string() const
+  {
+    return to_string({ NESTED, 5 });
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
+  Expression_Obj Hashed::at(Expression_Obj k) const
+  {
+    if (elements_.count(k))
+    { return elements_.at(k); }
+    else { return {}; }
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
   Statement::Statement(ParserState pstate, Type st, size_t t)
   : AST_Node(pstate), statement_type_(st), tabs_(t), group_end_(false)
   { }
@@ -142,6 +176,14 @@ namespace Sass {
   Media_Block::Media_Block(const Media_Block* ptr)
   : Has_Block(ptr), media_queries_(ptr->media_queries_)
   { statement_type(MEDIA); }
+
+  bool Media_Block::is_invisible() const {
+    for (size_t i = 0, L = block()->length(); i < L; ++i) {
+      Statement_Obj stm = block()->at(i);
+      if (!stm->is_invisible()) return false;
+    }
+    return true;
+  }
 
   bool Media_Block::bubbles()
   {
@@ -767,18 +809,6 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////
 
-  Thunk::Thunk(ParserState pstate, Expression_Obj exp, Env* env)
-  : Expression(pstate), expression_(exp), environment_(env)
-  { }
-  Thunk::Thunk(const Thunk* ptr)
-  : Expression(ptr->pstate_),
-    expression_(ptr->expression_),
-    environment_(ptr->environment_)
-  { }
-
-  /////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////
-
   Parameter::Parameter(ParserState pstate, std::string n, Expression_Obj def, bool rest)
   : AST_Node(pstate), name_(n), default_value_(def), is_rest_parameter_(rest)
   { }
@@ -826,80 +856,6 @@ namespace Sass {
       if (has_optional_parameters()) {
         coreError("required parameters must precede optional parameters", p->pstate());
       }
-    }
-  }
-
-  /////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////
-
-  /////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////
-
-  /////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////
-
-  /////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////
-
-
-  void AST_Node::update_pstate(const ParserState& pstate)
-  {
-    pstate_.offset += pstate - pstate_ + pstate.offset;
-  }
-
-  bool Media_Block::is_invisible() const {
-    for (size_t i = 0, L = block()->length(); i < L; ++i) {
-      Statement_Obj stm = block()->at(i);
-      if (!stm->is_invisible()) return false;
-    }
-    return true;
-  }
-
-  Expression_Obj Hashed::at(Expression_Obj k) const
-  {
-    if (elements_.count(k))
-    { return elements_.at(k); }
-    else { return {}; }
-  }
-
-  bool Binary_Expression::is_left_interpolant(void) const
-  {
-    return is_interpolant() || (left() && left()->is_left_interpolant());
-  }
-  bool Binary_Expression::is_right_interpolant(void) const
-  {
-    return is_interpolant() || (right() && right()->is_right_interpolant());
-  }
-
-  const std::string AST_Node::to_string(Sass_Inspect_Options opt) const
-  {
-    Sass_Output_Options out(opt);
-    Emitter emitter(out);
-    Inspect i(emitter);
-    i.in_declaration = true;
-    // ToDo: inspect should be const
-    const_cast<AST_Node_Ptr>(this)->perform(&i);
-    return i.get_buffer();
-  }
-
-  const std::string AST_Node::to_string() const
-  {
-    return to_string({ NESTED, 5 });
-  }
-
-  //////////////////////////////////////////////////////////////////////////////////////////
-  // Additional method on Lists to retrieve values directly or from an encompassed Argument.
-  //////////////////////////////////////////////////////////////////////////////////////////
-  Expression_Obj List::value_at_index(size_t i) {
-    Expression_Obj obj = this->at(i);
-    if (is_arglist_) {
-      if (Argument_Ptr arg = Cast<Argument>(obj)) {
-        return arg->value();
-      } else {
-        return obj;
-      }
-    } else {
-      return obj;
     }
   }
 

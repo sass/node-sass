@@ -40,7 +40,6 @@ namespace Sass {
     ADD_PROPERTY(Supports_Condition_Obj, condition)
   public:
     Supports_Block(ParserState pstate, Supports_Condition_Obj condition, Block_Obj block = {});
-    Supports_Block(const Supports_Block* ptr);
     bool bubbles();
     ATTACH_AST_OPERATIONS(Supports_Block)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -51,12 +50,7 @@ namespace Sass {
   //////////////////////////////////////////////////////
   class Supports_Condition : public Expression {
   public:
-    Supports_Condition(ParserState pstate)
-    : Expression(pstate)
-    { }
-    Supports_Condition(const Supports_Condition* ptr)
-    : Expression(ptr)
-    { }
+    Supports_Condition(ParserState pstate);
     virtual bool needs_parens(Supports_Condition_Obj cond) const { return false; }
     ATTACH_AST_OPERATIONS(Supports_Condition)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -74,7 +68,6 @@ namespace Sass {
     ADD_PROPERTY(Operand, operand);
   public:
     Supports_Operator(ParserState pstate, Supports_Condition_Obj l, Supports_Condition_Obj r, Operand o);
-    Supports_Operator(const Supports_Operator* ptr);
     virtual bool needs_parens(Supports_Condition_Obj cond) const;
     ATTACH_AST_OPERATIONS(Supports_Operator)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -88,7 +81,6 @@ namespace Sass {
     ADD_PROPERTY(Supports_Condition_Obj, condition);
   public:
     Supports_Negation(ParserState pstate, Supports_Condition_Obj c);
-    Supports_Negation(const Supports_Negation* ptr);
     virtual bool needs_parens(Supports_Condition_Obj cond) const;
     ATTACH_AST_OPERATIONS(Supports_Negation)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -103,7 +95,6 @@ namespace Sass {
     ADD_PROPERTY(Expression_Obj, value);
   public:
     Supports_Declaration(ParserState pstate, Expression_Obj f, Expression_Obj v);
-    Supports_Declaration(const Supports_Declaration* ptr);
     virtual bool needs_parens(Supports_Condition_Obj cond) const;
     ATTACH_AST_OPERATIONS(Supports_Declaration)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -117,7 +108,6 @@ namespace Sass {
     ADD_PROPERTY(Expression_Obj, value);
   public:
     Supports_Interpolation(ParserState pstate, Expression_Obj v);
-    Supports_Interpolation(const Supports_Interpolation* ptr);
     virtual bool needs_parens(Supports_Condition_Obj cond) const;
     ATTACH_AST_OPERATIONS(Supports_Interpolation)
     ATTACH_CRTP_PERFORM_METHODS()

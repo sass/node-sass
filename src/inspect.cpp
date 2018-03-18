@@ -913,7 +913,7 @@ namespace Sass {
 
   void Inspect::operator()(Parent_Selector_Ptr p)
   {
-    if (p->is_real_parent_ref()) append_string("&");
+    if (p->real()) append_string("&");
   }
 
   void Inspect::operator()(Placeholder_Selector_Ptr s)

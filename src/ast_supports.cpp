@@ -33,6 +33,17 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////
 
+  Supports_Condition::Supports_Condition(ParserState pstate)
+  : Expression(pstate)
+  { }
+
+  Supports_Condition::Supports_Condition(const Supports_Condition* ptr)
+  : Expression(ptr)
+  { }
+
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
   Supports_Operator::Supports_Operator(ParserState pstate, Supports_Condition_Obj l, Supports_Condition_Obj r, Operand o)
   : Supports_Condition(pstate), left_(l), right_(r), operand_(o)
   { }

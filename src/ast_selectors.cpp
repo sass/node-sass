@@ -18,45 +18,134 @@
 
 namespace Sass {
 
-  bool Wrapped_Selector::find ( bool (*f)(AST_Node_Obj) )
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
+  Selector::Selector(ParserState pstate)
+  : Expression(pstate),
+    has_line_feed_(false),
+    has_line_break_(false),
+    is_optional_(false),
+    media_block_(0),
+    hash_(0)
+  { concrete_type(SELECTOR); }
+
+  Selector::Selector(const Selector* ptr)
+  : Expression(ptr),
+    has_line_feed_(ptr->has_line_feed_),
+    has_line_break_(ptr->has_line_break_),
+    is_optional_(ptr->is_optional_),
+    media_block_(ptr->media_block_),
+    hash_(ptr->hash_)
+  { concrete_type(SELECTOR); }
+
+  void Selector::set_media_block(Media_Block_Ptr mb)
   {
-    // check children first
-    if (selector_) {
-      if (selector_->find(f)) return true;
+    media_block(mb);
+  }
+
+  bool Selector::has_parent_ref() const
+  {
+    return false;
+  }
+
+  bool Selector::has_real_parent_ref() const
+  {
+    return false;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
+  Selector_Schema::Selector_Schema(ParserState pstate, String_Obj c)
+  : AST_Node(pstate),
+    contents_(c),
+    connect_parent_(true),
+    media_block_(NULL),
+    hash_(0)
+  { }
+  Selector_Schema::Selector_Schema(const Selector_Schema* ptr)
+  : AST_Node(ptr),
+    contents_(ptr->contents_),
+    connect_parent_(ptr->connect_parent_),
+    media_block_(ptr->media_block_),
+    hash_(ptr->hash_)
+  { }
+
+  unsigned long Selector_Schema::specificity() const
+  {
+    return 0;
+  }
+
+  size_t Selector_Schema::hash() const {
+    if (hash_ == 0) {
+      hash_combine(hash_, contents_->hash());
     }
-    // execute last
-    return f(this);
+    return hash_;
   }
 
-  bool Selector_List::find ( bool (*f)(AST_Node_Obj) )
+  bool Selector_Schema::has_parent_ref() const
   {
-    // check children first
-    for (Complex_Selector_Obj sel : elements()) {
-      if (sel->find(f)) return true;
+    if (String_Schema_Obj schema = Cast<String_Schema>(contents())) {
+      return schema->length() > 0 && Cast<Parent_Selector>(schema->at(0)) != NULL;
     }
-    // execute last
-    return f(this);
+    return false;
   }
 
-  bool Compound_Selector::find ( bool (*f)(AST_Node_Obj) )
+  bool Selector_Schema::has_real_parent_ref() const
   {
-    // check children first
-    for (Simple_Selector_Obj sel : elements()) {
-      if (sel->find(f)) return true;
+    if (String_Schema_Obj schema = Cast<String_Schema>(contents())) {
+      if (schema->length() == 0) return false;
+      return Cast<Parent_Reference>(schema->at(0));
     }
-    // execute last
-    return f(this);
+    return false;
   }
 
-  bool Complex_Selector::find ( bool (*f)(AST_Node_Obj) )
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
+  Simple_Selector::Simple_Selector(ParserState pstate, std::string n)
+  : Selector(pstate), ns_(""), name_(n), has_ns_(false)
   {
-    // check children first
-    if (head_ && head_->find(f)) return true;
-    if (tail_ && tail_->find(f)) return true;
-    // execute last
-    return f(this);
+    size_t pos = n.find('|');
+    // found some namespace
+    if (pos != std::string::npos) {
+      has_ns_ = true;
+      ns_ = n.substr(0, pos);
+      name_ = n.substr(pos + 1);
+    }
+  }
+  Simple_Selector::Simple_Selector(const Simple_Selector* ptr)
+  : Selector(ptr),
+    ns_(ptr->ns_),
+    name_(ptr->name_),
+    has_ns_(ptr->has_ns_)
+  { }
+
+  std::string Simple_Selector::ns_name() const
+  {
+    std::string name("");
+    if (has_ns_)
+      name += ns_ + "|";
+    return name + name_;
   }
 
+  size_t Simple_Selector::hash() const
+  {
+    if (hash_ == 0) {
+      hash_combine(hash_, std::hash<int>()(SELECTOR));
+      hash_combine(hash_, std::hash<int>()(simple_type()));
+      hash_combine(hash_, std::hash<std::string>()(ns()));
+      hash_combine(hash_, std::hash<std::string>()(name()));
+    }
+    return hash_;
+  }
+
+  bool Simple_Selector::empty() const {
+    return ns().empty() && name().empty();
+  }
+
+  // namespace compare functions
   bool Simple_Selector::is_ns_eq(const Simple_Selector& r) const
   {
     // https://github.com/sass/sass/issues/2229
@@ -69,6 +158,325 @@ namespace Sass {
       else return ns() == r.ns();
     }
     return false;
+  }
+
+  // namespace query functions
+  bool Simple_Selector::is_universal_ns() const
+  {
+    return has_ns_ && ns_ == "*";
+  }
+
+  bool Simple_Selector::has_universal_ns() const
+  {
+    return !has_ns_ || ns_ == "*";
+  }
+
+  bool Simple_Selector::is_empty_ns() const
+  {
+    return !has_ns_ || ns_ == "";
+  }
+
+  bool Simple_Selector::has_empty_ns() const
+  {
+    return has_ns_ && ns_ == "";
+  }
+
+  bool Simple_Selector::has_qualified_ns() const
+  {
+    return has_ns_ && ns_ != "" && ns_ != "*";
+  }
+
+  // name query functions
+  bool Simple_Selector::is_universal() const
+  {
+    return name_ == "*";
+  }
+
+  bool Simple_Selector::has_placeholder()
+  {
+    return false;
+  }
+
+  bool Simple_Selector::has_parent_ref() const
+  {
+    return false;
+  };
+
+  bool Simple_Selector::has_real_parent_ref() const
+  {
+    return false;
+  };
+
+  bool Simple_Selector::is_pseudo_element() const
+  {
+    return false;
+  }
+
+  bool Simple_Selector::is_superselector_of(Compound_Selector_Ptr_Const sub) const
+  {
+    return false;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
+  Parent_Selector::Parent_Selector(ParserState pstate, bool r)
+  : Simple_Selector(pstate, "&"), real_(r)
+  { simple_type(PARENT_SEL); }
+  Parent_Selector::Parent_Selector(const Parent_Selector* ptr)
+  : Simple_Selector(ptr), real_(ptr->real_)
+  { simple_type(PARENT_SEL); }
+
+  bool Parent_Selector::has_parent_ref() const
+  {
+    return true;
+  };
+
+  bool Parent_Selector::has_real_parent_ref() const
+  {
+    return real();
+  };
+
+  unsigned long Parent_Selector::specificity() const
+  {
+    return 0;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
+  Placeholder_Selector::Placeholder_Selector(ParserState pstate, std::string n)
+  : Simple_Selector(pstate, n)
+  { simple_type(PLACEHOLDER_SEL); }
+  Placeholder_Selector::Placeholder_Selector(const Placeholder_Selector* ptr)
+  : Simple_Selector(ptr)
+  { simple_type(PLACEHOLDER_SEL); }
+  unsigned long Placeholder_Selector::specificity() const
+  {
+    return Constants::Specificity_Base;
+  }
+  bool Placeholder_Selector::has_placeholder() {
+    return true;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
+  Type_Selector::Type_Selector(ParserState pstate, std::string n)
+  : Simple_Selector(pstate, n)
+  { simple_type(TYPE_SEL); }
+  Type_Selector::Type_Selector(const Type_Selector* ptr)
+  : Simple_Selector(ptr)
+  { simple_type(TYPE_SEL); }
+
+  unsigned long Type_Selector::specificity() const
+  {
+    if (name() == "*") return 0;
+    else return Constants::Specificity_Element;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
+  Class_Selector::Class_Selector(ParserState pstate, std::string n)
+  : Simple_Selector(pstate, n)
+  { simple_type(CLASS_SEL); }
+  Class_Selector::Class_Selector(const Class_Selector* ptr)
+  : Simple_Selector(ptr)
+  { simple_type(CLASS_SEL); }
+  
+  unsigned long Class_Selector::specificity() const
+  {
+    return Constants::Specificity_Class;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
+  Id_Selector::Id_Selector(ParserState pstate, std::string n)
+  : Simple_Selector(pstate, n)
+  { simple_type(ID_SEL); }
+  Id_Selector::Id_Selector(const Id_Selector* ptr)
+  : Simple_Selector(ptr)
+  { simple_type(ID_SEL); }
+  
+  unsigned long Id_Selector::specificity() const
+  {
+    return Constants::Specificity_ID;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
+  Attribute_Selector::Attribute_Selector(ParserState pstate, std::string n, std::string m, String_Obj v, char o)
+  : Simple_Selector(pstate, n), matcher_(m), value_(v), modifier_(o)
+  { simple_type(ATTRIBUTE_SEL); }
+  Attribute_Selector::Attribute_Selector(const Attribute_Selector* ptr)
+  : Simple_Selector(ptr),
+    matcher_(ptr->matcher_),
+    value_(ptr->value_),
+    modifier_(ptr->modifier_)
+  { simple_type(ATTRIBUTE_SEL); }
+
+  size_t Attribute_Selector::hash() const
+  {
+    if (hash_ == 0) {
+      hash_combine(hash_, Simple_Selector::hash());
+      hash_combine(hash_, std::hash<std::string>()(matcher()));
+      if (value_) hash_combine(hash_, value_->hash());
+    }
+    return hash_;
+  }
+
+  unsigned long Attribute_Selector::specificity() const
+  {
+    return Constants::Specificity_Attr;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
+  Pseudo_Selector::Pseudo_Selector(ParserState pstate, std::string n, String_Obj expr)
+  : Simple_Selector(pstate, n), expression_(expr)
+  { simple_type(PSEUDO_SEL); }
+  Pseudo_Selector::Pseudo_Selector(const Pseudo_Selector* ptr)
+  : Simple_Selector(ptr), expression_(ptr->expression_)
+  { simple_type(PSEUDO_SEL); }
+
+  // A pseudo-element is made of two colons (::) followed by the name.
+  // The `::` notation is introduced by the current document in order to
+  // establish a discrimination between pseudo-classes and pseudo-elements.
+  // For compatibility with existing style sheets, user agents must also
+  // accept the previous one-colon notation for pseudo-elements introduced
+  // in CSS levels 1 and 2 (namely, :first-line, :first-letter, :before and
+  // :after). This compatibility is not allowed for the new pseudo-elements
+  // introduced in this specification.
+  bool Pseudo_Selector::is_pseudo_element() const
+  {
+    return (name_[0] == ':' && name_[1] == ':')
+            || is_pseudo_class_element(name_);
+  }
+
+  size_t Pseudo_Selector::hash() const
+  {
+    if (hash_ == 0) {
+      hash_combine(hash_, Simple_Selector::hash());
+      if (expression_) hash_combine(hash_, expression_->hash());
+    }
+    return hash_;
+  }
+
+  unsigned long Pseudo_Selector::specificity() const
+  {
+    if (is_pseudo_element())
+      return Constants::Specificity_Element;
+    return Constants::Specificity_Pseudo;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
+  Wrapped_Selector::Wrapped_Selector(ParserState pstate, std::string n, Selector_List_Obj sel)
+  : Simple_Selector(pstate, n), selector_(sel)
+  { simple_type(WRAPPED_SEL); }
+  Wrapped_Selector::Wrapped_Selector(const Wrapped_Selector* ptr)
+  : Simple_Selector(ptr), selector_(ptr->selector_)
+  { simple_type(WRAPPED_SEL); }
+
+  bool Wrapped_Selector::is_superselector_of(Wrapped_Selector_Ptr_Const sub) const
+  {
+    if (this->name() != sub->name()) return false;
+    if (this->name() == ":current") return false;
+    if (Selector_List_Obj rhs_list = Cast<Selector_List>(sub->selector())) {
+      if (Selector_List_Obj lhs_list = Cast<Selector_List>(selector())) {
+        return lhs_list->is_superselector_of(rhs_list);
+      }
+    }
+    coreError("is_superselector expected a Selector_List", sub->pstate());
+    return false;
+  }
+
+  // Selectors inside the negation pseudo-class are counted like any
+  // other, but the negation itself does not count as a pseudo-class.
+
+  void Wrapped_Selector::cloneChildren()
+  {
+    selector(SASS_MEMORY_CLONE(selector()));
+  }
+
+  size_t Wrapped_Selector::hash() const
+  {
+    if (hash_ == 0) {
+      hash_combine(hash_, Simple_Selector::hash());
+      if (selector_) hash_combine(hash_, selector_->hash());
+    }
+    return hash_;
+  }
+
+  bool Wrapped_Selector::has_parent_ref() const {
+    if (!selector()) return false;
+    return selector()->has_parent_ref();
+  }
+
+  bool Wrapped_Selector::has_real_parent_ref() const {
+    if (!selector()) return false;
+    return selector()->has_real_parent_ref();
+  }
+
+  unsigned long Wrapped_Selector::specificity() const
+  {
+    return selector_ ? selector_->specificity() : 0;
+  }
+
+  bool Wrapped_Selector::find ( bool (*f)(AST_Node_Obj) )
+  {
+    // check children first
+    if (selector_) {
+      if (selector_->find(f)) return true;
+    }
+    // execute last
+    return f(this);
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
+  Compound_Selector::Compound_Selector(ParserState pstate, size_t s)
+  : Selector(pstate),
+    Vectorized<Simple_Selector_Obj>(s),
+    extended_(false),
+    has_parent_reference_(false)
+  { }
+
+  Compound_Selector::Compound_Selector(const Compound_Selector* ptr)
+  : Selector(ptr),
+    Vectorized<Simple_Selector_Obj>(*ptr),
+    extended_(ptr->extended_),
+    has_parent_reference_(ptr->has_parent_reference_)
+  { }
+
+  bool Compound_Selector::contains_placeholder() {
+    for (size_t i = 0, L = length(); i < L; ++i) {
+      if ((*this)[i]->has_placeholder()) return true;
+    }
+    return false;
+  };
+
+  void Compound_Selector::cloneChildren()
+  {
+    for (size_t i = 0, l = length(); i < l; i++) {
+      at(i) = SASS_MEMORY_CLONE(at(i));
+    }
+  }
+
+  bool Compound_Selector::find ( bool (*f)(AST_Node_Obj) )
+  {
+    // check children first
+    for (Simple_Selector_Obj sel : elements()) {
+      if (sel->find(f)) return true;
+    }
+    // execute last
+    return f(this);
   }
 
   bool Compound_Selector::has_parent_ref() const
@@ -84,31 +492,6 @@ namespace Sass {
     for (Simple_Selector_Obj s : *this) {
       if (s && s->has_real_parent_ref()) return true;
     }
-    return false;
-  }
-
-  bool Complex_Selector::has_parent_ref() const
-  {
-    return (head() && head()->has_parent_ref()) ||
-           (tail() && tail()->has_parent_ref());
-  }
-
-  bool Complex_Selector::has_real_parent_ref() const
-  {
-    return (head() && head()->has_real_parent_ref()) ||
-           (tail() && tail()->has_real_parent_ref());
-  }
-
-  bool Wrapped_Selector::is_superselector_of(Wrapped_Selector_Ptr_Const sub) const
-  {
-    if (this->name() != sub->name()) return false;
-    if (this->name() == ":current") return false;
-    if (Selector_List_Obj rhs_list = Cast<Selector_List>(sub->selector())) {
-      if (Selector_List_Obj lhs_list = Cast<Selector_List>(selector())) {
-        return lhs_list->is_superselector_of(rhs_list);
-      }
-    }
-    coreError("is_superselector expected a Selector_List", sub->pstate());
     return false;
   }
 
@@ -211,7 +594,7 @@ namespace Sass {
       if (Wrapped_Selector_Obj wrapped = Cast<Wrapped_Selector>(r)) {
         if (wrapped->name() == ":not") {
           if (Selector_List_Obj ls = Cast<Selector_List>(wrapped->selector())) {
-            ls->remove_parent_selectors();
+            ls->remove_parent_selectors(); // unverified
             if (is_superselector_of(ls, wrapped->name())) return false;
           }
         }
@@ -220,7 +603,7 @@ namespace Sass {
             if (wrapping != wrapped->name()) return false;
           }
           if (Selector_List_Obj ls = Cast<Selector_List>(wrapped->selector())) {
-            ls->remove_parent_selectors();
+            ls->remove_parent_selectors(); // unverified
             return (is_superselector_of(ls, wrapped->name()));
           }
         }
@@ -238,6 +621,11 @@ namespace Sass {
 
   }
 
+  bool Compound_Selector::is_universal() const
+  {
+    return length() == 1 && (*this)[0]->is_universal();
+  }
+
   // create complex selector (ancestor of) from compound selector
   Complex_Selector_Obj Compound_Selector::to_complex()
   {
@@ -247,6 +635,232 @@ namespace Sass {
                            Complex_Selector::ANCESTOR_OF,
                            this,
                            {});
+  }
+
+  Simple_Selector_Ptr Compound_Selector::base() const {
+    if (length() == 0) return 0;
+    // ToDo: why is this needed?
+    if (Cast<Type_Selector>((*this)[0]))
+      return (*this)[0];
+    return 0;
+  }
+
+  size_t Compound_Selector::hash() const
+  {
+    if (Selector::hash_ == 0) {
+      hash_combine(Selector::hash_, std::hash<int>()(SELECTOR));
+      if (length()) hash_combine(Selector::hash_, Vectorized::hash());
+    }
+    return Selector::hash_;
+  }
+
+  unsigned long Compound_Selector::specificity() const
+  {
+    int sum = 0;
+    for (size_t i = 0, L = length(); i < L; ++i)
+    { sum += (*this)[i]->specificity(); }
+    return sum;
+  }
+
+  bool Compound_Selector::has_placeholder()
+  {
+    if (length() == 0) return false;
+    if (Simple_Selector_Obj ss = elements().front()) {
+      if (ss->has_placeholder()) return true;
+    }
+    return false;
+  }
+
+  bool Compound_Selector::is_empty_reference()
+  {
+    return length() == 1 &&
+            Cast<Parent_Selector>((*this)[0]);
+  }
+
+  void Compound_Selector::append(Simple_Selector_Obj element)
+  {
+    Vectorized<Simple_Selector_Obj>::append(element);
+    pstate_.offset += element->pstate().offset;
+  }
+
+  Compound_Selector_Ptr Compound_Selector::minus(Compound_Selector_Ptr rhs)
+  {
+    Compound_Selector_Ptr result = SASS_MEMORY_NEW(Compound_Selector, pstate());
+    // result->has_parent_reference(has_parent_reference());
+
+    // not very efficient because it needs to preserve order
+    for (size_t i = 0, L = length(); i < L; ++i)
+    {
+      bool found = false;
+      for (size_t j = 0, M = rhs->length(); j < M; ++j)
+      {
+        if (*get(i) == *rhs->get(j))
+        {
+          found = true;
+          break;
+        }
+      }
+      if (!found) result->append(get(i));
+    }
+
+    return result;
+  }
+
+  void Compound_Selector::mergeSources(ComplexSelectorSet& sources)
+  {
+    for (ComplexSelectorSet::iterator iterator = sources.begin(), endIterator = sources.end(); iterator != endIterator; ++iterator) {
+      this->sources_.insert(SASS_MEMORY_CLONE(*iterator));
+    }
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
+  Complex_Selector::Complex_Selector(ParserState pstate,
+                    Combinator c,
+                    Compound_Selector_Obj h,
+                    Complex_Selector_Obj t,
+                    String_Obj r)
+  : Selector(pstate),
+    combinator_(c),
+    head_(h), tail_(t),
+    reference_(r)
+  {}
+  Complex_Selector::Complex_Selector(const Complex_Selector* ptr)
+  : Selector(ptr),
+    combinator_(ptr->combinator_),
+    head_(ptr->head_), tail_(ptr->tail_),
+    reference_(ptr->reference_)
+  {}
+
+  bool Complex_Selector::empty() const {
+    return (!tail() || tail()->empty())
+      && (!head() || head()->empty())
+      && combinator_ == ANCESTOR_OF;
+  }
+
+  Complex_Selector_Obj Complex_Selector::skip_empty_reference()
+  {
+    if ((!head_ || !head_->length() || head_->is_empty_reference()) &&
+        combinator() == Combinator::ANCESTOR_OF)
+    {
+      if (!tail_) return {};
+      tail_->has_line_feed_ = this->has_line_feed_;
+      // tail_->has_line_break_ = this->has_line_break_;
+      return tail_->skip_empty_reference();
+    }
+    return this;
+  }
+
+  bool Complex_Selector::is_empty_ancestor() const
+  {
+    return (!head() || head()->length() == 0) &&
+            combinator() == Combinator::ANCESTOR_OF;
+  }
+
+  size_t Complex_Selector::hash() const
+  {
+    if (hash_ == 0) {
+      hash_combine(hash_, std::hash<int>()(SELECTOR));
+      hash_combine(hash_, std::hash<int>()(combinator_));
+      if (head_) hash_combine(hash_, head_->hash());
+      if (tail_) hash_combine(hash_, tail_->hash());
+    }
+    return hash_;
+  }
+
+  unsigned long Complex_Selector::specificity() const
+  {
+    int sum = 0;
+    if (head()) sum += head()->specificity();
+    if (tail()) sum += tail()->specificity();
+    return sum;
+  }
+
+  void Complex_Selector::set_media_block(Media_Block_Ptr mb) {
+    media_block(mb);
+    if (tail_) tail_->set_media_block(mb);
+    if (head_) head_->set_media_block(mb);
+  }
+
+  bool Complex_Selector::has_placeholder() {
+    if (head_ && head_->has_placeholder()) return true;
+    if (tail_ && tail_->has_placeholder()) return true;
+    return false;
+  }
+
+  const ComplexSelectorSet Complex_Selector::sources()
+  {
+    //s = Set.new
+    //seq.map {|sseq_or_op| s.merge sseq_or_op.sources if sseq_or_op.is_a?(SimpleSequence)}
+    //s
+
+    ComplexSelectorSet srcs;
+
+    Compound_Selector_Obj pHead = head();
+    Complex_Selector_Obj  pTail = tail();
+
+    if (pHead) {
+      const ComplexSelectorSet& headSources = pHead->sources();
+      srcs.insert(headSources.begin(), headSources.end());
+    }
+
+    if (pTail) {
+      const ComplexSelectorSet& tailSources = pTail->sources();
+      srcs.insert(tailSources.begin(), tailSources.end());
+    }
+
+    return srcs;
+  }
+
+  void Complex_Selector::addSources(ComplexSelectorSet& sources)
+  {
+    // members.map! {|m| m.is_a?(SimpleSequence) ? m.with_more_sources(sources) : m}
+    Complex_Selector_Ptr pIter = this;
+    while (pIter) {
+      Compound_Selector_Ptr pHead = pIter->head();
+
+      if (pHead) {
+        pHead->mergeSources(sources);
+      }
+
+      pIter = pIter->tail();
+    }
+  }
+
+  void Complex_Selector::clearSources()
+  {
+    Complex_Selector_Ptr pIter = this;
+    while (pIter) {
+      Compound_Selector_Ptr pHead = pIter->head();
+
+      if (pHead) {
+        pHead->clearSources();
+      }
+
+      pIter = pIter->tail();
+    }
+  }
+
+  bool Complex_Selector::find ( bool (*f)(AST_Node_Obj) )
+  {
+    // check children first
+    if (head_ && head_->find(f)) return true;
+    if (tail_ && tail_->find(f)) return true;
+    // execute last
+    return f(this);
+  }
+
+  bool Complex_Selector::has_parent_ref() const
+  {
+    return (head() && head()->has_parent_ref()) ||
+           (tail() && tail()->has_parent_ref());
+  }
+
+  bool Complex_Selector::has_real_parent_ref() const
+  {
+    return (head() && head()->has_real_parent_ref()) ||
+           (tail() && tail()->has_real_parent_ref());
   }
 
   bool Complex_Selector::is_superselector_of(Compound_Selector_Ptr_Const rhs, std::string wrapping) const
@@ -419,25 +1033,6 @@ namespace Sass {
       }
     }
 
-  }
-
-  Selector_List_Obj Selector_List::eval(Eval& eval)
-  {
-    Selector_List_Obj list = schema() ?
-      eval(schema()) : eval(this);
-    list->schema(schema());
-    return list;
-  }
-
-  Selector_List_Ptr Selector_List::resolve_parent_refs(SelectorStack& pstack, Backtraces& traces, bool implicit_parent)
-  {
-    if (!this->has_parent_ref()) return this;
-    Selector_List_Ptr ss = SASS_MEMORY_NEW(Selector_List, pstate());
-    for (size_t si = 0, sL = this->length(); si < sL; ++si) {
-      Selector_List_Obj rv = at(si)->resolve_parent_refs(pstack, traces, implicit_parent);
-      ss->concat(rv);
-    }
-    return ss;
   }
 
   Selector_List_Ptr Complex_Selector::resolve_parent_refs(SelectorStack& pstack, Backtraces& traces, bool implicit_parent)
@@ -672,11 +1267,60 @@ namespace Sass {
     if (tail()) tail(SASS_MEMORY_CLONE(tail()));
   }
 
-  void Compound_Selector::cloneChildren()
+  // it's a superselector if every selector of the right side
+  // list is a superselector of the given left side selector
+  bool Complex_Selector::is_superselector_of(Selector_List_Ptr_Const sub, std::string wrapping) const
   {
-    for (size_t i = 0, l = length(); i < l; i++) {
-      at(i) = SASS_MEMORY_CLONE(at(i));
+    // Check every rhs selector against left hand list
+    for(size_t i = 0, L = sub->length(); i < L; ++i) {
+      if (!is_superselector_of((*sub)[i], wrapping)) return false;
     }
+    return true;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
+  Selector_List::Selector_List(ParserState pstate, size_t s)
+  : Selector(pstate),
+    Vectorized<Complex_Selector_Obj>(s),
+    schema_({}),
+    wspace_(0)
+  { }
+  Selector_List::Selector_List(const Selector_List* ptr)
+  : Selector(ptr),
+    Vectorized<Complex_Selector_Obj>(*ptr),
+    schema_(ptr->schema_),
+    wspace_(ptr->wspace_)
+  { }
+
+  bool Selector_List::find ( bool (*f)(AST_Node_Obj) )
+  {
+    // check children first
+    for (Complex_Selector_Obj sel : elements()) {
+      if (sel->find(f)) return true;
+    }
+    // execute last
+    return f(this);
+  }
+
+  Selector_List_Obj Selector_List::eval(Eval& eval)
+  {
+    Selector_List_Obj list = schema() ?
+      eval(schema()) : eval(this);
+    list->schema(schema());
+    return list;
+  }
+
+  Selector_List_Ptr Selector_List::resolve_parent_refs(SelectorStack& pstack, Backtraces& traces, bool implicit_parent)
+  {
+    if (!this->has_parent_ref()) return this;
+    Selector_List_Ptr ss = SASS_MEMORY_NEW(Selector_List, pstate());
+    for (size_t si = 0, sL = this->length(); si < sL; ++si) {
+      Selector_List_Obj rv = at(si)->resolve_parent_refs(pstack, traces, implicit_parent);
+      ss->concat(rv);
+    }
+    return ss;
   }
 
   void Selector_List::cloneChildren()
@@ -684,11 +1328,6 @@ namespace Sass {
     for (size_t i = 0, l = length(); i < l; i++) {
       at(i) = SASS_MEMORY_CLONE(at(i));
     }
-  }
-
-  void Wrapped_Selector::cloneChildren()
-  {
-    selector(SASS_MEMORY_CLONE(selector()));
   }
 
   // remove parent selector references
@@ -716,30 +1355,6 @@ namespace Sass {
     }
   }
 
-  size_t Wrapped_Selector::hash() const
-  {
-    if (hash_ == 0) {
-      hash_combine(hash_, Simple_Selector::hash());
-      if (selector_) hash_combine(hash_, selector_->hash());
-    }
-    return hash_;
-  }
-  bool Wrapped_Selector::has_parent_ref() const {
-    // if (has_reference()) return true;
-    if (!selector()) return false;
-    return selector()->has_parent_ref();
-  }
-  bool Wrapped_Selector::has_real_parent_ref() const {
-    // if (has_reference()) return true;
-    if (!selector()) return false;
-    return selector()->has_real_parent_ref();
-  }
-  unsigned long Wrapped_Selector::specificity() const
-  {
-    return selector_ ? selector_->specificity() : 0;
-  }
-
-
   bool Selector_List::has_parent_ref() const
   {
     for (Complex_Selector_Obj s : elements()) {
@@ -756,37 +1371,9 @@ namespace Sass {
     return false;
   }
 
-  bool Selector_Schema::has_parent_ref() const
-  {
-    if (String_Schema_Obj schema = Cast<String_Schema>(contents())) {
-      return schema->length() > 0 && Cast<Parent_Selector>(schema->at(0)) != NULL;
-    }
-    return false;
-  }
-
-  bool Selector_Schema::has_real_parent_ref() const
-  {
-    if (String_Schema_Obj schema = Cast<String_Schema>(contents())) {
-      if (schema->length() == 0) return false;
-      return Cast<Parent_Reference>(schema->at(0)) != nullptr;
-    }
-    return false;
-  }
-
   void Selector_List::adjust_after_pushing(Complex_Selector_Obj c)
   {
     // if (c->has_reference())   has_reference(true);
-  }
-
-  // it's a superselector if every selector of the right side
-  // list is a superselector of the given left side selector
-  bool Complex_Selector::is_superselector_of(Selector_List_Ptr_Const sub, std::string wrapping) const
-  {
-    // Check every rhs selector against left hand list
-    for(size_t i = 0, L = sub->length(); i < L; ++i) {
-      if (!is_superselector_of((*sub)[i], wrapping)) return false;
-    }
-    return true;
   }
 
   // it's a superselector if every selector of the right side
@@ -855,42 +1442,45 @@ namespace Sass {
     }
   };
 
-  void Compound_Selector::append(Simple_Selector_Obj element)
+  size_t Selector_List::hash() const
   {
-    Vectorized<Simple_Selector_Obj>::append(element);
-    pstate_.offset += element->pstate().offset;
+    if (Selector::hash_ == 0) {
+      hash_combine(Selector::hash_, std::hash<int>()(SELECTOR));
+      hash_combine(Selector::hash_, Vectorized::hash());
+    }
+    return Selector::hash_;
   }
 
-  Compound_Selector_Ptr Compound_Selector::minus(Compound_Selector_Ptr rhs)
+  unsigned long Selector_List::specificity() const
   {
-    Compound_Selector_Ptr result = SASS_MEMORY_NEW(Compound_Selector, pstate());
-    // result->has_parent_reference(has_parent_reference());
-
-    // not very efficient because it needs to preserve order
+    unsigned long sum = 0;
+    unsigned long specificity;
     for (size_t i = 0, L = length(); i < L; ++i)
     {
-      bool found = false;
-      std::string thisSelector((*this)[i]->to_string());
-      for (size_t j = 0, M = rhs->length(); j < M; ++j)
-      {
-        if (thisSelector == (*rhs)[j]->to_string())
-        {
-          found = true;
-          break;
-        }
-      }
-      if (!found) result->append((*this)[i]);
+      specificity = (*this)[i]->specificity();
+      if (sum < specificity) sum = specificity;
     }
-
-    return result;
+    return sum;
   }
 
-  void Compound_Selector::mergeSources(ComplexSelectorSet& sources)
+  void Selector_List::set_media_block(Media_Block_Ptr mb)
   {
-    for (ComplexSelectorSet::iterator iterator = sources.begin(), endIterator = sources.end(); iterator != endIterator; ++iterator) {
-      this->sources_.insert(SASS_MEMORY_CLONE(*iterator));
+    media_block(mb);
+    for (Complex_Selector_Obj cs : elements()) {
+      cs->set_media_block(mb);
     }
   }
+
+  bool Selector_List::has_placeholder()
+  {
+    for (Complex_Selector_Obj cs : elements()) {
+      if (cs->has_placeholder()) return true;
+    }
+    return false;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
 
   IMPLEMENT_AST_OPERATORS(Selector_Schema);
   IMPLEMENT_AST_OPERATORS(Placeholder_Selector);
