@@ -11,6 +11,7 @@
   </ItemGroup>
   <ItemGroup Label="LibSass Headers">
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast.hpp" />
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_selectors.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_def_macros.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\memory\SharedPtr.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_factory.hpp" />
@@ -77,6 +78,9 @@
   </ItemGroup>
   <ItemGroup Label="LibSass Sources">
     <ClCompile Include="$(LIBSASS_SRC_DIR)\ast.cpp" />
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\ast_sel_cmp.cpp" />
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\ast_sel_unify.cpp" />
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\ast_selectors.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\memory\SharedPtr.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\ast_fwd_decl.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\base64vlq.cpp" />
