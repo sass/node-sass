@@ -48,6 +48,9 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_values.hpp">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_selectors.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -243,6 +246,9 @@
   </ItemGroup>
   <ItemGroup Label="Sources">
     <ClCompile Include="$(LIBSASS_SRC_DIR)\ast.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\ast_values.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="$(LIBSASS_SRC_DIR)\ast_selectors.cpp">
