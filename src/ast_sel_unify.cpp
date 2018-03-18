@@ -35,7 +35,7 @@ namespace Sass {
   {
     const size_t rsize = rhs->length();
     for (size_t i = 0; i < rsize; ++i)
-    { if (*this == *rhs->at(i)) return rhs; }
+    { if (*this == *rhs->get(i)) return rhs; }
     const int lhs_order = this->unification_order();
     size_t i = rsize;
     while (i > 0 && lhs_order < rhs->at(i - 1)->unification_order()) --i;

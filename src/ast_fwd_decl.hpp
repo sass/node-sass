@@ -365,21 +365,29 @@ namespace Sass {
       return ex.isNull() ? 0 : ex->hash();
     }
   };
+  template <class T>
+  bool OrderFunction(const T& lhs, const T& rhs) {
+      return !lhs.isNull() && !rhs.isNull() && *lhs < *rhs;
+  };
   struct OrderNodes {
     template <class T>
     bool operator() (const T& lhs, const T& rhs) const {
-      return !lhs.isNull() && !rhs.isNull() && *lhs < *rhs;
+      return OrderFunction<T>(lhs, rhs);
     }
   };
-  struct CompareNodes {
-    template <class T>
-    bool operator() (const T& lhs, const T& rhs) const {
+  template <class T>
+  bool CompareFunction(const T& lhs, const T& rhs) {
       // code around sass logic issue. 1px == 1 is true
       // but both items are still different keys in maps
       if (dynamic_cast<Number*>(lhs.ptr()))
         if (dynamic_cast<Number*>(rhs.ptr()))
           return lhs->hash() == rhs->hash();
       return !lhs.isNull() && !rhs.isNull() && *lhs == *rhs;
+  }
+  struct CompareNodes {
+    template <class T>
+    bool operator() (const T& lhs, const T& rhs) const {
+      return CompareFunction<T>(lhs, rhs);
     }
   };
 
@@ -422,6 +430,9 @@ namespace Sass {
 
   typedef std::pair<Complex_Selector_Obj, SubSetMapPairs> SubSetMapResult;
   typedef std::vector<SubSetMapResult> SubSetMapResults;
+
+  #define OrderSelectors OrderFunction<Selector_Obj>
+  typedef std::set<Selector_Obj, OrderNodes> SelectorSet;
 
   typedef std::deque<Complex_Selector_Obj> ComplexSelectorDeque;
   typedef std::set<Simple_Selector_Obj, OrderNodes> SimpleSelectorSet;
