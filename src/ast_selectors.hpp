@@ -139,6 +139,18 @@ namespace Sass {
   // Abstract base class for simple selectors.
   ////////////////////////////////////////////
   class Simple_Selector : public Selector {
+  public:
+    enum Simple_Type {
+      ID_SEL,
+      TYPE_SEL,
+      CLASS_SEL,
+      PSEUDO_SEL,
+      PARENT_SEL,
+      WRAPPED_SEL,
+      ATTRIBUTE_SEL,
+      PLACEHOLDER_SEL,
+    };
+  public:
     ADD_CONSTREF(std::string, ns)
     ADD_CONSTREF(std::string, name)
     ADD_PROPERTY(Simple_Type, simple_type)
@@ -147,7 +159,6 @@ namespace Sass {
     Simple_Selector(ParserState pstate, std::string n = "")
     : Selector(pstate), ns_(""), name_(n), has_ns_(false)
     {
-      simple_type(SIMPLE);
       size_t pos = n.find('|');
       // found some namespace
       if (pos != std::string::npos) {
@@ -161,7 +172,7 @@ namespace Sass {
       ns_(ptr->ns_),
       name_(ptr->name_),
       has_ns_(ptr->has_ns_)
-    { simple_type(SIMPLE); }
+    { }
     std::string ns_name() const
     {
       std::string name("");
@@ -178,6 +189,9 @@ namespace Sass {
         hash_combine(hash_, std::hash<std::string>()(name()));
       }
       return hash_;
+    }
+    bool empty() const {
+      return ns().empty() && name().empty();
     }
     // namespace compare functions
     bool is_ns_eq(const Simple_Selector& r) const;
@@ -218,15 +232,20 @@ namespace Sass {
 
     virtual bool is_superselector_of(Compound_Selector_Ptr_Const sub) const { return false; }
 
-    bool operator==(const Selector& rhs) const final override;
-    virtual bool operator==(const Simple_Selector& rhs) const;
-    inline bool operator!=(const Simple_Selector& rhs) const { return !(*this == rhs); }
-
     bool operator<(const Selector& rhs) const final override;
+    bool operator==(const Selector& rhs) const final override;
+    virtual bool operator<(const Selector_List& rhs) const;
+    virtual bool operator==(const Selector_List& rhs) const;
+    virtual bool operator<(const Complex_Selector& rhs) const;
+    virtual bool operator==(const Complex_Selector& rhs) const;
+    virtual bool operator<(const Compound_Selector& rhs) const;
+    virtual bool operator==(const Compound_Selector& rhs) const;
     virtual bool operator<(const Simple_Selector& rhs) const;
-    // default implementation should work for most of the simple selectors (otherwise overload)
+    virtual bool operator==(const Simple_Selector& rhs) const;
+
     ATTACH_VIRTUAL_AST_OPERATIONS(Simple_Selector);
     ATTACH_CRTP_PERFORM_METHODS();
+
   };
   inline Simple_Selector::~Simple_Selector() { }
 
@@ -242,10 +261,10 @@ namespace Sass {
   public:
     Parent_Selector(ParserState pstate, bool r = true)
     : Simple_Selector(pstate, "&"), real_(r)
-    { /* has_reference(true); */ }
+    { simple_type(PARENT_SEL); }
     Parent_Selector(const Parent_Selector* ptr)
     : Simple_Selector(ptr), real_(ptr->real_)
-    { /* has_reference(true); */ }
+    { simple_type(PARENT_SEL); }
     bool is_real_parent_ref() const { return real(); };
     bool has_parent_ref() const override { return true; };
     bool has_real_parent_ref() const override { return is_real_parent_ref(); };
@@ -259,6 +278,10 @@ namespace Sass {
     }
     std::string type() const override { return "selector"; }
     static std::string type_name() { return "selector"; }
+    bool operator<(const Simple_Selector& rhs) const final override;
+    bool operator==(const Simple_Selector& rhs) const final override;
+    bool operator<(const Parent_Selector& rhs) const;
+    bool operator==(const Parent_Selector& rhs) const;
     ATTACH_AST_OPERATIONS(Parent_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -271,10 +294,10 @@ namespace Sass {
   public:
     Placeholder_Selector(ParserState pstate, std::string n)
     : Simple_Selector(pstate, n)
-    { }
+    { simple_type(PLACEHOLDER_SEL); }
     Placeholder_Selector(const Placeholder_Selector* ptr)
     : Simple_Selector(ptr)
-    { }
+    { simple_type(PLACEHOLDER_SEL); }
     unsigned long specificity() const override
     {
       return Constants::Specificity_Base;
@@ -287,6 +310,10 @@ namespace Sass {
       return true;
     }
     virtual ~Placeholder_Selector() {};
+    bool operator<(const Simple_Selector& rhs) const final override;
+    bool operator==(const Simple_Selector& rhs) const final override;
+    bool operator<(const Placeholder_Selector& rhs) const;
+    bool operator==(const Placeholder_Selector& rhs) const;
     ATTACH_AST_OPERATIONS(Placeholder_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -298,10 +325,10 @@ namespace Sass {
   public:
     Element_Selector(ParserState pstate, std::string n)
     : Simple_Selector(pstate, n)
-    { }
+    { simple_type(TYPE_SEL); }
     Element_Selector(const Element_Selector* ptr)
     : Simple_Selector(ptr)
-    { }
+    { simple_type(TYPE_SEL); }
     unsigned long specificity() const override
     {
       if (name() == "*") return 0;
@@ -313,10 +340,10 @@ namespace Sass {
     }
     Simple_Selector_Ptr unify_with(Simple_Selector_Ptr);
     Compound_Selector_Ptr unify_with(Compound_Selector_Ptr) override;
-    bool operator==(const Simple_Selector& rhs) const override;
-    bool operator==(const Element_Selector& rhs) const;
-    bool operator<(const Simple_Selector& rhs) const override;
+    bool operator<(const Simple_Selector& rhs) const final override;
+    bool operator==(const Simple_Selector& rhs) const final override;
     bool operator<(const Element_Selector& rhs) const;
+    bool operator==(const Element_Selector& rhs) const;
     ATTACH_AST_OPERATIONS(Element_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -328,10 +355,10 @@ namespace Sass {
   public:
     Class_Selector(ParserState pstate, std::string n)
     : Simple_Selector(pstate, n)
-    { }
+    { simple_type(CLASS_SEL); }
     Class_Selector(const Class_Selector* ptr)
     : Simple_Selector(ptr)
-    { }
+    { simple_type(CLASS_SEL); }
     unsigned long specificity() const override
     {
       return Constants::Specificity_Class;
@@ -341,6 +368,10 @@ namespace Sass {
       return Constants::UnificationOrder_Class;
     }
     Compound_Selector_Ptr unify_with(Compound_Selector_Ptr) override;
+    bool operator<(const Simple_Selector& rhs) const final override;
+    bool operator==(const Simple_Selector& rhs) const final override;
+    bool operator<(const Class_Selector& rhs) const;
+    bool operator==(const Class_Selector& rhs) const;
     ATTACH_AST_OPERATIONS(Class_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -352,10 +383,10 @@ namespace Sass {
   public:
     Id_Selector(ParserState pstate, std::string n)
     : Simple_Selector(pstate, n)
-    { }
+    { simple_type(ID_SEL); }
     Id_Selector(const Id_Selector* ptr)
     : Simple_Selector(ptr)
-    { }
+    { simple_type(ID_SEL); }
     unsigned long specificity() const override
     {
       return Constants::Specificity_ID;
@@ -365,6 +396,10 @@ namespace Sass {
       return Constants::UnificationOrder_Id;
     }
     Compound_Selector_Ptr unify_with(Compound_Selector_Ptr) override;
+    bool operator<(const Simple_Selector& rhs) const final override;
+    bool operator==(const Simple_Selector& rhs) const final override;
+    bool operator<(const Id_Selector& rhs) const;
+    bool operator==(const Id_Selector& rhs) const;
     ATTACH_AST_OPERATIONS(Id_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -380,13 +415,13 @@ namespace Sass {
   public:
     Attribute_Selector(ParserState pstate, std::string n, std::string m, String_Obj v, char o = 0)
     : Simple_Selector(pstate, n), matcher_(m), value_(v), modifier_(o)
-    { simple_type(ATTR_SEL); }
+    { simple_type(ATTRIBUTE_SEL); }
     Attribute_Selector(const Attribute_Selector* ptr)
     : Simple_Selector(ptr),
       matcher_(ptr->matcher_),
       value_(ptr->value_),
       modifier_(ptr->modifier_)
-    { simple_type(ATTR_SEL); }
+    { simple_type(ATTRIBUTE_SEL); }
     size_t hash() const override
     {
       if (hash_ == 0) {
@@ -404,10 +439,10 @@ namespace Sass {
     {
       return Constants::UnificationOrder_Attribute;
     }
-    bool operator==(const Simple_Selector& rhs) const override;
-    bool operator==(const Attribute_Selector& rhs) const;
-    bool operator<(const Simple_Selector& rhs) const override;
+    bool operator<(const Simple_Selector& rhs) const final override;
+    bool operator==(const Simple_Selector& rhs) const final override;
     bool operator<(const Attribute_Selector& rhs) const;
+    bool operator==(const Attribute_Selector& rhs) const;
     ATTACH_AST_OPERATIONS(Attribute_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -471,10 +506,10 @@ namespace Sass {
         return Constants::UnificationOrder_PseudoElement;
       return Constants::UnificationOrder_PseudoClass;
     }
-    bool operator==(const Simple_Selector& rhs) const override;
-    bool operator==(const Pseudo_Selector& rhs) const;
-    bool operator<(const Simple_Selector& rhs) const override;
+    bool operator<(const Simple_Selector& rhs) const final override;
+    bool operator==(const Simple_Selector& rhs) const final override;
     bool operator<(const Pseudo_Selector& rhs) const;
+    bool operator==(const Pseudo_Selector& rhs) const;
     Compound_Selector_Ptr unify_with(Compound_Selector_Ptr) override;
     ATTACH_AST_OPERATIONS(Pseudo_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -505,10 +540,10 @@ namespace Sass {
       return Constants::UnificationOrder_Wrapped;
     }
     bool find ( bool (*f)(AST_Node_Obj) ) override;
-    bool operator==(const Simple_Selector& rhs) const override;
-    bool operator==(const Wrapped_Selector& rhs) const;
-    bool operator<(const Simple_Selector& rhs) const override;
+    bool operator<(const Simple_Selector& rhs) const final override;
+    bool operator==(const Simple_Selector& rhs) const final override;
     bool operator<(const Wrapped_Selector& rhs) const;
+    bool operator==(const Wrapped_Selector& rhs) const;
     void cloneChildren() override;
     ATTACH_AST_OPERATIONS(Wrapped_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -607,11 +642,17 @@ namespace Sass {
     }
 
     bool find ( bool (*f)(AST_Node_Obj) ) override;
+
     bool operator<(const Selector& rhs) const override;
     bool operator==(const Selector& rhs) const override;
+    bool operator<(const Selector_List& rhs) const;
+    bool operator==(const Selector_List& rhs) const;
+    bool operator<(const Complex_Selector& rhs) const;
+    bool operator==(const Complex_Selector& rhs) const;
     bool operator<(const Compound_Selector& rhs) const;
     bool operator==(const Compound_Selector& rhs) const;
-    inline bool operator!=(const Compound_Selector& rhs) const { return !(*this == rhs); }
+    bool operator<(const Simple_Selector& rhs) const;
+    bool operator==(const Simple_Selector& rhs) const;
 
     ComplexSelectorSet& sources() { return sources_; }
     void clearSources() { sources_.clear(); }
@@ -658,6 +699,11 @@ namespace Sass {
       head_(ptr->head_), tail_(ptr->tail_),
       reference_(ptr->reference_)
     {};
+    bool empty() const {
+      return (!tail() || tail()->empty())
+        && (!head() || head()->empty())
+        && combinator_ == ANCESTOR_OF;
+    }
     bool has_parent_ref() const override;
     bool has_real_parent_ref() const override;
 
@@ -733,11 +779,18 @@ namespace Sass {
       return false;
     }
     bool find ( bool (*f)(AST_Node_Obj) ) override;
+
     bool operator<(const Selector& rhs) const override;
     bool operator==(const Selector& rhs) const override;
+    bool operator<(const Selector_List& rhs) const;
+    bool operator==(const Selector_List& rhs) const;
     bool operator<(const Complex_Selector& rhs) const;
     bool operator==(const Complex_Selector& rhs) const;
-    inline bool operator!=(const Complex_Selector& rhs) const { return !(*this == rhs); }
+    bool operator<(const Compound_Selector& rhs) const;
+    bool operator==(const Compound_Selector& rhs) const;
+    bool operator<(const Simple_Selector& rhs) const;
+    bool operator==(const Simple_Selector& rhs) const;
+
     const ComplexSelectorSet sources()
     {
       //s = Set.new
@@ -866,7 +919,14 @@ namespace Sass {
     bool operator==(const Selector& rhs) const override;
     bool operator<(const Selector_List& rhs) const;
     bool operator==(const Selector_List& rhs) const;
+    bool operator<(const Complex_Selector& rhs) const;
+    bool operator==(const Complex_Selector& rhs) const;
+    bool operator<(const Compound_Selector& rhs) const;
+    bool operator==(const Compound_Selector& rhs) const;
+    bool operator<(const Simple_Selector& rhs) const;
+    bool operator==(const Simple_Selector& rhs) const;
     // Selector Lists can be compared to comma lists
+    bool operator<(const Expression& rhs) const override;
     bool operator==(const Expression& rhs) const override;
     void cloneChildren() override;
     ATTACH_AST_OPERATIONS(Selector_List)

@@ -148,12 +148,6 @@ namespace Sass {
       VARIABLE,
       NUM_TYPES
     };
-    enum Simple_Type {
-      SIMPLE,
-      ATTR_SEL,
-      PSEUDO_SEL,
-      WRAPPED_SEL,
-    };
   private:
     // expressions in some contexts shouldn't be evaluated
     ADD_PROPERTY(bool, is_delayed)
@@ -183,7 +177,10 @@ namespace Sass {
     static std::string type_name() { return ""; }
     virtual bool is_false() { return false; }
     // virtual bool is_true() { return !is_false(); }
+    virtual bool operator< (const Expression& rhs) const { return false; }
     virtual bool operator== (const Expression& rhs) const { return false; }
+    inline bool operator>(const Expression& rhs) const { return rhs < *this; }
+    inline bool operator!=(const Expression& rhs) const { return !(rhs == *this); }
     virtual bool eq(const Expression& rhs) const { return *this == rhs; };
     virtual void set_delayed(bool delayed) { is_delayed(delayed); }
     virtual bool has_interpolant() const { return is_interpolant(); }
@@ -244,6 +241,7 @@ namespace Sass {
     T& operator[](size_t i) { return elements_[i]; }
     virtual const T& at(size_t i) const { return elements_.at(i); }
     virtual T& at(size_t i) { return elements_.at(i); }
+    const T& get(size_t i) const { return elements_[i]; }
     const T& operator[](size_t i) const { return elements_[i]; }
     virtual void append(T element)
     {

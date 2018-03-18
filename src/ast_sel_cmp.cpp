@@ -19,13 +19,171 @@
 
 namespace Sass {
 
+  /*#########################################################################*/
+  /*#########################################################################*/
+
+  bool Selector_List::operator== (const Selector& rhs) const
+  {
+    if (auto sl = Cast<Selector_List>(&rhs)) { return *this == *sl; }
+    else if (auto ss = Cast<Simple_Selector>(&rhs)) { return *this == *ss; }
+    else if (auto cpx = Cast<Complex_Selector>(&rhs)) { return *this == *cpx; }
+    else if (auto cpd = Cast<Compound_Selector>(&rhs)) { return *this == *cpd; }
+    else if (auto ls = Cast<List>(&rhs)) { return *this == *ls; }
+    throw std::runtime_error("invalid selector base classes to compare");
+  }
+
+  bool Selector_List::operator< (const Selector& rhs) const
+  {
+    if (auto sl = Cast<Selector_List>(&rhs)) { return *this < *sl; }
+    else if (auto ss = Cast<Simple_Selector>(&rhs)) { return *this < *ss; }
+    else if (auto cpx = Cast<Complex_Selector>(&rhs)) { return *this < *cpx; }
+    else if (auto cpd = Cast<Compound_Selector>(&rhs)) { return *this < *cpd; }
+    else if (auto ls = Cast<List>(&rhs)) { return *this < *ls; }
+    throw std::runtime_error("invalid selector base classes to compare");
+  }
+
+  // Selector lists can be compared to comma lists
+  bool Selector_List::operator== (const Expression& rhs) const
+  {
+    if (auto l = Cast<List>(&rhs)) { return *this == *l; }
+    if (auto s = Cast<Selector>(&rhs)) { return *this == *s; }
+    if (Cast<String>(&rhs) || Cast<Null>(&rhs)) { return false; }
+    throw std::runtime_error("invalid selector base classes to compare");
+  }
+
+  // Selector lists can be compared to comma lists
+  bool Selector_List::operator< (const Expression& rhs) const
+  {
+    if (auto l = Cast<List>(&rhs)) { return *this < *l; }
+    if (auto s = Cast<Selector>(&rhs)) { return *this < *s; }
+    if (Cast<String>(&rhs) || Cast<Null>(&rhs)) { return true; }
+    throw std::runtime_error("invalid selector base classes to compare");
+  }
+
+  bool Complex_Selector::operator== (const Selector& rhs) const
+  {
+    if (auto sl = Cast<Selector_List>(&rhs)) return *this == *sl;
+    if (auto ss = Cast<Simple_Selector>(&rhs)) return *this == *ss;
+    if (auto cs = Cast<Complex_Selector>(&rhs)) return *this == *cs;
+    if (auto ch = Cast<Compound_Selector>(&rhs)) return *this == *ch;
+    throw std::runtime_error("invalid selector base classes to compare");
+  }
+
+  bool Complex_Selector::operator< (const Selector& rhs) const
+  {
+    if (auto sl = Cast<Selector_List>(&rhs)) return *this < *sl;
+    if (auto ss = Cast<Simple_Selector>(&rhs)) return *this < *ss;
+    if (auto cs = Cast<Complex_Selector>(&rhs)) return *this < *cs;
+    if (auto ch = Cast<Compound_Selector>(&rhs)) return *this < *ch;
+    throw std::runtime_error("invalid selector base classes to compare");
+  }
+
+  bool Compound_Selector::operator== (const Selector& rhs) const
+  {
+    if (auto sl = Cast<Selector_List>(&rhs)) return *this == *sl;
+    if (auto ss = Cast<Simple_Selector>(&rhs)) return *this == *ss;
+    if (auto cs = Cast<Complex_Selector>(&rhs)) return *this == *cs;
+    if (auto ch = Cast<Compound_Selector>(&rhs)) return *this == *ch;
+    throw std::runtime_error("invalid selector base classes to compare");
+  }
+
+  bool Compound_Selector::operator< (const Selector& rhs) const
+  {
+    if (auto sl = Cast<Selector_List>(&rhs)) return *this < *sl;
+    if (auto ss = Cast<Simple_Selector>(&rhs)) return *this < *ss;
+    if (auto cs = Cast<Complex_Selector>(&rhs)) return *this < *cs;
+    if (auto ch = Cast<Compound_Selector>(&rhs)) return *this < *ch;
+    throw std::runtime_error("invalid selector base classes to compare");
+  }
+
+  bool Selector_Schema::operator== (const Selector& rhs) const
+  {
+    if (auto sl = Cast<Selector_List>(&rhs)) return *this == *sl;
+    if (auto ss = Cast<Simple_Selector>(&rhs)) return *this == *ss;
+    if (auto cs = Cast<Complex_Selector>(&rhs)) return *this == *cs;
+    if (auto ch = Cast<Compound_Selector>(&rhs)) return *this == *ch;
+    throw std::runtime_error("invalid selector base classes to compare");
+  }
+
+  bool Selector_Schema::operator< (const Selector& rhs) const
+  {
+    if (auto sl = Cast<Selector_List>(&rhs)) return *this < *sl;
+    if (auto ss = Cast<Simple_Selector>(&rhs)) return *this < *ss;
+    if (auto cs = Cast<Complex_Selector>(&rhs)) return *this < *cs;
+    if (auto ch = Cast<Compound_Selector>(&rhs)) return *this < *ch;
+    throw std::runtime_error("invalid selector base classes to compare");
+  }
+
+  bool Simple_Selector::operator== (const Selector& rhs) const
+  {
+    if (auto sl = Cast<Selector_List>(&rhs)) return *this == *sl;
+    if (auto ss = Cast<Simple_Selector>(&rhs)) return *this == *ss;
+    if (auto cs = Cast<Complex_Selector>(&rhs)) return *this == *cs;
+    if (auto ch = Cast<Compound_Selector>(&rhs)) return *this == *ch;
+    throw std::runtime_error("invalid selector base classes to compare");
+  }
+
+  bool Simple_Selector::operator< (const Selector& rhs) const
+  {
+    if (auto sl = Cast<Selector_List>(&rhs)) return *this < *sl;
+    if (auto ss = Cast<Simple_Selector>(&rhs)) return *this < *ss;
+    if (auto cs = Cast<Complex_Selector>(&rhs)) return *this < *cs;
+    if (auto ch = Cast<Compound_Selector>(&rhs)) return *this < *ch;
+    throw std::runtime_error("invalid selector base classes to compare");
+  }
+
+  /*#########################################################################*/
+  /*#########################################################################*/
+
+  bool Selector_List::operator< (const Selector_List& rhs) const
+  {
+    size_t l = rhs.length();
+    if (length() < l) l = length();
+    for (size_t i = 0; i < l; i ++) {
+      if (*at(i) < *rhs.at(i)) return true;
+    }
+    return false;
+  }
+
+  bool Selector_List::operator== (const Selector_List& rhs) const
+  {
+    // for array access
+    size_t i = 0, n = 0;
+    size_t iL = length();
+    size_t nL = rhs.length();
+    // create temporary vectors to sort them for compare
+    std::vector<Complex_Selector_Obj> l_lst = this->elements();
+    std::vector<Complex_Selector_Obj> r_lst = rhs.elements();
+    std::sort(l_lst.begin(), l_lst.end(), OrderNodes());
+    std::sort(r_lst.begin(), r_lst.end(), OrderNodes());
+    // process loop
+    while (true)
+    {
+      // first check for valid index
+      if (i == iL) return iL == nL;
+      else if (n == nL) return iL == nL;
+      // access the vector items
+      Complex_Selector_Ptr l = l_lst[i];
+      Complex_Selector_Ptr r = r_lst[n];
+      // skip nulls
+      if (!l) ++i;
+      else if (!r) ++n;
+      // do the check
+      else if (*l != *r) break;
+      // advance
+      ++i; ++n;
+    }
+    // not equal
+    return false;
+  }
+
   bool Compound_Selector::operator< (const Compound_Selector& rhs) const
   {
     size_t L = std::min(length(), rhs.length());
     for (size_t i = 0; i < L; ++i)
     {
-      Simple_Selector_Obj l = (*this)[i];
-      Simple_Selector_Obj r = rhs[i];
+      Simple_Selector_Ptr l = (*this)[i];
+      Simple_Selector_Ptr r = rhs[i];
       if (!l && !r) return false;
       else if (!r) return false;
       else if (!l) return true;
@@ -133,24 +291,6 @@ namespace Sass {
     // process all tails
     while (true)
     {
-      #ifdef DEBUG
-      // skip empty ancestor first
-      if (l && l->is_empty_ancestor())
-      {
-        l_h = NULL;
-        l = l->tail();
-        if (l) l_h = l->head();
-        continue;
-      }
-      // skip empty ancestor first
-      if (r && r->is_empty_ancestor())
-      {
-        r_h = NULL;
-        r = r->tail();
-        if (r) r_h = r->head();
-        continue;
-      }
-      #endif
       // check the pointers
       if (!r) return !l;
       if (!l) return !r;
@@ -192,190 +332,325 @@ namespace Sass {
     return false;
   }
 
-  bool Complex_Selector::operator== (const Selector& rhs) const
+  /*#########################################################################*/
+  /*#########################################################################*/
+
+  bool Selector_List::operator== (const Complex_Selector& rhs) const
   {
-    if (const Selector_List* sl = Cast<Selector_List>(&rhs)) return *this == *sl;
-    if (const Simple_Selector* sp = Cast<Simple_Selector>(&rhs)) return *this == *sp;
-    if (const Complex_Selector* cs = Cast<Complex_Selector>(&rhs)) return *this == *cs;
-    if (const Compound_Selector* ch = Cast<Compound_Selector>(&rhs)) return *this == *ch;
-    throw std::runtime_error("invalid selector base classes to compare");
+    size_t len = length();
+    if (len > 1) return false;
+    if (len == 0) return rhs.empty();
+    return *at(0) == rhs;
   }
 
-
-  bool Complex_Selector::operator< (const Selector& rhs) const
+  bool Selector_List::operator< (const Complex_Selector& rhs) const
   {
-    if (const Selector_List* sl = Cast<Selector_List>(&rhs)) return *this < *sl;
-    if (const Simple_Selector* sp = Cast<Simple_Selector>(&rhs)) return *this < *sp;
-    if (const Complex_Selector* cs = Cast<Complex_Selector>(&rhs)) return *this < *cs;
-    if (const Compound_Selector* ch = Cast<Compound_Selector>(&rhs)) return *this < *ch;
-    throw std::runtime_error("invalid selector base classes to compare");
+    size_t len = length();
+    if (len > 1) return false;
+    if (len == 0) return !rhs.empty();
+    return *at(0) < rhs;
   }
 
-  bool Compound_Selector::operator== (const Selector& rhs) const
+  bool Selector_List::operator== (const Compound_Selector& rhs) const
   {
-    if (const Selector_List* sl = Cast<Selector_List>(&rhs)) return *this == *sl;
-    if (const Simple_Selector* sp = Cast<Simple_Selector>(&rhs)) return *this == *sp;
-    if (const Complex_Selector* cs = Cast<Complex_Selector>(&rhs)) return *this == *cs;
-    if (const Compound_Selector* ch = Cast<Compound_Selector>(&rhs)) return *this == *ch;
-    throw std::runtime_error("invalid selector base classes to compare");
+    size_t len = length();
+    if (len > 1) return false;
+    if (len == 0) return rhs.empty();
+    return *at(0) == rhs;
   }
 
-  bool Compound_Selector::operator< (const Selector& rhs) const
+  bool Selector_List::operator< (const Compound_Selector& rhs) const
   {
-    if (const Selector_List* sl = Cast<Selector_List>(&rhs)) return *this < *sl;
-    if (const Simple_Selector* sp = Cast<Simple_Selector>(&rhs)) return *this < *sp;
-    if (const Complex_Selector* cs = Cast<Complex_Selector>(&rhs)) return *this < *cs;
-    if (const Compound_Selector* ch = Cast<Compound_Selector>(&rhs)) return *this < *ch;
-    throw std::runtime_error("invalid selector base classes to compare");
+    size_t len = length();
+    if (len > 1) return false;
+    if (len == 0) return !rhs.empty();
+    return *at(0) < rhs;
   }
 
-  bool Selector_Schema::operator== (const Selector& rhs) const
+  bool Selector_List::operator== (const Simple_Selector& rhs) const
   {
-    if (const Selector_List* sl = Cast<Selector_List>(&rhs)) return *this == *sl;
-    if (const Simple_Selector* sp = Cast<Simple_Selector>(&rhs)) return *this == *sp;
-    if (const Complex_Selector* cs = Cast<Complex_Selector>(&rhs)) return *this == *cs;
-    if (const Compound_Selector* ch = Cast<Compound_Selector>(&rhs)) return *this == *ch;
-    throw std::runtime_error("invalid selector base classes to compare");
+    size_t len = length();
+    if (len > 1) return false;
+    if (len == 0) return rhs.empty();
+    return *at(0) == rhs;
   }
 
-  bool Selector_Schema::operator< (const Selector& rhs) const
+  bool Selector_List::operator< (const Simple_Selector& rhs) const
   {
-    if (const Selector_List* sl = Cast<Selector_List>(&rhs)) return *this < *sl;
-    if (const Simple_Selector* sp = Cast<Simple_Selector>(&rhs)) return *this < *sp;
-    if (const Complex_Selector* cs = Cast<Complex_Selector>(&rhs)) return *this < *cs;
-    if (const Compound_Selector* ch = Cast<Compound_Selector>(&rhs)) return *this < *ch;
-    throw std::runtime_error("invalid selector base classes to compare");
+    size_t len = length();
+    if (len > 1) return false;
+    if (len == 0) return !rhs.empty();
+    return *at(0) < rhs;
   }
 
-  bool Simple_Selector::operator== (const Selector& rhs) const
+  /***************************************************************************/
+  /***************************************************************************/
+
+  bool Complex_Selector::operator== (const Selector_List& rhs) const
   {
-    if (Simple_Selector_Ptr_Const sp = Cast<Simple_Selector>(&rhs)) return *this == *sp;
-    return false;
+    size_t len = rhs.length();
+    if (len > 1) return false;
+    if (len == 0) return empty();
+    return *this == *rhs.at(0);
   }
 
-  bool Simple_Selector::operator< (const Selector& rhs) const
+  bool Complex_Selector::operator< (const Selector_List& rhs) const
   {
-    if (Simple_Selector_Ptr_Const sp = Cast<Simple_Selector>(&rhs)) return *this < *sp;
-    return false;
+    size_t len = rhs.length();
+    if (len > 1) return true;
+    if (len == 0) return false;
+    return *this < *rhs.at(0);
   }
+
+  bool Complex_Selector::operator== (const Compound_Selector& rhs) const
+  {
+    if (tail()) return false;
+    if (!head()) return rhs.empty();
+    return *head() == rhs;
+  }
+
+  bool Complex_Selector::operator< (const Compound_Selector& rhs) const
+  {
+    if (tail()) return false;
+    if (!head()) return !rhs.empty();
+    return *head() < rhs;
+  }
+
+  bool Complex_Selector::operator== (const Simple_Selector& rhs) const
+  {
+    if (tail()) return false;
+    if (!head()) return rhs.empty();
+    return *head() == rhs;
+  }
+
+  bool Complex_Selector::operator< (const Simple_Selector& rhs) const
+  {
+    if (tail()) return false;
+    if (!head()) return !rhs.empty();
+    return *head() < rhs;
+  }
+
+  /***************************************************************************/
+  /***************************************************************************/
+
+  bool Compound_Selector::operator== (const Selector_List& rhs) const
+  {
+    size_t len = rhs.length();
+    if (len > 1) return false;
+    if (len == 0) return empty();
+    return *this == *rhs.at(0);
+  }
+
+  bool Compound_Selector::operator< (const Selector_List& rhs) const
+  {
+    size_t len = rhs.length();
+    if (len > 1) return true;
+    if (len == 0) return false;
+    return *this < *rhs.at(0);
+  }
+
+  bool Compound_Selector::operator== (const Complex_Selector& rhs) const
+  {
+    if (rhs.tail()) return false;
+    if (!rhs.head()) return empty();
+    return *this == *rhs.head();
+  }
+
+  bool Compound_Selector::operator< (const Complex_Selector& rhs) const
+  {
+    if (rhs.tail()) return true;
+    if (!rhs.head()) return false;
+    return *this < *rhs.head();
+  }
+
+  bool Compound_Selector::operator< (const Simple_Selector& rhs) const
+  {
+    size_t len = length();
+    if (len > 1) return false;
+    if (len == 0) return rhs.empty();
+    return *at(0) == rhs;
+  }
+
+  bool Compound_Selector::operator== (const Simple_Selector& rhs) const
+  {
+    size_t len = length();
+    if (len > 1) return false;
+    if (len == 0) return !rhs.empty();
+    return *at(0) < rhs;
+  }
+
+  /***************************************************************************/
+  /***************************************************************************/
+
+  bool Simple_Selector::operator== (const Selector_List& rhs) const
+  {
+    size_t len = rhs.length();
+    if (len > 1) return false;
+    if (len == 0) return empty();
+    return *this == *rhs.at(0);
+  }
+
+  bool Simple_Selector::operator< (const Selector_List& rhs) const
+  {
+    size_t len = rhs.length();
+    if (len > 1) return true;
+    if (len == 0) return false;
+    return *this < *rhs.at(0);
+  }
+
+  bool Simple_Selector::operator== (const Complex_Selector& rhs) const
+  {
+    if (rhs.tail()) return false;
+    if (!rhs.head()) return empty();
+    return *this == *rhs.head();
+  }
+
+  bool Simple_Selector::operator< (const Complex_Selector& rhs) const
+  {
+    if (rhs.tail()) return true;
+    if (!rhs.head()) return false;
+    return *this < *rhs.head();
+  }
+
+  bool Simple_Selector::operator== (const Compound_Selector& rhs) const
+  {
+    size_t len = rhs.length();
+    if (len > 1) return false;
+    if (len == 0) return empty();
+    return *this == *rhs.at(0);
+  }
+
+  bool Simple_Selector::operator< (const Compound_Selector& rhs) const
+  {
+    size_t len = rhs.length();
+    if (len > 1) return true;
+    if (len == 0) return false;
+    return *this < *rhs.at(0);
+  }
+
+  /*#########################################################################*/
+  /*#########################################################################*/
 
   bool Simple_Selector::operator== (const Simple_Selector& rhs) const
   {
-    // solve the double dispatch problem by using RTTI information via dynamic cast
-    if (const Pseudo_Selector* lhs = Cast<Pseudo_Selector>(this)) {return *lhs == rhs; }
-    else if (const Wrapped_Selector* lhs = Cast<Wrapped_Selector>(this)) {return *lhs == rhs; }
-    else if (const Element_Selector* lhs = Cast<Element_Selector>(this)) {return *lhs == rhs; }
-    else if (const Attribute_Selector* lhs = Cast<Attribute_Selector>(this)) {return *lhs == rhs; }
-    else if (name_ == rhs.name_)
-    { return is_ns_eq(rhs); }
-    else return false;
-  }
-
-  bool Simple_Selector::operator< (const Simple_Selector& rhs) const
-  {
-    // solve the double dispatch problem by using RTTI information via dynamic cast
-    if (const Pseudo_Selector* lhs = Cast<Pseudo_Selector>(this)) {return *lhs < rhs; }
-    else if (const Wrapped_Selector* lhs = Cast<Wrapped_Selector>(this)) {return *lhs < rhs; }
-    else if (const Element_Selector* lhs = Cast<Element_Selector>(this)) {return *lhs < rhs; }
-    else if (const Attribute_Selector* lhs = Cast<Attribute_Selector>(this)) {return *lhs < rhs; }
-    if (is_ns_eq(rhs))
-    { return name_ < rhs.name_; }
-    return ns_ < rhs.ns_;
-  }
-
-  bool Selector_List::operator== (const Selector& rhs) const
-  {
-    // solve the double dispatch problem by using RTTI information via dynamic cast
-    if (Selector_List_Ptr_Const sl = Cast<Selector_List>(&rhs)) { return *this == *sl; }
-    else if (Complex_Selector_Ptr_Const cpx = Cast<Complex_Selector>(&rhs)) { return *this == *cpx; }
-    else if (Compound_Selector_Ptr_Const cpd = Cast<Compound_Selector>(&rhs)) { return *this == *cpd; }
-    // no compare method
-    return this == &rhs;
-  }
-
-  // Selector lists can be compared to comma lists
-  bool Selector_List::operator== (const Expression& rhs) const
-  {
-    // solve the double dispatch problem by using RTTI information via dynamic cast
-    if (List_Ptr_Const ls = Cast<List>(&rhs)) { return *ls == *this; }
-    if (Selector_Ptr_Const ls = Cast<Selector>(&rhs)) { return *this == *ls; }
-    // compare invalid (maybe we should error?)
-    return false;
-  }
-
-  bool Selector_List::operator== (const Selector_List& rhs) const
-  {
-    // for array access
-    size_t i = 0, n = 0;
-    size_t iL = length();
-    size_t nL = rhs.length();
-    // create temporary vectors and sort them
-    std::vector<Complex_Selector_Obj> l_lst = this->elements();
-    std::vector<Complex_Selector_Obj> r_lst = rhs.elements();
-    std::sort(l_lst.begin(), l_lst.end(), OrderNodes());
-    std::sort(r_lst.begin(), r_lst.end(), OrderNodes());
-    // process loop
-    while (true)
-    {
-      // first check for valid index
-      if (i == iL) return iL == nL;
-      else if (n == nL) return iL == nL;
-      // the access the vector items
-      Complex_Selector_Obj l = l_lst[i];
-      Complex_Selector_Obj r = r_lst[n];
-      // skip nulls
-      if (!l) ++i;
-      else if (!r) ++n;
-      // do the check
-      else if (*l != *r)
-      { return false; }
-      // advance
-      ++i; ++n;
-    }
-    // there is no break?!
-  }
-
-  bool Selector_List::operator< (const Selector& rhs) const
-  {
-    if (Selector_List_Ptr_Const sp = Cast<Selector_List>(&rhs)) return *this < *sp;
-    return false;
-  }
-
-  bool Selector_List::operator< (const Selector_List& rhs) const
-  {
-    size_t l = rhs.length();
-    if (length() < l) l = length();
-    for (size_t i = 0; i < l; i ++) {
-      if (*at(i) < *rhs.at(i)) return true;
+    switch (simple_type()) {
+      case ID_SEL: return (const Id_Selector&) *this == rhs; break;
+      case TYPE_SEL: return (const Element_Selector&) *this == rhs; break;
+      case CLASS_SEL: return (const Class_Selector&) *this == rhs; break;
+      case PARENT_SEL: return (const Parent_Selector&) *this == rhs; break;
+      case PSEUDO_SEL: return (const Pseudo_Selector&) *this == rhs; break;
+      case WRAPPED_SEL: return (const Wrapped_Selector&) *this == rhs; break;
+      case ATTRIBUTE_SEL: return (const Attribute_Selector&) *this == rhs; break;
+      case PLACEHOLDER_SEL: return (const Placeholder_Selector&) *this == rhs; break;
     }
     return false;
   }
 
-  bool Attribute_Selector::operator< (const Attribute_Selector& rhs) const
+  /***************************************************************************/
+  /***************************************************************************/
+
+  bool Id_Selector::operator== (const Simple_Selector& rhs) const
   {
-    if (is_ns_eq(rhs)) {
-      if (name() == rhs.name()) {
-        if (matcher() == rhs.matcher()) {
-          bool no_lhs_val = value().isNull();
-          bool no_rhs_val = rhs.value().isNull();
-          if (no_lhs_val && no_rhs_val) return false; // equal
-          else if (no_lhs_val) return true; // lhs is null
-          else if (no_rhs_val) return false; // rhs is null
-          return *value() < *rhs.value(); // both are given
-        } else { return matcher() < rhs.matcher(); }
-      } else { return name() < rhs.name(); }
-    } else { return ns() < rhs.ns(); }
+    auto sel = Cast<Id_Selector>(&rhs);
+    return sel ? *this == *sel : false;
   }
 
-  bool Attribute_Selector::operator< (const Simple_Selector& rhs) const
+  bool Element_Selector::operator== (const Simple_Selector& rhs) const
   {
-    if (Attribute_Selector_Ptr_Const w = Cast<Attribute_Selector>(&rhs))
-    {
-      return *this < *w;
+    auto sel = Cast<Element_Selector>(&rhs);
+    return sel ? *this == *sel : false;
+  }
+
+  bool Class_Selector::operator== (const Simple_Selector& rhs) const
+  {
+    auto sel = Cast<Class_Selector>(&rhs);
+    return sel ? *this == *sel : false;
+  }
+
+  bool Parent_Selector::operator== (const Simple_Selector& rhs) const
+  {
+    auto sel = Cast<Parent_Selector>(&rhs);
+    return sel ? *this == *sel : false;
+  }
+
+  bool Pseudo_Selector::operator== (const Simple_Selector& rhs) const
+  {
+    auto sel = Cast<Pseudo_Selector>(&rhs);
+    return sel ? *this == *sel : false;
+  }
+
+  bool Wrapped_Selector::operator== (const Simple_Selector& rhs) const
+  {
+    auto sel = Cast<Wrapped_Selector>(&rhs);
+    return sel ? *this == *sel : false;
+  }
+
+  bool Attribute_Selector::operator== (const Simple_Selector& rhs) const
+  {
+    auto sel = Cast<Attribute_Selector>(&rhs);
+    return sel ? *this == *sel : false;
+  }
+
+  bool Placeholder_Selector::operator== (const Simple_Selector& rhs) const
+  {
+    auto sel = Cast<Placeholder_Selector>(&rhs);
+    return sel ? *this == *sel : false;
+  }
+
+  /***************************************************************************/
+  /***************************************************************************/
+
+  bool Id_Selector::operator== (const Id_Selector& rhs) const
+  {
+    // ID has no namespacing
+    return name() == rhs.name();
+  }
+
+  bool Element_Selector::operator== (const Element_Selector& rhs) const
+  {
+    return is_ns_eq(rhs) && name() == rhs.name();
+  }
+
+  bool Class_Selector::operator== (const Class_Selector& rhs) const
+  {
+    // Class has no namespacing
+    return name() == rhs.name();
+  }
+
+  bool Parent_Selector::operator== (const Parent_Selector& rhs) const
+  {
+    // Parent has no namespacing
+    return name() == rhs.name();
+  }
+
+  bool Pseudo_Selector::operator== (const Pseudo_Selector& rhs) const
+  {
+    std::string lname = name();
+    std::string rname = rhs.name();
+    if (is_pseudo_class_element(lname)) {
+      if (rname[0] == ':' && rname[1] == ':') {
+        lname = lname.substr(1, std::string::npos);
+      }
     }
-    if (is_ns_eq(rhs))
-    { return name() < rhs.name(); }
-    return ns() < rhs.ns();
+    // right hand is special pseudo (single colon)
+    if (is_pseudo_class_element(rname)) {
+      if (lname[0] == ':' && lname[1] == ':') {
+        lname = lname.substr(1, std::string::npos);
+      }
+    }
+    // Pseudo has no namespacing
+    if (lname != rname) return false;
+    String_Obj lhs_ex = expression();
+    String_Obj rhs_ex = rhs.expression();
+    if (rhs_ex && lhs_ex) return *lhs_ex == *rhs_ex;
+    else return lhs_ex.ptr() == rhs_ex.ptr();
+  }
+
+  bool Wrapped_Selector::operator== (const Wrapped_Selector& rhs) const
+  {
+    // Wrapped has no namespacing
+    if (name() != rhs.name()) return false;
+    return *(selector()) == *(rhs.selector());
   }
 
   bool Attribute_Selector::operator== (const Attribute_Selector& rhs) const
@@ -398,137 +673,260 @@ namespace Sass {
     }
     // not equal
     return false;
-
   }
 
-  bool Attribute_Selector::operator== (const Simple_Selector& rhs) const
+  bool Placeholder_Selector::operator== (const Placeholder_Selector& rhs) const
   {
-    if (Attribute_Selector_Ptr_Const w = Cast<Attribute_Selector>(&rhs))
-    {
-      return is_ns_eq(rhs) &&
-             name() == rhs.name() &&
-             *this == *w;
+    // Placeholder has no namespacing
+    return name() == rhs.name();
+  }
+
+  /*#########################################################################*/
+  /*#########################################################################*/
+
+  bool Simple_Selector::operator< (const Simple_Selector& rhs) const
+  {
+    switch (simple_type()) {
+      case ID_SEL: return (const Id_Selector&) *this < rhs; break;
+      case TYPE_SEL: return (const Element_Selector&) *this < rhs; break;
+      case CLASS_SEL: return (const Class_Selector&) *this < rhs; break;
+      case PARENT_SEL: return (const Parent_Selector&) *this < rhs; break;
+      case PSEUDO_SEL: return (const Pseudo_Selector&) *this < rhs; break;
+      case WRAPPED_SEL: return (const Wrapped_Selector&) *this < rhs; break;
+      case ATTRIBUTE_SEL: return (const Attribute_Selector&) *this < rhs; break;
+      case PLACEHOLDER_SEL: return (const Placeholder_Selector&) *this < rhs; break;
     }
     return false;
+  }
+
+  /***************************************************************************/
+  /***************************************************************************/
+
+  bool Id_Selector::operator< (const Simple_Selector& rhs) const
+  {
+    switch (rhs.simple_type()) {
+      case TYPE_SEL: return '#' < 's'; break;
+      case CLASS_SEL: return '#' < '.'; break;
+      case PARENT_SEL: return '#' < '&'; break;
+      case PSEUDO_SEL: return '#' < ':'; break;
+      case WRAPPED_SEL: return '#' < '('; break;
+      case ATTRIBUTE_SEL: return '#' < '['; break;
+      case PLACEHOLDER_SEL: return '#' < '%'; break;
+      case ID_SEL: /* let if fall through */ break;
+    }
+    const Id_Selector& sel =
+      (const Id_Selector&) rhs;
+    return *this < sel;
+  }
+
+  bool Element_Selector::operator< (const Simple_Selector& rhs) const
+  {
+    switch (rhs.simple_type()) {
+      case ID_SEL: return 'e' < '#'; break;
+      case CLASS_SEL: return 'e' < '.'; break;
+      case PARENT_SEL: return 'e' < '&'; break;
+      case PSEUDO_SEL: return 'e' < ':'; break;
+      case WRAPPED_SEL: return 'e' < '('; break;
+      case ATTRIBUTE_SEL: return 'e' < '['; break;
+      case PLACEHOLDER_SEL: return 'e' < '%'; break;
+      case TYPE_SEL: /* let if fall through */ break;
+    }
+    const Element_Selector& sel =
+      (const Element_Selector&) rhs;
+    return *this < sel;
+  }
+
+  bool Class_Selector::operator< (const Simple_Selector& rhs) const
+  {
+    switch (rhs.simple_type()) {
+      case ID_SEL: return '.' < '#'; break;
+      case TYPE_SEL: return '.' < 's'; break;
+      case PARENT_SEL: return '.' < '&'; break;
+      case PSEUDO_SEL: return '.' < ':'; break;
+      case WRAPPED_SEL: return '.' < '('; break;
+      case ATTRIBUTE_SEL: return '.' < '['; break;
+      case PLACEHOLDER_SEL: return '.' < '%'; break;
+      case CLASS_SEL: /* let if fall through */ break;
+    }
+    const Class_Selector& sel =
+      (const Class_Selector&) rhs;
+    return *this < sel;
+  }
+
+  bool Pseudo_Selector::operator< (const Simple_Selector& rhs) const
+  {
+    switch (rhs.simple_type()) {
+      case ID_SEL: return ':' < '#'; break;
+      case TYPE_SEL: return ':' < 's'; break;
+      case CLASS_SEL: return ':' < '.'; break;
+      case PARENT_SEL: return ':' < '&'; break;
+      case WRAPPED_SEL: return ':' < '('; break;
+      case ATTRIBUTE_SEL: return ':' < '['; break;
+      case PLACEHOLDER_SEL: return ':' < '%'; break;
+      case PSEUDO_SEL: /* let if fall through */ break;
+    }
+    const Pseudo_Selector& sel =
+      (const Pseudo_Selector&) rhs;
+    return *this < sel;
+  }
+
+  bool Wrapped_Selector::operator< (const Simple_Selector& rhs) const
+  {
+    switch (rhs.simple_type()) {
+      case ID_SEL: return '(' < '#'; break;
+      case TYPE_SEL: return '(' < 's'; break;
+      case CLASS_SEL: return '(' < '.'; break;
+      case PARENT_SEL: return '(' < '&'; break;
+      case PSEUDO_SEL: return '(' < ':'; break;
+      case ATTRIBUTE_SEL: return '(' < '['; break;
+      case PLACEHOLDER_SEL: return '(' < '%'; break;
+      case WRAPPED_SEL: /* let if fall through */ break;
+    }
+    const Wrapped_Selector& sel =
+      (const Wrapped_Selector&) rhs;
+    return *this < sel;
+  }
+
+  bool Parent_Selector::operator< (const Simple_Selector& rhs) const
+  {
+    switch (rhs.simple_type()) {
+      case ID_SEL: return '&' < '#'; break;
+      case TYPE_SEL: return '&' < 's'; break;
+      case CLASS_SEL: return '&' < '.'; break;
+      case PSEUDO_SEL: return '&' < ':'; break;
+      case WRAPPED_SEL: return '&' < '('; break;
+      case ATTRIBUTE_SEL: return '&' < '['; break;
+      case PLACEHOLDER_SEL: return '&' < '%'; break;
+      case PARENT_SEL: /* let if fall through */ break;
+    }
+    const Parent_Selector& sel =
+      (const Parent_Selector&) rhs;
+    return *this < sel;
+  }
+
+  bool Attribute_Selector::operator< (const Simple_Selector& rhs) const
+  {
+    switch (rhs.simple_type()) {
+      case ID_SEL: return '[' < '#'; break;
+      case TYPE_SEL: return '[' < 'e'; break;
+      case CLASS_SEL: return '[' < '.'; break;
+      case PARENT_SEL: return '[' < '&'; break;
+      case PSEUDO_SEL: return '[' < ':'; break;
+      case WRAPPED_SEL: return '[' < '('; break;
+      case PLACEHOLDER_SEL: return '[' < '%'; break;
+      case ATTRIBUTE_SEL: /* let if fall through */ break;
+    }
+    const Attribute_Selector& sel =
+      (const Attribute_Selector&) rhs;
+    return *this < sel;
+  }
+
+  bool Placeholder_Selector::operator< (const Simple_Selector& rhs) const
+  {
+    switch (rhs.simple_type()) {
+      case ID_SEL: return '%' < '#'; break;
+      case TYPE_SEL: return '%' < 's'; break;
+      case CLASS_SEL: return '%' < '.'; break;
+      case PARENT_SEL: return '%' < '&'; break;
+      case PSEUDO_SEL: return '%' < ':'; break;
+      case WRAPPED_SEL: return '%' < '('; break;
+      case ATTRIBUTE_SEL: return '%' < '['; break;
+      case PLACEHOLDER_SEL: /* let if fall through */ break;
+    }
+    const Placeholder_Selector& sel =
+      (const Placeholder_Selector&) rhs;
+    return *this < sel;
+  }
+
+  /***************************************************************************/
+  /***************************************************************************/
+
+  bool Id_Selector::operator< (const Id_Selector& rhs) const
+  {
+    // ID has no namespacing
+    return name() < rhs.name();
   }
 
   bool Element_Selector::operator< (const Element_Selector& rhs) const
   {
     if (is_ns_eq(rhs))
-    { return name() < rhs.name(); }
+    { 
+      if (rhs.has_ns_ && has_ns_)
+        return name() < rhs.name();
+      if (!rhs.has_ns_ && !has_ns_)
+        return name() < rhs.name();
+      return true;
+    }
     return ns() < rhs.ns();
   }
 
-  bool Element_Selector::operator< (const Simple_Selector& rhs) const
+  bool Class_Selector::operator< (const Class_Selector& rhs) const
   {
-    if (Element_Selector_Ptr_Const w = Cast<Element_Selector>(&rhs))
-    {
-      return *this < *w;
-    }
-    if (is_ns_eq(rhs))
-    { return name() < rhs.name(); }
-    return ns() < rhs.ns();
+    // Class has no namespacing
+    return name() < rhs.name();
   }
 
-  bool Element_Selector::operator== (const Element_Selector& rhs) const
+  bool Parent_Selector::operator< (const Parent_Selector& rhs) const
   {
-    return is_ns_eq(rhs) &&
-           name() == rhs.name();
-  }
-
-  bool Element_Selector::operator== (const Simple_Selector& rhs) const
-  {
-    if (Element_Selector_Ptr_Const w = Cast<Element_Selector>(&rhs))
-    {
-      return is_ns_eq(rhs) &&
-             name() == rhs.name() &&
-             *this == *w;
-    }
-    return false;
-  }
-
-  bool Pseudo_Selector::operator== (const Pseudo_Selector& rhs) const
-  {
-    if (is_ns_eq(rhs) && name() == rhs.name())
-    {
-      String_Obj lhs_ex = expression();
-      String_Obj rhs_ex = rhs.expression();
-      if (rhs_ex && lhs_ex) return *lhs_ex == *rhs_ex;
-      else return lhs_ex.ptr() == rhs_ex.ptr();
-    }
-    else return false;
-  }
-
-  bool Pseudo_Selector::operator== (const Simple_Selector& rhs) const
-  {
-    if (Pseudo_Selector_Ptr_Const w = Cast<Pseudo_Selector>(&rhs))
-    {
-      return *this == *w;
-    }
-    return is_ns_eq(rhs) &&
-           name() == rhs.name();
+    // Parent has no namespacing
+    return name() < rhs.name();
   }
 
   bool Pseudo_Selector::operator< (const Pseudo_Selector& rhs) const
   {
-    if (is_ns_eq(rhs) && name() == rhs.name())
-    {
-      String_Obj lhs_ex = expression();
-      String_Obj rhs_ex = rhs.expression();
-      if (rhs_ex && lhs_ex) return *lhs_ex < *rhs_ex;
-      else return lhs_ex.ptr() < rhs_ex.ptr();
+    std::string lname = name();
+    std::string rname = rhs.name();
+    if (is_pseudo_class_element(lname)) {
+      if (rname[0] == ':' && rname[1] == ':') {
+        lname = lname.substr(1, std::string::npos);
+      }
     }
-    if (is_ns_eq(rhs))
-    { return name() < rhs.name(); }
-    return ns() < rhs.ns();
-  }
-
-  bool Pseudo_Selector::operator< (const Simple_Selector& rhs) const
-  {
-    if (Pseudo_Selector_Ptr_Const w = Cast<Pseudo_Selector>(&rhs))
-    {
-      return *this < *w;
+    // right hand is special pseudo (single colon)
+    if (is_pseudo_class_element(rname)) {
+      if (lname[0] == ':' && lname[1] == ':') {
+        lname = lname.substr(1, std::string::npos);
+      }
     }
-    if (is_ns_eq(rhs))
-    { return name() < rhs.name(); }
-    return ns() < rhs.ns();
-  }
-
-  bool Wrapped_Selector::operator== (const Wrapped_Selector& rhs) const
-  {
-    if (is_ns_eq(rhs) && name() == rhs.name())
-    { return *(selector()) == *(rhs.selector()); }
-    else return false;
-  }
-
-  bool Wrapped_Selector::operator== (const Simple_Selector& rhs) const
-  {
-    if (Wrapped_Selector_Ptr_Const w = Cast<Wrapped_Selector>(&rhs))
-    {
-      return *this == *w;
-    }
-    return is_ns_eq(rhs) &&
-           name() == rhs.name();
+    // Peudo has no namespacing
+    if (lname != rname)
+    { return lname < rname; }
+    String_Obj lhs_ex = expression();
+    String_Obj rhs_ex = rhs.expression();
+    if (rhs_ex && lhs_ex) return *lhs_ex < *rhs_ex;
+    else return lhs_ex.ptr() < rhs_ex.ptr();
   }
 
   bool Wrapped_Selector::operator< (const Wrapped_Selector& rhs) const
   {
-    if (is_ns_eq(rhs) && name() == rhs.name())
-    { return *(selector()) < *(rhs.selector()); }
-    if (is_ns_eq(rhs))
+    // Wrapped has no namespacing
+    if (name() != rhs.name())
     { return name() < rhs.name(); }
-    return ns() < rhs.ns();
+    return *(selector()) < *(rhs.selector());
   }
 
-  bool Wrapped_Selector::operator< (const Simple_Selector& rhs) const
+  bool Attribute_Selector::operator< (const Attribute_Selector& rhs) const
   {
-    if (Wrapped_Selector_Ptr_Const w = Cast<Wrapped_Selector>(&rhs))
-    {
-      return *this < *w;
-    }
-    if (is_ns_eq(rhs))
-    { return name() < rhs.name(); }
-    return ns() < rhs.ns();
+    if (is_ns_eq(rhs)) {
+      if (name() != rhs.name())
+      { return name() < rhs.name(); }
+      if (matcher() != rhs.matcher())
+      { return matcher() < rhs.matcher(); }
+      bool no_lhs_val = value().isNull();
+      bool no_rhs_val = rhs.value().isNull();
+      if (no_lhs_val && no_rhs_val) return false; // equal
+      else if (no_lhs_val) return true; // lhs is null
+      else if (no_rhs_val) return false; // rhs is null
+      return *value() < *rhs.value(); // both are given
+    } else { return ns() < rhs.ns(); }
   }
+
+  bool Placeholder_Selector::operator< (const Placeholder_Selector& rhs) const
+  {
+    // Placeholder has no namespacing
+    return name() < rhs.name();
+  }
+
+  /*#########################################################################*/
+  /*#########################################################################*/
 
 }
