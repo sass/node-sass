@@ -903,96 +903,6 @@ namespace Sass {
     ATTACH_CRTP_PERFORM_METHODS()
   };
 
-  ////////////////////
-  // `@supports` rule.
-  ////////////////////
-  class Supports_Block final : public Has_Block {
-    ADD_PROPERTY(Supports_Condition_Obj, condition)
-  public:
-    Supports_Block(ParserState pstate, Supports_Condition_Obj condition, Block_Obj block = {});
-    Supports_Block(const Supports_Block* ptr);
-    bool bubbles();
-    ATTACH_AST_OPERATIONS(Supports_Block)
-    ATTACH_CRTP_PERFORM_METHODS()
-  };
-
-  //////////////////////////////////////////////////////
-  // The abstract superclass of all Supports conditions.
-  //////////////////////////////////////////////////////
-  class Supports_Condition : public Expression {
-  public:
-    Supports_Condition(ParserState pstate)
-    : Expression(pstate)
-    { }
-    Supports_Condition(const Supports_Condition* ptr)
-    : Expression(ptr)
-    { }
-    virtual bool needs_parens(Supports_Condition_Obj cond) const { return false; }
-    ATTACH_AST_OPERATIONS(Supports_Condition)
-    ATTACH_CRTP_PERFORM_METHODS()
-  };
-
-  ////////////////////////////////////////////////////////////
-  // An operator condition (e.g. `CONDITION1 and CONDITION2`).
-  ////////////////////////////////////////////////////////////
-  class Supports_Operator final : public Supports_Condition {
-  public:
-    enum Operand { AND, OR };
-  private:
-    ADD_PROPERTY(Supports_Condition_Obj, left);
-    ADD_PROPERTY(Supports_Condition_Obj, right);
-    ADD_PROPERTY(Operand, operand);
-  public:
-    Supports_Operator(ParserState pstate, Supports_Condition_Obj l, Supports_Condition_Obj r, Operand o);
-    Supports_Operator(const Supports_Operator* ptr);
-    bool needs_parens(Supports_Condition_Obj cond) const override;
-    ATTACH_AST_OPERATIONS(Supports_Operator)
-    ATTACH_CRTP_PERFORM_METHODS()
-  };
-
-  //////////////////////////////////////////
-  // A negation condition (`not CONDITION`).
-  //////////////////////////////////////////
-  class Supports_Negation final : public Supports_Condition {
-  private:
-    ADD_PROPERTY(Supports_Condition_Obj, condition);
-  public:
-    Supports_Negation(ParserState pstate, Supports_Condition_Obj c);
-    Supports_Negation(const Supports_Negation* ptr);
-    bool needs_parens(Supports_Condition_Obj cond) const override;
-    ATTACH_AST_OPERATIONS(Supports_Negation)
-    ATTACH_CRTP_PERFORM_METHODS()
-  };
-
-  /////////////////////////////////////////////////////
-  // A declaration condition (e.g. `(feature: value)`).
-  /////////////////////////////////////////////////////
-  class Supports_Declaration final : public Supports_Condition {
-  private:
-    ADD_PROPERTY(Expression_Obj, feature);
-    ADD_PROPERTY(Expression_Obj, value);
-  public:
-    Supports_Declaration(ParserState pstate, Expression_Obj f, Expression_Obj v);
-    Supports_Declaration(const Supports_Declaration* ptr);
-    virtual bool needs_parens(Supports_Condition_Obj cond) const;
-    ATTACH_AST_OPERATIONS(Supports_Declaration)
-    ATTACH_CRTP_PERFORM_METHODS()
-  };
-
-  ///////////////////////////////////////////////
-  // An interpolation condition (e.g. `#{$var}`).
-  ///////////////////////////////////////////////
-  class Supports_Interpolation final : public Supports_Condition {
-  private:
-    ADD_PROPERTY(Expression_Obj, value);
-  public:
-    Supports_Interpolation(ParserState pstate, Expression_Obj v);
-    Supports_Interpolation(const Supports_Interpolation* ptr);
-    virtual bool needs_parens(Supports_Condition_Obj cond) const;
-    ATTACH_AST_OPERATIONS(Supports_Interpolation)
-    ATTACH_CRTP_PERFORM_METHODS()
-  };
-
   /////////////////////////////////////////////////
   // At root expressions (for use inside @at-root).
   /////////////////////////////////////////////////
@@ -1067,6 +977,7 @@ namespace Sass {
 }
 
 #include "ast_values.hpp"
+#include "ast_supports.hpp"
 #include "ast_selectors.hpp"
 
 #ifdef __clang__

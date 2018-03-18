@@ -679,87 +679,6 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////
 
-  Supports_Block::Supports_Block(ParserState pstate, Supports_Condition_Obj condition, Block_Obj block)
-  : Has_Block(pstate, block), condition_(condition)
-  { statement_type(SUPPORTS); }
-  Supports_Block::Supports_Block(const Supports_Block* ptr)
-  : Has_Block(ptr), condition_(ptr->condition_)
-  { statement_type(SUPPORTS); }
-  bool Supports_Block::bubbles() { return true; }
-
-  /////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////
-
-  Supports_Operator::Supports_Operator(ParserState pstate, Supports_Condition_Obj l, Supports_Condition_Obj r, Operand o)
-  : Supports_Condition(pstate), left_(l), right_(r), operand_(o)
-  { }
-  Supports_Operator::Supports_Operator(const Supports_Operator* ptr)
-  : Supports_Condition(ptr),
-    left_(ptr->left_),
-    right_(ptr->right_),
-    operand_(ptr->operand_)
-  { }
-
-  bool Supports_Operator::needs_parens(Supports_Condition_Obj cond) const
-  {
-    if (Supports_Operator_Obj op = Cast<Supports_Operator>(cond)) {
-      return op->operand() != operand();
-    }
-    return Cast<Supports_Negation>(cond) != NULL;
-  }
-
-  /////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////
-
-  Supports_Negation::Supports_Negation(ParserState pstate, Supports_Condition_Obj c)
-  : Supports_Condition(pstate), condition_(c)
-  { }
-  Supports_Negation::Supports_Negation(const Supports_Negation* ptr)
-  : Supports_Condition(ptr), condition_(ptr->condition_)
-  { }
-
-  bool Supports_Negation::needs_parens(Supports_Condition_Obj cond) const
-  {
-    return Cast<Supports_Negation>(cond) ||
-           Cast<Supports_Operator>(cond);
-  }
-
-  /////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////
-
-  Supports_Declaration::Supports_Declaration(ParserState pstate, Expression_Obj f, Expression_Obj v)
-  : Supports_Condition(pstate), feature_(f), value_(v)
-  { }
-  Supports_Declaration::Supports_Declaration(const Supports_Declaration* ptr)
-  : Supports_Condition(ptr),
-    feature_(ptr->feature_),
-    value_(ptr->value_)
-  { }
-
-  bool Supports_Declaration::needs_parens(Supports_Condition_Obj cond) const
-  {
-    return false;
-  }
-
-  /////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////
-
-  Supports_Interpolation::Supports_Interpolation(ParserState pstate, Expression_Obj v)
-  : Supports_Condition(pstate), value_(v)
-  { }
-  Supports_Interpolation::Supports_Interpolation(const Supports_Interpolation* ptr)
-  : Supports_Condition(ptr),
-    value_(ptr->value_)
-  { }
-
-  bool Supports_Interpolation::needs_parens(Supports_Condition_Obj cond) const
-  {
-    return false;
-  }
-
-  /////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////
-
   At_Root_Query::At_Root_Query(ParserState pstate, Expression_Obj f, Expression_Obj v, bool i)
   : Expression(pstate), feature_(f), value_(v)
   { }
@@ -984,15 +903,15 @@ namespace Sass {
     }
   }
 
-  IMPLEMENT_AST_OPERATORS(Supports_Operator);
-  IMPLEMENT_AST_OPERATORS(Supports_Negation);
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
   IMPLEMENT_AST_OPERATORS(Ruleset);
   IMPLEMENT_AST_OPERATORS(Media_Block);
   IMPLEMENT_AST_OPERATORS(Import);
   IMPLEMENT_AST_OPERATORS(Import_Stub);
   IMPLEMENT_AST_OPERATORS(Directive);
   IMPLEMENT_AST_OPERATORS(At_Root_Block);
-  IMPLEMENT_AST_OPERATORS(Supports_Block);
   IMPLEMENT_AST_OPERATORS(While);
   IMPLEMENT_AST_OPERATORS(Each);
   IMPLEMENT_AST_OPERATORS(For);
@@ -1008,9 +927,6 @@ namespace Sass {
   IMPLEMENT_AST_OPERATORS(Return);
   IMPLEMENT_AST_OPERATORS(At_Root_Query);
   IMPLEMENT_AST_OPERATORS(Comment);
-  IMPLEMENT_AST_OPERATORS(Supports_Interpolation);
-  IMPLEMENT_AST_OPERATORS(Supports_Declaration);
-  IMPLEMENT_AST_OPERATORS(Supports_Condition);
   IMPLEMENT_AST_OPERATORS(Parameters);
   IMPLEMENT_AST_OPERATORS(Parameter);
   IMPLEMENT_AST_OPERATORS(Arguments);
@@ -1023,4 +939,8 @@ namespace Sass {
   IMPLEMENT_AST_OPERATORS(Bubble);
   IMPLEMENT_AST_OPERATORS(Definition);
   IMPLEMENT_AST_OPERATORS(Declaration);
+
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
 }

@@ -54,6 +54,9 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_selectors.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_supports.hpp">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\memory\SharedPtr.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -252,6 +255,9 @@
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="$(LIBSASS_SRC_DIR)\ast_selectors.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\ast_supports.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="$(LIBSASS_SRC_DIR)\ast_sel_cmp.cpp">
