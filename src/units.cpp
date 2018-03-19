@@ -266,6 +266,10 @@ namespace Sass {
     return (numerators == rhs.numerators) &&
            (denominators == rhs.denominators);
   }
+  bool Units::operator!= (const Units& rhs) const
+  {
+    return ! (*this == rhs);
+  }
 
   double Units::normalize()
   {

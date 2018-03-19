@@ -84,15 +84,16 @@ namespace Sass {
 
   bool List::operator== (const Expression& rhs) const
   {
-    if (List_Ptr_Const r = Cast<List>(&rhs)) {
+    if (auto r = Cast<List>(&rhs)) {
       if (length() != r->length()) return false;
       if (separator() != r->separator()) return false;
       if (is_bracketed() != r->is_bracketed()) return false;
       for (size_t i = 0, L = length(); i < L; ++i) {
-        Expression_Obj rv = r->at(i);
-        Expression_Obj lv = this->at(i);
-        if (!lv || !rv) return false;
-        if (!(*lv == *rv)) return false;
+        auto rv = r->at(i);
+        auto lv = this->at(i);
+        if (!lv && rv) return false;
+        else if (!rv && lv) return false;
+        else if (*lv != *rv) return false;
       }
       return true;
     }
@@ -141,13 +142,14 @@ namespace Sass {
 
   bool Map::operator== (const Expression& rhs) const
   {
-    if (Map_Ptr_Const r = Cast<Map>(&rhs)) {
+    if (auto r = Cast<Map>(&rhs)) {
       if (length() != r->length()) return false;
       for (auto key : keys()) {
-        Expression_Obj lv = at(key);
-        Expression_Obj rv = r->at(key);
-        if (!rv || !lv) return false;
-        if (!(*lv == *rv)) return false;
+        auto rv = r->at(key);
+        auto lv = this->at(key);
+        if (!lv && rv) return false;
+        else if (!rv && lv) return false;
+        else if (*lv != *rv) return false;
       }
       return true;
     }
@@ -229,19 +231,12 @@ namespace Sass {
 
   bool Binary_Expression::operator==(const Expression& rhs) const
   {
-    try
-    {
-      Binary_Expression_Ptr_Const m = Cast<Binary_Expression>(&rhs);
-      if (m == 0) return false;
+    if (auto m = Cast<Binary_Expression>(&rhs)) {
       return type() == m->type() &&
-              *left() == *m->left() &&
-              *right() == *m->right();
+             *left() == *m->left() &&
+             *right() == *m->right();
     }
-    catch (std::bad_cast&)
-    {
-      return false;
-    }
-    catch (...) { throw; }
+    return false;
   }
 
   size_t Binary_Expression::hash() const
@@ -267,9 +262,9 @@ namespace Sass {
 
   bool Function::operator== (const Expression& rhs) const
   {
-    if (Function_Ptr_Const r = Cast<Function>(&rhs)) {
-      Definition_Ptr_Const d1 = Cast<Definition>(definition());
-      Definition_Ptr_Const d2 = Cast<Definition>(r->definition());
+    if (auto r = Cast<Function>(&rhs)) {
+      auto d1 = Cast<Definition>(definition());
+      auto d2 = Cast<Definition>(r->definition());
       return d1 && d2 && d1 == d2 && is_css() == r->is_css();
     }
     return false;
@@ -317,20 +312,14 @@ namespace Sass {
 
   bool Function_Call::operator==(const Expression& rhs) const
   {
-    try
-    {
-      Function_Call_Ptr_Const m = Cast<Function_Call>(&rhs);
-      if (!(m && *sname() == *m->sname())) return false;
-      if (!(m && arguments()->length() == m->arguments()->length())) return false;
-      for (size_t i =0, L = arguments()->length(); i < L; ++i)
-        if (!(*(*arguments())[i] == *(*m->arguments())[i])) return false;
+    if (auto m = Cast<Function_Call>(&rhs)) {
+      if (*sname() != *m->sname()) return false;
+      if (arguments()->length() != m->arguments()->length()) return false;
+      for (size_t i = 0, L = arguments()->length(); i < L; ++i)
+        if (*arguments()->get(i) != *m->arguments()->get(i)) return false;
       return true;
     }
-    catch (std::bad_cast&)
-    {
-      return false;
-    }
-    catch (...) { throw; }
+    return false;
   }
 
   size_t Function_Call::hash() const
@@ -366,16 +355,10 @@ namespace Sass {
 
   bool Variable::operator==(const Expression& rhs) const
   {
-    try
-    {
-      Variable_Ptr_Const e = Cast<Variable>(&rhs);
-      return e && name() == e->name();
+    if (auto e = Cast<Variable>(&rhs)) {
+      return name() == e->name();
     }
-    catch (std::bad_cast&)
-    {
-      return false;
-    }
-    catch (...) { throw; }
+    return false;
   }
 
   size_t Variable::hash()
@@ -452,21 +435,23 @@ namespace Sass {
 
   bool Number::operator== (const Expression& rhs) const
   {
-    if (auto rhsnr = Cast<Number>(&rhs)) {
-      return *this == *rhsnr;
+    if (auto n = Cast<Number>(&rhs)) {
+      return *this == *n;
     }
     return false;
   }
 
   bool Number::operator== (const Number& rhs) const
   {
+    // unitless or only having one unit are equivalent (3.4)
+    // therefore we need to reduce the units beforehand
     Number l(*this), r(rhs); l.reduce(); r.reduce();
     size_t lhs_units = l.numerators.size() + l.denominators.size();
     size_t rhs_units = r.numerators.size() + r.denominators.size();
-    // unitless and only having one unit seems equivalent (will change in future)
     if (!lhs_units || !rhs_units) {
       return NEAR_EQUAL(l.value(), r.value());
     }
+    // ensure both have same units
     l.normalize(); r.normalize();
     Units &lhs_unit = l, &rhs_unit = r;
     return lhs_unit == rhs_unit &&
@@ -475,21 +460,26 @@ namespace Sass {
 
   bool Number::operator< (const Number& rhs) const
   {
+    // unitless or only having one unit are equivalent (3.4)
+    // therefore we need to reduce the units beforehand
     Number l(*this), r(rhs); l.reduce(); r.reduce();
     size_t lhs_units = l.numerators.size() + l.denominators.size();
     size_t rhs_units = r.numerators.size() + r.denominators.size();
-    // unitless and only having one unit seems equivalent (will change in future)
     if (!lhs_units || !rhs_units) {
       return l.value() < r.value();
     }
+    // ensure both have same units
     l.normalize(); r.normalize();
     Units &lhs_unit = l, &rhs_unit = r;
     if (!(lhs_unit == rhs_unit)) {
       /* ToDo: do we always get usefull backtraces? */
       throw Exception::IncompatibleUnits(rhs, *this);
     }
-    return lhs_unit < rhs_unit ||
-           l.value() < r.value();
+    if (lhs_unit == rhs_unit) {
+      return l.value() < r.value();
+    } else {
+      return lhs_unit < rhs_unit;
+    }
   }
 
   /////////////////////////////////////////////////////////////////////////
@@ -512,7 +502,7 @@ namespace Sass {
 
   bool Color::operator== (const Expression& rhs) const
   {
-    if (Color_Ptr_Const r = Cast<Color>(&rhs)) {
+    if (auto r = Cast<Color>(&rhs)) {
       return r_ == r->r() &&
              g_ == r->g() &&
              b_ == r->b() &&
@@ -545,7 +535,7 @@ namespace Sass {
 
   bool Custom_Error::operator== (const Expression& rhs) const
   {
-    if (Custom_Error_Ptr_Const r = Cast<Custom_Error>(&rhs)) {
+    if (auto r = Cast<Custom_Error>(&rhs)) {
       return message() == r->message();
     }
     return false;
@@ -564,7 +554,7 @@ namespace Sass {
 
   bool Custom_Warning::operator== (const Expression& rhs) const
   {
-    if (Custom_Warning_Ptr_Const r = Cast<Custom_Warning>(&rhs)) {
+    if (auto r = Cast<Custom_Warning>(&rhs)) {
       return message() == r->message();
     }
     return false;
@@ -586,7 +576,7 @@ namespace Sass {
 
  bool Boolean::operator== (const Expression& rhs) const
   {
-    if (Boolean_Ptr_Const r = Cast<Boolean>(&rhs)) {
+    if (auto r = Cast<Boolean>(&rhs)) {
       return (value() == r->value());
     }
     return false;
@@ -642,13 +632,12 @@ namespace Sass {
 
   bool String_Schema::operator== (const Expression& rhs) const
   {
-    if (String_Schema_Ptr_Const r = Cast<String_Schema>(&rhs)) {
+    if (auto r = Cast<String_Schema>(&rhs)) {
       if (length() != r->length()) return false;
       for (size_t i = 0, L = length(); i < L; ++i) {
-        Expression_Obj rv = (*r)[i];
-        Expression_Obj lv = (*this)[i];
-        if (!lv || !rv) return false;
-        if (!(*lv == *rv)) return false;
+        auto rv = (*r)[i];
+        auto lv = (*this)[i];
+        if (*lv != *rv) return false;
       }
       return true;
     }
@@ -707,10 +696,10 @@ namespace Sass {
 
   bool String_Constant::operator== (const Expression& rhs) const
   {
-    if (String_Quoted_Ptr_Const qstr = Cast<String_Quoted>(&rhs)) {
-      return (value() == qstr->value());
-    } else if (String_Constant_Ptr_Const cstr = Cast<String_Constant>(&rhs)) {
-      return (value() == cstr->value());
+    if (auto qstr = Cast<String_Quoted>(&rhs)) {
+      return value() == qstr->value();
+    } else if (auto cstr = Cast<String_Constant>(&rhs)) {
+      return value() == cstr->value();
     }
     return false;
   }
@@ -753,10 +742,10 @@ namespace Sass {
 
   bool String_Quoted::operator== (const Expression& rhs) const
   {
-    if (String_Quoted_Ptr_Const qstr = Cast<String_Quoted>(&rhs)) {
-      return (value() == qstr->value());
-    } else if (String_Constant_Ptr_Const cstr = Cast<String_Constant>(&rhs)) {
-      return (value() == cstr->value());
+    if (auto qstr = Cast<String_Quoted>(&rhs)) {
+      return value() == qstr->value();
+    } else if (auto cstr = Cast<String_Constant>(&rhs)) {
+      return value() == cstr->value();
     }
     return false;
   }
@@ -778,7 +767,7 @@ namespace Sass {
 
   bool Null::operator== (const Expression& rhs) const
   {
-    return rhs.concrete_type() == NULL_VAL;
+    return Cast<Null>(&rhs) != NULL;
   }
 
   size_t Null::hash() const
