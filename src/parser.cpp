@@ -2691,7 +2691,9 @@ namespace Sass {
     if ((rv = lex_interp_string())) return rv;
     if ((rv = lex_interp_uri())) return rv;
     if ((rv = lex_interpolation())) return rv;
-    return rv;
+     if (lex< alternatives< hex, hex0 > >())
+    { return lexed_hex_color(lexed); }
+   return rv;
   }
 
   String_Schema_Obj Parser::parse_almost_any_value()
