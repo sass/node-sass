@@ -170,7 +170,7 @@ namespace Sass {
       double s;
       double l = (max + min) / 2.0;
 
-      if (max == min) {
+      if (NEAR_EQUAL(max, min)) {
         h = s = 0; // achromatic
       }
       else {
