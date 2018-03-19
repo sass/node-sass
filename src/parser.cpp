@@ -1974,7 +1974,7 @@ namespace Sass {
         if (lex< re_static_expression >()) {
           ex = SASS_MEMORY_NEW(String_Constant, pstate, lexed);
         } else {
-          ex = parse_list();
+          ex = parse_list(true);
         }
         ex->is_interpolant(true);
         schema->append(ex);
