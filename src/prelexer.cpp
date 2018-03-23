@@ -1606,7 +1606,7 @@ namespace Sass {
       >(src);
     }
 
-    extern const char css_variable_url_top_level_negates[] = "()[]{}\"'#/;!";
+    extern const char css_variable_url_top_level_negates[] = "()[]{}\"'#/;";
     const char* css_variable_top_level_value(const char* src) {
       return sequence<
         alternatives<
