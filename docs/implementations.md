@@ -14,6 +14,17 @@ There are several implementations of `libsass` for a variety of languages. Here 
 * [go_sass](https://github.com/suapapa/go_sass)
 * [go-sass](https://github.com/SamWhited/go-sass)
 
+### Haskell
+* [hLibsass](https://github.com/jakubfijalkowski/hlibsass)
+* [hSass](https://github.com/jakubfijalkowski/hsass)
+
+### Java
+* [libsass-maven-plugin](https://github.com/warmuuh/libsass-maven-plugin)
+* [jsass](https://github.com/bit3/jsass)
+
+### JavaScript
+* [sass.js](https://github.com/medialize/sass.js)
+
 ### Lua
 * [lua-sass](https://github.com/craigbarnes/lua-sass)
 
@@ -27,13 +38,6 @@ There are several implementations of `libsass` for a variety of languages. Here 
 
 ### node.js
 * [node-sass](https://github.com/andrew/node-sass)
-
-### Java
-* [libsass-maven-plugin](https://github.com/warmuuh/libsass-maven-plugin)
-* [jsass](https://github.com/bit3/jsass)
-
-### JavaScript
-* [sass.js](https://github.com/medialize/sass.js)
 
 ### Perl
 * [CSS::Sass](https://github.com/caldwell/CSS-Sass)
@@ -57,7 +61,3 @@ There are several implementations of `libsass` for a variety of languages. Here 
 
 ### Tcl
 * [tclsass](https://github.com/flightaware/tclsass)
-
-### Haskell
-* [hLibsass](https://github.com/jakubfijalkowski/hlibsass)
-* [hSass](https://github.com/jakubfijalkowski/hsass)
