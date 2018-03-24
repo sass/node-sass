@@ -57,3 +57,7 @@ There are several implementations of `libsass` for a variety of languages. Here 
 
 ### Tcl
 * [tclsass](https://github.com/flightaware/tclsass)
+
+### Haskell
+* [hLibsass](https://github.com/jakubfijalkowski/hlibsass)
+* [hSass](https://github.com/jakubfijalkowski/hsass)
