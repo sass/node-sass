@@ -37,7 +37,7 @@ There are several implementations of `libsass` for a variety of languages. Here 
 * [nim-sass](https://github.com/zacharycarter/nim-sass)
 
 ### node.js
-* [node-sass](https://github.com/andrew/node-sass)
+* [node-sass](https://github.com/sass/node-sass)
 
 ### Perl
 * [CSS::Sass](https://github.com/caldwell/CSS-Sass)
