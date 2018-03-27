@@ -121,7 +121,7 @@ namespace Sass {
 
   namespace File {
 
-    static std::vector<std::string> defaultExtensions = { ".scss", ".sass", ".css" };
+    static std::vector<std::string> defaultExtensions = { ".scss", ".sass" };
 
     std::vector<Include> resolve_includes(const std::string& root, const std::string& file,
       const std::vector<std::string>& exts = defaultExtensions);
