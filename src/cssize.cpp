@@ -559,7 +559,7 @@ namespace Sass {
 
     std::string m1 = std::string(mq1->is_restricted() ? "only" : mq1->is_negated() ? "not" : "");
     std::string t1 = mq1->media_type() ? mq1->media_type()->to_string(ctx.c_options) : "";
-    std::string m2 = std::string(mq2->is_restricted() ? "only" : mq1->is_negated() ? "not" : "");
+    std::string m2 = std::string(mq2->is_restricted() ? "only" : mq2->is_negated() ? "not" : "");
     std::string t2 = mq2->media_type() ? mq2->media_type()->to_string(ctx.c_options) : "";
 
 
