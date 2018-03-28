@@ -32,6 +32,8 @@ There are several implementations of `libsass` for a variety of languages. Here 
 * [libsass-net](https://github.com/darrenkopp/libsass-net)
 * [NSass](https://github.com/TBAPI-0KA/NSass)
 * [Sass.Net](https://github.com/andyalm/Sass.Net)
+* [SharpScss](https://github.com/xoofx/SharpScss)
+* [LibSassHost](https://github.com/Taritsyn/LibSassHost)
 
 ### Nim
 * [nim-sass](https://github.com/zacharycarter/nim-sass)
