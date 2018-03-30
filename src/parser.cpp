@@ -2791,6 +2791,7 @@ namespace Sass {
       >(p)
     ) {
       bool could_be_property = peek< sequence< exactly<'-'>, exactly<'-'> > >(p) != 0;
+      bool could_be_escaped = false;
       while (p < q) {
         // did we have interpolations?
         if (*p == '#' && *(p+1) == '{') {
@@ -2799,9 +2800,10 @@ namespace Sass {
         }
         // A property that's ambiguous with a nested selector is interpreted as a
         // custom property.
-        if (*p == ':') {
+        if (*p == ':' && !could_be_escaped) {
           rv.is_custom_property = could_be_property || p+1 == q || peek< space >(p+1);
         }
+        could_be_escaped = *p == '\\';
         ++ p;
       }
       // store anyway  }
