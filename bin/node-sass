@@ -19,7 +19,7 @@ var Emitter = require('events').EventEmitter,
  */
 
 var cli = meow({
-  pkg: '../package.json',
+  pkg: require('../package.json'),
   version: sass.info,
   help: [
     'Usage:',
@@ -58,51 +58,84 @@ var cli = meow({
     '  --importer                 Path to .js file containing custom importer',
     '  --functions                Path to .js file containing custom functions',
     '  --help                     Print usage info'
-  ].join('\n')
-}, {
-  boolean: [
-    'error-bell',
-    'follow',
-    'indented-syntax',
-    'omit-source-map-url',
-    'quiet',
-    'recursive',
-    'source-map-embed',
-    'source-map-contents',
-    'source-comments',
-    'watch'
-  ],
-  string: [
-    'functions',
-    'importer',
-    'include-path',
-    'indent-type',
-    'linefeed',
-    'output',
-    'output-style',
-    'precision',
-    'source-map-root'
-  ],
-  alias: {
-    c: 'source-comments',
-    i: 'indented-syntax',
-    q: 'quiet',
-    o: 'output',
-    r: 'recursive',
-    x: 'omit-source-map-url',
-    v: 'version',
-    w: 'watch'
+  ].join('\n'),
+  flags: {
+    'error-bell': {
+      type: 'boolean',
+    },
+    'follow': {
+      type: 'boolean',
+    },
+    'indented-syntax': {
+      type: 'boolean',
+      alias: 'i',
+    },
+    'omit-source-map-url': {
+      type: 'boolean',
+      alias: 'x',
+    },
+    'quiet': {
+      type: 'boolean',
+      alias: 'q',
+      default: false,
+    },
+    'recursive': {
+      type: 'boolean',
+      alias: 'r',
+      default: true,
+    },
+    'source-map-embed': {
+      type: 'boolean',
+    },
+    'source-map-contents': {
+      type: 'boolean',
+    },
+    'source-comments': {
+      type: 'boolean',
+      alias: 'c',
+    },
+    'watch': {
+      type: 'boolean',
+      alias: 'w',
+    },
+    'functions': {
+      type: 'string',
+    },
+    'importer': {
+      type: 'string',
+    },
+    'include-path': {
+      type: 'string',
+      default: process.cwd(),
+    },
+    'indent-type': {
+      type: 'string',
+      default: 'space',
+    },
+    'indent-width': {
+      type: 'string',
+      default: 2,
+    },
+    'linefeed': {
+      type: 'string',
+      default: 'lf',
+    },
+    'output': {
+      type: 'string',
+      alias: 'o',
+    },
+    'output-style': {
+      type: 'string',
+      default: 'nested',
+    },
+    'precision': {
+      type: 'string',
+      default: 5,
+    },
+    'source-map-root': {
+      type: 'string',
+    },
   },
-  default: {
-    'include-path': process.cwd(),
-    'indent-type': 'space',
-    'indent-width': 2,
-    linefeed: 'lf',
-    'output-style': 'nested',
-    precision: 5,
-    quiet: false,
-    recursive: true
-  }
 });
 
 /**
