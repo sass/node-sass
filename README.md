@@ -34,7 +34,7 @@ Follow @nodesass on twitter for release updates: <https://twitter.com/nodesass>
 
 ## Install
 
-```
+```shell
 npm install node-sass
 ```
 
@@ -49,6 +49,13 @@ SyntaxError: Use of const in strict mode.
 ```
 
 **Having installation troubles? Check out our [Troubleshooting guide](/TROUBLESHOOTING.md).**
+
+### Install from mirror in China
+
+```shell
+npm install -g mirror-config-china --registry=http://registry.npm.taobao.org
+npm install node-sass
+```
 
 ## Usage
 
