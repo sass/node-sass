@@ -53,7 +53,10 @@ describe('runtime parameters', function() {
         process.argv.push('--sass-binary-site', 'http://aaa.example.com:9999');
         process.env.SASS_BINARY_SITE = 'http://bbb.example.com:8888';
         process.env.npm_config_sass_binary_site = 'http://ccc.example.com:7777';
-        pkg.nodeSassConfig = { binarySite: 'http://ddd.example.com:6666' };
+        pkg.nodeSassConfig = {
+          binarySiteCN: 'http://ddd.example.com:6666',
+          binarySite: 'http://ddd.example.com:6666'
+        };
       });
 
       it('command line argument', function() {
