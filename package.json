@@ -20,6 +20,7 @@
   },
   "main": "lib/index.js",
   "nodeSassConfig": {
+    "binarySiteCN": "https://npm.taobao.org/mirrors/node-sass",
     "binarySite": "https://github.com/sass/node-sass/releases/download"
   },
   "bin": {
@@ -59,6 +60,7 @@
     "gaze": "^1.0.0",
     "get-stdin": "^4.0.1",
     "glob": "^7.0.3",
+    "in-gfw": "^1.0.0",
     "in-publish": "^2.0.0",
     "lodash.assign": "^4.2.0",
     "lodash.clonedeep": "^4.3.2",
