@@ -76,7 +76,7 @@
   "devDependencies": {
     "coveralls": "^2.11.8",
     "eslint": "^3.4.0",
-    "fs-extra": "^0.30.0",
+    "fs-extra": "^5.0.0",
     "istanbul": "^0.4.2",
     "mocha": "^5.0.5",
     "mocha-lcov-reporter": "^1.2.0",
