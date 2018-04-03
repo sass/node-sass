@@ -15,25 +15,19 @@ jobs:
       before_script: npm run lint || exit 1;
       after_success: npm run-script coverage;
     - stage: platform-test
+      node_js: "lts/boron"
+      os: linux
+    - stage: platform-test
+      node_js: "lts/boron"
+      os: osx
+    - stage: platform-test
       node_js: "node"
       os: osx
     - stage: platform-test
-      node_js: "7"
-      os: linux
-    - stage: platform-test
-      node_js: "7"
-      os: osx
-    - stage: platform-test
       node_js: "lts/carbon"
       os: linux
     - stage: platform-test
       node_js: "lts/carbon"
-      os: osx
-    - stage: platform-test
-      node_js: "lts/boron"
-      os: linux
-    - stage: platform-test
-      node_js: "lts/boron"
       os: osx
     - stage: platform-test
       node_js: "lts/argon"
