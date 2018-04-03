@@ -2,7 +2,7 @@
 
 var Emitter = require('events').EventEmitter,
   forEach = require('async-foreach').forEach,
-  Gaze = require('gaze'),
+  chokidar = require('chokidar'),
   meow = require('meow'),
   util = require('util'),
   path = require('path'),
@@ -236,40 +236,36 @@ function getOptions(args, options) {
 
 function watch(options, emitter) {
   var handler = function(files) {
-    files.added.forEach(function(file) {
-      var watch = gaze.watched();
-      Object.keys(watch).forEach(function (dir) {
-        if (watch[dir].indexOf(file) !== -1) {
-          gaze.add(file);
-        }
-      });
-    });
-
-    files.changed.forEach(function(file) {
+    files.forEach(function(file) {
       if (path.basename(file)[0] !== '_') {
         renderFile(file, options, emitter);
       }
     });
-
-    files.removed.forEach(function(file) {
-      gaze.remove(file);
-    });
   };
 
-  var gaze = new Gaze();
-  gaze.add(watcher.reset(options));
-  gaze.on('error', emitter.emit.bind(emitter, 'error'));
+  watcher.reset(options);
 
-  gaze.on('changed', function(file) {
-    handler(watcher.changed(file));
+  var service = chokidar.watch(options.includePath, {
+    ignore: /(?!\.s[ac]ss$)/,
+    followSymlinks: options.follow,
   });
 
-  gaze.on('added', function(file) {
-    handler(watcher.added(file));
-  });
+  service.on('ready', function() {
+    service.on('error', function(error) {
+      emitter.emit.error(error);
+    });
 
-  gaze.on('deleted', function(file) {
-    handler(watcher.removed(file));
+    service.on('change', function(file) {
+      handler(watcher.changed(file));
+    });
+
+    service.on('add', function(file) {
+      handler(watcher.added(file));
+    });
+
+    service.on('unlink', function(file) {
+      handler(watcher.removed(file));
+    });
   });
 }
 
