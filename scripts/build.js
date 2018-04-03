@@ -19,9 +19,9 @@ function afterBuild(options) {
   var install = sass.getBinaryPath();
   var target = path.join(__dirname, '..', 'build',
     options.debug ? 'Debug' :
-        process.config.target_defaults
-            ?  process.config.target_defaults.default_configuration
-            : 'Release',
+      process.config.target_defaults
+        ?  process.config.target_defaults.default_configuration
+        : 'Release',
     'binding.node');
 
   mkdir(path.dirname(install), function(err) {
