@@ -4,8 +4,8 @@ var assert = require('assert'),
   join = require('path').join,
   read = fs.readFileSync,
   sass = process.env.NODESASS_COV
-      ? require('../lib-cov')
-      : require('../lib'),
+    ? require('../lib-cov')
+    : require('../lib'),
   readYaml = require('read-yaml'),
   mergeWith = require('lodash/mergeWith'),
   assign = require('lodash/assign'),
