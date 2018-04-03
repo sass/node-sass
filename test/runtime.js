@@ -1,11 +1,11 @@
 var assert = require('assert'),
   sass = process.env.NODESASS_COV
-      ? require('../lib-cov/extensions')
-      : require('../lib/extensions');
+    ? require('../lib-cov/extensions')
+    : require('../lib/extensions');
 
 describe('runtime parameters', function() {
   var pkg = require('../package'),
-        // Let's use JSON to fake a deep copy
+    // Let's use JSON to fake a deep copy
     savedArgv = JSON.stringify(process.argv),
     savedEnv = JSON.stringify(process.env);
 
