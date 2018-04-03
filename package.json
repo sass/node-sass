@@ -57,7 +57,7 @@
     "chalk": "^2.3.2",
     "chokidar": "^2.0.3",
     "cross-spawn": "^6.0.5",
-    "get-stdin": "^4.0.1",
+    "get-stdin": "^6.0.0",
     "glob": "^7.0.3",
     "in-publish": "^2.0.0",
     "lodash.assign": "^4.2.0",
