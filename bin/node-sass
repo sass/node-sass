@@ -427,7 +427,7 @@ if (options.src) {
   }
   run(options, emitter);
 } else if (!process.stdin.isTTY) {
-  stdin(function(data) {
+  stdin().then(function(data) {
     options.data = data;
     options.stdin = true;
     run(options, emitter);
