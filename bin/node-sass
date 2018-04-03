@@ -323,7 +323,7 @@ function run(options, emitter) {
   }
 
   if (options.importer) {
-    if ((path.resolve(options.importer) === path.normalize(options.importer).replace(/(.+)([\/|\\])$/, '$1'))) {
+    if ((path.resolve(options.importer) === path.normalize(options.importer).replace(/(.+)([/|\\])$/, '$1'))) {
       options.importer = require(options.importer);
     } else {
       options.importer = require(path.resolve(options.importer));
@@ -331,7 +331,7 @@ function run(options, emitter) {
   }
 
   if (options.functions) {
-    if ((path.resolve(options.functions) === path.normalize(options.functions).replace(/(.+)([\/|\\])$/, '$1'))) {
+    if ((path.resolve(options.functions) === path.normalize(options.functions).replace(/(.+)([/|\\])$/, '$1'))) {
       options.functions = require(options.functions);
     } else {
       options.functions = require(path.resolve(options.functions));
