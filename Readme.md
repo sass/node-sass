@@ -72,10 +72,11 @@ See the [build docs for further instructions](docs/build.md)!
 Compatibility
 -------------
 
-Current LibSass 3.4 should be compatible with Sass 3.4. Please refer to the [sass compatibility
-page](http://sass-compatibility.github.io/) for a more detailed comparison. But note that there
-are still a few incomplete edges which we are aware of. Otherwise LibSass has reached a good level
-of stability, thanks to our ever growing [Sass-Spec test suite](https://github.com/sass/sass-spec).
+For all intents and purposes LibSass is fully compatible with the Sass language spec. Any known
+differences can be found as open issues.
+
+
+
 
 About Sass
 ----------
@@ -94,7 +95,7 @@ Initial development of LibSass by Aaron Leung and Hampton Catlin was supported b
 Licensing
 ---------
 
-Our [MIT license](LICENSE) is designed to be as simple and liberal as possible.
+Our [MIT license](LICENSE) is designed to be as siple and liberal as possible.
 
 [@hcatlin]: https://github.com/hcatlin
 [@akhleung]: https://github.com/akhleung
