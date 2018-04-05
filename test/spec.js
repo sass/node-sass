@@ -18,7 +18,7 @@ var normalize = function(str) {
   return str.replace(/\s+/g, '');
 };
 
-var inputs = glob.sync(specPath + '/**/input.*');
+var inputs = glob.sync(`${specPath}/**/input.*`);
 
 var initialize = function(inputCss, options) {
   var testCase = {};
@@ -61,7 +61,7 @@ var runTest = function(inputCssPath, options) {
     if (test.todo || test.warningTodo) {
       this.skip('Test marked with TODO');
     } else if (test.only && test.only.indexOf(impl) === -1) {
-      this.skip('Tests marked for only: ' + test.only.join(', '));
+      this.skip(`Tests marked for only: ${test.only.join(', ')}`);
     } else if (version < test.startVersion) {
       this.skip('Tests marked for newer Sass versions only');
     } else if (version > test.endVersion) {
@@ -90,13 +90,13 @@ var runTest = function(inputCssPath, options) {
             assert.equal(
               error.formatted.toString().split('\n')[0],
               expectedError.toString().split('\n')[0],
-              'Should Error.\nOptions' + JSON.stringify(test.options));
+              `Should Error.\nOptions${JSON.stringify(test.options)}`);
           }
         } else if (expected) {
           assert.equal(
             normalize(result.css.toString()),
             expected,
-            'Should equal with options ' + JSON.stringify(test.options)
+            `Should equal with options ${JSON.stringify(test.options)}`
           );
         }
         done();
@@ -150,7 +150,7 @@ var executeSuite = function(suite, tests) {
           executeSuite(
             {
               name: prevSuite,
-              folder: suite.folder + '/' + prevSuite,
+              folder: `${suite.folder}/${prevSuite}`,
               tests: [],
               suites: [],
               options: Object.assign({}, suite.options),
@@ -166,7 +166,7 @@ var executeSuite = function(suite, tests) {
       executeSuite(
         {
           name: suiteName,
-          folder: suite.folder + '/' + suiteName,
+          folder: `${suite.folder}/${suiteName}`,
           tests: [],
           suites: [],
           options: Object.assign({}, suite.options),

@@ -285,7 +285,7 @@ describe('api', function() {
             return sass.NULL;
           }
           done({
-            file: fixture('include-files/' + url + '.scss')
+            file: fixture(`include-files/${url}.scss`)
           });
         }
       }, function(err, data) {
@@ -734,7 +734,7 @@ describe('api', function() {
         functions: {
           'foo($a)': function(str) {
             str = str.getValue().replace(/['"]/g, '');
-            return new sass.types.String('"' + str + str + '"');
+            return new sass.types.String(`"${str}${str}"`);
           }
         }
       }, function(error, result) {
@@ -749,7 +749,7 @@ describe('api', function() {
         functions: {
           'foo($a)': function(str) {
             var unquoted = str.getValue().replace(/['"]/g, '');
-            str.setValue('"' + unquoted + unquoted + '"');
+            str.setValue(`"${unquoted}${unquoted}"`);
             return str;
           }
         }
@@ -1771,7 +1771,7 @@ describe('api', function() {
               list = new sass.types.List(t - f + 1);
 
             for (i = f; i <= t; i++) {
-              list.setValue(i - f, new sass.types.String('h' + i));
+              list.setValue(i - f, new sass.types.String(`h${i}`));
             }
 
             return list;

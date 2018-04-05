@@ -203,7 +203,7 @@ describe('sass.types', function() {
           assert.equal(error.message, 'Supplied value should be a number');
 
           return true;
-        }, 'argument was: ' + arg);
+        }, `argument was: ${arg}`);
       }
 
       assertJustOneArgument(function() { c.setR(); });
@@ -328,7 +328,7 @@ describe('sass.types', function() {
           assert.ok(error instanceof TypeError);
           assert.equal(error.message, 'Supplied value should be a boolean');
           return true;
-        }, 'setSeparator(' + arg + ')');
+        }, `setSeparator(${arg})`);
       });
     });
 
@@ -352,7 +352,7 @@ describe('sass.types', function() {
           assert.equal(error.message, 'Supplied index should be an integer');
 
           return true;
-        }, 'getValue(' + arg + ')');
+        }, `getValue(${arg})`);
       });
 
       assert.throws(function() {

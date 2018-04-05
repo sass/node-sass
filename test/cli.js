@@ -235,7 +235,7 @@ describe('cli', function() {
 
       bin.stderr.setEncoding('utf8');
       bin.stderr.once('data', function(data) {
-        assert.strictEqual(data.trim(), '=> changed: ' + src);
+        assert.strictEqual(data.trim(), `=> changed: ${src}`);
         fs.unlinkSync(src);
         bin.kill();
         done();

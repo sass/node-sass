@@ -15,7 +15,7 @@ describe('binding', function() {
       assert.throws(
         function() { binding(etx); },
         function(err) {
-          var re = new RegExp('Missing binding.*?\\' + path.sep + 'vendor\\' + path.sep);
+          var re = new RegExp(`Missing binding.*?\\${path.sep}vendor\\${path.sep}`);
           if ((err instanceof Error)) {
             return re.test(err);
           }

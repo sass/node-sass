@@ -4,6 +4,9 @@
   },
   "globals": {},
   "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": 2015
+  },
   "rules": {
     "no-bitwise": 2,
     "camelcase": 0,
@@ -41,6 +44,8 @@
     "no-extra-semi": 2,
     "no-redeclare": 2,
     "block-scoped-var": 2,
-    "no-console": 0
+    "no-console": 0,
+    "no-useless-concat": 2,
+    "prefer-template": 2
   }
 }

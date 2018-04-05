@@ -23,7 +23,7 @@ describe('binary errors', function() {
   }
 
   function getCurrentEnvironment() {
-    return getCurrentPlatform() + ' ' + getCurrentArchitecture();
+    return `${getCurrentPlatform()} ${getCurrentArchitecture()}`;
   }
 
   describe('for an unsupported environment', function() {
@@ -46,7 +46,7 @@ describe('binary errors', function() {
 
     it('documents the expected binary location', function() {
       var message = errors.missingBinary();
-      assert.ok(message.indexOf(path.sep + 'vendor' + path.sep) !== -1);
+      assert.ok(message.indexOf(`${path.sep}vendor${path.sep}`) !== -1);
     });
   });
 

@@ -5,9 +5,9 @@ var assert = require('assert'),
 describe('util', function() {
   describe('useragent', function() {
     it('should look as we expect', function() {
-      var reNode = 'node/' + process.version;
-      var reSass = 'node-sass-installer/' + pkg.version;
-      var reUA = new RegExp('^' + reNode + ' ' + reSass + '$');
+      var reNode = `node/${process.version}`;
+      var reSass = `node-sass-installer/${pkg.version}`;
+      var reUA = new RegExp(`^${reNode} ${reSass}$`);
 
       assert.ok(reUA.test(ua()));
     });
