@@ -1,7 +1,4 @@
 <!--
-
-**Do not ask to but Request package, it breaks old Node compatiblity. It is used for downloading the binaries.**
-
 Before opening an issue:
 - Check that the version of node-sass you're trying to install supports your version of Node by looking at the release page for that version https://github.com/sass/node-sass/releases
 - Read the common workarounds in the [TROUBLESHOOTING.md](https://github.com/sass/node-sass/blob/master/TROUBLESHOOTING.md)
@@ -15,7 +12,7 @@ When encountering a syntax, or compilation issue:
 - [Open an issue on `LibSass`](https://github.com/sass/LibSass/issues/new). You
 may link it back here, but any change will be required there, not here
 
-**When reporting an bug, YOU MUST PROVIDE THIS INFORMATION 
+**When reporting an bug, YOU MUST PROVIDE THIS INFORMATION
 or your issue will be closed without discussion**
 -->
 
