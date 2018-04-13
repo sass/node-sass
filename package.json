@@ -68,7 +68,7 @@
     "nan": "^2.10.0",
     "node-gyp": "^3.3.1",
     "npmlog": "^4.0.0",
-    "request": "~2.79.0",
+    "request": "~2.85.0",
     "sass-graph": "^2.2.4",
     "stdout-stream": "^1.4.0",
     "true-case-path": "^1.0.2"
