@@ -246,7 +246,8 @@ namespace Sass {
       std::string str(prop->to_string(ctx.c_options));
       new_p = SASS_MEMORY_NEW(String_Constant, old_p->pstate(), str);
     }
-    Expression_Obj value = d->value()->perform(&eval);
+    Expression_Obj value = d->value();
+    if (value) value = value->perform(&eval);
     Block_Obj bb = ab ? operator()(ab) : NULL;
     if (!bb) {
       if (!value || (value->is_invisible() && !d->is_important())) return 0;
