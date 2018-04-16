@@ -12,6 +12,7 @@ var Emitter = require('events').EventEmitter,
   watcher = require('../lib/watcher'),
   stdout = require('stdout-stream'),
   stdin = require('get-stdin'),
+  chalk = require('chalk'),
   fs = require('fs');
 
 /**
@@ -271,7 +272,11 @@ function watch(options, emitter) {
   var handler = function(files) {
     files.forEach(function(file) {
       if (path.basename(file)[0] !== '_') {
-        renderFile(file, options, emitter);
+        renderFile(file, options, emitter, function(err) {
+          if (err) {
+            emitter.emit('error', chalk.red(err));
+          }
+        });
       }
     });
   };
@@ -344,12 +349,32 @@ function run(options, emitter) {
     }
   }
 
-  if (options.watch) {
-    watch(options, emitter);
-  } else if (options.directory) {
-    renderDir(options, emitter);
+  if (options.directory) {
+    renderDir(options, emitter, function(err) {
+      if (err) {
+        emitter.emit('error', chalk.red(err));
+        return process.exit(1);
+      }
+
+      if (options.watch) {
+        watch(options, emitter);
+      } else {
+        process.exit();
+      }
+    });
   } else {
-    render(options, emitter);
+    render(options, emitter, function(err) {
+      if (err) {
+        emitter.emit('error', chalk.red(err));
+        return process.exit(1);
+      }
+
+      if (options.watch) {
+        watch(options, emitter);
+      } else {
+        process.exit();
+      }
+    });
   }
 }
 
@@ -361,12 +386,12 @@ function run(options, emitter) {
  * @param {Object} emitter
  * @api private
  */
-function renderFile(file, options, emitter) {
+function renderFile(file, options, emitter, done) {
   options = getOptions([path.resolve(file)], options);
   if (options.watch && !options.quiet) {
     emitter.emit('info', util.format('=> changed: %s', file));
   }
-  render(options, emitter);
+  render(options, emitter, done);
 }
 
 /**
@@ -376,7 +401,7 @@ function renderFile(file, options, emitter) {
  * @param {Object} emitter
  * @api private
  */
-function renderDir(options, emitter) {
+function renderDir(options, emitter, done) {
   var globPath = path.resolve(options.directory, globPattern(options));
   glob(globPath, { ignore: '**/_*', follow: options.follow }, function(err, files) {
     if (err) {
@@ -386,14 +411,17 @@ function renderDir(options, emitter) {
     }
 
     forEach(files, function(subject) {
-      emitter.once('done', this.async());
-      renderFile(subject, options, emitter);
+      renderFile(subject, options, emitter, this.async());
     }, function(successful, arr) {
       var outputDir = path.join(process.cwd(), options.output);
       if (!options.quiet) {
         emitter.emit('info', util.format('Wrote %s CSS files to %s', arr.length, outputDir));
       }
-      process.exit();
+      if (successful) {
+        done();
+      } else {
+        done(new Error('Some files failed to compile'));
+      }
     });
   });
 }
