@@ -67,11 +67,15 @@ namespace Sass {
     plugins(),
     emitter(c_options),
 
+    ast_gc(),
     strings(),
     resources(),
     sheets(),
     subset_map(),
     import_stack(),
+    callee_stack(),
+    traces(),
+    c_compiler(NULL),
 
     c_headers               (std::vector<Sass_Importer_Entry>()),
     c_importers             (std::vector<Sass_Importer_Entry>()),
@@ -130,7 +134,7 @@ namespace Sass {
 
   Context::~Context()
   {
-    // resources were allocated by strdup or malloc
+    // resources were allocated by malloc
     for (size_t i = 0; i < resources.size(); ++i) {
       free(resources[i].contents);
       free(resources[i].srcmap);
@@ -247,10 +251,9 @@ namespace Sass {
     return vec;
   }
 
-
   // register include with resolved path and its content
   // memory of the resources will be freed by us on exit
-  void Context::register_resource(const Include& inc, const Resource& res, ParserState* prstate)
+  void Context::register_resource(const Include& inc, const Resource& res)
   {
 
     // do not parse same resource twice
@@ -298,21 +301,22 @@ namespace Sass {
     for (size_t i = 0; i < import_stack.size() - 2; ++i) {
       auto parent = import_stack[i];
       if (std::strcmp(parent->abs_path, import->abs_path) == 0) {
+        std::string cwd(File::get_cwd());
+        // make path relative to the current directory
         std::string stack("An @import loop has been found:");
         for (size_t n = 1; n < i + 2; ++n) {
-          stack += "\n    " + std::string(import_stack[n]->imp_path) +
-            " imports " + std::string(import_stack[n+1]->imp_path);
+          stack += "\n    " + std::string(File::abs2rel(import_stack[n]->abs_path, cwd, cwd)) +
+            " imports " + std::string(File::abs2rel(import_stack[n+1]->abs_path, cwd, cwd));
         }
         // implement error throw directly until we
         // decided how to handle full stack traces
-        ParserState state = prstate ? *prstate : pstate;
-        throw Exception::InvalidSyntax(state, stack, &import_stack);
+        throw Exception::InvalidSyntax(pstate, traces, stack);
         // error(stack, prstate ? *prstate : pstate, import_stack);
       }
     }
 
     // create a parser instance from the given c_str buffer
-    Parser p(Parser::from_c_str(contents, *this, pstate));
+    Parser p(Parser::from_c_str(contents, *this, traces, pstate));
     // do not yet dispose these buffers
     sass_import_take_source(import);
     sass_import_take_srcmap(import);
@@ -327,7 +331,15 @@ namespace Sass {
       ast_pair(inc.abs_path, { res, root });
     // register resulting resource
     sheets.insert(ast_pair);
+  }
 
+  // register include with resolved path and its content
+  // memory of the resources will be freed by us on exit
+  void Context::register_resource(const Include& inc, const Resource& res, ParserState& prstate)
+  {
+    traces.push_back(Backtrace(prstate));
+    register_resource(inc, res);
+    traces.pop_back();
   }
 
   // Add a new import to the context (called from `import_url`)
@@ -347,7 +359,7 @@ namespace Sass {
       for (size_t i = 0, L = resolved.size(); i < L; ++i)
       { msg_stream << "  " << resolved[i].imp_path << "\n"; }
       msg_stream << "Please delete or rename all but one of these files." << "\n";
-      error(msg_stream.str(), pstate);
+      error(msg_stream.str(), pstate, traces);
     }
 
     // process the resolved entry
@@ -359,7 +371,7 @@ namespace Sass {
       // the memory buffer returned must be freed by us!
       if (char* contents = read_file(resolved[0].abs_path)) {
         // register the newly resolved file resource
-        register_resource(resolved[0], { contents, 0 }, &pstate);
+        register_resource(resolved[0], { contents, 0 }, pstate);
         // return resolved entry
         return resolved[0];
       }
@@ -400,7 +412,7 @@ namespace Sass {
       const Importer importer(imp_path, ctx_path);
       Include include(load_import(importer, pstate));
       if (include.abs_path.empty()) {
-        error("File to import not found or unreadable: " + imp_path + ".\nParent style sheet: " + ctx_path, pstate);
+        error("File to import not found or unreadable: " + imp_path + ".", pstate, traces);
       }
       imp->incs().push_back(include);
     }
@@ -416,12 +428,12 @@ namespace Sass {
     // need one correct import
     bool has_import = false;
     // process all custom importers (or custom headers)
-    for (Sass_Importer_Entry& importer : importers) {
+    for (Sass_Importer_Entry& importer_ent : importers) {
       // int priority = sass_importer_get_priority(importer);
-      Sass_Importer_Fn fn = sass_importer_get_function(importer);
+      Sass_Importer_Fn fn = sass_importer_get_function(importer_ent);
       // skip importer if it returns NULL
       if (Sass_Import_List includes =
-          fn(load_path.c_str(), importer, c_compiler)
+          fn(load_path.c_str(), importer_ent, c_compiler)
       ) {
         // get c pointer copy to iterate over
         Sass_Import_List it_includes = includes;
@@ -436,18 +448,18 @@ namespace Sass {
           // create the importer struct
           Importer importer(uniq_path, ctx_path);
           // query data from the current include
-          Sass_Import_Entry include = *it_includes;
-          char* source = sass_import_take_source(include);
-          char* srcmap = sass_import_take_srcmap(include);
-          size_t line = sass_import_get_error_line(include);
-          size_t column = sass_import_get_error_column(include);
-          const char *abs_path = sass_import_get_abs_path(include);
+          Sass_Import_Entry include_ent = *it_includes;
+          char* source = sass_import_take_source(include_ent);
+          char* srcmap = sass_import_take_srcmap(include_ent);
+          size_t line = sass_import_get_error_line(include_ent);
+          size_t column = sass_import_get_error_column(include_ent);
+          const char *abs_path = sass_import_get_abs_path(include_ent);
           // handle error message passed back from custom importer
           // it may (or may not) override the line and column info
-          if (const char* err_message = sass_import_get_error_message(include)) {
-            if (source || srcmap) register_resource({ importer, uniq_path }, { source, srcmap }, &pstate);
-            if (line == std::string::npos && column == std::string::npos) error(err_message, pstate);
-            else error(err_message, ParserState(ctx_path, source, Position(line, column)));
+          if (const char* err_message = sass_import_get_error_message(include_ent)) {
+            if (source || srcmap) register_resource({ importer, uniq_path }, { source, srcmap }, pstate);
+            if (line == std::string::npos && column == std::string::npos) error(err_message, pstate, traces);
+            else error(err_message, ParserState(ctx_path, source, Position(line, column)), traces);
           }
           // content for import was set
           else if (source) {
@@ -459,7 +471,7 @@ namespace Sass {
             // attach information to AST node
             imp->incs().push_back(include);
             // register the resource buffers
-            register_resource(include, { source, srcmap }, &pstate);
+            register_resource(include, { source, srcmap }, pstate);
           }
           // only a path was retuned
           // try to load it like normal
@@ -645,13 +657,15 @@ namespace Sass {
     for (size_t i = 0, S = c_functions.size(); i < S; ++i)
     { register_c_function(*this, &global, c_functions[i]); }
     // create initial backtrace entry
-    Backtrace backtrace(0, ParserState("", 0), "");
     // create crtp visitor objects
-    Expand expand(*this, &global, &backtrace);
-    Cssize cssize(*this, &backtrace);
+    Expand expand(*this, &global);
+    Cssize cssize(*this);
     CheckNesting check_nesting;
-    // check nesting
-    check_nesting(root);
+    // check nesting in all files
+    for (auto sheet : sheets) {
+      auto styles = sheet.second;
+      check_nesting(styles.root);
+    }
     // expand and eval the tree
     root = expand(root);
     // check nesting
@@ -661,7 +675,8 @@ namespace Sass {
     // should we extend something?
     if (!subset_map.empty()) {
       // create crtp visitor object
-      Extend extend(*this, subset_map);
+      Extend extend(subset_map);
+      extend.setEval(expand.eval);
       // extend tree nodes
       extend(root);
     }
@@ -696,10 +711,8 @@ namespace Sass {
   char* Context::render_srcmap()
   {
     if (source_map_file == "") return 0;
-    char* result = 0;
     std::string map = emitter.render_srcmap(*this);
-    result = sass_copy_c_string(map.c_str());
-    return result;
+    return sass_copy_c_string(map.c_str());
   }
 
 
@@ -831,6 +844,8 @@ namespace Sass {
     register_function(ctx, mixin_exists_sig, mixin_exists, env);
     register_function(ctx, feature_exists_sig, feature_exists, env);
     register_function(ctx, call_sig, call, env);
+    register_function(ctx, content_exists_sig, content_exists, env);
+    register_function(ctx, get_function_sig, get_function, env);
     // Boolean Functions
     register_function(ctx, not_sig, sass_not, env);
     register_function(ctx, if_sig, sass_if, env);

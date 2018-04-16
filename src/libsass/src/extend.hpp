@@ -5,35 +5,70 @@
 #include <set>
 
 #include "ast.hpp"
+#include "node.hpp"
+#include "eval.hpp"
 #include "operation.hpp"
 #include "subset_map.hpp"
+#include "ast_fwd_decl.hpp"
 
 namespace Sass {
 
-  class Context;
-  class Node;
+  Node subweave(Node& one, Node& two);
 
   class Extend : public Operation_CRTP<void, Extend> {
 
-    Context&            ctx;
     Subset_Map& subset_map;
+    Eval* eval;
 
     void fallback_impl(AST_Node_Ptr n) { }
 
+  private:
+
+    std::unordered_map<
+      Selector_List_Obj, // key
+      Selector_List_Obj, // value
+      HashNodes, // hasher
+      CompareNodes // compare
+    > memoizeList;
+
+    std::unordered_map<
+      Complex_Selector_Obj, // key
+      Node, // value
+      HashNodes, // hasher
+      CompareNodes // compare
+    > memoizeComplex;
+
+    /* this turned out to be too much overhead
+       re-evaluate once we store an ast selector
+    std::unordered_map<
+      Compound_Selector_Obj, // key
+      Node, // value
+      HashNodes, // hasher
+      CompareNodes // compare
+    > memoizeCompound;
+    */
+
+    void extendObjectWithSelectorAndBlock(Ruleset_Ptr pObject);
+    Node extendComplexSelector(Complex_Selector_Ptr sel, CompoundSelectorSet& seen, bool isReplace, bool isOriginal);
+    Node extendCompoundSelector(Compound_Selector_Ptr sel, CompoundSelectorSet& seen, bool isReplace);
+    bool complexSelectorHasExtension(Complex_Selector_Ptr selector, CompoundSelectorSet& seen);
+    Node trim(Node& seqses, bool isReplace);
+    Node weave(Node& path);
+
   public:
-    static Node subweave(Node& one, Node& two, Context& ctx);
-    static Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, Context& ctx, Subset_Map& subset_map, bool isReplace, bool& extendedSomething, std::set<Compound_Selector>& seen);
-    static Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, Context& ctx, Subset_Map& subset_map, bool isReplace, bool& extendedSomething);
-    static Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, Context& ctx, Subset_Map& subset_map, bool isReplace = false) {
+    void setEval(Eval& eval);
+    Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, bool isReplace, bool& extendedSomething, CompoundSelectorSet& seen);
+    Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, bool isReplace = false) {
       bool extendedSomething = false;
-      return extendSelectorList(pSelectorList, ctx, subset_map, isReplace, extendedSomething);
+      CompoundSelectorSet seen;
+      return extendSelectorList(pSelectorList, isReplace, extendedSomething, seen);
     }
-    static Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, Context& ctx, Subset_Map& subset_map, std::set<Compound_Selector>& seen) {
+    Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, CompoundSelectorSet& seen) {
       bool isReplace = false;
       bool extendedSomething = false;
-      return extendSelectorList(pSelectorList, ctx, subset_map, isReplace, extendedSomething, seen);
+      return extendSelectorList(pSelectorList, isReplace, extendedSomething, seen);
     }
-    Extend(Context&, Subset_Map&);
+    Extend(Subset_Map&);
     ~Extend() { }
 
     void operator()(Block_Ptr);

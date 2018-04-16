@@ -15,6 +15,7 @@
 #include "environment.hpp"
 #include "source_map.hpp"
 #include "subset_map.hpp"
+#include "backtrace.hpp"
 #include "output.hpp"
 #include "plugins.hpp"
 #include "file.hpp"
@@ -43,6 +44,9 @@ namespace Sass {
     Plugins plugins;
     Output emitter;
 
+    // generic ast node garbage container
+    // used to avoid possible circular refs
+    std::vector<AST_Node_Obj> ast_gc;
     // resources add under our control
     // these are guaranteed to be freed
     std::vector<char*> strings;
@@ -51,6 +55,7 @@ namespace Sass {
     Subset_Map subset_map;
     std::vector<Sass_Import_Entry> import_stack;
     std::vector<Sass_Callee> callee_stack;
+    std::vector<Backtrace> traces;
 
     struct Sass_Compiler* c_compiler;
 
@@ -91,7 +96,8 @@ namespace Sass {
     virtual char* render(Block_Obj root);
     virtual char* render_srcmap();
 
-    void register_resource(const Include&, const Resource&, ParserState* = 0);
+    void register_resource(const Include&, const Resource&);
+    void register_resource(const Include&, const Resource&, ParserState&);
     std::vector<Include> find_includes(const Importer& import);
     Include load_import(const Importer&, ParserState pstate);
 

@@ -79,7 +79,7 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     Trace_Ptr trace = Cast<Trace>(node);
     std::cerr << ind << "Trace " << trace;
     std::cerr << " (" << pstate_source_position(node) << ")"
-    << " [name:" << trace->name() << "]"
+    << " [name:" << trace->name() << ", type: " << trace->type() << "]"
     << std::endl;
     debug_ast(trace->block(), ind + " ", env);
   } else if (Cast<At_Root_Block>(node)) {
@@ -103,7 +103,7 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     std::cerr << (selector->has_line_break() ? " [line-break]": " -");
     std::cerr << (selector->has_line_feed() ? " [line-feed]": " -");
     std::cerr << std::endl;
-    debug_ast(selector->schema(), "#{} ");
+    debug_ast(selector->schema(), ind + "#{} ");
 
     for(const Complex_Selector_Obj& i : selector->elements()) { debug_ast(i, ind + " ", env); }
 
@@ -415,6 +415,7 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     Declaration_Ptr block = Cast<Declaration>(node);
     std::cerr << ind << "Declaration " << block;
     std::cerr << " (" << pstate_source_position(node) << ")";
+    std::cerr << " [is_custom_property: " << block->is_custom_property() << "] ";
     std::cerr << " " << block->tabs() << std::endl;
     debug_ast(block->property(), ind + " prop: ", env);
     debug_ast(block->value(), ind + " value: ", env);
@@ -488,18 +489,6 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     std::cerr << (block->is_invisible() ? " [INVISIBLE]" : "");
     std::cerr << " [indent: " << block->tabs() << "]" << std::endl;
     for(const Statement_Obj& i : block->elements()) { debug_ast(i, ind + " ", env); }
-  } else if (Cast<Textual>(node)) {
-    Textual_Ptr expression = Cast<Textual>(node);
-    std::cerr << ind << "Textual " << expression;
-    std::cerr << " (" << pstate_source_position(node) << ")";
-    if (expression->type() == Textual::NUMBER) std::cerr << " [NUMBER]";
-    else if (expression->type() == Textual::PERCENTAGE) std::cerr << " [PERCENTAGE]";
-    else if (expression->type() == Textual::DIMENSION) std::cerr << " [DIMENSION]";
-    else if (expression->type() == Textual::HEX) std::cerr << " [HEX]";
-    std::cerr << " [" << expression->value() << "]";
-    std::cerr << " [interpolant: " << expression->is_interpolant() << "] ";
-    if (expression->is_delayed()) std::cerr << " [delayed]";
-    std::cerr << std::endl;
   } else if (Cast<Variable>(node)) {
     Variable_Ptr expression = Cast<Variable>(node);
     std::cerr << ind << "Variable " << expression;
@@ -524,8 +513,17 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     std::cerr << " [" << expression->name() << "]";
     if (expression->is_delayed()) std::cerr << " [delayed]";
     if (expression->is_interpolant()) std::cerr << " [interpolant]";
+    if (expression->is_css()) std::cerr << " [css]";
     std::cerr << std::endl;
     debug_ast(expression->arguments(), ind + " args: ", env);
+    debug_ast(expression->func(), ind + " func: ", env);
+  } else if (Cast<Function>(node)) {
+    Function_Ptr expression = Cast<Function>(node);
+    std::cerr << ind << "Function " << expression;
+    std::cerr << " (" << pstate_source_position(node) << ")";
+    if (expression->is_css()) std::cerr << " [css]";
+    std::cerr << std::endl;
+    debug_ast(expression->definition(), ind + " definition: ", env);
   } else if (Cast<Arguments>(node)) {
     Arguments_Ptr expression = Cast<Arguments>(node);
     std::cerr << ind << "Arguments " << expression;
@@ -666,6 +664,7 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     std::cerr << " (" << pstate_source_position(expression) << ")";
     std::cerr << " " << expression->concrete_type();
     std::cerr << " (" << pstate_source_position(node) << ")";
+    if (expression->css()) std::cerr << " [css]";
     if (expression->is_delayed()) std::cerr << " [delayed]";
     if (expression->is_interpolant()) std::cerr << " [is interpolant]";
     if (expression->has_interpolant()) std::cerr << " [has interpolant]";
@@ -698,6 +697,8 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
       case Expression::Concrete_Type::C_ERROR: std::cerr << " [C_ERROR]"; break;
       case Expression::Concrete_Type::FUNCTION: std::cerr << " [FUNCTION]"; break;
       case Expression::Concrete_Type::NUM_TYPES: std::cerr << " [NUM_TYPES]"; break;
+      case Expression::Concrete_Type::VARIABLE: std::cerr << " [VARIABLE]"; break;
+      case Expression::Concrete_Type::FUNCTION_VAL: std::cerr << " [FUNCTION_VAL]"; break;
     }
     std::cerr << std::endl;
   } else if (Cast<Has_Block>(node)) {

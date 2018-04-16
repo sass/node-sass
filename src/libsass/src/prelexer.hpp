@@ -46,7 +46,7 @@ namespace Sass {
       src = exactly<beg>(src);
       if (!src) return 0;
       const char* stop;
-      while (1) {
+      while (true) {
         if (!*src) return 0;
         stop = exactly<end>(src);
         if (stop && (!esc || *(src - 1) != '\\')) return stop;
@@ -139,7 +139,7 @@ namespace Sass {
       src = exactly<beg>(src);
       if (!src) return 0;
       const char* stop;
-      while (1) {
+      while (true) {
         if (!*src) return 0;
         stop = exactly<end>(src);
         if (stop && (!esc || *(src - 1) != '\\')) return stop;
@@ -264,7 +264,6 @@ namespace Sass {
     const char* kwd_while_directive(const char* src);
 
     const char* re_nothing(const char* src);
-    const char* re_type_selector2(const char* src);
 
     const char* re_special_fun(const char* src);
 
@@ -366,6 +365,7 @@ namespace Sass {
     const char* UUNICODE(const char* src);
     const char* NONASCII(const char* src);
     const char* ESCAPE(const char* src);
+    const char* real_uri(const char* src);
     const char* real_uri_suffix(const char* src);
     // const char* real_uri_prefix(const char* src);
     const char* real_uri_value(const char* src);
@@ -379,6 +379,9 @@ namespace Sass {
     const char* static_component(const char* src);
     const char* static_property(const char* src);
     const char* static_value(const char* src);
+
+    const char* css_variable_value(const char* src);
+    const char* css_variable_top_level_value(const char* src);
 
     // Utility functions for finding and counting characters in a string.
     template<char c>

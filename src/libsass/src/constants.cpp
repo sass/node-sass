@@ -79,11 +79,12 @@ namespace Sass {
     extern const char supports_kwd[]     = "@supports";
     extern const char keyframes_kwd[]    = "keyframes";
     extern const char only_kwd[]         = "only";
-    extern const char rgb_kwd[]          = "rgb(";
+    extern const char rgb_fn_kwd[]       = "rgb(";
+    extern const char url_fn_kwd[]       = "url(";
     extern const char url_kwd[]          = "url";
-    // extern const char url_prefix_kwd[]   = "url-prefix(";
+    // extern const char url_prefix_fn_kwd[] = "url-prefix(";
     extern const char important_kwd[]    = "important";
-    extern const char pseudo_not_kwd[]   = ":not(";
+    extern const char pseudo_not_fn_kwd[] = ":not(";
     extern const char even_kwd[]         = "even";
     extern const char odd_kwd[]          = "odd";
     extern const char progid_kwd[]       = "progid";

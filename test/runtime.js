@@ -83,6 +83,37 @@ describe('runtime parameters', function() {
       });
     });
 
+    describe('SASS_BINARY_DIR', function() {
+      beforeEach(function() {
+        process.argv.push('--sass-binary-dir', 'aaa');
+        process.env.SASS_BINARY_DIR = 'bbb';
+        process.env.npm_config_sass_binary_dir = 'ccc';
+        pkg.nodeSassConfig = { binaryDir: 'ddd' };
+      });
+
+      it('command line argument', function() {
+        assert.equal(sass.getBinaryDir(), 'aaa');
+      });
+
+      it('environment variable', function() {
+        process.argv = [];
+        assert.equal(sass.getBinaryDir(), 'bbb');
+      });
+
+      it('npm config variable', function() {
+        process.argv = [];
+        process.env.SASS_BINARY_DIR = null;
+        assert.equal(sass.getBinaryDir(), 'ccc');
+      });
+
+      it('package.json', function() {
+        process.argv = [];
+        process.env.SASS_BINARY_DIR = null;
+        process.env.npm_config_sass_binary_dir = null;
+        assert.equal(sass.getBinaryDir(), 'ddd');
+      });
+    });
+
     describe('SASS_BINARY_PATH', function() {
       beforeEach(function() {
         process.argv.push('--sass-binary-path', 'aaa_binding.node');

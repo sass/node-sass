@@ -13,6 +13,7 @@
       'sources': [
         'libsass/src/ast.cpp',
         'libsass/src/ast_fwd_decl.cpp',
+        'libsass/src/backtrace.cpp',
         'libsass/src/base64vlq.cpp',
         'libsass/src/bind.cpp',
         'libsass/src/cencode.c',
@@ -35,6 +36,8 @@
         'libsass/src/listize.cpp',
         'libsass/src/memory/SharedPtr.cpp',
         'libsass/src/node.cpp',
+        'libsass/src/operators.cpp',
+        'libsass/src/operators.hpp',
         'libsass/src/output.cpp',
         'libsass/src/parser.cpp',
         'libsass/src/plugins.cpp',

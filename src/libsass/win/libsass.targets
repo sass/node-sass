@@ -97,6 +97,8 @@
     <ClCompile Include="$(LIBSASS_SRC_DIR)\plugins.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\position.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\prelexer.cpp" />
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\backtrace.cpp" />
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\operators.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\remove_placeholders.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\sass.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\sass_context.cpp" />

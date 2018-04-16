@@ -158,7 +158,9 @@ int ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrapp
       CustomFunctionBridge *bridge = new CustomFunctionBridge(callback, ctx_w->is_sync);
       ctx_w->function_bridges.push_back(bridge);
 
-      Sass_Function_Entry fn = sass_make_function(create_string(signature), sass_custom_function, bridge);
+      char* sig = create_string(signature);
+      Sass_Function_Entry fn = sass_make_function(sig, sass_custom_function, bridge);
+      free(sig);
       sass_function_set_list_entry(fn_list, i, fn);
     }
 
@@ -225,6 +227,14 @@ int GetResult(sass_context_wrapper* ctx_w, Sass_Context* ctx, bool is_sync = fal
   return status;
 }
 
+void PerformCall(sass_context_wrapper* ctx_w, Nan::Callback* callback, int argc, v8::Local<v8::Value> argv[]) {
+  if (ctx_w->is_sync) {
+    Nan::Call(*callback, argc, argv);
+  } else {
+    callback->Call(argc, argv, ctx_w->async_resource);
+  }
+}
+
 void MakeCallback(uv_work_t* req) {
   Nan::HandleScope scope;
 
@@ -243,7 +253,7 @@ void MakeCallback(uv_work_t* req) {
 
   if (status == 0 && ctx_w->success_callback) {
     // if no error, do callback(null, result)
-    ctx_w->success_callback->Call(0, 0);
+    PerformCall(ctx_w, ctx_w->success_callback, 0, 0);
   }
   else if (ctx_w->error_callback) {
     // if error, do callback(error)
@@ -251,7 +261,7 @@ void MakeCallback(uv_work_t* req) {
     v8::Local<v8::Value> argv[] = {
       Nan::New<v8::String>(err).ToLocalChecked()
     };
-    ctx_w->error_callback->Call(1, argv);
+    PerformCall(ctx_w, ctx_w->error_callback, 1, argv);
   }
   if (try_catch.HasCaught()) {
     Nan::FatalException(try_catch);
@@ -267,7 +277,9 @@ NAN_METHOD(render) {
   struct Sass_Data_Context* dctx = sass_make_data_context(source_string);
   sass_context_wrapper* ctx_w = sass_make_context_wrapper();
 
-  if (ExtractOptions(options, dctx, ctx_w, false, false) >= 0) { 
+  ctx_w->async_resource = new Nan::AsyncResource("node-sass:sass_context_wrapper:render");
+
+  if (ExtractOptions(options, dctx, ctx_w, false, false) >= 0) {
 
     int status = uv_queue_work(uv_default_loop(), &ctx_w->request, compile_it, (uv_after_work_cb)MakeCallback);
 
@@ -290,6 +302,7 @@ NAN_METHOD(render_sync) {
   }
 
   sass_free_context_wrapper(ctx_w);
+    
   info.GetReturnValue().Set(result == 0);
 }
 
@@ -299,6 +312,8 @@ NAN_METHOD(render_file) {
   char* input_path = create_string(Nan::Get(options, Nan::New("file").ToLocalChecked()));
   struct Sass_File_Context* fctx = sass_make_file_context(input_path);
   sass_context_wrapper* ctx_w = sass_make_context_wrapper();
+
+  ctx_w->async_resource = new Nan::AsyncResource("node-sass:sass_context_wrapper:render_file");
 
   if (ExtractOptions(options, fctx, ctx_w, true, false) >= 0) {
 

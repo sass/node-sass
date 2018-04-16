@@ -40,6 +40,7 @@ class CallbackBridge {
     virtual std::vector<v8::Local<v8::Value>> pre_process_args(std::vector<L>) const =0;
 
     Nan::Callback* callback;
+    Nan::AsyncResource* async_resource;
     bool is_sync;
 
     uv_mutex_t cv_mutex;
@@ -55,7 +56,7 @@ Nan::Persistent<v8::Function> CallbackBridge<T, L>::wrapper_constructor;
 
 template <typename T, typename L>
 CallbackBridge<T, L>::CallbackBridge(v8::Local<v8::Function> callback, bool is_sync) : callback(new Nan::Callback(callback)), is_sync(is_sync) {
-  /* 
+  /*
    * This is invoked from the main JavaScript thread.
    * V8 context is available.
    */
@@ -66,6 +67,7 @@ CallbackBridge<T, L>::CallbackBridge(v8::Local<v8::Function> callback, bool is_s
     this->async = new uv_async_t;
     this->async->data = (void*) this;
     uv_async_init(uv_default_loop(), this->async, (uv_async_cb) dispatched_async_uv_callback);
+    this->async_resource = new Nan::AsyncResource("node-sass:CallbackBridge");
   }
 
   v8::Local<v8::Function> func = CallbackBridge<T, L>::get_wrapper_constructor().ToLocalChecked();
@@ -82,6 +84,7 @@ CallbackBridge<T, L>::~CallbackBridge() {
 
   if (!is_sync) {
     uv_close((uv_handle_t*)this->async, &async_gone);
+    delete this->async_resource;
   }
 }
 
@@ -89,7 +92,7 @@ template <typename T, typename L>
 T CallbackBridge<T, L>::operator()(std::vector<void*> argv) {
   // argv.push_back(wrapper);
   if (this->is_sync) {
-    /* 
+    /*
      * This is invoked from the main JavaScript thread.
      * V8 context is available.
      *
@@ -107,10 +110,10 @@ T CallbackBridge<T, L>::operator()(std::vector<void*> argv) {
     argv_v8.push_back(Nan::New(wrapper));
 
     return this->post_process_return_value(
-      this->callback->Call(argv_v8.size(), &argv_v8[0])
+      Nan::Call(*this->callback, argv_v8.size(), &argv_v8[0]).ToLocalChecked()
     );
   } else {
-    /* 
+    /*
      * This is invoked from the worker thread.
      * No V8 context and functions available.
      * Just wait for response from asynchronously
@@ -141,7 +144,7 @@ template <typename T, typename L>
 void CallbackBridge<T, L>::dispatched_async_uv_callback(uv_async_t *req) {
   CallbackBridge* bridge = static_cast<CallbackBridge*>(req->data);
 
-  /* 
+  /*
    * Function scheduled via uv_async mechanism, therefore
    * it is invoked from the main JavaScript thread.
    * V8 context is available.
@@ -159,7 +162,7 @@ void CallbackBridge<T, L>::dispatched_async_uv_callback(uv_async_t *req) {
   }
   argv_v8.push_back(Nan::New(bridge->wrapper));
 
-  bridge->callback->Call(argv_v8.size(), &argv_v8[0]);
+  bridge->callback->Call(argv_v8.size(), &argv_v8[0], bridge->async_resource);
 
   if (try_catch.HasCaught()) {
     Nan::FatalException(try_catch);
@@ -169,7 +172,7 @@ void CallbackBridge<T, L>::dispatched_async_uv_callback(uv_async_t *req) {
 template <typename T, typename L>
 NAN_METHOD(CallbackBridge<T COMMA L>::ReturnCallback) {
 
-  /* 
+  /*
    * Callback function invoked by the user code.
    * It is invoked from the main JavaScript thread.
    * V8 context is available.

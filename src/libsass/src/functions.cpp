@@ -10,6 +10,7 @@
 #include "eval.hpp"
 #include "util.hpp"
 #include "expand.hpp"
+#include "operators.hpp"
 #include "utf8_string.hpp"
 #include "sass/base.h"
 #include "utf8.h"
@@ -30,9 +31,26 @@
 #include "wincrypt.h"
 #endif
 
-#define ARG(argname, argtype) get_arg<argtype>(argname, env, sig, pstate, backtrace)
-#define ARGR(argname, argtype, lo, hi) get_arg_r(argname, env, sig, pstate, lo, hi, backtrace)
-#define ARGM(argname, argtype, ctx) get_arg_m(argname, env, sig, pstate, backtrace, ctx)
+#define ARG(argname, argtype) get_arg<argtype>(argname, env, sig, pstate, traces)
+#define ARGM(argname, argtype, ctx) get_arg_m(argname, env, sig, pstate, traces, ctx)
+
+// return a number object (copied since we want to have reduced units)
+#define ARGN(argname) get_arg_n(argname, env, sig, pstate, traces) // Number copy
+
+// special function for weird hsla percent (10px == 10% == 10 != 0.1)
+#define ARGVAL(argname) get_arg_val(argname, env, sig, pstate, traces) // double
+
+// macros for common ranges (u mean unsigned or upper, r for full range)
+#define DARG_U_FACT(argname) get_arg_r(argname, env, sig, pstate, traces, - 0.0, 1.0) // double
+#define DARG_R_FACT(argname) get_arg_r(argname, env, sig, pstate, traces, - 1.0, 1.0) // double
+#define DARG_U_BYTE(argname) get_arg_r(argname, env, sig, pstate, traces, - 0.0, 255.0) // double
+#define DARG_R_BYTE(argname) get_arg_r(argname, env, sig, pstate, traces, - 255.0, 255.0) // double
+#define DARG_U_PRCT(argname) get_arg_r(argname, env, sig, pstate, traces, - 0.0, 100.0) // double
+#define DARG_R_PRCT(argname) get_arg_r(argname, env, sig, pstate, traces, - 100.0, 100.0) // double
+
+// macros for color related inputs (rbg and alpha/opacity values)
+#define COLOR_NUM(argname) color_num(argname, env, sig, pstate, traces) // double
+#define ALPHA_NUM(argname) alpha_num(argname, env, sig, pstate, traces) // double
 
 namespace Sass {
   using std::stringstream;
@@ -40,7 +58,7 @@ namespace Sass {
 
   Definition_Ptr make_native_function(Signature sig, Native_Function func, Context& ctx)
   {
-    Parser sig_parser = Parser::from_c_str(sig, ctx, ParserState("[built-in function]"));
+    Parser sig_parser = Parser::from_c_str(sig, ctx, ctx.traces, ParserState("[built-in function]"));
     sig_parser.lex<Prelexer::identifier>();
     std::string name(Util::normalize_underscores(sig_parser.lexed));
     Parameters_Obj params = sig_parser.parse_parameters();
@@ -58,7 +76,7 @@ namespace Sass {
     using namespace Prelexer;
 
     const char* sig = sass_function_get_signature(c_func);
-    Parser sig_parser = Parser::from_c_str(sig, ctx, ParserState("[c function]"));
+    Parser sig_parser = Parser::from_c_str(sig, ctx, ctx.traces, ParserState("[c function]"));
     // allow to overload generic callback plus @warn, @error and @debug with custom functions
     sig_parser.lex < alternatives < identifier, exactly <'*'>,
                                     exactly < Constants::warn_kwd >,
@@ -84,28 +102,28 @@ namespace Sass {
 
   namespace Functions {
 
-    inline void handle_utf8_error (const ParserState& pstate, Backtrace* backtrace)
+    inline void handle_utf8_error (const ParserState& pstate, Backtraces traces)
     {
       try {
        throw;
       }
       catch (utf8::invalid_code_point) {
         std::string msg("utf8::invalid_code_point");
-        error(msg, pstate, backtrace);
+        error(msg, pstate, traces);
       }
       catch (utf8::not_enough_room) {
         std::string msg("utf8::not_enough_room");
-        error(msg, pstate, backtrace);
+        error(msg, pstate, traces);
       }
       catch (utf8::invalid_utf8) {
         std::string msg("utf8::invalid_utf8");
-        error(msg, pstate, backtrace);
+        error(msg, pstate, traces);
       }
       catch (...) { throw; }
     }
 
     template <typename T>
-    T* get_arg(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace)
+    T* get_arg(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces)
     {
       // Minimal error handling -- the expectation is that built-ins will be written correctly!
       T* val = Cast<T>(env[argname]);
@@ -116,12 +134,12 @@ namespace Sass {
         msg += sig;
         msg += "` must be a ";
         msg += T::type_name();
-        error(msg, pstate, backtrace);
+        error(msg, pstate, traces);
       }
       return val;
     }
 
-    Map_Ptr get_arg_m(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx)
+    Map_Ptr get_arg_m(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, Context& ctx)
     {
       // Minimal error handling -- the expectation is that built-ins will be written correctly!
       Map_Ptr val = Cast<Map>(env[argname]);
@@ -131,60 +149,123 @@ namespace Sass {
       if (lval && lval->length() == 0) return SASS_MEMORY_NEW(Map, pstate, 0);
 
       // fallback on get_arg for error handling
-      val = get_arg<Map>(argname, env, sig, pstate, backtrace);
+      val = get_arg<Map>(argname, env, sig, pstate, traces);
       return val;
     }
 
-    Number_Ptr get_arg_r(const std::string& argname, Env& env, Signature sig, ParserState pstate, double lo, double hi, Backtrace* backtrace)
+    double get_arg_r(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, double lo, double hi)
     {
       // Minimal error handling -- the expectation is that built-ins will be written correctly!
-      Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, backtrace);
-      double v = val->value();
+      Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, traces);
+      Number tmpnr(val);
+      tmpnr.reduce();
+      double v = tmpnr.value();
       if (!(lo <= v && v <= hi)) {
         std::stringstream msg;
         msg << "argument `" << argname << "` of `" << sig << "` must be between ";
         msg << lo << " and " << hi;
-        error(msg.str(), pstate, backtrace);
+        error(msg.str(), pstate, traces);
       }
+      return v;
+    }
+
+    Number_Ptr get_arg_n(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces)
+    {
+      // Minimal error handling -- the expectation is that built-ins will be written correctly!
+      Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, traces);
+      val = SASS_MEMORY_COPY(val);
+      val->reduce();
       return val;
     }
 
-    #define ARGSEL(argname, seltype, contextualize) get_arg_sel<seltype>(argname, env, sig, pstate, backtrace, ctx)
+    double get_arg_v(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces)
+    {
+      // Minimal error handling -- the expectation is that built-ins will be written correctly!
+      Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, traces);
+      Number tmpnr(val);
+      tmpnr.reduce();
+      /*
+      if (tmpnr.unit() == "%") {
+        tmpnr.value(tmpnr.value() / 100);
+        tmpnr.numerators.clear();
+      } else {
+        if (!tmpnr.is_unitless()) error("argument " + argname + " of `" + std::string(sig) + "` must be unitless", pstate);
+      }
+      */
+      return tmpnr.value();
+    }
+
+    double get_arg_val(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces)
+    {
+      // Minimal error handling -- the expectation is that built-ins will be written correctly!
+      Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, traces);
+      Number tmpnr(val);
+      tmpnr.reduce();
+      return tmpnr.value();
+    }
+
+    double color_num(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces)
+    {
+      Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, traces);
+      Number tmpnr(val);
+      tmpnr.reduce();
+      if (tmpnr.unit() == "%") {
+        return std::min(std::max(tmpnr.value() * 255 / 100.0, 0.0), 255.0);
+      } else {
+        return std::min(std::max(tmpnr.value(), 0.0), 255.0);
+      }
+    }
+
+
+    inline double alpha_num(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces) {
+      Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, traces);
+      Number tmpnr(val);
+      tmpnr.reduce();
+      if (tmpnr.unit() == "%") {
+        return std::min(std::max(tmpnr.value(), 0.0), 100.0);
+      } else {
+        return std::min(std::max(tmpnr.value(), 0.0), 1.0);
+      }
+    }
+
+    #define ARGSEL(argname, seltype, contextualize) get_arg_sel<seltype>(argname, env, sig, pstate, traces, ctx)
 
     template <typename T>
-    T get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx);
+    T get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, Context& ctx);
 
     template <>
-    Selector_List_Obj get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx) {
+    Selector_List_Obj get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, Context& ctx) {
       Expression_Obj exp = ARG(argname, Expression);
       if (exp->concrete_type() == Expression::NULL_VAL) {
         std::stringstream msg;
         msg << argname << ": null is not a valid selector: it must be a string,\n";
         msg << "a list of strings, or a list of lists of strings for `" << function_name(sig) << "'";
-        error(msg.str(), pstate);
+        error(msg.str(), pstate, traces);
       }
       if (String_Constant_Ptr str = Cast<String_Constant>(exp)) {
         str->quote_mark(0);
       }
       std::string exp_src = exp->to_string(ctx.c_options);
-      return Parser::parse_selector(exp_src.c_str(), ctx);
+      return Parser::parse_selector(exp_src.c_str(), ctx, traces);
     }
 
     template <>
-    Compound_Selector_Obj get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtrace* backtrace, Context& ctx) {
+    Compound_Selector_Obj get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, Context& ctx) {
       Expression_Obj exp = ARG(argname, Expression);
       if (exp->concrete_type() == Expression::NULL_VAL) {
         std::stringstream msg;
         msg << argname << ": null is not a string for `" << function_name(sig) << "'";
-        error(msg.str(), pstate);
+        error(msg.str(), pstate, traces);
       }
       if (String_Constant_Ptr str = Cast<String_Constant>(exp)) {
         str->quote_mark(0);
       }
       std::string exp_src = exp->to_string(ctx.c_options);
-      Selector_List_Obj sel_list = Parser::parse_selector(exp_src.c_str(), ctx);
+      Selector_List_Obj sel_list = Parser::parse_selector(exp_src.c_str(), ctx, traces);
       if (sel_list->length() == 0) return NULL;
-      return sel_list->first()->tail()->head();
+      Complex_Selector_Obj first = sel_list->first();
+      if (!first->tail()) return first->head();
+      return first->tail()->head();
     }
 
     #ifdef __MINGW32__
@@ -220,56 +301,110 @@ namespace Sass {
       "global-variable-shadowing",
       "extend-selector-pseudoclass",
       "at-error",
-      "units-level-3"
+      "units-level-3",
+      "custom-property"
     };
 
     ////////////////
     // RGB FUNCTIONS
     ////////////////
 
-    inline double color_num(Number_Ptr n) {
-      if (n->unit() == "%") {
-        return std::min(std::max(n->value() * 255 / 100.0, 0.0), 255.0);
-      } else {
-        return std::min(std::max(n->value(), 0.0), 255.0);
+    inline bool special_number(String_Constant_Ptr s) {
+      if (s) {
+        std::string calc("calc(");
+        std::string var("var(");
+        std::string ss(s->value());
+        return std::equal(calc.begin(), calc.end(), ss.begin()) ||
+               std::equal(var.begin(), var.end(), ss.begin());
       }
-    }
-
-    inline double alpha_num(Number_Ptr n) {
-      if (n->unit() == "%") {
-        return std::min(std::max(n->value(), 0.0), 100.0);
-      } else {
-        return std::min(std::max(n->value(), 0.0), 1.0);
-      }
+      return false;
     }
 
     Signature rgb_sig = "rgb($red, $green, $blue)";
     BUILT_IN(rgb)
     {
+      if (
+        special_number(Cast<String_Constant>(env["$red"])) ||
+        special_number(Cast<String_Constant>(env["$green"])) ||
+        special_number(Cast<String_Constant>(env["$blue"]))
+      ) {
+        return SASS_MEMORY_NEW(String_Constant, pstate, "rgb("
+                                                        + env["$red"]->to_string()
+                                                        + ", "
+                                                        + env["$green"]->to_string()
+                                                        + ", "
+                                                        + env["$blue"]->to_string()
+                                                        + ")"
+        );
+      }
+
       return SASS_MEMORY_NEW(Color,
                              pstate,
-                             color_num(ARG("$red",   Number)),
-                             color_num(ARG("$green", Number)),
-                             color_num(ARG("$blue",  Number)));
+                             COLOR_NUM("$red"),
+                             COLOR_NUM("$green"),
+                             COLOR_NUM("$blue"));
     }
 
     Signature rgba_4_sig = "rgba($red, $green, $blue, $alpha)";
     BUILT_IN(rgba_4)
     {
+      if (
+        special_number(Cast<String_Constant>(env["$red"])) ||
+        special_number(Cast<String_Constant>(env["$green"])) ||
+        special_number(Cast<String_Constant>(env["$blue"])) ||
+        special_number(Cast<String_Constant>(env["$alpha"]))
+      ) {
+        return SASS_MEMORY_NEW(String_Constant, pstate, "rgba("
+                                                        + env["$red"]->to_string()
+                                                        + ", "
+                                                        + env["$green"]->to_string()
+                                                        + ", "
+                                                        + env["$blue"]->to_string()
+                                                        + ", "
+                                                        + env["$alpha"]->to_string()
+                                                        + ")"
+        );
+      }
+
       return SASS_MEMORY_NEW(Color,
                              pstate,
-                             color_num(ARG("$red",   Number)),
-                             color_num(ARG("$green", Number)),
-                             color_num(ARG("$blue",  Number)),
-                             alpha_num(ARG("$alpha", Number)));
+                             COLOR_NUM("$red"),
+                             COLOR_NUM("$green"),
+                             COLOR_NUM("$blue"),
+                             ALPHA_NUM("$alpha"));
     }
 
     Signature rgba_2_sig = "rgba($color, $alpha)";
     BUILT_IN(rgba_2)
     {
+      if (
+        special_number(Cast<String_Constant>(env["$color"]))
+      ) {
+        return SASS_MEMORY_NEW(String_Constant, pstate, "rgba("
+                                                        + env["$color"]->to_string()
+                                                        + ", "
+                                                        + env["$alpha"]->to_string()
+                                                        + ")"
+        );
+      }
+
       Color_Ptr c_arg = ARG("$color", Color);
+
+      if (
+        special_number(Cast<String_Constant>(env["$alpha"]))
+      ) {
+        std::stringstream strm;
+        strm << "rgba("
+                 << (int)c_arg->r() << ", "
+                 << (int)c_arg->g() << ", "
+                 << (int)c_arg->b() << ", "
+                 << env["$alpha"]->to_string()
+             << ")";
+        return SASS_MEMORY_NEW(String_Constant, pstate, strm.str());
+      }
+
       Color_Ptr new_c = SASS_MEMORY_COPY(c_arg);
-      new_c->a(alpha_num(ARG("$alpha", Number)));
+      new_c->a(ALPHA_NUM("$alpha"));
       new_c->disp("");
       return new_c;
     }
@@ -286,8 +421,8 @@ namespace Sass {
     BUILT_IN(blue)
     { return SASS_MEMORY_NEW(Number, pstate, ARG("$color", Color)->b()); }
 
-    Color* colormix(Context& ctx, ParserState& pstate, Color* color1, Color* color2, Number* weight) {
-      double p = weight->value()/100;
+    Color* colormix(Context& ctx, ParserState& pstate, Color* color1, Color* color2, double weight) {
+      double p = weight/100;
       double w = 2*p - 1;
       double a = color1->a() - color2->a();
 
@@ -307,7 +442,7 @@ namespace Sass {
     {
       Color_Obj  color1 = ARG("$color-1", Color);
       Color_Obj  color2 = ARG("$color-2", Color);
-      Number_Obj weight = ARGR("$weight", Number, 0, 100);
+      double weight = DARG_U_PRCT("$weight");
       return colormix(ctx, pstate, color1, color2, weight);
 
     }
@@ -328,7 +463,9 @@ namespace Sass {
       double min = std::min(r, std::min(g, b));
       double delta = max - min;
 
-      double h = 0, s = 0, l = (max + min) / 2.0;
+      double h = 0;
+      double s;
+      double l = (max + min) / 2.0;
 
       if (max == min) {
         h = s = 0; // achromatic
@@ -395,9 +532,24 @@ namespace Sass {
     Signature hsl_sig = "hsl($hue, $saturation, $lightness)";
     BUILT_IN(hsl)
     {
-      return hsla_impl(ARG("$hue", Number)->value(),
-                       ARG("$saturation", Number)->value(),
-                       ARG("$lightness",  Number)->value(),
+      if (
+        special_number(Cast<String_Constant>(env["$hue"])) ||
+        special_number(Cast<String_Constant>(env["$saturation"])) ||
+        special_number(Cast<String_Constant>(env["$lightness"]))
+      ) {
+        return SASS_MEMORY_NEW(String_Constant, pstate, "hsl("
+                                                        + env["$hue"]->to_string()
+                                                        + ", "
+                                                        + env["$saturation"]->to_string()
+                                                        + ", "
+                                                        + env["$lightness"]->to_string()
+                                                        + ")"
+        );
+      }
+
+      return hsla_impl(ARGVAL("$hue"),
+                       ARGVAL("$saturation"),
+                       ARGVAL("$lightness"),
                        1.0,
                        ctx,
                        pstate);
@@ -406,10 +558,28 @@ namespace Sass {
     Signature hsla_sig = "hsla($hue, $saturation, $lightness, $alpha)";
     BUILT_IN(hsla)
     {
-      return hsla_impl(ARG("$hue", Number)->value(),
-                       ARG("$saturation", Number)->value(),
-                       ARG("$lightness",  Number)->value(),
-                       ARG("$alpha",  Number)->value(),
+      if (
+        special_number(Cast<String_Constant>(env["$hue"])) ||
+        special_number(Cast<String_Constant>(env["$saturation"])) ||
+        special_number(Cast<String_Constant>(env["$lightness"])) ||
+        special_number(Cast<String_Constant>(env["$alpha"]))
+      ) {
+        return SASS_MEMORY_NEW(String_Constant, pstate, "hsla("
+                                                        + env["$hue"]->to_string()
+                                                        + ", "
+                                                        + env["$saturation"]->to_string()
+                                                        + ", "
+                                                        + env["$lightness"]->to_string()
+                                                        + ", "
+                                                        + env["$alpha"]->to_string()
+                                                        + ")"
+        );
+      }
+
+      return hsla_impl(ARGVAL("$hue"),
+                       ARGVAL("$saturation"),
+                       ARGVAL("$lightness"),
+                       ARGVAL("$alpha"),
                        ctx,
                        pstate);
     }
@@ -448,11 +618,11 @@ namespace Sass {
     BUILT_IN(adjust_hue)
     {
       Color_Ptr rgb_color = ARG("$color", Color);
-      Number_Ptr degrees = ARG("$degrees", Number);
+      double degrees = ARGVAL("$degrees");
       HSL hsl_color = rgb_to_hsl(rgb_color->r(),
                                  rgb_color->g(),
                                  rgb_color->b());
-      return hsla_impl(hsl_color.h + degrees->value(),
+      return hsla_impl(hsl_color.h + degrees,
                        hsl_color.s,
                        hsl_color.l,
                        rgb_color->a(),
@@ -464,7 +634,7 @@ namespace Sass {
     BUILT_IN(lighten)
     {
       Color_Ptr rgb_color = ARG("$color", Color);
-      Number_Ptr amount = ARGR("$amount", Number, 0, 100);
+      double amount = DARG_U_PRCT("$amount");
       HSL hsl_color = rgb_to_hsl(rgb_color->r(),
                                  rgb_color->g(),
                                  rgb_color->b());
@@ -476,7 +646,7 @@ namespace Sass {
 
       return hsla_impl(hsl_color.h,
                        hsl_color.s,
-                       hslcolorL + amount->value(),
+                       hslcolorL + amount,
                        rgb_color->a(),
                        ctx,
                        pstate);
@@ -486,7 +656,7 @@ namespace Sass {
     BUILT_IN(darken)
     {
       Color_Ptr rgb_color = ARG("$color", Color);
-      Number_Ptr amount = ARGR("$amount", Number, 0, 100);
+      double amount = DARG_U_PRCT("$amount");
       HSL hsl_color = rgb_to_hsl(rgb_color->r(),
                                  rgb_color->g(),
                                  rgb_color->b());
@@ -499,7 +669,7 @@ namespace Sass {
 
       return hsla_impl(hsl_color.h,
                        hsl_color.s,
-                       hslcolorL - amount->value(),
+                       hslcolorL - amount,
                        rgb_color->a(),
                        ctx,
                        pstate);
@@ -509,18 +679,17 @@ namespace Sass {
     BUILT_IN(saturate)
     {
       // CSS3 filter function overload: pass literal through directly
-      Number_Ptr amount = Cast<Number>(env["$amount"]);
-      if (!amount) {
+      if (!Cast<Number>(env["$amount"])) {
         return SASS_MEMORY_NEW(String_Quoted, pstate, "saturate(" + env["$color"]->to_string(ctx.c_options) + ")");
       }
 
-      ARGR("$amount", Number, 0, 100);
+      double amount = DARG_U_PRCT("$amount");
       Color_Ptr rgb_color = ARG("$color", Color);
       HSL hsl_color = rgb_to_hsl(rgb_color->r(),
                                  rgb_color->g(),
                                  rgb_color->b());
 
-      double hslcolorS = hsl_color.s + amount->value();
+      double hslcolorS = hsl_color.s + amount;
 
       // Saturation cannot be below 0 or above 100
       if (hslcolorS < 0) {
@@ -542,12 +711,12 @@ namespace Sass {
     BUILT_IN(desaturate)
     {
       Color_Ptr rgb_color = ARG("$color", Color);
-      Number_Ptr amount = ARGR("$amount", Number, 0, 100);
+      double amount = DARG_U_PRCT("$amount");
       HSL hsl_color = rgb_to_hsl(rgb_color->r(),
                                  rgb_color->g(),
                                  rgb_color->b());
 
-      double hslcolorS = hsl_color.s - amount->value();
+      double hslcolorS = hsl_color.s - amount;
 
       // Saturation cannot be below 0 or above 100
       if (hslcolorS <= 0) {
@@ -610,7 +779,7 @@ namespace Sass {
         return SASS_MEMORY_NEW(String_Quoted, pstate, "invert(" + amount->to_string(ctx.c_options) + ")");
       }
 
-      Number_Obj weight = ARGR("$weight", Number, 0, 100);
+      double weight = DARG_U_PRCT("$weight");
       Color_Ptr rgb_color = ARG("$color", Color);
       Color_Obj inv = SASS_MEMORY_NEW(Color,
                              pstate,
@@ -647,7 +816,7 @@ namespace Sass {
     BUILT_IN(opacify)
     {
       Color_Ptr color = ARG("$color", Color);
-      double amount = ARGR("$amount", Number, 0, 1)->value();
+      double amount = DARG_U_FACT("$amount");
       double alpha = std::min(color->a() + amount, 1.0);
       return SASS_MEMORY_NEW(Color,
                              pstate,
@@ -662,7 +831,7 @@ namespace Sass {
     BUILT_IN(transparentize)
     {
       Color_Ptr color = ARG("$color", Color);
-      double amount = ARGR("$amount", Number, 0, 1)->value();
+      double amount = DARG_U_FACT("$amount");
       double alpha = std::max(color->a() - amount, 0.0);
       return SASS_MEMORY_NEW(Color,
                              pstate,
@@ -692,13 +861,13 @@ namespace Sass {
       bool hsl = h || s || l;
 
       if (rgb && hsl) {
-        error("Cannot specify HSL and RGB values for a color at the same time for `adjust-color'", pstate);
+        error("Cannot specify HSL and RGB values for a color at the same time for `adjust-color'", pstate, traces);
       }
       if (rgb) {
-        double rr = r ? ARGR("$red",   Number, -255, 255)->value() : 0;
-        double gg = g ? ARGR("$green", Number, -255, 255)->value() : 0;
-        double bb = b ? ARGR("$blue",  Number, -255, 255)->value() : 0;
-        double aa = a ? ARGR("$alpha", Number, -1, 1)->value() : 0;
+        double rr = r ? DARG_R_BYTE("$red") : 0;
+        double gg = g ? DARG_R_BYTE("$green") : 0;
+        double bb = b ? DARG_R_BYTE("$blue") : 0;
+        double aa = a ? DARG_R_FACT("$alpha") : 0;
         return SASS_MEMORY_NEW(Color,
                                pstate,
                                color->r() + rr,
@@ -708,9 +877,9 @@ namespace Sass {
       }
       if (hsl) {
         HSL hsl_struct = rgb_to_hsl(color->r(), color->g(), color->b());
-        double ss = s ? ARGR("$saturation", Number, -100, 100)->value() : 0;
-        double ll = l ? ARGR("$lightness",  Number, -100, 100)->value() : 0;
-        double aa = a ? ARGR("$alpha",      Number, -1, 1)->value() : 0;
+        double ss = s ? DARG_R_PRCT("$saturation") : 0;
+        double ll = l ? DARG_R_PRCT("$lightness") : 0;
+        double aa = a ? DARG_R_FACT("$alpha") : 0;
         return hsla_impl(hsl_struct.h + (h ? h->value() : 0),
                          hsl_struct.s + ss,
                          hsl_struct.l + ll,
@@ -726,7 +895,7 @@ namespace Sass {
                                color->b(),
                                color->a() + (a ? a->value() : 0));
       }
-      error("not enough arguments for `adjust-color'", pstate);
+      error("not enough arguments for `adjust-color'", pstate, traces);
       // unreachable
       return color;
     }
@@ -747,13 +916,13 @@ namespace Sass {
       bool hsl = h || s || l;
 
       if (rgb && hsl) {
-        error("Cannot specify HSL and RGB values for a color at the same time for `scale-color'", pstate);
+        error("Cannot specify HSL and RGB values for a color at the same time for `scale-color'", pstate, traces);
       }
       if (rgb) {
-        double rscale = (r ? ARGR("$red",   Number, -100.0, 100.0)->value() : 0.0) / 100.0;
-        double gscale = (g ? ARGR("$green", Number, -100.0, 100.0)->value() : 0.0) / 100.0;
-        double bscale = (b ? ARGR("$blue",  Number, -100.0, 100.0)->value() : 0.0) / 100.0;
-        double ascale = (a ? ARGR("$alpha", Number, -100.0, 100.0)->value() : 0.0) / 100.0;
+        double rscale = (r ? DARG_R_PRCT("$red") : 0.0) / 100.0;
+        double gscale = (g ? DARG_R_PRCT("$green") : 0.0) / 100.0;
+        double bscale = (b ? DARG_R_PRCT("$blue") : 0.0) / 100.0;
+        double ascale = (a ? DARG_R_PRCT("$alpha") : 0.0) / 100.0;
         return SASS_MEMORY_NEW(Color,
                                pstate,
                                color->r() + rscale * (rscale > 0.0 ? 255 - color->r() : color->r()),
@@ -762,10 +931,10 @@ namespace Sass {
                                color->a() + ascale * (ascale > 0.0 ? 1.0 - color->a() : color->a()));
       }
       if (hsl) {
-        double hscale = (h ? ARGR("$hue",        Number, -100.0, 100.0)->value() : 0.0) / 100.0;
-        double sscale = (s ? ARGR("$saturation", Number, -100.0, 100.0)->value() : 0.0) / 100.0;
-        double lscale = (l ? ARGR("$lightness",  Number, -100.0, 100.0)->value() : 0.0) / 100.0;
-        double ascale = (a ? ARGR("$alpha",      Number, -100.0, 100.0)->value() : 0.0) / 100.0;
+        double hscale = (h ? DARG_R_PRCT("$hue") : 0.0) / 100.0;
+        double sscale = (s ? DARG_R_PRCT("$saturation") : 0.0) / 100.0;
+        double lscale = (l ? DARG_R_PRCT("$lightness") : 0.0) / 100.0;
+        double ascale = (a ? DARG_R_PRCT("$alpha") : 0.0) / 100.0;
         HSL hsl_struct = rgb_to_hsl(color->r(), color->g(), color->b());
         hsl_struct.h += hscale * (hscale > 0.0 ? 360.0 - hsl_struct.h : hsl_struct.h);
         hsl_struct.s += sscale * (sscale > 0.0 ? 100.0 - hsl_struct.s : hsl_struct.s);
@@ -774,7 +943,7 @@ namespace Sass {
         return hsla_impl(hsl_struct.h, hsl_struct.s, hsl_struct.l, alpha, ctx, pstate);
       }
       if (a) {
-        double ascale = (a ? ARGR("$alpha", Number, -100.0, 100.0)->value() : 0.0) / 100.0;
+        double ascale = (DARG_R_PRCT("$alpha")) / 100.0;
         return SASS_MEMORY_NEW(Color,
                                pstate,
                                color->r(),
@@ -782,7 +951,7 @@ namespace Sass {
                                color->b(),
                                color->a() + ascale * (ascale > 0.0 ? 1.0 - color->a() : color->a()));
       }
-      error("not enough arguments for `scale-color'", pstate);
+      error("not enough arguments for `scale-color'", pstate, traces);
       // unreachable
       return color;
     }
@@ -803,26 +972,26 @@ namespace Sass {
       bool hsl = h || s || l;
 
       if (rgb && hsl) {
-        error("Cannot specify HSL and RGB values for a color at the same time for `change-color'", pstate);
+        error("Cannot specify HSL and RGB values for a color at the same time for `change-color'", pstate, traces);
       }
       if (rgb) {
         return SASS_MEMORY_NEW(Color,
                                pstate,
-                               r ? ARGR("$red",   Number, 0, 255)->value() : color->r(),
-                               g ? ARGR("$green", Number, 0, 255)->value() : color->g(),
-                               b ? ARGR("$blue",  Number, 0, 255)->value() : color->b(),
-                               a ? ARGR("$alpha", Number, 0, 255)->value() : color->a());
+                               r ? DARG_U_BYTE("$red") : color->r(),
+                               g ? DARG_U_BYTE("$green") : color->g(),
+                               b ? DARG_U_BYTE("$blue") : color->b(),
+                               a ? DARG_U_BYTE("$alpha") : color->a());
       }
       if (hsl) {
         HSL hsl_struct = rgb_to_hsl(color->r(), color->g(), color->b());
         if (h) hsl_struct.h = std::fmod(h->value(), 360.0);
-        if (s) hsl_struct.s = ARGR("$saturation", Number, 0, 100)->value();
-        if (l) hsl_struct.l = ARGR("$lightness",  Number, 0, 100)->value();
-        double alpha = a ? ARGR("$alpha", Number, 0, 1.0)->value() : color->a();
+        if (s) hsl_struct.s = DARG_U_PRCT("$saturation");
+        if (l) hsl_struct.l = DARG_U_PRCT("$lightness");
+        double alpha = a ? DARG_U_FACT("$alpha") : color->a();
         return hsla_impl(hsl_struct.h, hsl_struct.s, hsl_struct.l, alpha, ctx, pstate);
       }
       if (a) {
-        double alpha = a ? ARGR("$alpha", Number, 0, 1.0)->value() : color->a();
+        double alpha = DARG_U_FACT("$alpha");
         return SASS_MEMORY_NEW(Color,
                                pstate,
                                color->r(),
@@ -830,7 +999,7 @@ namespace Sass {
                                color->b(),
                                alpha);
       }
-      error("not enough arguments for `change-color'", pstate);
+      error("not enough arguments for `change-color'", pstate, traces);
       // unreachable
       return color;
     }
@@ -923,7 +1092,7 @@ namespace Sass {
       }
       // handle any invalid utf8 errors
       // other errors will be re-thrown
-      catch (...) { handle_utf8_error(pstate, backtrace); }
+      catch (...) { handle_utf8_error(pstate, traces); }
       // return something even if we had an error (-1)
       return SASS_MEMORY_NEW(Number, pstate, (double)len);
     }
@@ -939,8 +1108,7 @@ namespace Sass {
         String_Constant_Ptr i = ARG("$insert", String_Constant);
         std::string ins = i->value();
         ins = unquote(ins);
-        Number_Ptr ind = ARG("$index", Number);
-        double index = ind->value();
+        double index = ARGVAL("$index");
         size_t len = UTF_8::code_point_count(str, 0, str.size());
 
         if (index > 0 && index <= len) {
@@ -970,7 +1138,7 @@ namespace Sass {
       }
       // handle any invalid utf8 errors
       // other errors will be re-thrown
-      catch (...) { handle_utf8_error(pstate, backtrace); }
+      catch (...) { handle_utf8_error(pstate, traces); }
       return SASS_MEMORY_NEW(String_Quoted, pstate, str);
     }
 
@@ -994,7 +1162,7 @@ namespace Sass {
       }
       // handle any invalid utf8 errors
       // other errors will be re-thrown
-      catch (...) { handle_utf8_error(pstate, backtrace); }
+      catch (...) { handle_utf8_error(pstate, traces); }
       // return something even if we had an error (-1)
       return SASS_MEMORY_NEW(Number, pstate, (double)index);
     }
@@ -1005,8 +1173,8 @@ namespace Sass {
       std::string newstr;
       try {
         String_Constant_Ptr s = ARG("$string", String_Constant);
-        double start_at = ARG("$start-at", Number)->value();
-        double end_at = ARG("$end-at", Number)->value();
+        double start_at = ARGVAL("$start-at");
+        double end_at = ARGVAL("$end-at");
         String_Quoted_Ptr ss = Cast<String_Quoted>(s);
 
         std::string str = unquote(s->value());
@@ -1047,7 +1215,7 @@ namespace Sass {
       }
       // handle any invalid utf8 errors
       // other errors will be re-thrown
-      catch (...) { handle_utf8_error(pstate, backtrace); }
+      catch (...) { handle_utf8_error(pstate, traces); }
       return SASS_MEMORY_NEW(String_Quoted, pstate, newstr);
     }
 
@@ -1100,49 +1268,45 @@ namespace Sass {
     Signature percentage_sig = "percentage($number)";
     BUILT_IN(percentage)
     {
-      Number_Ptr n = ARG("$number", Number);
-      if (!n->is_unitless()) error("argument $number of `" + std::string(sig) + "` must be unitless", pstate);
+      Number_Obj n = ARGN("$number");
+      if (!n->is_unitless()) error("argument $number of `" + std::string(sig) + "` must be unitless", pstate, traces);
       return SASS_MEMORY_NEW(Number, pstate, n->value() * 100, "%");
     }
 
     Signature round_sig = "round($number)";
     BUILT_IN(round)
     {
-      Number_Ptr n = ARG("$number", Number);
-      Number_Ptr r = SASS_MEMORY_COPY(n);
-      r->pstate(pstate);
+      Number_Obj r = ARGN("$number");
       r->value(Sass::round(r->value(), ctx.c_options.precision));
-      return r;
+      r->pstate(pstate);
+      return r.detach();
     }
 
     Signature ceil_sig = "ceil($number)";
     BUILT_IN(ceil)
     {
-      Number_Ptr n = ARG("$number", Number);
-      Number_Ptr r = SASS_MEMORY_COPY(n);
-      r->pstate(pstate);
+      Number_Obj r = ARGN("$number");
       r->value(std::ceil(r->value()));
-      return r;
+      r->pstate(pstate);
+      return r.detach();
     }
 
     Signature floor_sig = "floor($number)";
     BUILT_IN(floor)
     {
-      Number_Ptr n = ARG("$number", Number);
-      Number_Ptr r = SASS_MEMORY_COPY(n);
-      r->pstate(pstate);
+      Number_Obj r = ARGN("$number");
       r->value(std::floor(r->value()));
-      return r;
+      r->pstate(pstate);
+      return r.detach();
     }
 
     Signature abs_sig = "abs($number)";
     BUILT_IN(abs)
     {
-      Number_Ptr n = ARG("$number", Number);
-      Number_Ptr r = SASS_MEMORY_COPY(n);
-      r->pstate(pstate);
+      Number_Obj r = ARGN("$number");
       r->value(std::abs(r->value()));
-      return r;
+      r->pstate(pstate);
+      return r.detach();
     }
 
     Signature min_sig = "min($numbers...)";
@@ -1154,7 +1318,7 @@ namespace Sass {
         Expression_Obj val = arglist->value_at_index(i);
         Number_Obj xi = Cast<Number>(val);
         if (!xi) {
-          error("\"" + val->to_string(ctx.c_options) + "\" is not a number for `min'", pstate);
+          error("\"" + val->to_string(ctx.c_options) + "\" is not a number for `min'", pstate, traces);
         }
         if (least) {
           if (*xi < *least) least = xi;
@@ -1172,7 +1336,7 @@ namespace Sass {
         Expression_Obj val = arglist->value_at_index(i);
         Number_Obj xi = Cast<Number>(val);
         if (!xi) {
-          error("\"" + val->to_string(ctx.c_options) + "\" is not a number for `max'", pstate);
+          error("\"" + val->to_string(ctx.c_options) + "\" is not a number for `max'", pstate, traces);
         }
         if (greatest) {
           if (*greatest < *xi) greatest = xi;
@@ -1189,19 +1353,19 @@ namespace Sass {
       Number_Ptr l = Cast<Number>(arg);
       Boolean_Ptr b = Cast<Boolean>(arg);
       if (l) {
-        double v = l->value();
-        if (v < 1) {
+        double lv = l->value();
+        if (lv < 1) {
           stringstream err;
-          err << "$limit " << v << " must be greater than or equal to 1 for `random'";
-          error(err.str(), pstate);
+          err << "$limit " << lv << " must be greater than or equal to 1 for `random'";
+          error(err.str(), pstate, traces);
         }
-        bool eq_int = std::fabs(trunc(v) - v) < NUMBER_EPSILON;
+        bool eq_int = std::fabs(trunc(lv) - lv) < NUMBER_EPSILON;
         if (!eq_int) {
           stringstream err;
-          err << "Expected $limit to be an integer but got " << v << " for `random'";
-          error(err.str(), pstate);
+          err << "Expected $limit to be an integer but got " << lv << " for `random'";
+          error(err.str(), pstate, traces);
         }
-        std::uniform_real_distribution<> distributor(1, v + 1);
+        std::uniform_real_distribution<> distributor(1, lv + 1);
         uint_fast32_t distributed = static_cast<uint_fast32_t>(distributor(rand));
         return SASS_MEMORY_NEW(Number, pstate, (double)distributed);
       }
@@ -1210,11 +1374,12 @@ namespace Sass {
         double distributed = static_cast<double>(distributor(rand));
         return SASS_MEMORY_NEW(Number, pstate, distributed);
       } else if (v) {
-        throw Exception::InvalidArgumentType(pstate, "random", "$limit", "number", v);
+        traces.push_back(Backtrace(pstate));
+        throw Exception::InvalidArgumentType(pstate, traces, "random", "$limit", "number", v);
       } else {
-        throw Exception::InvalidArgumentType(pstate, "random", "$limit", "number");
+        traces.push_back(Backtrace(pstate));
+        throw Exception::InvalidArgumentType(pstate, traces, "random", "$limit", "number");
       }
-      return 0;
     }
 
     /////////////////
@@ -1251,20 +1416,20 @@ namespace Sass {
     Signature nth_sig = "nth($list, $n)";
     BUILT_IN(nth)
     {
-      Number_Ptr n = ARG("$n", Number);
+      double nr = ARGVAL("$n");
       Map_Ptr m = Cast<Map>(env["$list"]);
       if (Selector_List_Ptr sl = Cast<Selector_List>(env["$list"])) {
         size_t len = m ? m->length() : sl->length();
         bool empty = m ? m->empty() : sl->empty();
-        if (empty) error("argument `$list` of `" + std::string(sig) + "` must not be empty", pstate);
-        double index = std::floor(n->value() < 0 ? len + n->value() : n->value() - 1);
-        if (index < 0 || index > len - 1) error("index out of bounds for `" + std::string(sig) + "`", pstate);
+        if (empty) error("argument `$list` of `" + std::string(sig) + "` must not be empty", pstate, traces);
+        double index = std::floor(nr < 0 ? len + nr : nr - 1);
+        if (index < 0 || index > len - 1) error("index out of bounds for `" + std::string(sig) + "`", pstate, traces);
         // return (*sl)[static_cast<int>(index)];
         Listize listize;
         return (*sl)[static_cast<int>(index)]->perform(&listize);
       }
       List_Obj l = Cast<List>(env["$list"]);
-      if (n->value() == 0) error("argument `$n` of `" + std::string(sig) + "` must be non-zero", pstate);
+      if (nr == 0) error("argument `$n` of `" + std::string(sig) + "` must be non-zero", pstate, traces);
       // if the argument isn't a list, then wrap it in a singleton list
       if (!m && !l) {
         l = SASS_MEMORY_NEW(List, pstate, 1);
@@ -1272,9 +1437,9 @@ namespace Sass {
       }
       size_t len = m ? m->length() : l->length();
       bool empty = m ? m->empty() : l->empty();
-      if (empty) error("argument `$list` of `" + std::string(sig) + "` must not be empty", pstate);
-      double index = std::floor(n->value() < 0 ? len + n->value() : n->value() - 1);
-      if (index < 0 || index > len - 1) error("index out of bounds for `" + std::string(sig) + "`", pstate);
+      if (empty) error("argument `$list` of `" + std::string(sig) + "` must not be empty", pstate, traces);
+      double index = std::floor(nr < 0 ? len + nr : nr - 1);
+      if (index < 0 || index > len - 1) error("index out of bounds for `" + std::string(sig) + "`", pstate, traces);
 
       if (m) {
         l = SASS_MEMORY_NEW(List, pstate, 1);
@@ -1301,11 +1466,11 @@ namespace Sass {
         l->append(ARG("$list", Expression));
       }
       if (m) {
-        l = m->to_list(ctx, pstate);
+        l = m->to_list(pstate);
       }
-      if (l->empty()) error("argument `$list` of `" + std::string(sig) + "` must not be empty", pstate);
+      if (l->empty()) error("argument `$list` of `" + std::string(sig) + "` must not be empty", pstate, traces);
       double index = std::floor(n->value() < 0 ? l->length() + n->value() : n->value() - 1);
-      if (index < 0 || index > l->length() - 1) error("index out of bounds for `" + std::string(sig) + "`", pstate);
+      if (index < 0 || index > l->length() - 1) error("index out of bounds for `" + std::string(sig) + "`", pstate, traces);
       List_Ptr result = SASS_MEMORY_NEW(List, pstate, l->length(), l->separator(), false, l->is_bracketed());
       for (size_t i = 0, L = l->length(); i < L; ++i) {
         result->append(((i == index) ? v : (*l)[i]));
@@ -1324,10 +1489,10 @@ namespace Sass {
         l->append(ARG("$list", Expression));
       }
       if (m) {
-        l = m->to_list(ctx, pstate);
+        l = m->to_list(pstate);
       }
       for (size_t i = 0, L = l->length(); i < L; ++i) {
-        if (Eval::eq(l->value_at_index(i), v)) return SASS_MEMORY_NEW(Number, pstate, (double)(i+1));
+        if (Operators::eq(l->value_at_index(i), v)) return SASS_MEMORY_NEW(Number, pstate, (double)(i+1));
       }
       return SASS_MEMORY_NEW(Null, pstate);
     }
@@ -1354,17 +1519,17 @@ namespace Sass {
         l2->append(ARG("$list2", Expression));
       }
       if (m1) {
-        l1 = m1->to_list(ctx, pstate);
+        l1 = m1->to_list(pstate);
         sep_val = SASS_COMMA;
       }
       if (m2) {
-        l2 = m2->to_list(ctx, pstate);
+        l2 = m2->to_list(pstate);
       }
       size_t len = l1->length() + l2->length();
       std::string sep_str = unquote(sep->value());
       if (sep_str == "space") sep_val = SASS_SPACE;
       else if (sep_str == "comma") sep_val = SASS_COMMA;
-      else if (sep_str != "auto") error("argument `$separator` of `" + std::string(sig) + "` must be `space`, `comma`, or `auto`", pstate);
+      else if (sep_str != "auto") error("argument `$separator` of `" + std::string(sig) + "` must be `space`, `comma`, or `auto`", pstate, traces);
       String_Constant_Obj bracketed_as_str = Cast<String_Constant>(bracketed);
       bool bracketed_is_auto = bracketed_as_str && unquote(bracketed_as_str->value()) == "auto";
       if (!bracketed_is_auto) {
@@ -1392,14 +1557,14 @@ namespace Sass {
         l->append(ARG("$list", Expression));
       }
       if (m) {
-        l = m->to_list(ctx, pstate);
+        l = m->to_list(pstate);
       }
       List_Ptr result = SASS_MEMORY_COPY(l);
       std::string sep_str(unquote(sep->value()));
       if (sep_str != "auto") { // check default first
         if (sep_str == "space") result->separator(SASS_SPACE);
         else if (sep_str == "comma") result->separator(SASS_COMMA);
-        else error("argument `$separator` of `" + std::string(sig) + "` must be `space`, `comma`, or `auto`", pstate);
+        else error("argument `$separator` of `" + std::string(sig) + "` must be `space`, `comma`, or `auto`", pstate, traces);
       }
       if (l->is_arglist()) {
         result->append(SASS_MEMORY_NEW(Argument,
@@ -1425,7 +1590,7 @@ namespace Sass {
         Map_Obj mith = Cast<Map>(arglist->value_at_index(i));
         if (!ith) {
           if (mith) {
-            ith = mith->to_list(ctx, pstate);
+            ith = mith->to_list(pstate);
           } else {
             ith = SASS_MEMORY_NEW(List, pstate, 1);
             ith->append(arglist->value_at_index(i));
@@ -1477,7 +1642,9 @@ namespace Sass {
       Expression_Obj v = ARG("$key", Expression);
       try {
         Expression_Obj val = m->at(v);
-        return val ? val.detach() : SASS_MEMORY_NEW(Null, pstate);
+        if (!val) return SASS_MEMORY_NEW(Null, pstate);
+        val->set_delayed(false);
+        return val.detach();
       } catch (const std::out_of_range&) {
         return SASS_MEMORY_NEW(Null, pstate);
       }
@@ -1538,7 +1705,7 @@ namespace Sass {
       for (auto key : m->keys()) {
         remove = false;
         for (size_t j = 0, K = arglist->length(); j < K && !remove; ++j) {
-          remove = Eval::eq(key, arglist->value_at_index(j));
+          remove = Operators::eq(key, arglist->value_at_index(j));
         }
         if (!remove) *result << std::make_pair(key, m->at(key));
       }
@@ -1575,23 +1742,33 @@ namespace Sass {
 
     Signature unit_sig = "unit($number)";
     BUILT_IN(unit)
-    { return SASS_MEMORY_NEW(String_Quoted, pstate, quote(ARG("$number", Number)->unit(), '"')); }
+    {
+      Number_Obj arg = ARGN("$number");
+      std::string str(quote(arg->unit(), '"'));
+      return SASS_MEMORY_NEW(String_Quoted, pstate, str);
+    }
 
     Signature unitless_sig = "unitless($number)";
     BUILT_IN(unitless)
-    { return SASS_MEMORY_NEW(Boolean, pstate, ARG("$number", Number)->is_unitless()); }
+    {
+      Number_Obj arg = ARGN("$number");
+      bool unitless = arg->is_unitless();
+      return SASS_MEMORY_NEW(Boolean, pstate, unitless);
+    }
 
     Signature comparable_sig = "comparable($number-1, $number-2)";
     BUILT_IN(comparable)
     {
-      Number_Ptr n1 = ARG("$number-1", Number);
-      Number_Ptr n2 = ARG("$number-2", Number);
+      Number_Obj n1 = ARGN("$number-1");
+      Number_Obj n2 = ARGN("$number-2");
       if (n1->is_unitless() || n2->is_unitless()) {
         return SASS_MEMORY_NEW(Boolean, pstate, true);
       }
-      Number tmp_n2(n2); // copy
-      tmp_n2.normalize(n1->find_convertible_unit());
-      return SASS_MEMORY_NEW(Boolean, pstate, n1->unit() == tmp_n2.unit());
+      // normalize into main units
+      n1->normalize(); n2->normalize();
+      Units &lhs_unit = *n1, &rhs_unit = *n2;
+      bool is_comparable = (lhs_unit == rhs_unit);
+      return SASS_MEMORY_NEW(Boolean, pstate, is_comparable);
     }
 
     Signature variable_exists_sig = "variable-exists($name)";
@@ -1623,9 +1800,14 @@ namespace Sass {
     Signature function_exists_sig = "function-exists($name)";
     BUILT_IN(function_exists)
     {
-      std::string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
+      String_Constant_Ptr ss = Cast<String_Constant>(env["$name"]);
+      if (!ss) {
+        error("$name: " + (env["$name"]->to_string()) + " is not a string for `function-exists'", pstate, traces);
+      }
 
-      if(d_env.has_global(s+"[f]")) {
+      std::string name = Util::normalize_underscores(unquote(ss->value()));
+
+      if(d_env.has_global(name+"[f]")) {
         return SASS_MEMORY_NEW(Boolean, pstate, true);
       }
       else {
@@ -1662,7 +1844,20 @@ namespace Sass {
     Signature call_sig = "call($name, $args...)";
     BUILT_IN(call)
     {
-      std::string name = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
+      std::string name;
+      Function_Ptr ff = Cast<Function>(env["$name"]);
+      String_Constant_Ptr ss = Cast<String_Constant>(env["$name"]);
+
+      if (ss) {
+        name = Util::normalize_underscores(unquote(ss->value()));
+        std::cerr << "DEPRECATION WARNING: ";
+        std::cerr << "Passing a string to call() is deprecated and will be illegal" << std::endl;
+        std::cerr << "in Sass 4.0. Use call(get-function(" + quote(name) + ")) instead." << std::endl;
+        std::cerr << std::endl;
+      } else if (ff) {
+        name = ff->name();
+      }
+
       List_Obj arglist = SASS_MEMORY_COPY(ARG("$args", List));
 
       Arguments_Obj args = SASS_MEMORY_NEW(Arguments, pstate);
@@ -1691,10 +1886,10 @@ namespace Sass {
         }
       }
       Function_Call_Obj func = SASS_MEMORY_NEW(Function_Call, pstate, name, args);
-      Expand expand(ctx, &d_env, backtrace, &selector_stack);
+      Expand expand(ctx, &d_env, &selector_stack);
       func->via_call(true); // calc invoke is allowed
+      if (ff) func->func(ff);
       return func->perform(&expand.eval);
-
     }
 
     ////////////////////
@@ -1712,13 +1907,13 @@ namespace Sass {
     // { return ARG("$condition", Expression)->is_false() ? ARG("$if-false", Expression) : ARG("$if-true", Expression); }
     BUILT_IN(sass_if)
     {
-      Expand expand(ctx, &d_env, backtrace, &selector_stack);
+      Expand expand(ctx, &d_env, &selector_stack);
       Expression_Obj cond = ARG("$condition", Expression)->perform(&expand.eval);
       bool is_true = !cond->is_false();
-      Expression_Ptr res = ARG(is_true ? "$if-true" : "$if-false", Expression);
+      Expression_Obj res = ARG(is_true ? "$if-true" : "$if-false", Expression);
       res = res->perform(&expand.eval);
       res->set_delayed(false); // clone?
-      return res;
+      return res.detach();
     }
 
     //////////////////////////
@@ -1759,7 +1954,7 @@ namespace Sass {
 
       // Not enough parameters
       if( arglist->length() == 0 )
-        error("$selectors: At least one selector must be passed for `selector-nest'", pstate);
+        error("$selectors: At least one selector must be passed for `selector-nest'", pstate, traces);
 
       // Parse args into vector of selectors
       std::vector<Selector_List_Obj> parsedSelectors;
@@ -1769,13 +1964,13 @@ namespace Sass {
           std::stringstream msg;
           msg << "$selectors: null is not a valid selector: it must be a string,\n";
           msg << "a list of strings, or a list of lists of strings for 'selector-nest'";
-          error(msg.str(), pstate);
+          error(msg.str(), pstate, traces);
         }
         if (String_Constant_Obj str = Cast<String_Constant>(exp)) {
           str->quote_mark(0);
         }
         std::string exp_src = exp->to_string(ctx.c_options);
-        Selector_List_Obj sel = Parser::parse_selector(exp_src.c_str(), ctx);
+        Selector_List_Obj sel = Parser::parse_selector(exp_src.c_str(), ctx, traces);
         parsedSelectors.push_back(sel);
       }
 
@@ -1793,7 +1988,7 @@ namespace Sass {
         Selector_List_Obj child = *itr;
         std::vector<Complex_Selector_Obj> exploded;
         selector_stack.push_back(result);
-        Selector_List_Obj rv = child->resolve_parent_refs(ctx, selector_stack);
+        Selector_List_Obj rv = child->resolve_parent_refs(selector_stack, traces);
         selector_stack.pop_back();
         for (size_t m = 0, mLen = rv->length(); m < mLen; ++m) {
           exploded.push_back((*rv)[m]);
@@ -1812,7 +2007,7 @@ namespace Sass {
 
       // Not enough parameters
       if( arglist->length() == 0 )
-        error("$selectors: At least one selector must be passed for `selector-append'", pstate);
+        error("$selectors: At least one selector must be passed for `selector-append'", pstate, traces);
 
       // Parse args into vector of selectors
       std::vector<Selector_List_Obj> parsedSelectors;
@@ -1822,13 +2017,13 @@ namespace Sass {
           std::stringstream msg;
           msg << "$selectors: null is not a valid selector: it must be a string,\n";
           msg << "a list of strings, or a list of lists of strings for 'selector-append'";
-          error(msg.str(), pstate);
+          error(msg.str(), pstate, traces);
         }
         if (String_Constant_Ptr str = Cast<String_Constant>(exp)) {
           str->quote_mark(0);
         }
         std::string exp_src = exp->to_string();
-        Selector_List_Obj sel = Parser::parse_selector(exp_src.c_str(), ctx);
+        Selector_List_Obj sel = Parser::parse_selector(exp_src.c_str(), ctx, traces);
         parsedSelectors.push_back(sel);
       }
 
@@ -1866,7 +2061,7 @@ namespace Sass {
               msg += "\" to \"";
               msg += parentSeqClone->to_string();
               msg += "\" for `selector-append'";
-              error(msg, pstate, backtrace);
+              error(msg, pstate, traces);
             }
 
             // Cannot be a Universal selector
@@ -1877,7 +2072,7 @@ namespace Sass {
               msg += "\" to \"";
               msg += parentSeqClone->to_string();
               msg += "\" for `selector-append'";
-              error(msg, pstate, backtrace);
+              error(msg, pstate, traces);
             }
 
             // TODO: Add check for namespace stuff
@@ -1905,7 +2100,7 @@ namespace Sass {
       Selector_List_Obj selector1 = ARGSEL("$selector1", Selector_List_Obj, p_contextualize);
       Selector_List_Obj selector2 = ARGSEL("$selector2", Selector_List_Obj, p_contextualize);
 
-      Selector_List_Obj result = selector1->unify_with(selector2, ctx);
+      Selector_List_Obj result = selector1->unify_with(selector2);
       Listize listize;
       return result->perform(&listize);
     }
@@ -1935,9 +2130,10 @@ namespace Sass {
       Selector_List_Obj  extender = ARGSEL("$extender", Selector_List_Obj, p_contextualize);
 
       Subset_Map subset_map;
-      extender->populate_extends(extendee, ctx, subset_map);
+      extender->populate_extends(extendee, subset_map);
+      Extend extend(subset_map);
 
-      Selector_List_Obj result = Extend::extendSelectorList(selector, ctx, subset_map, false);
+      Selector_List_Obj result = extend.extendSelectorList(selector, false);
 
       Listize listize;
       return result->perform(&listize);
@@ -1950,9 +2146,10 @@ namespace Sass {
       Selector_List_Obj original = ARGSEL("$original", Selector_List_Obj, p_contextualize);
       Selector_List_Obj replacement = ARGSEL("$replacement", Selector_List_Obj, p_contextualize);
       Subset_Map subset_map;
-      replacement->populate_extends(original, ctx, subset_map);
+      replacement->populate_extends(original, subset_map);
+      Extend extend(subset_map);
 
-      Selector_List_Obj result = Extend::extendSelectorList(selector, ctx, subset_map, true);
+      Selector_List_Obj result = extend.extendSelectorList(selector, true);
 
       Listize listize;
       return result->perform(&listize);
@@ -1992,6 +2189,46 @@ namespace Sass {
       Value_Obj value = ARG("$list", Value);
       List_Obj list = Cast<List>(value);
       return SASS_MEMORY_NEW(Boolean, pstate, list && list->is_bracketed());
+    }
+
+    Signature content_exists_sig = "content-exists()";
+    BUILT_IN(content_exists)
+    {
+      if (!d_env.has_global("is_in_mixin")) {
+        error("Cannot call content-exists() except within a mixin.", pstate, traces);
+      }
+      return SASS_MEMORY_NEW(Boolean, pstate, d_env.has_lexical("@content[m]"));
+    }
+
+    Signature get_function_sig = "get-function($name, $css: false)";
+    BUILT_IN(get_function)
+    {
+      String_Constant_Ptr ss = Cast<String_Constant>(env["$name"]);
+      if (!ss) {
+        error("$name: " + (env["$name"]->to_string()) + " is not a string for `get-function'", pstate, traces);
+      }
+
+      std::string name = Util::normalize_underscores(unquote(ss->value()));
+      std::string full_name = name + "[f]";
+
+      Boolean_Obj css = ARG("$css", Boolean);
+      if (!css->is_false()) {
+        Definition_Ptr def = SASS_MEMORY_NEW(Definition,
+                                         pstate,
+                                         name,
+                                         SASS_MEMORY_NEW(Parameters, pstate),
+                                         SASS_MEMORY_NEW(Block, pstate, 0, false),
+                                         Definition::FUNCTION);
+        return SASS_MEMORY_NEW(Function, pstate, def, true);
+      }
+
+
+      if (!d_env.has_global(full_name)) {
+        error("Function not found: " + name, pstate, traces);
+      }
+
+      Definition_Ptr def = Cast<Definition>(d_env[full_name]);
+      return SASS_MEMORY_NEW(Function, pstate, def, false);
     }
   }
 }

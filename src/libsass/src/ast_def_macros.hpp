@@ -19,12 +19,21 @@ class LocalOption {
       this->orig = var;
       *(this->var) = orig;
     }
+    void reset()
+    {
+      *(this->var) = this->orig;
+    }
     ~LocalOption() {
       *(this->var) = this->orig;
     }
 };
 
 #define LOCAL_FLAG(name,opt) LocalOption<bool> flag_##name(name, opt)
+#define LOCAL_COUNT(name,opt) LocalOption<size_t> cnt_##name(name, opt)
+
+#define NESTING_GUARD(name) \
+  LocalOption<size_t> cnt_##name(name, name + 1); \
+  if (name > MAX_NESTING) throw Exception::NestingLimitError(pstate, traces); \
 
 #define ATTACH_OPERATIONS()\
 virtual void perform(Operation<void>* op) { (*op)(this); }\

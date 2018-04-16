@@ -8,6 +8,7 @@ This document covers some common node-sass issues and how to resolve them. You s
   - [Assertion failed: (handle->flags & UV_CLOSING), function uv__finish_close](#assertion-failed-handle-flags-&-uv_closing-function-uv__finish_close)
   - [Cannot find module '/root/<...>/install.js'](#cannot-find-module-rootinstalljs)
     - [Linux](#linux)
+  - [npm 5](#npm-5)
 - [Glossary](#glossary)
   - [Which node runtime am I using?](#which-node-runtime-am-i-using)
   - [Which version of node am I using?](#which-version-of-node-am-i-using)
@@ -15,6 +16,7 @@ This document covers some common node-sass issues and how to resolve them. You s
     - [Windows](#windows)
     - [Linux/OSX](#linuxosx)
 - [Using node-sass with Visual Studio 2015 Task Runner.](#using-node-sass-with-visual-studio-2015-task-runner)
+- [Installing node-sass 4.x with Node < 4](#installing-node-sass-4x-with-node--4)
 
 ## Installation problems
 
@@ -42,13 +44,32 @@ $ sudo npm install --unsafe-perm -g node-sass
 
 If this didn't solve your problem please open an issue with the output from [our debugging script](#debugging-installation-issues).
 
+### npm 5
+
+Some users upgrading from previous versions of npm have found conflicts with old lock file formats. This may be show up as a URL instead of the actual version number when downloading the binary. EX:
+
+```console
+Downloading binary from https://github.com/sass/node-sass/releases/download/vhttps://registry.npmjs.org/node-sass/-/node-sass-4.5.3.tgz/win32-x64-57_binding.node
+Cannot download "https://github.com/sass/node-sass/releases/download/vhttps://registry.npmjs.org/node-sass/-/node-sass-4.5.3.tgz/win32-x64-57_binding.node":
+
+HTTP error 404 Not Found
+```
+
+The easiest way to get around this is just to cleanup the npm files and reinstall.
+
+```console
+rm -rf node_modules
+rm package-lock.json
+npm cache clean
+npm install
+```
 
 ## Glossary
 
 
 ### Which node runtime am I using?
 
-There are two primary node runtimes, Node.js and io.js, both of which are supported by node-sass. To determine which you are currenty using you first need to determine [which node runtime](#which-node-runtime-am-i-using-glossaryruntime) you are running.
+There are two primary node runtimes, Node.js and io.js, both of which are supported by node-sass. To determine which you are currently using you first need to determine [which node runtime](#which-node-runtime-am-i-using-glossaryruntime) you are running.
 
 ```
 node -v
@@ -234,3 +255,7 @@ If this still produces an error please open an issue with the output from these 
 If you are using node-sass with VS2015 Task Runner Explorer, you need to make sure that the version of node.js (or io.js) is same as the one you installed node-sass with. This is because for each node.js runtime modules version (`node -p process.versions.modules`), we have a separate build of native binary. See [#532](https://github.com/sass/node-sass/issues/532).
 
 Alternatively, if you prefer using system-installed node.js (supposedly higher version than one bundles with VS2015), you may want to point Visual Studio 2015 to use it for task runner jobs by following the guidelines available at: http://blogs.msdn.com/b/webdev/archive/2015/03/19/customize-external-web-tools-in-visual-studio-2015.aspx.
+
+### Installing node-sass 4.x with Node < 4
+
+See the discussion in [this comment](https://github.com/sass/node-sass/issues/2100#issuecomment-334651235) for a workaround. As of node-sass@v5 only Node 6 and above will be offically supported.

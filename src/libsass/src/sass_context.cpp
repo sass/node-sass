@@ -35,7 +35,6 @@ namespace Sass {
     catch (Exception::Base& e) {
       std::stringstream msg_stream;
       std::string cwd(Sass::File::get_cwd());
-
       std::string msg_prefix(e.errtype());
       bool got_newline = false;
       msg_stream << msg_prefix << ": ";
@@ -55,41 +54,49 @@ namespace Sass {
         ++msg;
       }
       if (!got_newline) msg_stream << "\n";
-      if (e.import_stack) {
-        for (size_t i = 1; i < e.import_stack->size() - 1; ++i) {
-          std::string path((*e.import_stack)[i]->imp_path);
-          std::string rel_path(Sass::File::abs2rel(path, cwd, cwd));
-          msg_stream << std::string(msg_prefix.size() + 2, ' ');
-          msg_stream << (i == 1 ? " on line " : " from line ");
-          msg_stream << e.pstate.line + 1 << " of " << rel_path << "\n";
-        }
-      }
-      else {
+
+      if (e.traces.empty()) {
+        // we normally should have some traces, still here as a fallback
         std::string rel_path(Sass::File::abs2rel(e.pstate.path, cwd, cwd));
         msg_stream << std::string(msg_prefix.size() + 2, ' ');
         msg_stream << " on line " << e.pstate.line + 1 << " of " << rel_path << "\n";
       }
+      else {
+        std::string rel_path(Sass::File::abs2rel(e.pstate.path, cwd, cwd));
+        msg_stream << traces_to_string(e.traces, "        ");
+      }
 
       // now create the code trace (ToDo: maybe have util functions?)
       if (e.pstate.line != std::string::npos && e.pstate.column != std::string::npos) {
-        size_t line = e.pstate.line;
+        size_t lines = e.pstate.line;
         const char* line_beg = e.pstate.src;
-        while (line_beg && *line_beg && line) {
-          if (*line_beg == '\n') --line;
-          ++line_beg;
+        // scan through src until target line
+        // move line_beg pointer to line start
+        while (line_beg && *line_beg && lines != 0) {
+          if (*line_beg == '\n') --lines;
+          utf8::unchecked::next(line_beg); 
         }
         const char* line_end = line_beg;
+        // move line_end before next newline character
         while (line_end && *line_end && *line_end != '\n') {
           if (*line_end == '\n') break;
           if (*line_end == '\r') break;
-          line_end++;
+          utf8::unchecked::next(line_end); 
         }
-        size_t max_left = 42; size_t max_right = 78;
-        size_t move_in = e.pstate.column > max_left ? e.pstate.column - max_left : 0;
-        size_t shorten = (line_end - line_beg) - move_in > max_right ?
-          (line_end - line_beg) - move_in - max_right : 0;
-        msg_stream << ">> " << std::string(line_beg + move_in, line_end - shorten) << "\n";
-        msg_stream << "   " << std::string(e.pstate.column - move_in, '-') << "^\n";
+        if (line_end && *line_end != 0) ++ line_end;
+        size_t line_len = line_end - line_beg;
+        size_t move_in = 0; size_t shorten = 0;
+        size_t left_chars = 42; size_t max_chars = 76;
+        // reported excerpt should not exceed `max_chars` chars
+        if (e.pstate.column > line_len) left_chars = e.pstate.column;
+        if (e.pstate.column > left_chars) move_in = e.pstate.column - left_chars;
+        if (line_len > max_chars + move_in) shorten = line_len - move_in - max_chars;
+        utf8::advance(line_beg, move_in, line_end);
+        utf8::retreat(line_end, shorten, line_beg);
+        std::string sanitized; std::string marker(e.pstate.column - move_in, '-');
+        utf8::replace_invalid(line_beg, line_end, std::back_inserter(sanitized));
+        msg_stream << ">> " << sanitized << "\n";
+        msg_stream << "   " << marker << "^\n";
       }
 
       JsonNode* json_err = json_mkobject();
@@ -199,7 +206,6 @@ namespace Sass {
   static int handle_errors(Sass_Context* c_ctx) {
     try { return handle_error(c_ctx); }
     catch (...) { return handle_error(c_ctx); }
-    return c_ctx->error_status;
   }
 
   static Block_Obj sass_parse_block(Sass_Compiler* compiler) throw()
@@ -331,7 +337,9 @@ extern "C" {
       c_ctx->error_column = std::string::npos;
 
       // allocate a new compiler instance
-      Sass_Compiler* compiler = (struct Sass_Compiler*) calloc(1, sizeof(struct Sass_Compiler));
+      void* ctxmem = calloc(1, sizeof(struct Sass_Compiler));
+      if (ctxmem == 0) { std::cerr << "Error allocating memory for context" << std::endl; return 0; }
+      Sass_Compiler* compiler = (struct Sass_Compiler*) ctxmem;
       compiler->state = SASS_COMPILER_CREATED;
 
       // store in sass compiler
@@ -522,30 +530,10 @@ extern "C" {
   static void sass_clear_options (struct Sass_Options* options)
   {
     if (options == 0) return;
-    // Deallocate custom functions
-    if (options->c_functions) {
-      Sass_Function_List this_func_data = options->c_functions;
-      while (this_func_data && *this_func_data) {
-        free(*this_func_data);
-        ++this_func_data;
-      }
-    }
-    // Deallocate custom headers
-    if (options->c_headers) {
-      Sass_Importer_List this_head_data = options->c_headers;
-      while (this_head_data && *this_head_data) {
-        free(*this_head_data);
-        ++this_head_data;
-      }
-    }
-    // Deallocate custom importers
-    if (options->c_importers) {
-      Sass_Importer_List this_imp_data = options->c_importers;
-      while (this_imp_data && *this_imp_data) {
-        free(*this_imp_data);
-        ++this_imp_data;
-      }
-    }
+    // Deallocate custom functions, headers and importes
+    sass_delete_function_list(options->c_functions);
+    sass_delete_importer_list(options->c_importers);
+    sass_delete_importer_list(options->c_headers);
     // Deallocate inc paths
     if (options->plugin_paths) {
       struct string_list* cur;
@@ -577,11 +565,6 @@ extern "C" {
     free(options->include_path);
     free(options->source_map_file);
     free(options->source_map_root);
-    // Free custom functions
-    free(options->c_functions);
-    // Free custom importers
-    free(options->c_importers);
-    free(options->c_headers);
     // Reset our pointers
     options->input_path = 0;
     options->output_path = 0;

@@ -18,14 +18,16 @@ namespace Sass {
     } while (0)
 
   double round(double val, size_t precision = 0);
-  double sass_atof(const char* str);
+  double sass_strtod(const char* str);
   const char* safe_str(const char *, const char* = "");
   void free_string_array(char **);
   char **copy_strings(const std::vector<std::string>&, char ***, int = 0);
-  std::string read_css_string(const std::string& str);
+  std::string read_css_string(const std::string& str, bool css = true);
   std::string evacuate_escapes(const std::string& str);
   std::string string_to_output(const std::string& str);
   std::string comment_to_string(const std::string& text);
+  std::string read_hex_escapes(const std::string& str);
+  std::string escape_string(const std::string& str);
   void newline_to_space(std::string& str);
 
   std::string quote(const std::string&, char q = 0);

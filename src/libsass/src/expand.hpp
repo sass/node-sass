@@ -20,9 +20,9 @@ namespace Sass {
 
     Env* environment();
     Selector_List_Obj selector();
-    Backtrace* backtrace();
 
     Context&          ctx;
+    Backtraces&       traces;
     Eval              eval;
     size_t            recursions;
     bool              in_keyframes;
@@ -35,7 +35,8 @@ namespace Sass {
     std::vector<AST_Node_Obj>      call_stack;
     std::vector<Selector_List_Obj> selector_stack;
     std::vector<Media_Block_Ptr>   media_block_stack;
-    std::vector<Backtrace*>        backtrace_stack;
+
+    Boolean_Obj bool_true;
 
     Statement_Ptr fallback_impl(AST_Node_Ptr n);
 
@@ -43,7 +44,7 @@ namespace Sass {
     void expand_selector_list(Selector_Obj, Selector_List_Obj extender);
 
   public:
-    Expand(Context&, Env*, Backtrace*, std::vector<Selector_List_Obj>* stack = NULL);
+    Expand(Context&, Env*, std::vector<Selector_List_Obj>* stack = NULL);
     ~Expand() { }
 
     Block_Ptr operator()(Block_Ptr);

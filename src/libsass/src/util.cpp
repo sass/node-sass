@@ -9,11 +9,22 @@
 
 #include <cmath>
 #include <stdint.h>
+#if defined(_MSC_VER) && _MSC_VER >= 1800 && _MSC_VER < 1900 && defined(_M_X64)
+#include <mutex>
+#endif
 
 namespace Sass {
 
   double round(double val, size_t precision)
   {
+    // Disable FMA3-optimized implementation when compiling with VS2013 for x64 targets
+    // See https://github.com/sass/node-sass/issues/1854 for details
+    // FIXME: Remove this workaround when we switch to VS2015+
+    #if defined(_MSC_VER) && _MSC_VER >= 1800 && _MSC_VER < 1900 && defined(_M_X64)
+      static std::once_flag flag;
+      std::call_once(flag, []() { _set_FMA3_enable(0); });
+    #endif
+
     // https://github.com/sass/sass/commit/4e3e1d5684cc29073a507578fc977434ff488c93
     if (fmod(val, 1) - 0.5 > - std::pow(0.1, precision + 1)) return std::ceil(val);
     else if (fmod(val, 1) - 0.5 > std::pow(0.1, precision)) return std::floor(val);
@@ -24,7 +35,7 @@ namespace Sass {
   }
 
   /* Locale unspecific atof function. */
-  double sass_atof(const char *str)
+  double sass_strtod(const char *str)
   {
     char separator = *(localeconv()->decimal_point);
     if(separator != '.'){
@@ -37,13 +48,13 @@ namespace Sass {
         // of the string. This is slower but it is thread safe.
         char *copy = sass_copy_c_string(str);
         *(copy + (found - str)) = separator;
-        double res = atof(copy);
+        double res = strtod(copy, NULL);
         free(copy);
         return res;
       }
     }
 
-    return atof(str);
+    return strtod(str, NULL);
   }
 
   // helper for safe access to c_ctx
@@ -85,8 +96,9 @@ namespace Sass {
   }
 
   // read css string (handle multiline DELIM)
-  std::string read_css_string(const std::string& str)
+  std::string read_css_string(const std::string& str, bool css)
   {
+    if (!css) return str;
     std::string out("");
     bool esc = false;
     for (auto i : str) {
@@ -169,6 +181,23 @@ namespace Sass {
     return out;
   }
 
+  std::string escape_string(const std::string& str)
+  {
+    std::string out("");
+    for (auto i : str) {
+      if (i == '\n') {
+        out += "\\n";
+      } else if (i == '\r') {
+        out += "\\r";
+      } else if (i == '\t') {
+        out += "\\t";
+      } else {
+        out += i;
+      }
+    }
+    return out;
+  }
+
   std::string comment_to_string(const std::string& text)
   {
     std::string str = "";
@@ -219,6 +248,75 @@ namespace Sass {
       ++ s;
     }
     return quote_mark;
+  }
+
+  std::string read_hex_escapes(const std::string& s)
+  {
+
+    std::string result;
+    bool skipped = false;
+
+    for (size_t i = 0, L = s.length(); i < L; ++i) {
+
+      // implement the same strange ruby sass behavior
+      // an escape sequence can also mean a unicode char
+      if (s[i] == '\\' && !skipped) {
+
+        // remember
+        skipped = true;
+
+        // escape length
+        size_t len = 1;
+
+        // parse as many sequence chars as possible
+        // ToDo: Check if ruby aborts after possible max
+        while (i + len < L && s[i + len] && isxdigit(s[i + len])) ++ len;
+
+        if (len > 1) {
+
+          // convert the extracted hex string to code point value
+          // ToDo: Maybe we could do this without creating a substring
+          uint32_t cp = strtol(s.substr (i + 1, len - 1).c_str(), NULL, 16);
+
+          if (s[i + len] == ' ') ++ len;
+
+          // assert invalid code points
+          if (cp == 0) cp = 0xFFFD;
+          // replace bell character
+          // if (cp == '\n') cp = 32;
+
+          // use a very simple approach to convert via utf8 lib
+          // maybe there is a more elegant way; maybe we shoud
+          // convert the whole output from string to a stream!?
+          // allocate memory for utf8 char and convert to utf8
+          unsigned char u[5] = {0,0,0,0,0}; utf8::append(cp, u);
+          for(size_t m = 0; m < 5 && u[m]; m++) result.push_back(u[m]);
+
+          // skip some more chars?
+          i += len - 1; skipped = false;
+
+        }
+
+        else {
+
+          skipped = false;
+
+          result.push_back(s[i]);
+
+        }
+
+      }
+
+      else {
+
+        result.push_back(s[i]);
+
+      }
+
+    }
+
+    return result;
+
   }
 
   std::string unquote(const std::string& s, char* qd, bool keep_utf8_sequences, bool strict)
@@ -281,7 +379,7 @@ namespace Sass {
           // convert the whole output from string to a stream!?
           // allocate memory for utf8 char and convert to utf8
           unsigned char u[5] = {0,0,0,0,0}; utf8::append(cp, u);
-          for(size_t m = 0; u[m] && m < 5; m++) unq.push_back(u[m]);
+          for(size_t m = 0; m < 5 && u[m]; m++) unq.push_back(u[m]);
 
           // skip some more chars?
           i += len - 1; skipped = false;
@@ -520,8 +618,10 @@ namespace Sass {
         }
         else if (Has_Block_Ptr b = Cast<Has_Block>(stm)) {
           Block_Obj pChildBlock = b->block();
-          if (isPrintable(pChildBlock, style)) {
-            hasPrintableChildBlocks = true;
+          if (!b->is_invisible()) {
+            if (isPrintable(pChildBlock, style)) {
+              hasPrintableChildBlocks = true;
+            }
           }
         }
 
@@ -557,8 +657,8 @@ namespace Sass {
             return true;
           }
         }
-        else if (Media_Block_Ptr m = Cast<Media_Block>(stm)) {
-          if (isPrintable(m, style)) {
+        else if (Media_Block_Ptr mb = Cast<Media_Block>(stm)) {
+          if (isPrintable(mb, style)) {
             return true;
           }
         }

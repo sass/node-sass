@@ -4,6 +4,12 @@
 #include <nan.h>
 #include "sass_value_wrapper.h"
 
+#if defined(__GNUC__) && __GNUC__ >= 7
+#define NODE_SASS_FALLTHROUGH __attribute__ ((fallthrough))
+#else
+#define NODE_SASS_FALLTHROUGH
+#endif
+
 namespace SassTypes
 {
   class Color : public SassValueWrapper<Color> {

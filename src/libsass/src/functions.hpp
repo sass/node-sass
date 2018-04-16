@@ -8,12 +8,12 @@
 #include "sass/functions.h"
 
 #define BUILT_IN(name) Expression_Ptr \
-name(Env& env, Env& d_env, Context& ctx, Signature sig, ParserState pstate, Backtrace* backtrace, std::vector<Selector_List_Obj> selector_stack)
+name(Env& env, Env& d_env, Context& ctx, Signature sig, ParserState pstate, Backtraces traces, std::vector<Selector_List_Obj> selector_stack)
 
 namespace Sass {
   struct Backtrace;
   typedef const char* Signature;
-  typedef Expression_Ptr (*Native_Function)(Env&, Env&, Context&, Signature, ParserState, Backtrace*, std::vector<Selector_List_Obj>);
+  typedef Expression_Ptr (*Native_Function)(Env&, Env&, Context&, Signature, ParserState, Backtraces, std::vector<Selector_List_Obj>);
 
   Definition_Ptr make_native_function(Signature, Native_Function, Context& ctx);
   Definition_Ptr make_c_function(Sass_Function_Entry c_func, Context& ctx);
@@ -106,6 +106,8 @@ namespace Sass {
     extern Signature simple_selectors_sig;
     extern Signature selector_parse_sig;
     extern Signature is_bracketed_sig;
+    extern Signature content_exists_sig;
+    extern Signature get_function_sig;
 
     BUILT_IN(rgb);
     BUILT_IN(rgba_4);
@@ -188,6 +190,8 @@ namespace Sass {
     BUILT_IN(simple_selectors);
     BUILT_IN(selector_parse);
     BUILT_IN(is_bracketed);
+    BUILT_IN(content_exists);
+    BUILT_IN(get_function);
   }
 }
 

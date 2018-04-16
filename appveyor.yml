@@ -40,9 +40,6 @@
       - nodejs_version: 0.12
         GYP_MSVS_VERSION: 2013
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
-      - nodejs_version: 1.0
-        GYP_MSVS_VERSION: 2013
-        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 1
         GYP_MSVS_VERSION: 2013
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
@@ -65,6 +62,9 @@
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       - nodejs_version: 8
+        GYP_MSVS_VERSION: 2015
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      - nodejs_version: 9
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
 
@@ -133,12 +133,6 @@
   environment:
     SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
     matrix:
-      - nodejs_version: 0.10
-        GYP_MSVS_VERSION: 2013
-        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
-      - nodejs_version: 0.12
-        GYP_MSVS_VERSION: 2013
-        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
       - nodejs_version: 4
         GYP_MSVS_VERSION: 2013
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
@@ -149,6 +143,9 @@
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       - nodejs_version: 8
+        GYP_MSVS_VERSION: 2015
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      - nodejs_version: 9
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
 
