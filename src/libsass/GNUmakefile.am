@@ -25,63 +25,49 @@ else
   AM_CXXFLAGS += -std=c++0x
 endif
 
+TEST_EXTENSIONS = .rb
+
 if ENABLE_TESTS
 
-noinst_PROGRAMS = tester
+SASS_SASSC_PATH ?= $(top_srcdir)/sassc
+SASS_SPEC_PATH ?= $(top_srcdir)/sass-spec
 
+noinst_PROGRAMS = tester
 tester_LDADD = src/libsass.la
-tester_SOURCES = $(SASS_SASSC_PATH)/sassc.c
-tester_VERSION ?= `cd "$(SASS_SASSC_PATH)" && ./version.sh`
-tester_CFLAGS = $(AM_CFLAGS) -DSASSC_VERSION="\"$(tester_VERSION)\""
-tester_CXXFLAGS = $(AM_CXXFLAGS) -DSASSC_VERSION="\"$(tester_VERSION)\""
 tester_LDFLAGS = $(AM_LDFLAGS)
+nodist_tester_SOURCES = $(SASS_SASSC_PATH)/sassc.c
+SASS_SASSC_VERSION ?= `cd "$(SASS_SASSC_PATH)" && ./version.sh`
+tester_CFLAGS = $(AM_CFLAGS) -DSASSC_VERSION="\"$(SASS_SASSC_VERSION)\""
+tester_CXXFLAGS = $(AM_CXXFLAGS) -DSASSC_VERSION="\"$(SASS_SASSC_VERSION)\""
 
 if ENABLE_COVERAGE
 nodist_EXTRA_tester_SOURCES = non-existent-file-to-force-CXX-linking.cxx
 endif
 
-SASS_SASSC_PATH ?= $(top_srcdir)/sassc
-SASS_SPEC_PATH ?= $(top_srcdir)/sass-spec
-
-TESTS = \
-	$(SASS_SPEC_PATH)/spec/basic \
-	$(SASS_SPEC_PATH)/spec/css \
-	$(SASS_SPEC_PATH)/spec/extend-tests \
-	$(SASS_SPEC_PATH)/spec/extends \
-	$(SASS_SPEC_PATH)/spec/libsass \
-	$(SASS_SPEC_PATH)/spec/libsass-closed-issues \
-	$(SASS_SPEC_PATH)/spec/maps \
-	$(SASS_SPEC_PATH)/spec/misc \
-	$(SASS_SPEC_PATH)/spec/regressions \
-	$(SASS_SPEC_PATH)/spec/scss \
-	$(SASS_SPEC_PATH)/spec/scss-tests \
-	$(SASS_SPEC_PATH)/spec/types
+TESTS = $(SASS_SPEC_PATH)/sass-spec.rb
+RB_LOG_COMPILER = ./script/tap-runner
+AM_RB_LOG_FLAGS = $(RUBY)
 
 SASS_TEST_FLAGS = -V 3.5 --impl libsass
-LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) ./script/tap-driver
-AM_LOG_FLAGS = -c ./tester $(LOG_FLAGS)
-if USE_TAP
-	AM_LOG_FLAGS += -t
-	SASS_TEST_FLAGS += -t | tapout
-	LOG_COMPILER = ./script/tap-runner $(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb
-else
-	LOG_COMPILER = $(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb
-endif
+SASS_TEST_FLAGS += -r $(SASS_SPEC_PATH)
+SASS_TEST_FLAGS += -c $(top_srcdir)/tester$(EXEEXT)
+AM_TESTS_ENVIRONMENT = TEST_FLAGS='$(SASS_TEST_FLAGS)'
 
 SASS_TESTER = $(RUBY) $(SASS_SPEC_PATH)/sass-spec.rb
-SASS_TESTER += -c $(top_srcdir)/tester$(EXEEXT)
 
 test:
-	$(SASS_TESTER) $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
+	$(SASS_TESTER) $(SASS_TEST_FLAGS)
 
 test_build:
-	$(SASS_TESTER) $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
+	$(SASS_TESTER) $(SASS_TEST_FLAGS)
 
 test_full:
-	$(SASS_TESTER) --run-todo $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
+	$(SASS_TESTER) --run-todo $(SASS_TEST_FLAGS)
 
 test_probe:
-	$(SASS_TESTER) --probe-todo $(LOG_FLAGS) $(SASS_SPEC_PATH) $(SASS_TEST_FLAGS)
+	$(SASS_TESTER) --probe-todo $(SASS_TEST_FLAGS)
+
+.PHONY: test test_build test_full test_probe
 
 endif
 
