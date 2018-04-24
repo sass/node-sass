@@ -89,9 +89,14 @@ namespace Sass {
     public:
       // resolved absolute path
       std::string abs_path;
+      // is a deprecated file type
+      bool deprecated;
     public:
+      Include(const Importer& imp, std::string abs_path, bool deprecated)
+      : Importer(imp), abs_path(abs_path), deprecated(deprecated)
+      { }
       Include(const Importer& imp, std::string abs_path)
-      : Importer(imp), abs_path(abs_path)
+      : Importer(imp), abs_path(abs_path), deprecated(false)
       { }
   };
 
@@ -121,10 +126,11 @@ namespace Sass {
 
   namespace File {
 
-    static std::vector<std::string> defaultExtensions = { ".scss", ".sass", ".css" };
+    static std::vector<std::string> defaultExtensions = { ".scss", ".sass" };
 
     std::vector<Include> resolve_includes(const std::string& root, const std::string& file,
       const std::vector<std::string>& exts = defaultExtensions);
+
 
   }
 

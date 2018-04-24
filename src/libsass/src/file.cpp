@@ -342,13 +342,13 @@ namespace Sass {
       for(auto ext : exts) {
         rel_path = join_paths(base, "_" + name + ext);
         abs_path = join_paths(root, rel_path);
-        if (file_exists(abs_path)) includes.push_back({{ rel_path, root }, abs_path });
+        if (file_exists(abs_path)) includes.push_back({{ rel_path, root }, abs_path, ext == ".css" });
       }
       // next test plain name with exts
       for(auto ext : exts) {
         rel_path = join_paths(base, name + ext);
         abs_path = join_paths(root, rel_path);
-        if (file_exists(abs_path)) includes.push_back({{ rel_path, root }, abs_path });
+        if (file_exists(abs_path)) includes.push_back({{ rel_path, root }, abs_path, ext == ".css" });
       }
       // nothing found
       return includes;

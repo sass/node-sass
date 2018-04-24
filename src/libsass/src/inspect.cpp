@@ -658,6 +658,9 @@ namespace Sass {
     }
 
     std::stringstream hexlet;
+    // dart sass compressed all colors in regular css always
+    // ruby sass and libsass does it only when not delayed
+    // since color math is going to be removed, this can go too
     bool compressed = opt.output_style == COMPRESSED;
     hexlet << '#' << std::setw(1) << std::setfill('0');
     // create a short color hexlet if there is any need for it
@@ -680,9 +683,6 @@ namespace Sass {
     // retain the originally specified color definition if unchanged
     if (name != "") {
       ss << name;
-    }
-    else if (r == 0 && g == 0 && b == 0 && a == 0) {
-      ss << "transparent";
     }
     else if (a >= 1) {
       if (res_name != "") {
