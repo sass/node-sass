@@ -627,6 +627,7 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     Number_Ptr expression = Cast<Number>(node);
     std::cerr << ind << "Number " << expression;
     std::cerr << " (" << pstate_source_position(node) << ")";
+    std::cerr << " [delayed: " << expression->is_delayed() << "] ";
     std::cerr << " [interpolant: " << expression->is_interpolant() << "] ";
     std::cerr << " [" << expression->value() << expression->unit() << "]" <<
       " [hash: " << expression->hash() << "] " <<

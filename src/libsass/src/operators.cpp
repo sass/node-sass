@@ -127,13 +127,13 @@ namespace Sass {
       double lval = lhs.value();
       double rval = rhs.value();
 
+      if (op == Sass_OP::MOD && rval == 0) {
+        return SASS_MEMORY_NEW(String_Quoted, pstate, "NaN");
+      }
+
       if (op == Sass_OP::DIV && rval == 0) {
         std::string result(lval ? "Infinity" : "NaN");
         return SASS_MEMORY_NEW(String_Quoted, pstate, result);
-      }
-
-      if (op == Sass_OP::MOD && rval == 0) {
-        throw Exception::ZeroDivisionError(lhs, rhs);
       }
 
       size_t l_n_units = lhs.numerators.size();

@@ -40,9 +40,12 @@ struct Sass_Options : Sass_Output_Options {
   // Colon-separated list of paths
   // Semicolon-separated on Windows
   // Maybe use array interface instead?
+  char* extension;
   char* include_path;
   char* plugin_path;
 
+  // Extensions (linked string list)
+  struct string_list* extensions;
   // Include paths (linked string list)
   struct string_list* include_paths;
   // Plugin paths (linked string list)

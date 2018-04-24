@@ -1578,7 +1578,7 @@ namespace Sass {
     return nr;
   }
 
-  Expression_Ptr Parser::lexed_hex_color(const ParserState& pstate, const std::string& parsed)
+  Value_Ptr Parser::lexed_hex_color(const ParserState& pstate, const std::string& parsed)
   {
     Color_Ptr color = NULL;
     if (parsed[0] != '#') {
@@ -1628,6 +1628,19 @@ namespace Sass {
     return color;
   }
 
+  Value_Ptr Parser::color_or_string(const std::string& lexed) const
+  {
+    if (auto color = name_to_color(lexed)) {
+      auto c = SASS_MEMORY_NEW(Color, color);
+      c->is_delayed(true);
+      c->pstate(pstate);
+      c->disp(lexed);
+      return c;
+    } else {
+      return SASS_MEMORY_NEW(String_Constant, pstate, lexed);
+    }
+  }
+
   // parse one value for a list
   Expression_Obj Parser::parse_value()
   {
@@ -1670,7 +1683,7 @@ namespace Sass {
     { return SASS_MEMORY_NEW(Null, pstate); }
 
     if (lex< identifier >()) {
-      return SASS_MEMORY_NEW(String_Constant, pstate, lexed);
+      return color_or_string(lexed);
     }
 
     if (lex< percentage >())
@@ -1841,7 +1854,7 @@ namespace Sass {
     return schema->length() > 0 ? schema.detach() : NULL;
   }
 
-  String_Constant_Obj Parser::parse_static_value()
+  Value_Obj Parser::parse_static_value()
   {
     lex< static_value >();
     Token str(lexed);
@@ -1852,8 +1865,7 @@ namespace Sass {
     --str.end;
     --position;
 
-    String_Constant_Ptr str_node = SASS_MEMORY_NEW(String_Constant, pstate, str.time_wspace());
-    return str_node;
+    return color_or_string(str.time_wspace());;
   }
 
   String_Obj Parser::parse_string()
@@ -1962,7 +1974,7 @@ namespace Sass {
         if (lex< re_static_expression >()) {
           ex = SASS_MEMORY_NEW(String_Constant, pstate, lexed);
         } else {
-          ex = parse_list();
+          ex = parse_list(true);
         }
         ex->is_interpolant(true);
         schema->append(ex);
@@ -1986,7 +1998,7 @@ namespace Sass {
         }
         if (peek < exactly < '-' > >()) break;
       }
-      else if (lex< sequence < identifier > >()) {
+      else if (lex< identifier >()) {
         schema->append(SASS_MEMORY_NEW(String_Constant, pstate, lexed));
         if ((*position == '"' || *position == '\'') || peek < alternatives < alpha > >()) {
            // need_space = true;
@@ -2691,7 +2703,9 @@ namespace Sass {
     if ((rv = lex_interp_string())) return rv;
     if ((rv = lex_interp_uri())) return rv;
     if ((rv = lex_interpolation())) return rv;
-    return rv;
+     if (lex< alternatives< hex, hex0 > >())
+    { return lexed_hex_color(lexed); }
+   return rv;
   }
 
   String_Schema_Obj Parser::parse_almost_any_value()
@@ -2777,6 +2791,7 @@ namespace Sass {
       >(p)
     ) {
       bool could_be_property = peek< sequence< exactly<'-'>, exactly<'-'> > >(p) != 0;
+      bool could_be_escaped = false;
       while (p < q) {
         // did we have interpolations?
         if (*p == '#' && *(p+1) == '{') {
@@ -2785,9 +2800,10 @@ namespace Sass {
         }
         // A property that's ambiguous with a nested selector is interpreted as a
         // custom property.
-        if (*p == ':') {
+        if (*p == ':' && !could_be_escaped) {
           rv.is_custom_property = could_be_property || p+1 == q || peek< space >(p+1);
         }
+        could_be_escaped = *p == '\\';
         ++ p;
       }
       // store anyway  }
