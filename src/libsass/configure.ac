@@ -9,7 +9,6 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_FILES([include/sass/version.h])
 AC_CONFIG_AUX_DIR([script])
-
 # These are flags passed to automake
 # Though they look like gcc flags!
 AM_INIT_AUTOMAKE([foreign parallel-tests -Wall])
@@ -94,16 +93,21 @@ the --with-sass-spec-dir=<dir> argument.
       ;;
   esac
   AC_SUBST(SASS_SPEC_PATH)
-else
-  # we do not really need these paths for non test build
-  # but automake may error if we do not define them here
-  SASS_SPEC_PATH=sass-spec
-  SASS_SASSC_PATH=sassc
-  AC_SUBST(SASS_SPEC_PATH)
-  AC_SUBST(SASS_SASSC_PATH)
+
+  # TODO: Remove this when automake requirements are 1.12+
+  AC_MSG_CHECKING([whether we can use TAP mode])
+  tmp=`$AWK '/TEST_LOG_DRIVER/' $srcdir/GNUmakefile.in`
+  if test "x$tmp" != "x"; then
+    use_tap=yes
+  else
+    use_tap=no
+  fi
+  AC_MSG_RESULT([$use_tap])
+
 fi
 
 AM_CONDITIONAL(ENABLE_TESTS, test "x$enable_tests" = "xyes")
+AM_CONDITIONAL(USE_TAP, test "x$use_tap" = "xyes")
 
 AC_ARG_ENABLE([coverage],
   [AS_HELP_STRING([--enable-coverage],
