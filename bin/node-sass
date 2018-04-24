@@ -161,6 +161,12 @@ function getEmitter() {
     }
   });
 
+  emitter.on('info', function(data) {
+    if (!options.quiet) {
+      console.info(data);
+    }
+  });
+
   emitter.on('log', stdout.write.bind(stdout));
 
   return emitter;
