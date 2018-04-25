@@ -55,14 +55,24 @@ addons:
     packages:
       - gcc-4.7
       - g++-4.7
+      - gcc-4.9
+      - g++-4.9
 
 before_install:
+  - echo $TRAVIS_NODE_VERSION
   - npm config set python `which python`
   - if [ $TRAVIS_OS_NAME == "linux" ]; then
-      export CC="gcc-4.7";
-      export CXX="g++-4.7";
-      export LINK="gcc-4.7";
-      export LINKXX="g++-4.7";
+      if [[ $(node -v) =~ "10" ]]; then
+        export CC="gcc-4.9";
+        export CXX="g++-4.9";
+        export LINK="gcc-4.9";
+        export LINKXX="g++-4.9";
+      else
+        export CC="gcc-4.7";
+        export CXX="g++-4.7";
+        export LINK="gcc-4.7";
+        export LINKXX="g++-4.7";
+      fi
     fi
   - nvm --version
   - node --version
