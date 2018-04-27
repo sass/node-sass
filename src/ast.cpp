@@ -1263,12 +1263,8 @@ namespace Sass {
   {
     if (!this->has_parent_ref()) return this;
     Selector_List_Ptr ss = SASS_MEMORY_NEW(Selector_List, pstate());
-    Selector_List_Ptr ps = pstack.back();
-    for (size_t pi = 0, pL = ps->length(); pi < pL; ++pi) {
-      for (size_t si = 0, sL = this->length(); si < sL; ++si) {
-        Selector_List_Obj rv = at(si)->resolve_parent_refs(pstack, traces, implicit_parent);
-        ss->concat(rv);
-      }
+    for (size_t si = 0, sL = this->length(); si < sL; ++si) {
+      ss->concat(at(si)->resolve_parent_refs(pstack, traces, implicit_parent));
     }
     return ss;
   }
