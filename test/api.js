@@ -1992,4 +1992,38 @@ describe('api', function() {
       done();
     });
   });
+
+  describe('strange error', function() {
+    it('should work', function() {
+      var result = sass.renderSync({
+        data: [
+          '@function get-color($colorName, $opacity: 1) {',
+          '$map: build-map();',
+          '$color: map-get($map, black);',
+
+          '@if $color == null {',
+          '  @error "Color `#{$colorName}` not found in map #{$map}";',
+          '}',
+
+          '@return $color;',
+          '}',
+
+          '.foo { background: get-color(black); }'
+        ].join('\n'),
+
+        functions: {
+          'build-map()': function() {
+            var map = new sass.types.Map(1);
+
+            map.setKey(0, sass.types.String('black'));
+            map.setValue(0, sass.types.Color(0, 0, 0));
+
+            return map;
+          }
+        }
+      });
+
+      assert.equal(result.css.toString().replace('\n ', '').trim(), '.foo { background: black; }');
+    });
+  });
 });
