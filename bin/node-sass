@@ -47,7 +47,7 @@ var cli = meow({
     '  --indent-width             Indent width; number of spaces or tabs (maximum value: 10)',
     '  --linefeed                 Linefeed style (cr | crlf | lf | lfcr)',
     '  --source-comments          Include debug info in output',
-    '  --source-map               Emit source map',
+    '  --source-map               Emit source map (boolean, or path to output .map file)',
     '  --source-map-contents      Embed include contents in map',
     '  --source-map-embed         Embed sourceMappingUrl as data URI',
     '  --source-map-root          Base path, will be emitted in source-map as is',
