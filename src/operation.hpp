@@ -4,6 +4,8 @@
 // base classes to implement curiously recurring template pattern (CRTP)
 // https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern
 
+#include <stdexcept>
+
 #include "ast_fwd_decl.hpp"
 #include "ast_def_macros.hpp"
 
