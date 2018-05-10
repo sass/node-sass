@@ -3,15 +3,7 @@
 Before opening an issue:
 - Check that the version of node-sass you're trying to install supports your version of Node by looking at the release page for that version https://github.com/sass/node-sass/releases
 - Read the common workarounds in the [TROUBLESHOOTING.md](https://github.com/sass/node-sass/blob/master/TROUBLESHOOTING.md)
-- [Search for duplicate or closed issues](https://github.com/sass/node-sass/issues?utf8=%E2%9C%93&q=is%3Aissue)
-- [Validate](http://sassmeister.com/) that it runs with both Ruby Sass and LibSass
-- Prepare a [reduced test case](https://css-tricks.com/reduced-test-cases/) for any bugs
 - Read the [contributing guidelines](https://github.com/sass/node-sass/blob/master/.github/CONTRIBUTING.md)
-
-When encountering a syntax, or compilation issue:
-
-- [Open an issue on `LibSass`](https://github.com/sass/LibSass/issues/new). You
-may link it back here, but any change will be required there, not here
 
 **When reporting an bug, YOU MUST PROVIDE THIS INFORMATION 
 or your issue will be closed without discussion**
