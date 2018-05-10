@@ -1,11 +1,12 @@
 <!--
 
 Before opening an issue:
-- Check that the version of node-sass you're trying to install supports your version of Node by looking at the release page for that version https://github.com/sass/node-sass/releases
-- Read the common workarounds in the [TROUBLESHOOTING.md](https://github.com/sass/node-sass/blob/master/TROUBLESHOOTING.md)
-- Read the [contributing guidelines](https://github.com/sass/node-sass/blob/master/.github/CONTRIBUTING.md)
 
-**When reporting an bug, YOU MUST PROVIDE THIS INFORMATION 
+- Check that the version of node-sass you're trying to install supports your version of Node by looking at the release page for that version https://github.com/sass/node-sass/releases
+- If you're running the latest verions of Node, you'll likely need the latest node-sass, we don't backport support to old versions of node-sass
+- Read the common workarounds in https://github.com/sass/node-sass/blob/master/TROUBLESHOOTING.md
+
+**When reporting an bug, YOU MUST PROVIDE THE FOLLOWING INFORMATION
 or your issue will be closed without discussion**
 -->
 
