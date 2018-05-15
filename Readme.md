@@ -95,7 +95,7 @@ Initial development of LibSass by Aaron Leung and Hampton Catlin was supported b
 Licensing
 ---------
 
-Our [MIT license](LICENSE) is designed to be as siple and liberal as possible.
+Our [MIT license](LICENSE) is designed to be as simple and liberal as possible.
 
 [@hcatlin]: https://github.com/hcatlin
 [@akhleung]: https://github.com/akhleung
