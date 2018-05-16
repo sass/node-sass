@@ -9,6 +9,7 @@ about: If you're having an issue with installing node-sass or the compiled resul
 
 Before opening an Install issue:
 
+- If you're running Node 10, you must be running node-sass 4.9.
 - Check that the version of node-sass you're trying to install supports your version of Node by looking at the release page for that version https://github.com/sass/node-sass/releases
 - If you're running the latest verions of Node, you'll likely need the latest node-sass, we don't backport support to old versions of node-sass
 - Read the common workarounds in https://github.com/sass/node-sass/blob/master/TROUBLESHOOTING.md
