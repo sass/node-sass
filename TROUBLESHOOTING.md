@@ -5,6 +5,7 @@ This document covers some common node-sass issues and how to resolve them. You s
 ## TOC
 
 - [Installation problems](#installation-problems)
+  - [404 downloading binding.node file](#404-downloading-bindingnode-file)
   - [Assertion failed: (handle->flags & UV_CLOSING), function uv__finish_close](#assertion-failed-handle-flags-&-uv_closing-function-uv__finish_close)
   - [Cannot find module '/root/<...>/install.js'](#cannot-find-module-rootinstalljs)
     - [Linux](#linux)
@@ -19,6 +20,16 @@ This document covers some common node-sass issues and how to resolve them. You s
 - [Installing node-sass 4.x with Node < 4](#installing-node-sass-4x-with-node--4)
 
 ## Installation problems
+
+### 404 downloading binding.node file
+
+If you see a 404 when trying to install node-sas, this indicates that your trying
+to install a version of node-sass that doesn't support your verion of NodeJS, or
+uses an alternate V8 environment (Meteor, Electron, etc...) that isn't supported
+by node-sass.
+If you encounter this, please check what version of NodeJs you're running (`node -v`)
+and check for a supported version of node-sass for your NodeJs by checking our
+[release page](https://github.com/sass/node-sass/releases).
 
 ### Assertion failed: (handle->flags & UV_CLOSING), function uv__finish_close
 
@@ -46,7 +57,9 @@ If this didn't solve your problem please open an issue with the output from [our
 
 ### npm 5
 
-Some users upgrading from previous versions of npm have found conflicts with old lock file formats. This may be show up as a URL instead of the actual version number when downloading the binary. EX:
+Some users upgrading from previous versions of npm before 5 have found conflicts with
+old lock file formats. This may be show up as a URL instead of the actual version
+number when downloading the binary. EX:
 
 ```console
 Downloading binary from https://github.com/sass/node-sass/releases/download/vhttps://registry.npmjs.org/node-sass/-/node-sass-4.5.3.tgz/win32-x64-57_binding.node
