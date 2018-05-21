@@ -3,10 +3,6 @@ language: node_js
 compiler: gcc
 sudo: false
 
-env:
-  global:
-    - SKIP_SASS_BINARY_DOWNLOAD_FOR_CI=true
-
 jobs:
   include:
     - stage: test
@@ -15,10 +11,7 @@ jobs:
       before_script: npm run lint || exit 1;
       after_success: npm run-script coverage;
     - stage: platform-test
-      node_js: "lts/boron"
-      os: linux
-    - stage: platform-test
-      node_js: "lts/boron"
+      node_js: "10"
       os: osx
     - stage: platform-test
       node_js: "lts/carbon"
@@ -69,7 +62,7 @@ before_install:
   - g++ --version
 
 install:
-  - npm install
+  - npm install --build-from-source=node-sass
 
 script:
   - npm test

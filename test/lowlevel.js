@@ -1,8 +1,10 @@
 process.env.NODESASS_COV ? require('../lib-cov') : require('../lib');
 
 var assert = require('assert'),
-  sass = require('../lib/extensions'),
-  binding = require(sass.getBinaryPath());
+  path = require('path'),
+  binary = require('node-pre-gyp'),
+  bindingPath = binary.find(path.resolve(path.join(__dirname, '../package.json'))),
+  binding = require(bindingPath);
 
 describe('lowlevel', function() {
   it('fail with options not an object', function(done) {

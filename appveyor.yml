@@ -32,15 +32,11 @@
     - '%AppData%\npm-cache'
 
   environment:
-    SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
     matrix:
       - nodejs_version: 6
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       - nodejs_version: 8
-        GYP_MSVS_VERSION: 2015
-        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      - nodejs_version: 9
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       - nodejs_version: 10
@@ -51,7 +47,7 @@
     - ps: Install-Product node $env:nodejs_version $env:platform
     - node --version
     - npm --version
-    - npm install
+    - npm install --build-from-source=node-sass
 
   test: off
 
@@ -110,15 +106,11 @@
     - '%AppData%\npm-cache'
 
   environment:
-    SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
     matrix:
       - nodejs_version: 6
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       - nodejs_version: 8
-        GYP_MSVS_VERSION: 2015
-        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-      - nodejs_version: 9
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       - nodejs_version: 10
@@ -129,7 +121,7 @@
     - ps: Install-Product node $env:nodejs_version $env:platform
     - node --version
     - npm --version
-    - npm install
+    - npm install --build-from-source=node-sass
 
   test_script:
     - ps: set-location -path c:\projects\node_modules\node-sass
