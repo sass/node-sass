@@ -56,7 +56,16 @@ function afterBuild(options) {
  */
 
 function build(options) {
-  var args = [require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js')), 'rebuild', '--verbose'].concat(
+  // get global npm bin directory
+  var globalBinPath = spawn.sync('npm', ['bin', '-g'], { stdout: 'inherit' }).stdout.toString().trim();
+  var nodeGypExec = getNodeGyp();
+  
+  if (!nodeGypExec) {
+    console.error('node-gyp not found!');
+    process.exit(1);
+  }
+  
+  var args = [nodeGypExec, 'rebuild', '--verbose'].concat(
     ['libsass_ext', 'libsass_cflags', 'libsass_ldflags', 'libsass_library'].map(function(subject) {
       return ['--', subject, '=', process.env[subject.toUpperCase()] || ''].join('');
     })).concat(options.args);
@@ -146,6 +155,34 @@ function testBinary(options) {
 
     return build(options);
   }
+}
+
+/**
+ * find node-gyp
+ */
+
+function getNodeGyp(){
+  var globalBinPath = spawn.sync('npm', ['bin', '-g'], { stdout: 'inherit' }).stdout.toString().trim();
+  var localBinPath = spawn.sync('npm', ['bin'], { stdout: 'inherit' }).stdout.toString().trim();
+  var nodeGypExec = null;
+  
+  try{
+    nodeGypExec = require.resolve(globalBinPath+'/node-gyp');
+  }catch(errorGlobal){
+    console.error('unable to resolve node-gyp globally!`');
+  }
+  if(!nodeGypExec){
+    try{
+      nodeGypExec = require.resolve(localBinPath+'/node-gyp');
+    }catch(errorGlobal){
+      console.error('unable to resolve node-gyp locally!`');
+    }
+  }
+
+  if(!nodeGypExec){
+    console.error('unable to resolve node-gyp. Try running `npm install node-gyp -g`.');
+  }
+  return nodeGypExec;
 }
 
 /**
