@@ -75,6 +75,7 @@
     - ps: Install-Product node $env:nodejs_version $env:platform
     - node --version
     - npm --version
+    - npm install -g node-gyp
     - npm install
 
   test: off
