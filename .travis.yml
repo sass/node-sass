@@ -81,6 +81,7 @@ before_install:
   - g++ --version
 
 install:
+  - npm install -g node-gyp
   - npm install
 
 script:
