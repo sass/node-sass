@@ -161,20 +161,29 @@ function testBinary(options) {
  */
 
 function getNodeGyp(){
-  var globalBinPath = spawn.sync('npm', ['bin', '-g'], { stdout: 'inherit' }).stdout.toString().trim();
   var localBinPath = spawn.sync('npm', ['bin'], { stdout: 'inherit' }).stdout.toString().trim();
+  var globalBinPath = spawn.sync('npm', ['bin', '-g'], { stdout: 'inherit' }).stdout.toString().trim();
+  var npmBinPath = spawn.sync('npm', ['bin', '-g'], { stdout: 'inherit' }).stdout.toString().trim();
+
   var nodeGypExec = null;
-  
   try{
-    nodeGypExec = require.resolve(globalBinPath+'/node-gyp');
+    nodeGypExec = require.resolve(localBinPath+'/node-gyp');
   }catch(errorGlobal){
-    console.error('unable to resolve node-gyp globally!`');
+    console.error('unable to resolve node-gyp locally!`');
+  }
+  
+  if(!nodeGypExec){
+    try{
+      nodeGypExec = require.resolve(globalBinPath+'/node-gyp');
+    }catch(errorGlobal){
+      console.error('unable to resolve node-gyp globally!`');
+    }
   }
   if(!nodeGypExec){
     try{
-      nodeGypExec = require.resolve(localBinPath+'/node-gyp');
+      nodeGypExec = require.resolve(npmBinPath+'/../lib/node_modules/node-gyp/bin/node-gyp.js');
     }catch(errorGlobal){
-      console.error('unable to resolve node-gyp locally!`');
+      console.error('unable to resolve node-gyp in npm!`');
     }
   }
 
