@@ -89,14 +89,9 @@ namespace Sass {
     public:
       // resolved absolute path
       std::string abs_path;
-      // is a deprecated file type
-      bool deprecated;
     public:
-      Include(const Importer& imp, std::string abs_path, bool deprecated)
-      : Importer(imp), abs_path(abs_path), deprecated(deprecated)
-      { }
       Include(const Importer& imp, std::string abs_path)
-      : Importer(imp), abs_path(abs_path), deprecated(false)
+      : Importer(imp), abs_path(abs_path)
       { }
   };
 

@@ -365,14 +365,6 @@ namespace Sass {
     // process the resolved entry
     else if (resolved.size() == 1) {
       bool use_cache = c_importers.size() == 0;
-      if (resolved[0].deprecated) {
-        // emit deprecation warning when import resolves to a .css file
-        deprecated(
-          "Including .css files with @import is non-standard behaviour which will be removed in future versions of LibSass.",
-          "Use a custom importer to maintain this behaviour. Check your implementations documentation on how to create a custom importer.",
-          true, pstate
-        );
-      }
       // use cache for the resource loading
       if (use_cache && sheets.count(resolved[0].abs_path)) return resolved[0];
       // try to read the content of the resolved file entry
