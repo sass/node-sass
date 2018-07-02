@@ -121,12 +121,10 @@ namespace Sass {
 
   namespace File {
 
-    static std::vector<std::string> defaultExtensions = { ".scss", ".sass" };
-    static std::vector<std::string> deprecatedExtensions = { ".css" };
+    static std::vector<std::string> defaultExtensions = { ".scss", ".sass", ".css" };
 
     std::vector<Include> resolve_includes(const std::string& root, const std::string& file,
-      const std::vector<std::string>& exts = defaultExtensions,
-      const std::vector<std::string>& d_exts = deprecatedExtensions);
+      const std::vector<std::string>& exts = defaultExtensions);
 
   }
 
