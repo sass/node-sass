@@ -323,7 +323,7 @@ namespace Sass {
     // (2) underscore + given
     // (3) underscore + given + extension
     // (4) given + extension
-    std::vector<Include> resolve_includes(const std::string& root, const std::string& file, const std::vector<std::string>& exts)
+    std::vector<Include> resolve_includes(const std::string& root, const std::string& file, const std::vector<std::string>& exts, const std::vector<std::string>& d_exts)
     {
       std::string filename = join_paths(root, file);
       // split the filename
@@ -342,13 +342,25 @@ namespace Sass {
       for(auto ext : exts) {
         rel_path = join_paths(base, "_" + name + ext);
         abs_path = join_paths(root, rel_path);
-        if (file_exists(abs_path)) includes.push_back({{ rel_path, root }, abs_path, ext == ".css" });
+        if (file_exists(abs_path)) includes.push_back({{ rel_path, root }, abs_path });
       }
       // next test plain name with exts
       for(auto ext : exts) {
         rel_path = join_paths(base, name + ext);
         abs_path = join_paths(root, rel_path);
-        if (file_exists(abs_path)) includes.push_back({{ rel_path, root }, abs_path, ext == ".css" });
+        if (file_exists(abs_path)) includes.push_back({{ rel_path, root }, abs_path });
+      }
+      // next test d_exts plus underscore
+      for(auto ext : d_exts) {
+        rel_path = join_paths(base, "_" + name + ext);
+        abs_path = join_paths(root, rel_path);
+        if (file_exists(abs_path)) includes.push_back({{ rel_path, root }, abs_path, true });
+      }
+      // next test plain name with d_exts
+      for(auto ext : d_exts) {
+        rel_path = join_paths(base, name + ext);
+        abs_path = join_paths(root, rel_path);
+        if (file_exists(abs_path)) includes.push_back({{ rel_path, root }, abs_path, true });
       }
       // nothing found
       return includes;
