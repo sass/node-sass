@@ -47,6 +47,12 @@ jobs:
     - stage: platform-test
       node_js: "lts/argon"
       os: osx
+    - stage: platform-test
+      node_js: "0.12"
+      os: linux
+    - stage: platform-test
+      node_js: "0.10"
+      os: linux
 
 addons:
   apt:
