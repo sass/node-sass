@@ -1,21 +1,22 @@
-#include <nan.h>
 #include "color.h"
 
 namespace SassTypes
 {
-  Color::Color(Sass_Value* v) : SassValueWrapper(v) {}
+  Color::Color(napi_env env, Sass_Value* v) : SassValueWrapper(env, v) {}
 
-  Sass_Value* Color::construct(const std::vector<v8::Local<v8::Value>> raw_val, Sass_Value **out) {
+  Sass_Value* Color::construct(napi_env env, const std::vector<napi_value> raw_val, Sass_Value **out) {
     double a = 1.0, r = 0, g = 0, b = 0;
-    unsigned argb;
+    napi_valuetype t;
+    uint32_t argb;
 
     switch (raw_val.size()) {
     case 1:
-      if (!raw_val[0]->IsNumber()) {
+      CHECK_NAPI_RESULT(napi_typeof(env, raw_val[0], &t));
+      if (t != napi_number) {
         return fail("Only argument should be an integer.", out);
       }
 
-      argb = Nan::To<int32_t>(raw_val[0]).FromJust();
+      CHECK_NAPI_RESULT(napi_get_value_uint32(env, raw_val[0], &argb));
       a = (double)((argb >> 030) & 0xff) / 0xff;
       r = (double)((argb >> 020) & 0xff);
       g = (double)((argb >> 010) & 0xff);
@@ -23,21 +24,30 @@ namespace SassTypes
       break;
 
     case 4:
-      if (!raw_val[3]->IsNumber()) {
+      CHECK_NAPI_RESULT(napi_typeof(env, raw_val[3], &t));
+      if (t != napi_number) {
         return fail("Constructor arguments should be numbers exclusively.", out);
       }
-
-      a = Nan::To<double>(raw_val[3]).FromJust();
-      NODE_SASS_FALLTHROUGH;
+      CHECK_NAPI_RESULT(napi_get_value_double(env, raw_val[3], &a));
+      // fall through vvv
 
     case 3:
-      if (!raw_val[0]->IsNumber() || !raw_val[1]->IsNumber() || !raw_val[2]->IsNumber()) {
+      CHECK_NAPI_RESULT(napi_typeof(env, raw_val[0], &t));
+      if (t != napi_number) {
+        return fail("Constructor arguments should be numbers exclusively.", out);
+      }
+      CHECK_NAPI_RESULT(napi_typeof(env, raw_val[1], &t));
+      if (t != napi_number) {
+        return fail("Constructor arguments should be numbers exclusively.", out);
+      }
+      CHECK_NAPI_RESULT(napi_typeof(env, raw_val[2], &t));
+      if (t != napi_number) {
         return fail("Constructor arguments should be numbers exclusively.", out);
       }
 
-      r = Nan::To<double>(raw_val[0]).FromJust();
-      g = Nan::To<double>(raw_val[1]).FromJust();
-      b = Nan::To<double>(raw_val[2]).FromJust();
+      CHECK_NAPI_RESULT(napi_get_value_double(env, raw_val[0], &r));
+      CHECK_NAPI_RESULT(napi_get_value_double(env, raw_val[1], &g));
+      CHECK_NAPI_RESULT(napi_get_value_double(env, raw_val[2], &b));
       break;
 
     case 0:
@@ -50,78 +60,52 @@ namespace SassTypes
     return *out = sass_make_color(r, g, b, a);
   }
 
-  void Color::initPrototype(v8::Local<v8::FunctionTemplate> proto) {
-    Nan::SetPrototypeMethod(proto, "getR", GetR);
-    Nan::SetPrototypeMethod(proto, "getG", GetG);
-    Nan::SetPrototypeMethod(proto, "getB", GetB);
-    Nan::SetPrototypeMethod(proto, "getA", GetA);
-    Nan::SetPrototypeMethod(proto, "setR", SetR);
-    Nan::SetPrototypeMethod(proto, "setG", SetG);
-    Nan::SetPrototypeMethod(proto, "setB", SetB);
-    Nan::SetPrototypeMethod(proto, "setA", SetA);
+  napi_value Color::getConstructor(napi_env env, napi_callback cb) {
+    napi_value ctor;
+    napi_property_descriptor descriptors[] = {
+      { "getR", nullptr, GetR },
+      { "getG", nullptr, GetG },
+      { "getB", nullptr, GetB },
+      { "getA", nullptr, GetA },
+      { "setR", nullptr, SetR },
+      { "setG", nullptr, SetG },
+      { "setB", nullptr, SetB },
+      { "setA", nullptr, SetA },
+    };
+
+    CHECK_NAPI_RESULT(napi_define_class(env, get_constructor_name(), NAPI_AUTO_LENGTH, cb, nullptr, 8, descriptors, &ctor));
+    return ctor;
   }
 
-  NAN_METHOD(Color::GetR) {
-    info.GetReturnValue().Set(sass_color_get_r(Color::Unwrap<Color>(info.This())->value));
+  napi_value Color::GetR(napi_env env, napi_callback_info info) {
+    return CommonGetNumber(env, info, sass_color_get_r);
   }
 
-  NAN_METHOD(Color::GetG) {
-    info.GetReturnValue().Set(sass_color_get_g(Color::Unwrap<Color>(info.This())->value));
+  napi_value Color::GetG(napi_env env, napi_callback_info info) {
+    return CommonGetNumber(env, info, sass_color_get_g);
   }
 
-  NAN_METHOD(Color::GetB) {
-    info.GetReturnValue().Set(sass_color_get_b(Color::Unwrap<Color>(info.This())->value));
+  napi_value Color::GetB(napi_env env, napi_callback_info info) {
+    return CommonGetNumber(env, info, sass_color_get_b);
   }
 
-  NAN_METHOD(Color::GetA) {
-    info.GetReturnValue().Set(sass_color_get_a(Color::Unwrap<Color>(info.This())->value));
+  napi_value Color::GetA(napi_env env, napi_callback_info info) {
+    return CommonGetNumber(env, info, sass_color_get_a);
   }
 
-  NAN_METHOD(Color::SetR) {
-    if (info.Length() != 1) {
-      return Nan::ThrowTypeError("Expected just one argument");
-    }
-
-    if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError("Supplied value should be a number");
-    }
-
-    sass_color_set_r(Color::Unwrap<Color>(info.This())->value, Nan::To<double>(info[0]).FromJust());
+  napi_value Color::SetR(napi_env env, napi_callback_info info) {
+    return CommonSetNumber(env, info, sass_color_set_r);
   }
 
-  NAN_METHOD(Color::SetG) {
-    if (info.Length() != 1) {
-      return Nan::ThrowTypeError("Expected just one argument");
-    }
-
-    if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError("Supplied value should be a number");
-    }
-
-    sass_color_set_g(Color::Unwrap<Color>(info.This())->value, Nan::To<double>(info[0]).FromJust());
+  napi_value Color::SetG(napi_env env, napi_callback_info info) {
+    return CommonSetNumber(env, info, sass_color_set_g);
   }
 
-  NAN_METHOD(Color::SetB) {
-    if (info.Length() != 1) {
-      return Nan::ThrowTypeError("Expected just one argument");
-    }
-
-    if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError("Supplied value should be a number");
-    }
-
-    sass_color_set_b(Color::Unwrap<Color>(info.This())->value, Nan::To<double>(info[0]).FromJust());
+  napi_value Color::SetB(napi_env env, napi_callback_info info) {
+    return CommonSetNumber(env, info, sass_color_set_b);
   }
 
-  NAN_METHOD(Color::SetA) {
-    if (info.Length() != 1) {
-      return Nan::ThrowTypeError("Expected just one argument");
-    }
-
-    if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError("Supplied value should be a number");
-    }
-
-    sass_color_set_a(Color::Unwrap<Color>(info.This())->value, Nan::To<double>(info[0]).FromJust());
+  napi_value Color::SetA(napi_env env, napi_callback_info info) {
+    return CommonSetNumber(env, info, sass_color_set_a);
   }
 }

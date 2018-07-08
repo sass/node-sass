@@ -1,11 +1,10 @@
-#include <nan.h>
 #include <stdexcept>
 #include "custom_function_bridge.h"
 #include "sass_types/factory.h"
 #include "sass_types/value.h"
 
-Sass_Value* CustomFunctionBridge::post_process_return_value(v8::Local<v8::Value> _val) const {
-  SassTypes::Value *value = SassTypes::Factory::unwrap(_val);
+Sass_Value* CustomFunctionBridge::post_process_return_value(napi_env env, napi_value v) const {
+  SassTypes::Value *value = SassTypes::Factory::unwrap(env, v);
   if (value) {
     return value->get_sass_value();
   } else {
@@ -13,14 +12,14 @@ Sass_Value* CustomFunctionBridge::post_process_return_value(v8::Local<v8::Value>
   }
 }
 
-std::vector<v8::Local<v8::Value>> CustomFunctionBridge::pre_process_args(std::vector<void*> in) const {
-  std::vector<v8::Local<v8::Value>> argv = std::vector<v8::Local<v8::Value>>();
+std::vector<napi_value> CustomFunctionBridge::pre_process_args(napi_env env, std::vector<void*> in) const {
+  std::vector<napi_value> argv;
 
   for (void* value : in) {
     Sass_Value* x = static_cast<Sass_Value*>(value);
-    SassTypes::Value* y = SassTypes::Factory::create(x);
+    SassTypes::Value* y = SassTypes::Factory::create(env, x);
 
-    argv.push_back(y->get_js_object());
+    argv.push_back(y->get_js_object(env));
   }
 
   return argv;

@@ -1,4 +1,3 @@
-#include <nan.h>
 #include "factory.h"
 #include "value.h"
 #include "number.h"
@@ -9,64 +8,67 @@
 #include "map.h"
 #include "null.h"
 #include "error.h"
+#include "../common.h"
 
 namespace SassTypes
 {
-  SassTypes::Value* Factory::create(Sass_Value* v) {
+  SassTypes::Value* Factory::create(napi_env env, Sass_Value* v) {
     switch (sass_value_get_tag(v)) {
     case SASS_NUMBER:
-      return new Number(v);
+      return new Number(env, v);
 
     case SASS_STRING:
-      return new String(v);
+      return new String(env, v);
 
     case SASS_COLOR:
-      return new Color(v);
+      return new Color(env, v);
 
     case SASS_BOOLEAN:
       return &Boolean::get_singleton(sass_boolean_get_value(v));
 
     case SASS_LIST:
-      return new List(v);
+      return new List(env, v);
 
     case SASS_MAP:
-      return new Map(v);
+      return new Map(env, v);
 
     case SASS_NULL:
       return &Null::get_singleton();
 
     case SASS_ERROR:
-      return new Error(v);
+      return new Error(env, v);
 
     default:
       const char *msg = "Unknown type encountered.";
-      Nan::ThrowTypeError(msg);
-      return new Error(sass_make_error(msg));
+      CHECK_NAPI_RESULT(napi_throw_type_error(env, nullptr, msg));
+      return new Error(env, sass_make_error(msg));
     }
   }
 
-  NAN_MODULE_INIT(Factory::initExports) {
-    Nan::HandleScope scope;
-    v8::Local<v8::Object> types = Nan::New<v8::Object>();
+  void Factory::initExports(napi_env env, napi_value target) {
+    Napi::HandleScope scope(env);
 
-    Nan::Set(types, Nan::New("Number").ToLocalChecked(), Number::get_constructor());
-    Nan::Set(types, Nan::New("String").ToLocalChecked(), String::get_constructor());
-    Nan::Set(types, Nan::New("Color").ToLocalChecked(), Color::get_constructor());
-    Nan::Set(types, Nan::New("Boolean").ToLocalChecked(), Boolean::get_constructor());
-    Nan::Set(types, Nan::New("List").ToLocalChecked(), List::get_constructor());
-    Nan::Set(types, Nan::New("Map").ToLocalChecked(), Map::get_constructor());
-    Nan::Set(types, Nan::New("Null").ToLocalChecked(), Null::get_constructor());
-    Nan::Set(types, Nan::New("Error").ToLocalChecked(), Error::get_constructor());
-    Nan::Set(target, Nan::New<v8::String>("types").ToLocalChecked(), types);
+    napi_value types;
+    CHECK_NAPI_RESULT(napi_create_object(env, &types));
+
+    CHECK_NAPI_RESULT(napi_set_named_property(env, types, "Number", Number::get_constructor(env)));
+    CHECK_NAPI_RESULT(napi_set_named_property(env, types, "String", String::get_constructor(env)));
+    CHECK_NAPI_RESULT(napi_set_named_property(env, types, "Color", Color::get_constructor(env)));
+    CHECK_NAPI_RESULT(napi_set_named_property(env, types, "Boolean", Boolean::get_constructor(env)));
+    CHECK_NAPI_RESULT(napi_set_named_property(env, types, "List", List::get_constructor(env)));
+    CHECK_NAPI_RESULT(napi_set_named_property(env, types, "Map", Map::get_constructor(env)));
+    CHECK_NAPI_RESULT(napi_set_named_property(env, types, "Null", Null::get_constructor(env)));
+    CHECK_NAPI_RESULT(napi_set_named_property(env, types, "Error", Error::get_constructor(env)));
+
+    CHECK_NAPI_RESULT(napi_set_named_property(env, target, "types", types));
   }
 
-  Value* Factory::unwrap(v8::Local<v8::Value> obj) {
-      if (obj->IsObject()) {
-          v8::Local<v8::Object> v8_obj = obj.As<v8::Object>();
-          if (v8_obj->InternalFieldCount() == 1) {
-              return SassTypes::Value::Unwrap<Value>(v8_obj);
-          }
-      }
-      return NULL;
+  Value* Factory::unwrap(napi_env env, napi_value obj) {
+    void* wrapped;
+    napi_status status = napi_unwrap(env, obj, &wrapped);
+    if (status != napi_ok) {
+      wrapped = nullptr;
+    }
+    return static_cast<Value*>(wrapped);
   }
 }

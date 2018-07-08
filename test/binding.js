@@ -100,14 +100,16 @@ describe('binding', function() {
 
     describe('with an unsupported runtime', function() {
       beforeEach(function() {
-        Object.defineProperty(process.versions, 'modules', {
+        Object.defineProperty(process.versions, 'napi', {
           value: 'baz',
+          configurable: true,
         });
       });
 
       afterEach(function() {
-        Object.defineProperty(process.versions, 'modules', {
-          value: 51,
+        Object.defineProperty(process.versions, 'napi', {
+          value: 3,
+          configurable: true,
         });
       });
 

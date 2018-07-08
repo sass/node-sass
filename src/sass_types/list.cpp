@@ -1,101 +1,103 @@
-#include <nan.h>
 #include "list.h"
 
 namespace SassTypes
 {
-  List::List(Sass_Value* v) : SassValueWrapper(v) {}
+  List::List(napi_env env, Sass_Value* v) : SassValueWrapper(env, v) {}
 
-  Sass_Value* List::construct(const std::vector<v8::Local<v8::Value>> raw_val, Sass_Value **out) {
-    size_t length = 0;
+  Sass_Value* List::construct(napi_env env, const std::vector<napi_value> raw_val, Sass_Value **out) {
+    uint32_t length = 0;
     bool comma = true;
     bool is_bracketed = false;
 
     if (raw_val.size() >= 1) {
-      if (!raw_val[0]->IsNumber()) {
+      napi_valuetype t;
+      CHECK_NAPI_RESULT(napi_typeof(env, raw_val[0], &t));
+
+      if (t != napi_number) {
         return fail("First argument should be an integer.", out);
       }
 
-      length = Nan::To<uint32_t>(raw_val[0]).FromJust();
+      CHECK_NAPI_RESULT(napi_get_value_uint32(env, raw_val[0], &length));
 
       if (raw_val.size() >= 2) {
-        if (!raw_val[1]->IsBoolean()) {
+        CHECK_NAPI_RESULT(napi_typeof(env, raw_val[1], &t));
+
+        if (t != napi_boolean) {
           return fail("Second argument should be a boolean.", out);
         }
 
-        comma = Nan::To<bool>(raw_val[1]).FromJust();
+        CHECK_NAPI_RESULT(napi_get_value_bool(env, raw_val[1], &comma));
       }
     }
 
     return *out = sass_make_list(length, comma ? SASS_COMMA : SASS_SPACE, is_bracketed);
   }
 
-  void List::initPrototype(v8::Local<v8::FunctionTemplate> proto) {
-    Nan::SetPrototypeMethod(proto, "getLength", GetLength);
-    Nan::SetPrototypeMethod(proto, "getSeparator", GetSeparator);
-    Nan::SetPrototypeMethod(proto, "setSeparator", SetSeparator);
-    Nan::SetPrototypeMethod(proto, "getValue", GetValue);
-    Nan::SetPrototypeMethod(proto, "setValue", SetValue);
+  napi_value List::getConstructor(napi_env env, napi_callback cb) {
+    napi_value ctor;
+    napi_property_descriptor descriptors[] = {
+      { "getLength", nullptr, GetLength },
+      { "getSeparator", nullptr, GetSeparator },
+      { "setSeparator", nullptr, SetSeparator },
+      { "getValue", nullptr, GetValue },
+      { "setValue", nullptr, SetValue },
+    };
+
+    CHECK_NAPI_RESULT(napi_define_class(env, get_constructor_name(), NAPI_AUTO_LENGTH, cb, nullptr, 5, descriptors, &ctor));
+    return ctor;
   }
 
-  NAN_METHOD(List::GetValue) {
-
-    if (info.Length() != 1) {
-      return Nan::ThrowTypeError("Expected just one argument");
-    }
-
-    if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError("Supplied index should be an integer");
-    }
-
-    Sass_Value* list = List::Unwrap<List>(info.This())->value;
-    size_t index = Nan::To<uint32_t>(info[0]).FromJust();
-
-
-    if (index >= sass_list_get_length(list)) {
-      return Nan::ThrowRangeError(Nan::New("Out of bound index").ToLocalChecked());
-    }
-
-    info.GetReturnValue().Set(Factory::create(sass_list_get_value(list, Nan::To<uint32_t>(info[0]).FromJust()))->get_js_object());
+  napi_value List::GetValue(napi_env env, napi_callback_info info) {
+    return CommonGetIndexedValue(env, info, sass_list_get_length, sass_list_get_value);
   }
 
-  NAN_METHOD(List::SetValue) {
-    if (info.Length() != 2) {
-      return Nan::ThrowTypeError("Expected two arguments");
-    }
-
-    if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError("Supplied index should be an integer");
-    }
-
-    if (!info[1]->IsObject()) {
-      return Nan::ThrowTypeError("Supplied value should be a SassValue object");
-    }
-
-    Value* sass_value = Factory::unwrap(info[1]);
-    if (sass_value) {
-      sass_list_set_value(List::Unwrap<List>(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
-    } else {
-      Nan::ThrowTypeError("A SassValue is expected as the list item");
-    }
+  napi_value List::SetValue(napi_env env, napi_callback_info info) {
+    return CommonSetIndexedValue(env, info, sass_list_set_value);
   }
 
-  NAN_METHOD(List::GetSeparator) {
-    info.GetReturnValue().Set(sass_list_get_separator(List::Unwrap<List>(info.This())->value) == SASS_COMMA);
+  napi_value List::GetSeparator(napi_env env, napi_callback_info info) {
+    napi_value _this;
+    CHECK_NAPI_RESULT(napi_get_cb_info(env, info, nullptr, nullptr, &_this, nullptr));
+
+    bool v = sass_list_get_separator(unwrap(env, _this)->value) == SASS_COMMA;
+    napi_value ret;
+    CHECK_NAPI_RESULT(napi_get_boolean(env, v, &ret));
+    return ret;
   }
 
-  NAN_METHOD(List::SetSeparator) {
-    if (info.Length() != 1) {
-      return Nan::ThrowTypeError("Expected just one argument");
+  napi_value List::SetSeparator(napi_env env, napi_callback_info info) {
+    size_t argc = 1;
+    napi_value arg;
+    napi_value _this;
+    CHECK_NAPI_RESULT(napi_get_cb_info(env, info, &argc, &arg, &_this, nullptr));
+
+    if (argc != 1) {
+      CHECK_NAPI_RESULT(napi_throw_type_error(env, nullptr, "Expected just one argument"));
+      return nullptr;
     }
 
-    if (!info[0]->IsBoolean()) {
-      return Nan::ThrowTypeError("Supplied value should be a boolean");
+    napi_valuetype t;
+    CHECK_NAPI_RESULT(napi_typeof(env, arg, &t));
+
+    if (t != napi_boolean) {
+      CHECK_NAPI_RESULT(napi_throw_type_error(env, nullptr, "Supplied value should be a boolean"));
+      return nullptr;
     }
 
-    sass_list_set_separator(List::Unwrap<List>(info.This())->value, Nan::To<bool>(info[0]).FromJust() ? SASS_COMMA : SASS_SPACE);
+    bool b;
+    CHECK_NAPI_RESULT(napi_get_value_bool(env, arg, &b));
+
+    sass_list_set_separator(unwrap(env, _this)->value, b ? SASS_COMMA : SASS_SPACE);
+    return nullptr;
   }
 
-  NAN_METHOD(List::GetLength) {
-    info.GetReturnValue().Set(Nan::New<v8::Number>(sass_list_get_length(List::Unwrap<List>(info.This())->value)));
+  napi_value List::GetLength(napi_env env, napi_callback_info info) {
+    napi_value _this;
+    CHECK_NAPI_RESULT(napi_get_cb_info(env, info, nullptr, nullptr, &_this, nullptr));
+
+    size_t s = sass_list_get_length(unwrap(env, _this)->value);
+    napi_value ret;
+    CHECK_NAPI_RESULT(napi_create_double(env, (double)s, &ret));
+    return ret;
   }
 }

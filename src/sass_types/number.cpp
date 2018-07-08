@@ -1,75 +1,64 @@
-#include <nan.h>
 #include "number.h"
 #include "../create_string.h"
 
 namespace SassTypes
 {
-  Number::Number(Sass_Value* v) : SassValueWrapper(v) {}
+  Number::Number(napi_env env, Sass_Value* v) : SassValueWrapper(env, v) {}
 
-  Sass_Value* Number::construct(const std::vector<v8::Local<v8::Value>> raw_val, Sass_Value **out) {
+  Sass_Value* Number::construct(napi_env env, const std::vector<napi_value> raw_val, Sass_Value **out) {
     double value = 0;
     char const* unit = "";
 
     if (raw_val.size() >= 1) {
-      if (!raw_val[0]->IsNumber()) {
+      napi_valuetype t;
+      CHECK_NAPI_RESULT(napi_typeof(env, raw_val[0], &t));
+
+      if (t != napi_number) {
         return fail("First argument should be a number.", out);
       }
 
-      value = Nan::To<double>(raw_val[0]).FromJust();
+      CHECK_NAPI_RESULT(napi_get_value_double(env, raw_val[0], &value));
 
       if (raw_val.size() >= 2) {
-        if (!raw_val[1]->IsString()) {
+        CHECK_NAPI_RESULT(napi_typeof(env, raw_val[1], &t));
+
+        if (t != napi_string) {
           return fail("Second argument should be a string.", out);
         }
 
-        unit = create_string(raw_val[1]);
-        *out = sass_make_number(value, unit);
-        delete unit;
-        return *out;
-
+        unit = create_string(env, raw_val[1]);
       }
     }
 
     return *out = sass_make_number(value, unit);
   }
 
-  void Number::initPrototype(v8::Local<v8::FunctionTemplate> proto) {
-    Nan::SetPrototypeMethod(proto, "getValue", GetValue);
-    Nan::SetPrototypeMethod(proto, "getUnit", GetUnit);
-    Nan::SetPrototypeMethod(proto, "setValue", SetValue);
-    Nan::SetPrototypeMethod(proto, "setUnit", SetUnit);
+  napi_value Number::getConstructor(napi_env env, napi_callback cb) {
+    napi_value ctor;
+    napi_property_descriptor descriptors [] = {
+        { "getValue", nullptr, GetValue },
+        { "getUnit", nullptr, GetUnit },
+        { "setValue", nullptr, SetValue },
+        { "setUnit", nullptr, SetUnit },
+    };
+
+    CHECK_NAPI_RESULT(napi_define_class(env, get_constructor_name(), NAPI_AUTO_LENGTH, cb, nullptr, 4, descriptors, &ctor));
+    return ctor;
   }
 
-  NAN_METHOD(Number::GetValue) {
-    info.GetReturnValue().Set(Nan::New<v8::Number>(sass_number_get_value(Number::Unwrap<Number>(info.This())->value)));
+  napi_value Number::GetValue(napi_env env, napi_callback_info info) {
+    return CommonGetNumber(env, info, sass_number_get_value);
   }
 
-  NAN_METHOD(Number::GetUnit) {
-    info.GetReturnValue().Set(Nan::New<v8::String>(sass_number_get_unit(Number::Unwrap<Number>(info.This())->value)).ToLocalChecked());
+  napi_value Number::GetUnit(napi_env env, napi_callback_info info) {
+    return CommonGetString(env, info, sass_number_get_unit);
   }
 
-  NAN_METHOD(Number::SetValue) {
-
-    if (info.Length() != 1) {
-      return Nan::ThrowTypeError("Expected just one argument");
-    }
-
-    if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError("Supplied value should be a number");
-    }
-
-    sass_number_set_value(Number::Unwrap<Number>(info.This())->value, Nan::To<double>(info[0]).FromJust());
+  napi_value Number::SetValue(napi_env env, napi_callback_info info) {
+    return CommonSetNumber(env, info, sass_number_set_value);
   }
 
-  NAN_METHOD(Number::SetUnit) {
-    if (info.Length() != 1) {
-      return Nan::ThrowTypeError("Expected just one argument");
-    }
-
-    if (!info[0]->IsString()) {
-      return Nan::ThrowTypeError("Supplied value should be a string");
-    }
-
-    sass_number_set_unit(Number::Unwrap<Number>(info.This())->value, create_string(info[0]));
+  napi_value Number::SetUnit(napi_env env, napi_callback_info info) {
+    return CommonSetString(env, info, sass_number_set_unit);
   }
 }
