@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <memory>
-#include <nan.h>
 #include <stdlib.h>
 #include <sass/context.h>
 #include "custom_function_bridge.h"
@@ -37,17 +36,17 @@ extern "C" {
     uv_async_t async;
     uv_work_t request;
 
-    // v8 and nan related
-    Nan::Persistent<v8::Object> result;
-    Nan::AsyncResource* async_resource;
-    Nan::Callback* error_callback;
-    Nan::Callback* success_callback;
+    // v8 and napi related
+    napi_env env;
+    napi_ref result;
+    napi_ref error_callback;
+    napi_ref success_callback;
 
     std::vector<CustomFunctionBridge *> function_bridges;
     std::vector<CustomImporterBridge *> importer_bridges;
   };
 
-  struct sass_context_wrapper*      sass_make_context_wrapper(void);
+  struct sass_context_wrapper* sass_make_context_wrapper(napi_env);
   void sass_free_context_wrapper(struct sass_context_wrapper*);
 
 #ifdef __cplusplus

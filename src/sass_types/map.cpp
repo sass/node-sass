@@ -1,118 +1,63 @@
-#include <nan.h>
 #include "map.h"
 
 namespace SassTypes
 {
-  Map::Map(Sass_Value* v) : SassValueWrapper(v) {}
+  Map::Map(napi_env env, Sass_Value* v) : SassValueWrapper(env, v) {}
 
-  Sass_Value* Map::construct(const std::vector<v8::Local<v8::Value>> raw_val, Sass_Value **out) {
-    size_t length = 0;
+  Sass_Value* Map::construct(napi_env env, const std::vector<napi_value> raw_val, Sass_Value **out) {
+    uint32_t length = 0;
 
     if (raw_val.size() >= 1) {
-      if (!raw_val[0]->IsNumber()) {
+      napi_valuetype t;
+      CHECK_NAPI_RESULT(napi_typeof(env, raw_val[0], &t));
+
+      if (t != napi_number) {
         return fail("First argument should be an integer.", out);
       }
 
-      length = Nan::To<uint32_t>(raw_val[0]).FromJust();
+      CHECK_NAPI_RESULT(napi_get_value_uint32(env, raw_val[0], &length));
     }
 
     return *out = sass_make_map(length);
   }
 
-  void Map::initPrototype(v8::Local<v8::FunctionTemplate> proto) {
-    Nan::SetPrototypeMethod(proto, "getLength", GetLength);
-    Nan::SetPrototypeMethod(proto, "getKey", GetKey);
-    Nan::SetPrototypeMethod(proto, "setKey", SetKey);
-    Nan::SetPrototypeMethod(proto, "getValue", GetValue);
-    Nan::SetPrototypeMethod(proto, "setValue", SetValue);
+  napi_value Map::getConstructor(napi_env env, napi_callback cb) {
+    napi_value ctor;
+    napi_property_descriptor descriptors[] = {
+      { "getLength", nullptr, GetLength },
+      { "getKey", nullptr, GetKey },
+      { "setKey", nullptr, SetKey },
+      { "getValue", nullptr, GetValue },
+      { "setValue", nullptr, SetValue },
+    };
+
+    CHECK_NAPI_RESULT(napi_define_class(env, get_constructor_name(), NAPI_AUTO_LENGTH, cb, nullptr, 5, descriptors, &ctor));
+    return ctor;
   }
 
-  NAN_METHOD(Map::GetValue) {
-
-    if (info.Length() != 1) {
-      return Nan::ThrowTypeError("Expected just one argument");
-    }
-
-    if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError("Supplied index should be an integer");
-    }
-
-    Sass_Value* map = Map::Unwrap<Map>(info.This())->value;
-    size_t index = Nan::To<uint32_t>(info[0]).FromJust();
-
-
-    if (index >= sass_map_get_length(map)) {
-      return Nan::ThrowRangeError(Nan::New("Out of bound index").ToLocalChecked());
-    }
-
-    info.GetReturnValue().Set(Factory::create(sass_map_get_value(map, Nan::To<uint32_t>(info[0]).FromJust()))->get_js_object());
+  napi_value Map::GetValue(napi_env env, napi_callback_info info) {
+    return CommonGetIndexedValue(env, info, sass_map_get_length, sass_map_get_value);
   }
 
-  NAN_METHOD(Map::SetValue) {
-    if (info.Length() != 2) {
-      return Nan::ThrowTypeError("Expected two arguments");
-    }
-
-    if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError("Supplied index should be an integer");
-    }
-
-    if (!info[1]->IsObject()) {
-      return Nan::ThrowTypeError("Supplied value should be a SassValue object");
-    }
-
-    Value* sass_value = Factory::unwrap(info[1]);
-    if (sass_value) {
-      sass_map_set_value(Map::Unwrap<Map>(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
-    } else {
-      Nan::ThrowTypeError("A SassValue is expected as a map value");
-    }
+  napi_value Map::SetValue(napi_env env, napi_callback_info info) {
+    return CommonSetIndexedValue(env, info, sass_map_set_value);
   }
 
-  NAN_METHOD(Map::GetKey) {
-    if (info.Length() != 1) {
-      return Nan::ThrowTypeError("Expected just one argument");
-    }
-
-    if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError("Supplied index should be an integer");
-    }
-
-    Sass_Value* map = Map::Unwrap<Map>(info.This())->value;
-    size_t index = Nan::To<uint32_t>(info[0]).FromJust();
-
-
-    if (index >= sass_map_get_length(map)) {
-      return Nan::ThrowRangeError(Nan::New("Out of bound index").ToLocalChecked());
-    }
-
-    SassTypes::Value* obj = Factory::create(sass_map_get_key(map, Nan::To<uint32_t>(info[0]).FromJust()));
-    v8::Local<v8::Object> js_obj = obj->get_js_object();
-    info.GetReturnValue().Set(js_obj);
+  napi_value Map::GetKey(napi_env env, napi_callback_info info) {
+    return CommonGetIndexedValue(env, info, sass_map_get_length, sass_map_get_key);
   }
 
-  NAN_METHOD(Map::SetKey) {
-    if (info.Length() != 2) {
-      return Nan::ThrowTypeError("Expected two arguments");
-    }
-
-    if (!info[0]->IsNumber()) {
-      return Nan::ThrowTypeError("Supplied index should be an integer");
-    }
-
-    if (!info[1]->IsObject()) {
-      return Nan::ThrowTypeError("Supplied value should be a SassValue object");
-    }
-
-    Value* sass_value = Factory::unwrap(info[1]);
-    if (sass_value) {
-      sass_map_set_key(Map::Unwrap<Map>(info.This())->value, Nan::To<uint32_t>(info[0]).FromJust(), sass_value->get_sass_value());
-    } else {
-      Nan::ThrowTypeError("A SassValue is expected as a map key");
-    }
+  napi_value Map::SetKey(napi_env env, napi_callback_info info) {
+    return CommonSetIndexedValue(env, info, sass_map_set_key);
   }
 
-  NAN_METHOD(Map::GetLength) {
-    info.GetReturnValue().Set(Nan::New<v8::Number>(sass_map_get_length(Map::Unwrap<Map>(info.This())->value)));
+  napi_value Map::GetLength(napi_env env, napi_callback_info info) {
+    napi_value _this;
+    CHECK_NAPI_RESULT(napi_get_cb_info(env, info, nullptr, nullptr, &_this, nullptr));
+
+    size_t s = sass_map_get_length(unwrap(env, _this)->value);
+    napi_value ret;
+    CHECK_NAPI_RESULT(napi_create_double(env, (double)s, &ret));
+    return ret;
   }
 }

@@ -63,11 +63,13 @@
     "meow": "^5.0.0",
     "mkdirp": "^0.5.1",
     "nan": "^2.14.0",
+    "node-addon-api": "^1.7.1",
     "npmlog": "^4.0.0",
     "request": "^2.88.0",
     "sass-graph": "^3.0.4",
     "stdout-stream": "^1.4.1",
-    "true-case-path": "^2.2.1"
+    "true-case-path": "^2.2.1",
+    "unicode-9.0.0": "^0.7.5"
   },
   "devDependencies": {
     "coveralls": "^3.0.7",

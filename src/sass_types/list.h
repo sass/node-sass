@@ -1,24 +1,22 @@
 #ifndef SASS_TYPES_LIST_H
 #define SASS_TYPES_LIST_H
 
-#include <nan.h>
 #include "sass_value_wrapper.h"
 
 namespace SassTypes
 {
   class List : public SassValueWrapper<List> {
     public:
-      List(Sass_Value*);
+      List(napi_env, Sass_Value*);
       static char const* get_constructor_name() { return "SassList"; }
-      static Sass_Value* construct(const std::vector<v8::Local<v8::Value>>, Sass_Value **);
+      static Sass_Value* construct(napi_env, const std::vector<napi_value>, Sass_Value **);
+      static napi_value getConstructor(napi_env, napi_callback);
 
-      static void initPrototype(v8::Local<v8::FunctionTemplate>);
-
-      static NAN_METHOD(GetValue);
-      static NAN_METHOD(SetValue);
-      static NAN_METHOD(GetSeparator);
-      static NAN_METHOD(SetSeparator);
-      static NAN_METHOD(GetLength);
+      static napi_value GetValue(napi_env env, napi_callback_info info);
+      static napi_value SetValue(napi_env env, napi_callback_info info);
+      static napi_value GetSeparator(napi_env env, napi_callback_info info);
+      static napi_value SetSeparator(napi_env env, napi_callback_info info);
+      static napi_value GetLength(napi_env env, napi_callback_info info);
   };
 }
 

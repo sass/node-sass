@@ -1,18 +1,16 @@
 #ifndef SASS_TYPES_ERROR_H
 #define SASS_TYPES_ERROR_H
 
-#include <nan.h>
 #include "sass_value_wrapper.h"
 
 namespace SassTypes
 {
   class Error : public SassValueWrapper<Error> {
     public:
-      Error(Sass_Value*);
+      Error(napi_env, Sass_Value*);
       static char const* get_constructor_name() { return "SassError"; }
-      static Sass_Value* construct(const std::vector<v8::Local<v8::Value>>, Sass_Value **);
-
-      static void initPrototype(v8::Local<v8::FunctionTemplate>);
+      static Sass_Value* construct(napi_env, const std::vector<napi_value>, Sass_Value **);
+      static napi_value getConstructor(napi_env, napi_callback);
   };
 }
 

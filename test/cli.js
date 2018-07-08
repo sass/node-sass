@@ -9,6 +9,10 @@ var assert = require('assert'),
   cli = path.join(__dirname, '..', 'bin', 'node-sass'),
   fixture = path.join.bind(null, __dirname, 'fixtures');
 
+function isNapiError(error) {
+  return /N-API is an experimental/.exec(error.toString());
+}
+
 describe('cli', function() {
   // For some reason we experience random timeout failures in CI
   // due to spawn hanging/failing silently. See #1692.
@@ -168,8 +172,10 @@ describe('cli', function() {
       var bin = spawn(cli, [src, dest, '--quiet']);
       var didEmit = false;
 
-      bin.stderr.once('data', function() {
-        didEmit = true;
+      bin.stderr.on('data', function(code) {
+        if (!isNapiError(code)) {
+          didEmit = true;
+        }
       });
 
       bin.once('close', function() {
@@ -450,7 +456,8 @@ describe('cli', function() {
       var src = fixture('source-map-embed/index.scss');
       var expectedCss = read(fixture('source-map-embed/expected.css'), 'utf8').trim().replace(/\r\n/g, '\n');
       var result = '';
-      var bin = spawn(cli, [
+      var bin = require('child_process').spawn('node', [
+        cli,
         src,
         '--source-map-embed',
         '--source-map', 'true'
@@ -750,9 +757,11 @@ describe('cli', function() {
         '--importer', fixture('extras/my_custom_importer_error.js')
       ]);
 
-      bin.stderr.once('data', function(code) {
-        assert.equal(JSON.parse(code).message, 'doesn\'t exist!');
-        done();
+      bin.stderr.on('data', function(code) {
+        if (!isNapiError(code)) {
+          assert.equal(JSON.parse(code).message, 'doesn\'t exist!');
+          done();
+        }
       });
     });
   });

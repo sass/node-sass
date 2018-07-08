@@ -1,9 +1,9 @@
 #ifndef SASS_TYPES_FACTORY_H
 #define SASS_TYPES_FACTORY_H
 
-#include <nan.h>
 #include <sass/values.h>
 #include "value.h"
+#include <napi.h>
 
 namespace SassTypes
 {
@@ -11,9 +11,9 @@ namespace SassTypes
   // to wrap a given Sass_Value object.
   class Factory {
     public:
-      static NAN_MODULE_INIT(initExports);
-      static Value* create(Sass_Value*);
-      static Value* unwrap(v8::Local<v8::Value>);
+      static void initExports(napi_env, napi_value);
+      static Value* create(napi_env, Sass_Value*);
+      static Value* unwrap(napi_env, napi_value);
   };
 }
 

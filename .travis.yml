@@ -4,25 +4,30 @@ compiler: gcc
 
 jobs:
   include:
+    - stage: lint
+      node_js: "12"
+      os: linux
+      install: npm install --ignore-scripts
+      script: npm run lint || exit 1;
+
+    - stage: test
+      node_js: "13"
+      os: linux
+    - stage: test
+      node_js: "13"
+      os: osx
     - stage: test
       node_js: "12"
       os: linux
-      before_script: npm run lint || exit 1;
       after_success: npm run-script coverage;
-    - stage: platform-test
+    - stage: test
       node_js: "12"
       os: osx
-    - stage: platform-test
+    - stage: test
       node_js: "10"
       os: linux
-    - stage: platform-test
+    - stage: test
       node_js: "10"
-      os: osx
-    - stage: platform-test
-      node_js: "13"
-      os: linux
-    - stage: platform-test
-      node_js: "13"
       os: osx
 
 addons:

@@ -1,102 +1,128 @@
-#include <nan.h>
 #include <stdexcept>
 #include "custom_importer_bridge.h"
 #include "create_string.h"
 
-SassImportList CustomImporterBridge::post_process_return_value(v8::Local<v8::Value> returned_value) const {
+SassImportList CustomImporterBridge::post_process_return_value(napi_env env, napi_value returned_value) const {
   SassImportList imports = 0;
-  Nan::HandleScope scope;
+  Napi::HandleScope scope(env);
 
-  if (returned_value->IsArray()) {
-    v8::Local<v8::Array> array = returned_value.As<v8::Array>();
+  bool isArray;
+  bool isError;
+  CHECK_NAPI_RESULT(napi_is_array(env, returned_value, &isArray));
+  CHECK_NAPI_RESULT(napi_is_error(env, returned_value, &isError));
 
-    imports = sass_make_import_list(array->Length());
+  if (isArray) {
+    uint32_t length;
+    CHECK_NAPI_RESULT(napi_get_array_length(env, returned_value, &length));
+    imports = sass_make_import_list(length);
 
-    for (size_t i = 0; i < array->Length(); ++i) {
-      v8::Local<v8::Value> value = Nan::Get(array, static_cast<uint32_t>(i)).ToLocalChecked();
+    for (uint32_t i = 0; i < length; ++i) {
+      napi_value value;
+      CHECK_NAPI_RESULT(napi_get_element(env, returned_value, i, &value));
 
-      if (!value->IsObject()) {
+      napi_valuetype t;
+      CHECK_NAPI_RESULT(napi_typeof(env, value, &t));
+
+      if (t != napi_object) {
         auto entry = sass_make_import_entry(0, 0, 0);
         sass_import_set_error(entry, "returned array must only contain object literals", -1, -1);
         continue;
       }
 
-      v8::Local<v8::Object> object = value.As<v8::Object>();
+      CHECK_NAPI_RESULT(napi_is_error(env, value, &isError));
 
-      if (value->IsNativeError()) {
-        char* message = create_string(Nan::Get(object, Nan::New<v8::String>("message").ToLocalChecked()));
+      if (isError) {
+        napi_value propertyMessage;
+        CHECK_NAPI_RESULT(napi_get_named_property(env, value, "message", &propertyMessage));
 
+        char* message = create_string(env, propertyMessage);
         imports[i] = sass_make_import_entry(0, 0, 0);
 
         sass_import_set_error(imports[i], message, -1, -1);
         free(message);
       }
       else {
-        imports[i] = get_importer_entry(object);
+        imports[i] = get_importer_entry(env, value);
       }
     }
   }
-  else if (returned_value->IsNativeError()) {
+  else if (isError) {
     imports = sass_make_import_list(1);
-    v8::Local<v8::Object> object = returned_value.As<v8::Object>();
-    char* message = create_string(Nan::Get(object, Nan::New<v8::String>("message").ToLocalChecked()));
 
+    napi_value propertyMessage;
+    CHECK_NAPI_RESULT(napi_get_named_property(env, returned_value, "message", &propertyMessage));
+
+    char* message = create_string(env, propertyMessage);
     imports[0] = sass_make_import_entry(0, 0, 0);
 
     sass_import_set_error(imports[0], message, -1, -1);
     free(message);
   }
-  else if (returned_value->IsObject()) {
-    imports = sass_make_import_list(1);
-    imports[0] = get_importer_entry(returned_value.As<v8::Object>());
+  else {
+    napi_valuetype t;
+    CHECK_NAPI_RESULT(napi_typeof(env, returned_value, &t));
+
+    if (t == napi_object) {
+      imports = sass_make_import_list(1);
+      imports[0] = get_importer_entry(env, returned_value);
+    }
   }
 
   return imports;
 }
 
-Sass_Import* CustomImporterBridge::check_returned_string(Nan::MaybeLocal<v8::Value> value, const char *msg) const
+Sass_Import* CustomImporterBridge::check_returned_string(napi_env env, napi_value value, const char *msg) const
 {
-    v8::Local<v8::Value> checked;
-    if (value.ToLocal(&checked)) {
-      if (!checked->IsUndefined() && !checked->IsString()) {
-        goto err;
-      } else {
-        return nullptr;
-      }
-    }
+  napi_valuetype t;
+  CHECK_NAPI_RESULT(napi_typeof(env, value, &t));
+
+  if (t != napi_undefined && t != napi_string) {
+    goto err;
+  } else {
+    return nullptr;
+  }
+
 err:
-    auto entry = sass_make_import_entry(0, 0, 0);
-    sass_import_set_error(entry, msg, -1, -1);
-    return entry;
+  auto entry = sass_make_import_entry(0, 0, 0);
+  sass_import_set_error(entry, msg, -1, -1);
+  return entry;
 }
 
-Sass_Import* CustomImporterBridge::get_importer_entry(const v8::Local<v8::Object>& object) const {
-  auto returned_file = Nan::Get(object, Nan::New<v8::String>("file").ToLocalChecked());
-  auto returned_contents = Nan::Get(object, Nan::New<v8::String>("contents").ToLocalChecked()).ToLocalChecked();
-  auto returned_map = Nan::Get(object, Nan::New<v8::String>("map").ToLocalChecked());
+Sass_Import* CustomImporterBridge::get_importer_entry(napi_env env, const napi_value& object) const {
+  napi_value returned_file;
+  CHECK_NAPI_RESULT(napi_get_named_property(env, object, "file", &returned_file));
+  napi_value returned_contents;
+  CHECK_NAPI_RESULT(napi_get_named_property(env, object, "contents", &returned_contents));
+  napi_value returned_map;
+  CHECK_NAPI_RESULT(napi_get_named_property(env, object, "map", &returned_map));
+
   Sass_Import *err;
 
-  if ((err = check_returned_string(returned_file, "returned value of `file` must be a string")))
+  if ((err = check_returned_string(env, returned_file, "returned value of `file` must be a string")))
     return err;
 
-  if ((err = check_returned_string(returned_contents, "returned value of `contents` must be a string")))
+  if ((err = check_returned_string(env, returned_contents, "returned value of `contents` must be a string")))
     return err;
 
-  if ((err = check_returned_string(returned_map, "returned value of `returned_map` must be a string")))
+  if ((err = check_returned_string(env, returned_map, "returned value of `returned_map` must be a string")))
     return err;
 
-  char* path = create_string(returned_file);
-  char* contents = create_string(returned_contents);
-  char* srcmap = create_string(returned_map);
+  char* path = create_string(env, returned_file);
+  char* contents = create_string(env, returned_contents);
+  char* srcmap = create_string(env, returned_map);
 
   return sass_make_import_entry(path, contents, srcmap);
 }
 
-std::vector<v8::Local<v8::Value>> CustomImporterBridge::pre_process_args(std::vector<void*> in) const {
-  std::vector<v8::Local<v8::Value>> out;
+std::vector<napi_value> CustomImporterBridge::pre_process_args(napi_env env, std::vector<void*> in) const {
+  std::vector<napi_value> out;
 
   for (void* ptr : in) {
-    out.push_back(Nan::New<v8::String>((char const*)ptr).ToLocalChecked());
+    const char* s = (const char*)ptr;
+    int len = (int)strlen(s);
+    napi_value str;
+    CHECK_NAPI_RESULT(napi_create_string_utf8(env, s, len, &str));
+    out.push_back(str);
   }
 
   return out;
