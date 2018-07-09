@@ -3,31 +3,15 @@ language: node_js
 compiler: gcc
 sudo: false
 
-env:
-  global:
-    - SKIP_SASS_BINARY_DOWNLOAD_FOR_CI=true
-
 jobs:
   include:
     - stage: test
-      node_js: "node"
+      node_js: "10"
       os: linux
       before_script: npm run lint || exit 1;
       after_success: npm run-script coverage;
     - stage: platform-test
-      node_js: "node"
-      os: osx
-    - stage: platform-test
-      node_js: "9"
-      os: linux
-    - stage: platform-test
-      node_js: "9"
-      os: osx
-    - stage: platform-test
-      node_js: "7"
-      os: linux
-    - stage: platform-test
-      node_js: "7"
+      node_js: "10"
       os: osx
     - stage: platform-test
       node_js: "lts/carbon"
@@ -87,7 +71,7 @@ before_install:
   - g++ --version
 
 install:
-  - npm install
+  - npm install --build-from-source=node-sass
 
 script:
   - npm test
