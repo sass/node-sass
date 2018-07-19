@@ -4,7 +4,7 @@
   },
   'targets': [
     {
-      'target_name': 'binding',
+      'target_name': 'sass',
       'win_delay_load_hook': 'true',
       'sources': [
         'src/binding.cpp',

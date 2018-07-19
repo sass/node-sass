@@ -60,9 +60,9 @@
              Select-Object -Last 2 | Select-Object -First 1 } |
                .{ process { (
                   @( $BindingName,
-                       ( ( $_, "binding.node" ) -join '_' ) ),
-                  @( ".\build\Release\binding.pdb",
-                       ( ( $_, "binding.pdb" ) -join '_' ) )
+                       ( ( $_, "sass.node" ) -join '_' ) ),
+                  @( ".\build\Release\sass.pdb",
+                       ( ( $_, "sass.pdb" ) -join '_' ) )
                ) } } | % { Push-AppveyorArtifact $_[0] -FileName $_[1] }
 
   deploy:

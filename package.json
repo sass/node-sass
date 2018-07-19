@@ -77,10 +77,10 @@
     "unique-temp-dir": "^1.0.0"
   },
   "binary": {
-    "module_name": "binding",
+    "module_name": "sass",
     "module_path": "vendor",
     "host": "https://github.com/",
     "remote_path": "sass/node-sass/releases/download//v{version}/",
-    "package_name": "{platform}-{arch}-{node_abi_napi}{napi_version}_binding.node"
+    "package_name": "{platform}-{arch}-{node_abi_napi}{napi_version}_sass.node"
   }
 }
