@@ -53,7 +53,6 @@
     "cross-spawn": "^6.0.5",
     "get-stdin": "^6.0.0",
     "glob": "^7.0.3",
-    "lodash.assign": "^4.2.0",
     "lodash.clonedeep": "^4.3.2",
     "meow": "^4.0.0",
     "mkdirp": "^0.5.1",
@@ -61,7 +60,7 @@
     "node-gyp": "^3.3.1",
     "node-pre-gyp": "^0.10.3",
     "request": "2.87.0",
-    "sass-graph": "^2.2.4",
+    "sass-graph": "^3.0.0",
     "stdout-stream": "^1.4.0"
   },
   "devDependencies": {

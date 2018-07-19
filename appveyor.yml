@@ -40,8 +40,8 @@
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       - nodejs_version: 10
-        GYP_MSVS_VERSION: 2015
-        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+        GYP_MSVS_VERSION: 2017
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 
   install:
     - ps: Install-Product node $env:nodejs_version $env:platform
@@ -83,7 +83,7 @@
   skip_branch_with_pr: true
   skip_tags: true
 
-  os: Visual Studio 2013
+  os: Visual Studio 2015
 
   configuration: testing
 
@@ -114,8 +114,8 @@
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       - nodejs_version: 10
-        GYP_MSVS_VERSION: 2015
-        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+        GYP_MSVS_VERSION: 2017
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 
   install:
     - ps: Install-Product node $env:nodejs_version $env:platform

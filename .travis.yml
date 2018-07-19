@@ -20,13 +20,10 @@ jobs:
       node_js: "lts/carbon"
       os: osx
     - stage: platform-test
-      node_js: "9"
+      node_js: "lts/boron"
       os: linux
     - stage: platform-test
-      node_js: "9"
-      os: osx
-    - stage: platform-test
-      node_js: "10"
+      node_js: "lts/boron"
       os: osx
 
 addons:
@@ -72,9 +69,3 @@ cache:
     - $HOME/.node-gyp
     - $HOME/.npm
     - node_modules
-
-notifications:
-  webhooks:
-    urls:
-      - https://webhooks.gitter.im/e/8dddd234a441d0d07664
-    on_success: change
