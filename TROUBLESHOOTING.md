@@ -271,4 +271,4 @@ Alternatively, if you prefer using system-installed node.js (supposedly higher v
 
 ### Installing node-sass 4.x with Node < 4
 
-See the discussion in [this comment](https://github.com/sass/node-sass/issues/2100#issuecomment-334651235) for a workaround. As of node-sass@v5 only Node 6 and above will be offically supported.
+See the discussion in [this comment](https://github.com/sass/node-sass/issues/2100#issuecomment-334651235) for a workaround. As of node-sass@v5 only Node 6 and above will be officially supported.
