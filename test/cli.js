@@ -122,8 +122,6 @@ describe('cli', function() {
 
   describe('node-sass in.scss', function() {
     it('should compile a scss file', function(done) {
-      process.chdir(fixture('simple'));
-
       var src = fixture('simple/index.scss');
       var dest = fixture('simple/index.css');
       var bin = spawn(cli, [src, dest]);
@@ -131,14 +129,11 @@ describe('cli', function() {
       bin.once('close', function() {
         assert(fs.existsSync(dest));
         fs.unlinkSync(dest);
-        process.chdir(__dirname);
         done();
       });
     });
 
     it('should compile a scss file to custom destination', function(done) {
-      process.chdir(fixture('simple'));
-
       var src = fixture('simple/index.scss');
       var dest = fixture('simple/index-custom.css');
       var bin = spawn(cli, [src, dest]);
@@ -146,7 +141,6 @@ describe('cli', function() {
       bin.once('close', function() {
         assert(fs.existsSync(dest));
         fs.unlinkSync(dest);
-        process.chdir(__dirname);
         done();
       });
     });
@@ -169,8 +163,6 @@ describe('cli', function() {
     });
 
     it('should compile silently using the --quiet option', function(done) {
-      process.chdir(fixture('simple'));
-
       var src = fixture('simple/index.scss');
       var dest = fixture('simple/index.css');
       var bin = spawn(cli, [src, dest, '--quiet']);
@@ -183,14 +175,11 @@ describe('cli', function() {
       bin.once('close', function() {
         assert.equal(didEmit, false);
         fs.unlinkSync(dest);
-        process.chdir(__dirname);
         done();
       });
     });
 
     it('should still report errors with the --quiet option', function(done) {
-      process.chdir(fixture('invalid'));
-
       var src = fixture('invalid/index.scss');
       var dest = fixture('invalid/index.css');
       var bin = spawn(cli, [src, dest, '--quiet']);
@@ -202,7 +191,6 @@ describe('cli', function() {
 
       bin.once('close', function() {
         assert.equal(didEmit, true);
-        process.chdir(__dirname);
         done();
       });
     });
@@ -644,7 +632,8 @@ describe('cli', function() {
   describe('importer', function() {
     var dest = fixture('include-files/index.css');
     var src = fixture('include-files/index.scss');
-    var expected = read(fixture('include-files/expected-importer.css'), 'utf8').trim().replace(/\r\n/g, '\n');
+    var expectedData = read(fixture('include-files/expected-data-importer.css'), 'utf8').trim().replace(/\r\n/g, '\n');
+    var expectedFile = read(fixture('include-files/expected-file-importer.css'), 'utf8').trim().replace(/\r\n/g, '\n');
 
     it('should override imports and fire callback with file and contents', function(done) {
       var bin = spawn(cli, [
@@ -653,7 +642,7 @@ describe('cli', function() {
       ]);
 
       bin.once('close', function() {
-        assert.equal(read(dest, 'utf8').trim(), expected);
+        assert.equal(read(dest, 'utf8').trim(), expectedData);
         fs.unlinkSync(dest);
         done();
       });
@@ -667,7 +656,7 @@ describe('cli', function() {
 
       bin.once('close', function() {
         if (fs.existsSync(dest)) {
-          assert.equal(read(dest, 'utf8').trim(), '');
+          assert.equal(read(dest, 'utf8').trim(), expectedFile);
           fs.unlinkSync(dest);
         }
 
@@ -682,7 +671,7 @@ describe('cli', function() {
       ]);
 
       bin.once('close', function() {
-        assert.equal(read(dest, 'utf8').trim(), expected);
+        assert.equal(read(dest, 'utf8').trim(), expectedData);
         fs.unlinkSync(dest);
         done();
       });
@@ -695,7 +684,7 @@ describe('cli', function() {
       ]);
 
       bin.once('close', function() {
-        assert.equal(read(dest, 'utf8').trim(), expected);
+        assert.equal(read(dest, 'utf8').trim(), expectedData);
         fs.unlinkSync(dest);
         done();
       });
@@ -709,7 +698,7 @@ describe('cli', function() {
 
       bin.once('close', function() {
         if (fs.existsSync(dest)) {
-          assert.equal(read(dest, 'utf8').trim(), '');
+          assert.equal(read(dest, 'utf8').trim(), expectedFile);
           fs.unlinkSync(dest);
         }
 
@@ -724,7 +713,7 @@ describe('cli', function() {
       ]);
 
       bin.once('close', function() {
-        assert.equal(read(dest, 'utf8').trim(), expected);
+        assert.equal(read(dest, 'utf8').trim(), expectedData);
         fs.unlinkSync(dest);
         done();
       });
@@ -737,7 +726,7 @@ describe('cli', function() {
       ]);
 
       bin.once('close', function() {
-        assert.equal(read(dest, 'utf8').trim(), expected);
+        assert.equal(read(dest, 'utf8').trim(), expectedData);
         fs.unlinkSync(dest);
         done();
       });
