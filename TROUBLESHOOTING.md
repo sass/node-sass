@@ -24,7 +24,7 @@ This document covers some common node-sass issues and how to resolve them. You s
 ### 404 downloading binding.node file
 
 If you see a 404 when trying to install node-sass, this indicates that your trying
-to install a version of node-sass that doesn't support your verion of NodeJS, or
+to install a version of node-sass that doesn't support your version of NodeJS, or
 uses an alternate V8 environment (Meteor, Electron, etc...) that isn't supported
 by node-sass.
 If you encounter this, please check what version of NodeJs you're running (`node -v`)
