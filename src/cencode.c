@@ -47,7 +47,7 @@ int base64_encode_block(const char* plaintext_in, int length_in, char* code_out,
 			*codechar++ = base64_encode_value(result);
 			result = (fragment & 0x003) << 4;
 			#ifndef _MSC_VER
-				__attribute__ ((fallthrough));
+				/* fall through */
 			#endif
 	case step_B:
 			if (plainchar == plaintextend)
@@ -61,7 +61,7 @@ int base64_encode_block(const char* plaintext_in, int length_in, char* code_out,
 			*codechar++ = base64_encode_value(result);
 			result = (fragment & 0x00f) << 2;
 			#ifndef _MSC_VER
-				__attribute__ ((fallthrough));
+				/* fall through */
 			#endif
 	case step_C:
 			if (plainchar == plaintextend)
