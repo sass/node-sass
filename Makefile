@@ -1,6 +1,6 @@
 OS       ?= $(shell uname -s)
-CC       ?= gcc
-CXX      ?= g++
+CC       ?= cc
+CXX      ?= c++
 RM       ?= rm -f
 CP       ?= cp -a
 MKDIR    ?= mkdir
