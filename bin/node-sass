@@ -155,19 +155,17 @@ function getEmitter() {
     }
   });
 
-  emitter.on('warn', function(data) {
-    if (!options.quiet) {
-      console.warn(data);
-    }
-  });
+  if (!options.quiet) {
+    emitter.on('warn', function(data) {
+        console.warn(data);
+    });
 
-  emitter.on('info', function(data) {
-    if (!options.quiet) {
+    emitter.on('info', function(data) {
       console.info(data);
-    }
-  });
+    });
 
-  emitter.on('log', stdout.write.bind(stdout));
+    emitter.on('log', stdout.write.bind(stdout));
+  }
 
   return emitter;
 }

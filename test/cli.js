@@ -44,17 +44,15 @@ describe('cli', function() {
     });
 
     it('should compile with the --quiet option', function(done) {
-      var src = fs.createReadStream(fixture('simple/index.scss'));
-      var expected = read(fixture('simple/expected.css'), 'utf8').trim();
-      var bin = spawn(cli, ['--quiet']);
+      var src = fixture('simple/index.scss');
+      var dest = fixture('simple/index.css');
+      var bin = spawn(cli, [src, ['--quiet'], '--output', path.dirname(dest)]);
 
-      bin.stdout.setEncoding('utf8');
-      bin.stdout.once('data', function(data) {
-        assert.equal(data.trim(), expected.replace(/\r\n/g, '\n'));
+      bin.once('close', function() {
+        assert(fs.existsSync(dest));
+        fs.unlinkSync(dest);
         done();
       });
-
-      src.pipe(bin.stdin);
     });
 
     it('should compile with the --output-style option', function(done) {
