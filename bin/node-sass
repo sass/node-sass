@@ -157,7 +157,7 @@ function getEmitter() {
 
   if (!options.quiet) {
     emitter.on('warn', function(data) {
-        console.warn(data);
+      console.warn(data);
     });
 
     emitter.on('info', function(data) {
