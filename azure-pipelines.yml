@@ -24,3 +24,10 @@ steps:
   command: install
 - task: Npm@1
   command: test
+- task: CopyFiles@2
+  inputs:
+    contents: vendor/*
+    targetFolder: $(Build.ArtifactStagingDirectory)
+- task: PublishBuildArtifacts@1
+  inputs:
+    artifactName: Linux Bindings
