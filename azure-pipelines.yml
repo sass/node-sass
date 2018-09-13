@@ -29,7 +29,7 @@ steps:
     customCommand: test
 - task: CopyFiles@2
   inputs:
-    contents: vendor/*
+    contents: vendor\**
     targetFolder: $(Build.ArtifactStagingDirectory)
 - task: PublishBuildArtifacts@1
   inputs:
