@@ -19,7 +19,7 @@ strategy:
 steps:
 - task: NodeTool@0
   inputs:
-    version: $(node_version)
+    versionSpec: $(node_version)
 - task: Npm@1
   inputs:
     command: install
