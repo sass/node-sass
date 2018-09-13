@@ -30,4 +30,4 @@ steps:
 - task: PublishBuildArtifacts@1
   inputs:
     artifactName: Linux Bindings
-    pathtoPublish: $(Build.SourcesDirectory)\vendor
+    pathtoPublish: $(Build.SourcesDirectory)/vendor
