@@ -25,7 +25,8 @@ steps:
     command: install
 - task: Npm@1
   inputs:
-    command: test
+    command: custom
+    customCommand: test
 - task: CopyFiles@2
   inputs:
     contents: vendor/*
