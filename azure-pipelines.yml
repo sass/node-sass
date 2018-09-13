@@ -21,9 +21,11 @@ steps:
   inputs:
     version: $(node_version)
 - task: Npm@1
-  command: install
+  inputs:
+    command: install
 - task: Npm@1
-  command: test
+  inputs:
+    command: test
 - task: CopyFiles@2
   inputs:
     contents: vendor/*
