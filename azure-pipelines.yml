@@ -1,0 +1,21 @@
+# C/C++ with GCC
+# Build your C/C++ project with GCC using make.
+# Add steps that publish test results, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/vsts/pipelines/apps/c-cpp/gcc
+
+pool:
+  vmImage: 'ubuntu-16.04'
+
+strategy:
+  matrix:
+    node_8_x:
+      node_version: 8.x
+    node_9_x:
+      node_version: 10.x
+
+steps:
+- task: NodeTool@0
+  inputs:
+    version: $(node_version)
+
+- script: npm install
