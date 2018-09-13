@@ -20,5 +20,7 @@ steps:
 - task: NodeTool@0
   inputs:
     version: $(node_version)
-
-- script: npm install
+- task: Npm@1
+  command: install
+- task: Npm@1
+  command: test
