@@ -1,13 +1,6 @@
 variables:
   SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
 
-strategy:
-  matrix:
-    node_8_x:
-      node_version: 8.x
-    node_10_x:
-      node_version: 10.x
-
 jobs:
 # - job: Windows
 #   pool:
@@ -17,6 +10,12 @@ jobs:
 
 - job: Linux
   pool: Hosted Linux Preview
+  strategy:
+    matrix:
+      node_8_x:
+        node_version: 8.x
+      node_10_x:
+        node_version: 10.x
   steps:
   - template: linux/continuous-build-linux.yml
 
