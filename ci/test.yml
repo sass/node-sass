@@ -1,3 +1,4 @@
+steps:
 - task: Npm@1
   displayName: NPM test
   inputs:
