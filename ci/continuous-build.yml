@@ -1,19 +1,29 @@
+variables:
+  SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
+
+parameters:
+  node_version:
+    node_6_x:
+      node_version: 6.x
+    node_8_x:
+      node_version: 8.x
+    node_10_x:
+      node_version: 10.x
+
 jobs:
 - job: Windows
   pool:
     vmImage: VS2017-Win2016
-  variables:
-    SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
   strategy:
     matrix:
-      node_6_x:
-        node_version: 6.x
-      node_8_x:
-        node_version: 8.x
-      node_10_x:
-        node_version: 10.x
+      ${{ insert }}: ${{ parameters.node_version }}
   steps:
-  - template: win32/continuous-build-win32.yml
+  - task: UsePythonVersion@0
+    displayName: Instally Python 2.7 for node-gyp
+    inputs:
+      versionSpec: '2.7'
+  - template: build.yml
+  - template: test.yml
 
 - job: Linux
   pool: Hosted Ubuntu 1604
@@ -21,14 +31,10 @@ jobs:
     SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
   strategy:
     matrix:
-      node_6_x:
-        node_version: 6.x
-      node_8_x:
-        node_version: 8.x
-      node_10_x:
-        node_version: 10.x
+      ${{ insert }}: ${{ parameters.node_version }}
   steps:
-  - template: linux/continuous-build-linux.yml
+  - template: build.yml
+  - template: test.yml
 
 - job: macOS
   pool:
@@ -37,11 +43,7 @@ jobs:
     SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
   strategy:
     matrix:
-      node_6_x:
-        node_version: 6.x
-      node_8_x:
-        node_version: 8.x
-      node_10_x:
-        node_version: 10.x
+      ${{ insert }}: ${{ parameters.node_version }}
   steps:
-  - template: darwin/continuous-build-darwin.yml
+  - template: build.yml
+  - template: test.yml

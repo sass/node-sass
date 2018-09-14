@@ -1,0 +1,9 @@
+- task: Npm@1
+  displayName: NPM test
+  inputs:
+    command: custom
+    customCommand: run test-junit
+- task: PublishTestResults@2
+  displayName: Publish Tests Results
+  inputs:
+    testResultsFiles: 'test/*-results.xml'
