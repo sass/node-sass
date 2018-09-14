@@ -1,3 +1,6 @@
+variables:
+  SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
+
 jobs:
 # - job: Windows
 #   pool:

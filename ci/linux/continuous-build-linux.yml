@@ -3,12 +3,6 @@
 # Add steps that publish test results, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/vsts/pipelines/apps/c-cpp/gcc
 
-pool:
-  vmImage: 'ubuntu-16.04'
-
-variables:
-  SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
-
 strategy:
   matrix:
     node_8_x:
