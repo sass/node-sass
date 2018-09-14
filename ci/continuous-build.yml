@@ -15,6 +15,7 @@ jobs:
   pool:
     vmImage: VS2017-Win2016
   strategy:
+    parallel: 4
     matrix:
       ${{ insert }}: ${{ parameters.node_version }}
   steps:
@@ -30,6 +31,7 @@ jobs:
   variables:
     SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
   strategy:
+    parallel: 4
     matrix:
       ${{ insert }}: ${{ parameters.node_version }}
   steps:
@@ -42,6 +44,7 @@ jobs:
   variables:
     SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
   strategy:
+    parallel: 4
     matrix:
       ${{ insert }}: ${{ parameters.node_version }}
   steps:
