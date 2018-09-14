@@ -1,4 +1,4 @@
-parameters:
+variables:
   node_version:
     node_6_x:
       node_version: 6.x
@@ -11,12 +11,10 @@ jobs:
 - job: Windows
   pool:
     vmImage: VS2017-Win2016
-  variables:
-    SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
   strategy:
     parallel: 4
     matrix:
-      ${{ insert }}: ${{ parameters.node_version }}
+      ${{ insert }}: ${{ node_version }}
   steps:
   - task: UsePythonVersion@0
     displayName: Instally Python 2.7 for node-gyp
@@ -27,8 +25,6 @@ jobs:
 
 - job: Linux
   pool: Hosted Ubuntu 1604
-  variables:
-    SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
   strategy:
     parallel: 4
     matrix:
@@ -40,8 +36,6 @@ jobs:
 - job: macOS
   pool:
     vmImage: macOS 10.13
-  variables:
-    SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
   strategy:
     parallel: 4
     matrix:
