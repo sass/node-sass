@@ -4,6 +4,11 @@
 # https://docs.microsoft.com/vsts/pipelines/apps/c-cpp/gcc
 
 steps:
+- task: UsePythonVersion@0
+  displayName: Instally Python 2.7 for node-gyp
+  inputs:
+    versionSpec: '2.7'
+    architecture: 'x64'
 - task: NodeTool@0
   inputs:
     versionSpec: $(node_version)
