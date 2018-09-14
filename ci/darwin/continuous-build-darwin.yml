@@ -1,0 +1,22 @@
+# C/C++ with GCC
+# Build your C/C++ project with GCC using make.
+# Add steps that publish test results, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/vsts/pipelines/apps/c-cpp/gcc
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: $(node_version)
+- task: Npm@1
+  displayName: NPM Install
+  inputs:
+    command: install
+- task: Npm@1
+  displayName: NPM test
+  inputs:
+    command: custom
+    customCommand: test
+- task: PublishBuildArtifacts@1
+  inputs:
+    artifactName: OSX Bindings
+    pathtoPublish: $(Build.SourcesDirectory)/vendor
