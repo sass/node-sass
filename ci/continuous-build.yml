@@ -1,54 +1,82 @@
 variables:
   SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
 
+resources:
+  containers:
+  - container: 6-alpine
+    image: node:6-alpine
+
+  - container: 8-alpine
+    image: node:8-alpine
+
+  - container: 10-alpine
+    image: node:10-alpine
+
 jobs:
-- job: Windows
-  pool:
-    vmImage: VS2017-Win2016
-  strategy:
-    maxParallel: 4
-    matrix:
-      node_6_x:
-        node_version: 6.x
-      node_8_x:
-        node_version: 8.x
-      node_10_x:
-        node_version: 10.x
-  steps:
-  - task: UsePythonVersion@0
-    displayName: Instally Python 2.7 for node-gyp
-    inputs:
-      versionSpec: '2.7'
-  - template: build.yml
-  - template: test.yml
+# - job: Windows
+#   pool:
+#     vmImage: VS2017-Win2016
+#   strategy:
+#     maxParallel: 4
+#     matrix:
+#       node_6_x:
+#         node_version: 6.x
+#       node_8_x:
+#         node_version: 8.x
+#       node_10_x:
+#         node_version: 10.x
+#   steps:
+#   - task: UsePythonVersion@0
+#     displayName: Instally Python 2.7 for node-gyp
+#     inputs:
+#       versionSpec: '2.7'
+#   - template: build.yml
+#   - template: test.yml
 
-- job: Linux
-  pool: Hosted Ubuntu 1604
-  strategy:
-    maxParallel: 4
-    matrix:
-      node_6_x:
-        node_version: 6.x
-      node_8_x:
-        node_version: 8.x
-      node_10_x:
-        node_version: 10.x
-  steps:
-  - template: build.yml
-  - template: test.yml
+# - job: Linux
+#   pool: Hosted Ubuntu 1604
+#   strategy:
+#     maxParallel: 4
+#     matrix:
+#       node_6_x:
+#         node_version: 6.x
+#       node_8_x:
+#         node_version: 8.x
+#       node_10_x:
+#         node_version: 10.x
+#   steps:
+#   - template: build.yml
+#   - template: test.yml
 
-- job: macOS
+# - job: macOS
+#   pool:
+#     vmImage: macOS 10.13
+#   strategy:
+#     maxParallel: 4
+#     matrix:
+#       node_6_x:
+#         node_version: 6.x
+#       node_8_x:
+#         node_version: 8.x
+#       node_10_x:
+#         node_version: 10.x
+#   steps:
+#   - template: build.yml
+#   - template: test.yml
+
+- job: Alpine
   pool:
-    vmImage: macOS 10.13
+    vmImage: Hosted Ubuntu 1604
   strategy:
     maxParallel: 4
     matrix:
       node_6_x:
-        node_version: 6.x
-      node_8_x:
-        node_version: 8.x
-      node_10_x:
-        node_version: 10.x
+        containerResource: 6-alpine
+      # node_8_x:
+      #   containerResource: 8-alpine
+      # node_10_x:
+      #   containerResource: 10-alpine
+  container: $[ variables['containerResource'] ]
   steps:
-  - template: build.yml
+  - script: npm install
   - template: test.yml
