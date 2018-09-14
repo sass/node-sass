@@ -1,15 +1,15 @@
 jobs:
-# - job: Windows
-#   pool:
-#     vmImage: VS2017-Win2016
-#   variables:
-#     SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
-#   strategy:
-#     matrix:
-#       node_8_x:
-#         node_version: 8.x
-#   steps:
-#   - template: win32/continuous-build-win32.yml
+- job: Windows
+  pool:
+    vmImage: VS2017-Win2016
+  variables:
+    SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
+  strategy:
+    matrix:
+      node_8_x:
+        node_version: 8.x
+  steps:
+  - template: win32/continuous-build-win32.yml
 
 - job: Linux
   pool: Hosted Ubuntu 1604
@@ -24,14 +24,14 @@ jobs:
   steps:
   - template: linux/continuous-build-linux.yml
 
-# - job: macOS
-#   pool:
-#     vmImage: macOS 10.13
-#   variables:
-#     SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
-#   strategy:
-#     matrix:
-#       node_8_x:
-#         node_version: 8.x
-#   steps:
-#   - template: darwin/continuous-build-darwin.yml
+- job: macOS
+  pool:
+    vmImage: macOS 10.13
+  variables:
+    SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
+  strategy:
+    matrix:
+      node_8_x:
+        node_version: 8.x
+  steps:
+  - template: darwin/continuous-build-darwin.yml

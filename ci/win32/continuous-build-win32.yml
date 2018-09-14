@@ -20,7 +20,7 @@ steps:
   displayName: NPM test
   inputs:
     command: custom
-    customCommand: test
+    customCommand: run test-junit
 - task: PublishBuildArtifacts@1
   inputs:
     artifactName: Windows Bindings
