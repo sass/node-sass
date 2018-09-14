@@ -32,6 +32,7 @@
     "postinstall": "node scripts/build.js",
     "lint": "node_modules/.bin/eslint bin/node-sass lib scripts test",
     "test": "node_modules/.bin/mocha test/{*,**/**}.js",
+    "test-junit": "node_modules/.bin/mocha test/{*,**/**}.js --reporter mocha-junit-reporter",
     "build": "node scripts/build.js --force",
     "prepublish": "not-in-install && node scripts/prepublish.js || in-install"
   },
@@ -77,6 +78,7 @@
     "fs-extra": "^0.30.0",
     "istanbul": "^0.4.2",
     "mocha": "^3.1.2",
+    "mocha-junit-reporter": "^1.18.0",
     "mocha-lcov-reporter": "^1.2.0",
     "object-merge": "^2.5.1",
     "read-yaml": "^1.0.0",

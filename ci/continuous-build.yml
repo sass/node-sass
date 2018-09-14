@@ -1,28 +1,28 @@
 jobs:
-- job: Windows
-  pool:
-    vmImage: VS2017-Win2016
-  variables:
-    SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
-  strategy:
-    matrix:
-      node_8_x:
-        node_version: 8.x
-  steps:
-  - template: win32/continuous-build-win32.yml
-
-# - job: Linux
-#   pool: Hosted Ubuntu 1604
+# - job: Windows
+#   pool:
+#     vmImage: VS2017-Win2016
 #   variables:
 #     SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
 #   strategy:
 #     matrix:
 #       node_8_x:
 #         node_version: 8.x
-#       # node_10_x:
-#       #   node_version: 10.x
 #   steps:
-#   - template: linux/continuous-build-linux.yml
+#   - template: win32/continuous-build-win32.yml
+
+- job: Linux
+  pool: Hosted Ubuntu 1604
+  variables:
+    SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
+  strategy:
+    matrix:
+      node_8_x:
+        node_version: 8.x
+      # node_10_x:
+      #   node_version: 10.x
+  steps:
+  - template: linux/continuous-build-linux.yml
 
 # - job: macOS
 #   pool:

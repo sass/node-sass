@@ -15,7 +15,11 @@ steps:
   displayName: NPM test
   inputs:
     command: custom
-    customCommand: test
+    customCommand: run test-junit
+- task: PublishTestResults@2
+  displayName: Publish Tests Results
+  inputs:
+    testResultsFiles: 'test/*-results.xml'
 - task: PublishBuildArtifacts@1
   inputs:
     artifactName: Linux Bindings
