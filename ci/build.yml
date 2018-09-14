@@ -6,6 +6,7 @@ steps:
   displayName: NPM Install
   inputs:
     command: install
+- task: PublishBuildArtifacts@1
   inputs:
     artifactName: Node Bindings
     pathtoPublish: $(Build.SourcesDirectory)/vendor
