@@ -1,11 +1,5 @@
 variables:
-  node_version:
-    node_6_x:
-      node_version: 6.x
-    node_8_x:
-      node_version: 8.x
-    node_10_x:
-      node_version: 10.x
+  SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
 
 jobs:
 - job: Windows
@@ -14,7 +8,13 @@ jobs:
   strategy:
     parallel: 4
     matrix:
-      ${{ insert }}: ${{ node_version }}
+      node_version:
+        node_6_x:
+          node_version: 6.x
+        node_8_x:
+          node_version: 8.x
+        node_10_x:
+          node_version: 10.x
   steps:
   - task: UsePythonVersion@0
     displayName: Instally Python 2.7 for node-gyp
@@ -28,7 +28,13 @@ jobs:
   strategy:
     parallel: 4
     matrix:
-      ${{ insert }}: ${{ parameters.node_version }}
+      node_version:
+        node_6_x:
+          node_version: 6.x
+        node_8_x:
+          node_version: 8.x
+        node_10_x:
+          node_version: 10.x
   steps:
   - template: build.yml
   - template: test.yml
@@ -39,7 +45,13 @@ jobs:
   strategy:
     parallel: 4
     matrix:
-      ${{ insert }}: ${{ parameters.node_version }}
+      node_version:
+        node_6_x:
+          node_version: 6.x
+        node_8_x:
+          node_version: 8.x
+        node_10_x:
+          node_version: 10.x
   steps:
   - template: build.yml
   - template: test.yml
