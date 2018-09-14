@@ -3,14 +3,14 @@ variables:
 
 resources:
   containers:
-  - container: 6-alpine
+  - container: 6alpine
     image: node:6-alpine
 
-  - container: 8-alpine
-    image: node:8-alpine
+  # - container: 8-alpine
+  #   image: node:8-alpine
 
-  - container: 10-alpine
-    image: node:10-alpine
+  # - container: 10-alpine
+  #   image: node:10-alpine
 
 jobs:
 # - job: Windows
@@ -67,16 +67,16 @@ jobs:
 - job: Alpine
   pool:
     vmImage: Hosted Ubuntu 1604
-  strategy:
-    maxParallel: 4
-    matrix:
-      node_6_x:
-        containerResource: 6-alpine
-      # node_8_x:
-      #   containerResource: 8-alpine
-      # node_10_x:
-      #   containerResource: 10-alpine
-  container: $[ variables['containerResource'] ]
+  # strategy:
+  #   maxParallel: 4
+  #   matrix:
+  #     node_6_x:
+  #       containerResource: 6-alpine
+  #     # node_8_x:
+  #     #   containerResource: 8-alpine
+  #     # node_10_x:
+  #     #   containerResource: 10-alpine
+  container: 6alpine
   steps:
   - script: npm install
   - template: test.yml
