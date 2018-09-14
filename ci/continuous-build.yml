@@ -8,13 +8,12 @@ jobs:
   strategy:
     maxParallel: 4
     matrix:
-      node_version:
-        node_6_x:
-          node_version: 6.x
-        node_8_x:
-          node_version: 8.x
-        node_10_x:
-          node_version: 10.x
+      node_6_x:
+        node_version: 6.x
+      node_8_x:
+        node_version: 8.x
+      node_10_x:
+        node_version: 10.x
   steps:
   - task: UsePythonVersion@0
     displayName: Instally Python 2.7 for node-gyp
@@ -28,13 +27,12 @@ jobs:
   strategy:
     maxParallel: 4
     matrix:
-      node_version:
-        node_6_x:
-          node_version: 6.x
-        node_8_x:
-          node_version: 8.x
-        node_10_x:
-          node_version: 10.x
+      node_6_x:
+        node_version: 6.x
+      node_8_x:
+        node_version: 8.x
+      node_10_x:
+        node_version: 10.x
   steps:
   - template: build.yml
   - template: test.yml
@@ -45,13 +43,12 @@ jobs:
   strategy:
     maxParallel: 4
     matrix:
-      node_version:
-        node_6_x:
-          node_version: 6.x
-        node_8_x:
-          node_version: 8.x
-        node_10_x:
-          node_version: 10.x
+      node_6_x:
+        node_version: 6.x
+      node_8_x:
+        node_version: 8.x
+      node_10_x:
+        node_version: 10.x
   steps:
   - template: build.yml
   - template: test.yml
