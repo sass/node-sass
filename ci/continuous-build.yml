@@ -1,82 +1,89 @@
 variables:
   SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
 
-resources:
-  containers:
-  - container: 6alpine
-    image: node:6-alpine
+# resources:
+#   containers:
+#   - container: 6alpine
+#     image: node:6-alpine
 
-  # - container: 8-alpine
-  #   image: node:8-alpine
+#   # - container: 8-alpine
+#   #   image: node:8-alpine
 
-  # - container: 10-alpine
-  #   image: node:10-alpine
+#   # - container: 10-alpine
+#   #   image: node:10-alpine
 
 jobs:
-# - job: Windows
-#   pool:
-#     vmImage: VS2017-Win2016
-#   strategy:
-#     maxParallel: 4
-#     matrix:
-#       node_6_x:
-#         node_version: 6.x
-#       node_8_x:
-#         node_version: 8.x
-#       node_10_x:
-#         node_version: 10.x
-#   steps:
-#   - task: UsePythonVersion@0
-#     displayName: Instally Python 2.7 for node-gyp
-#     inputs:
-#       versionSpec: '2.7'
-#   - template: build.yml
-#   - template: test.yml
-
-# - job: Linux
-#   pool: Hosted Ubuntu 1604
-#   strategy:
-#     maxParallel: 4
-#     matrix:
-#       node_6_x:
-#         node_version: 6.x
-#       node_8_x:
-#         node_version: 8.x
-#       node_10_x:
-#         node_version: 10.x
-#   steps:
-#   - template: build.yml
-#   - template: test.yml
-
-# - job: macOS
-#   pool:
-#     vmImage: macOS 10.13
-#   strategy:
-#     maxParallel: 4
-#     matrix:
-#       node_6_x:
-#         node_version: 6.x
-#       node_8_x:
-#         node_version: 8.x
-#       node_10_x:
-#         node_version: 10.x
-#   steps:
-#   - template: build.yml
-#   - template: test.yml
-
-- job: Alpine
+- job: Windows
   pool:
-    vmImage: Hosted Ubuntu 1604
-  # strategy:
-  #   maxParallel: 4
-  #   matrix:
-  #     node_6_x:
-  #       containerResource: 6-alpine
-  #     # node_8_x:
-  #     #   containerResource: 8-alpine
-  #     # node_10_x:
-  #     #   containerResource: 10-alpine
-  container: 6alpine
+    vmImage: VS2017-Win2016
+  strategy:
+    maxParallel: 4
+    matrix:
+      node_EOL_x:
+        node_version: 0.10.x
+      node_6_x:
+        node_version: 6.x
+      node_8_x:
+        node_version: 8.x
+      node_10_x:
+        node_version: 10.x
   steps:
-  - script: npm install
+  - task: UsePythonVersion@0
+    displayName: Instally Python 2.7 for node-gyp
+    inputs:
+      versionSpec: '2.7'
+  - template: build.yml
   - template: test.yml
+
+- job: Linux
+  pool: Hosted Ubuntu 1604
+  strategy:
+    maxParallel: 4
+    matrix:
+      node_EOL_x:
+        node_version: 0.10.x
+      node_6_x:
+        node_version: 6.x
+      node_8_x:
+        node_version: 8.x
+      node_10_x:
+        node_version: 10.x
+  steps:
+  - template: build.yml
+  - template: test.yml
+
+- job: macOS
+  pool:
+    vmImage: macOS 10.13
+  strategy:
+    maxParallel: 4
+    matrix:
+      node_EOL_x:
+        node_version: 0.10.x
+      node_6_x:
+        node_version: 6.x
+      node_8_x:
+        node_version: 8.x
+      node_10_x:
+        node_version: 10.x
+  steps:
+  - template: build.yml
+  - template: test.yml
+
+# Alpine not currently working because of missing `which`
+# - job: Alpine
+#   pool:
+#     vmImage: Hosted Ubuntu 1604
+#   # strategy:
+#   #   maxParallel: 4
+#   #   matrix:
+#   #     node_6_x:
+#   #       containerResource: 6-alpine
+#   #     # node_8_x:
+#   #     #   containerResource: 8-alpine
+#   #     # node_10_x:
+#   #     #   containerResource: 10-alpine
+#   container: 6alpine
+#   steps:
+#   - script: npm install
+#   - template: test.yml
