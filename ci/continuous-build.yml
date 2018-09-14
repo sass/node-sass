@@ -6,7 +6,7 @@ jobs:
   pool:
     vmImage: VS2017-Win2016
   strategy:
-    parallel: 4
+    maxParallel: 4
     matrix:
       node_version:
         node_6_x:
@@ -26,7 +26,7 @@ jobs:
 - job: Linux
   pool: Hosted Ubuntu 1604
   strategy:
-    parallel: 4
+    maxParallel: 4
     matrix:
       node_version:
         node_6_x:
@@ -43,7 +43,7 @@ jobs:
   pool:
     vmImage: macOS 10.13
   strategy:
-    parallel: 4
+    maxParallel: 4
     matrix:
       node_version:
         node_6_x:
