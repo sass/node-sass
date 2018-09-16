@@ -186,7 +186,7 @@ The proof is in the pudding, so we have highlighted a few implementations that
 should be on par with the latest LibSass interface version. Some of them may not
 have all features implemented!
 
-1. [Perl Example](https://github.com/sass/perl-libsass/blob/master/lib/CSS/Sass.xs)
+1. [Perl Example](https://github.com/sass/perl-libsass/blob/master/Sass.xs)
 2. [Go Example](https://godoc.org/github.com/wellington/go-libsass#example-Compiler--Stdin)
 3. [Node Example](https://github.com/sass/node-sass/blob/master/src/binding.cpp)
 
