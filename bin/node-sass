@@ -35,6 +35,7 @@ var cli = meow({
     '    --source-map true --source-map-contents sass',
     '',
     'Options',
+    '  -c, --config               Specify configuration options via JSON or .js file',
     '  -w, --watch                Watch a directory or file',
     '  -r, --recursive            Recursively watch directories or files',
     '  -o, --output               Output directory',
@@ -73,6 +74,7 @@ var cli = meow({
     'watch'
   ],
   string: [
+    'config',
     'functions',
     'importer',
     'include-path',
@@ -84,7 +86,8 @@ var cli = meow({
     'source-map-root'
   ],
   alias: {
-    c: 'source-comments',
+    c: 'config',
+    s: 'source-comments',
     i: 'indented-syntax',
     q: 'quiet',
     o: 'output',
@@ -94,6 +97,7 @@ var cli = meow({
     w: 'watch'
   },
   default: {
+    config: false,
     'include-path': process.cwd(),
     'indent-type': 'space',
     'indent-width': 2,
@@ -226,6 +230,36 @@ function getOptions(args, options) {
   return options;
 }
 
+
+/**
+ * Resolve
+ *
+ * @param {String} file
+ * @param {String} name
+ * @api private
+ */
+
+function resolve(file, name) {
+  var normalized = path.normalize(file)
+    .replace(/[\/|\\]$/, '');
+
+  var resolved;
+  try {
+    if (path.resolve(file) === normalized) {
+      resolved = require(file);
+    } else {
+      resolved = require(path.resolve(file));
+    }
+  } catch (error) {
+    emitter.emit('error', util.format(
+      'Unable to resolve %s "%s": %s',
+      name, file, error
+    ));
+  }
+
+  return resolved;
+}
+
 /**
  * Watch
  *
@@ -299,20 +333,17 @@ function run(options, emitter) {
     emitter.emit('error', 'The --source-map option must be either a boolean or directory when compiling a directory');
   }
 
-  if (options.importer) {
-    if ((path.resolve(options.importer) === path.normalize(options.importer).replace(/(.+)([\/|\\])$/, '$1'))) {
-      options.importer = require(options.importer);
-    } else {
-      options.importer = require(path.resolve(options.importer));
-    }
+  if (options.config) {
+    var config = resolve(options.config, 'config');
+    options = Object.assign(options, config);
   }
 
-  if (options.functions) {
-    if ((path.resolve(options.functions) === path.normalize(options.functions).replace(/(.+)([\/|\\])$/, '$1'))) {
-      options.functions = require(options.functions);
-    } else {
-      options.functions = require(path.resolve(options.functions));
-    }
+  if (options.importer && typeof options.importer === 'string') {
+    options.importer = resolve(options.importer, 'importer');
+  }
+
+  if (options.functions && typeof options.functions === 'string') {
+    options.functions = resolve(options.functions, 'functions');
   }
 
   if (options.watch) {

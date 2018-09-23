@@ -641,6 +641,88 @@ describe('cli', function() {
     });
   });
 
+  describe('node-sass --config', function() {
+
+    it('should respect --config options in a .js file', function(done) {
+
+      var src = fixture('include-path/index.scss');
+      var args = [src, '--config', fixture('config/include-path.js')];
+      var expected = read(fixture('include-path/expected.css'), 'utf8')
+        .trim()
+        .replace(/\r\n/g, '\n');
+      var result = '';
+      var bin = spawn(cli, args);
+
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.on('data', function(data) {
+        result += data;
+      });
+      bin.on('exit', function(status) {
+        assert.equal(status, 0, 'non-zero status: ' + status);
+        assert.equal(result.trim(), expected);
+        done();
+      });
+    });
+
+    it('should respect basic --config options in a .json file', function(done) {
+
+      var src = fixture('indent/index.sass');
+      var args = [src, '--config', fixture('config/indent.json')];
+      var expected = read(fixture('indent/expected.css'), 'utf8')
+        .trim()
+        .replace(/\r\n/g, '\n');
+      var result = '';
+      var bin = spawn(cli, args);
+
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.on('data', function(data) {
+        result += data;
+      });
+      bin.on('exit', function(status) {
+        assert.equal(status, 0, 'non-zero status: ' + status);
+        assert.equal(result.trim(), expected);
+        done();
+      });
+    });
+
+    it('does not attempt to resolve an importer function defined in .js', function(done) {
+      var src = fixture('include-files/index.scss');
+      var args = [src, '--config', fixture('config/importer.js')];
+      var expected = read(fixture('include-files/expected-importer.css'), 'utf8')
+        .trim()
+        .replace(/\r\n/g, '\n');
+      var result = '';
+      var bin = spawn(cli, args);
+
+      bin.stdout.setEncoding('utf8');
+      bin.stdout.on('data', function(data) {
+        result += data;
+      });
+      bin.on('exit', function(status) {
+        assert.equal(status, 0, 'non-zero status: ' + status);
+        assert.equal(result.trim(), expected);
+        done();
+      });
+    });
+
+    it('exits with an error when --config does not resolve', function(done) {
+      var args = [
+        fixture('include-path/index.scss'),
+        '--config', 'non-existent-config.json'
+      ];
+      var bin = spawn(cli, args);
+      bin.stderr.once('data', function(data) {
+        var error = data.toString();
+        assert.ok(/^Unable to resolve config/.test(error), error);
+      });
+      bin.on('exit', function(status) {
+        assert.equal(status, 1, 'non-1 status: ' + status);
+        done();
+      });
+    });
+
+  });
+
   describe('importer', function() {
     var dest = fixture('include-files/index.css');
     var src = fixture('include-files/index.scss');
