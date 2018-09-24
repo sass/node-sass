@@ -24,8 +24,7 @@ else
   CXXFLAGS += -O1 -fno-omit-frame-pointer
   LDFLAGS  += -O1 -fno-omit-frame-pointer
 endif
-LDFLAGS  += -Wl,-undefined,error
-CAT      ?= $(if $(filter $(OS),Windows_NT),type,cat)
+CAT ?= $(if $(filter $(OS),Windows_NT),type,cat)
 
 ifneq (,$(findstring /cygdrive/,$(PATH)))
 	UNAME := Cygwin
