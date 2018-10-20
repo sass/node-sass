@@ -107,7 +107,7 @@ T CallbackBridge<T, L>::operator()(std::vector<void*> argv) {
     argv_v8.push_back(Nan::New(wrapper));
 
     return this->post_process_return_value(
-      this->callback->Call(argv_v8.size(), &argv_v8[0])
+      Nan::Call(*this->callback, argv_v8.size(), &argv_v8[0]).ToLocalChecked()
     );
   } else {
     /* 

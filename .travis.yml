@@ -10,11 +10,11 @@ env:
   global:
     - SKIP_SASS_BINARY_DOWNLOAD_FOR_CI=true
   matrix:
+    - export NODE_VERSION="10"
     - export NODE_VERSION="8"
     - export NODE_VERSION="7"
     - export NODE_VERSION="6"
     - export NODE_VERSION="5"
-    - export NODE_VERSION="4"
 
 matrix:
   fast_finish: true
@@ -24,8 +24,8 @@ addons:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - gcc-4.7
-      - g++-4.7
+      - gcc-4.9
+      - g++-4.9
 
 before_install:
   - git submodule update --init --recursive
@@ -36,10 +36,10 @@ before_install:
   - nvm use $NODE_VERSION
   - npm config set python `which python`
   - if [ $TRAVIS_OS_NAME == "linux" ]; then
-      export CC="gcc-4.7";
-      export CXX="g++-4.7";
-      export LINK="gcc-4.7";
-      export LINKXX="g++-4.7";
+      export CC="gcc-4.9";
+      export CXX="g++-4.9";
+      export LINK="gcc-4.9";
+      export LINKXX="g++-4.9";
     fi
   - nvm --version
   - node --version
