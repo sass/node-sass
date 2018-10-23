@@ -19,6 +19,9 @@ jobs:
       os: osx
     - stage: platform-test
       node_js: "10"
+      os: linux
+    - stage: platform-test
+      node_js: "10"
       os: osx
     - stage: platform-test
       node_js: "9"
