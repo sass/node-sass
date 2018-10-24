@@ -74,7 +74,7 @@ before_install:
   - echo $TRAVIS_NODE_VERSION
   - npm config set python `which python`
   - if [ $TRAVIS_OS_NAME == "linux" ]; then
-      if [[ $(node -v) =~ "10" ]]; then
+      if [[ $(node -v) =~ v1[01] ]]; then
         export CC="gcc-4.9";
         export CXX="g++-4.9";
         export LINK="gcc-4.9";
