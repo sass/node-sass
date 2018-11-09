@@ -103,7 +103,7 @@
              }]
           ]
         }],
-        ['OS!="win"', {
+        ['OS!="win" and OS!="zos"', {
           'cflags_cc+': [
             '-std=c++0x'
           ]
