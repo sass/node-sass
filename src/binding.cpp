@@ -113,7 +113,6 @@ int ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrapp
   sass_option_set_precision(sass_options, Nan::To<int32_t>(Nan::Get(options, Nan::New("precision").ToLocalChecked()).ToLocalChecked()).FromJust());
   sass_option_set_indent(sass_options, ctx_w->indent);
   sass_option_set_linefeed(sass_options, ctx_w->linefeed);
-  sass_option_push_import_extension(sass_options, ".css");
 
   v8::Local<v8::Value> importer_callback = Nan::Get(options, Nan::New("importer").ToLocalChecked()).ToLocalChecked();
 
@@ -303,7 +302,7 @@ NAN_METHOD(render_sync) {
   }
 
   sass_free_context_wrapper(ctx_w);
-    
+
   info.GetReturnValue().Set(result == 0);
 }
 
