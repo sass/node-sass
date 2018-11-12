@@ -149,9 +149,6 @@ ADDAPI size_t ADDCALL sass_compiler_get_callee_stack_size(struct Sass_Compiler* 
 ADDAPI Sass_Callee_Entry ADDCALL sass_compiler_get_last_callee(struct Sass_Compiler* compiler);
 ADDAPI Sass_Callee_Entry ADDCALL sass_compiler_get_callee_entry(struct Sass_Compiler* compiler, size_t idx);
 
-// Push function for import extenions
-ADDAPI void ADDCALL sass_option_push_import_extension (struct Sass_Options* options, const char* ext);
-
 // Push function for paths (no manipulation support for now)
 ADDAPI void ADDCALL sass_option_push_plugin_path (struct Sass_Options* options, const char* path);
 ADDAPI void ADDCALL sass_option_push_include_path (struct Sass_Options* options, const char* path);

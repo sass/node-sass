@@ -53,8 +53,8 @@ if [ "x$PLUGIN" == "xglob" ]; then
   ${SASSC_BIN} --plugin-path plugins/libsass-${PLUGIN}/build ${SASS_SPEC_SPEC_DIR}/basic/input.scss > ${SASS_SPEC_SPEC_DIR}/basic/result.css
   ${SASSC_BIN} --plugin-path plugins/libsass-${PLUGIN}/build ${SASS_SPEC_SPEC_DIR}/basic/input.scss --sourcemap > /dev/null
 else
-  cat ${SASS_SPEC_SPEC_DIR}/basic/input.scss | ${SASSC_BIN} --plugin-path plugins/libsass-${PLUGIN}/build -I ${SASS_SPEC_SPEC_DIR}/basic > ${SASS_SPEC_SPEC_DIR}/basic/result.css
-  cat ${SASS_SPEC_SPEC_DIR}/basic/input.scss | ${SASSC_BIN} --plugin-path plugins/libsass-${PLUGIN}/build -I ${SASS_SPEC_SPEC_DIR}/basic --sourcemap > /dev/null
+  cat ${SASS_SPEC_SPEC_DIR}/basic/input.scss | ${SASSC_BIN} --precision 5 --plugin-path plugins/libsass-${PLUGIN}/build -I ${SASS_SPEC_SPEC_DIR}/basic > ${SASS_SPEC_SPEC_DIR}/basic/result.css
+  cat ${SASS_SPEC_SPEC_DIR}/basic/input.scss | ${SASSC_BIN} --precision 5 --plugin-path plugins/libsass-${PLUGIN}/build -I ${SASS_SPEC_SPEC_DIR}/basic --sourcemap > /dev/null
 fi
 RETVAL=$?; if [ "$RETVAL" != "0" ]; then exit $RETVAL; fi
 

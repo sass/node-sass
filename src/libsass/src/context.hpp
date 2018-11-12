@@ -67,7 +67,6 @@ namespace Sass {
 
     std::vector<std::string> plugin_paths; // relative paths to load plugins
     std::vector<std::string> include_paths; // lookup paths for includes
-    std::vector<std::string> extensions; // lookup extensions for imports`
 
 
 
@@ -110,8 +109,6 @@ namespace Sass {
     void collect_plugin_paths(string_list* paths_array);
     void collect_include_paths(const char* paths_str);
     void collect_include_paths(string_list* paths_array);
-    void collect_extensions(const char* extensions_str);
-    void collect_extensions(string_list* extensions_array);
     std::string format_embedded_source_map();
     std::string format_source_mapping_url(const std::string& out_path);
 

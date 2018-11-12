@@ -96,8 +96,6 @@ namespace Sass {
     // include_paths.push_back(CWD);
 
     // collect more paths from different options
-    collect_extensions(c_options.extension);
-    collect_extensions(c_options.extensions);
     collect_include_paths(c_options.include_path);
     collect_include_paths(c_options.include_paths);
     collect_plugin_paths(c_options.plugin_path);
@@ -166,37 +164,6 @@ namespace Sass {
 
   File_Context::~File_Context()
   {
-  }
-
-  void Context::collect_extensions(const char* exts_str)
-  {
-    if (exts_str) {
-      const char* beg = exts_str;
-      const char* end = Prelexer::find_first<PATH_SEP>(beg);
-
-      while (end) {
-        std::string ext(beg, end - beg);
-        if (!ext.empty()) {
-          extensions.push_back(ext);
-        }
-        beg = end + 1;
-        end = Prelexer::find_first<PATH_SEP>(beg);
-      }
-
-      std::string ext(beg);
-      if (!ext.empty()) {
-        extensions.push_back(ext);
-      }
-    }
-  }
-
-  void Context::collect_extensions(string_list* paths_array)
-  {
-    while (paths_array)
-    {
-      collect_extensions(paths_array->string);
-      paths_array = paths_array->next;
-    }
   }
 
   void Context::collect_include_paths(const char* paths_str)
@@ -269,20 +236,15 @@ namespace Sass {
   // looks for alternatives and returns a list from one directory
   std::vector<Include> Context::find_includes(const Importer& import)
   {
-    // include configured extensions
-    std::vector<std::string> exts(File::defaultExtensions);
-    if (extensions.size() > 0) {
-      exts.insert(exts.end(), extensions.begin(), extensions.end());
-    }
     // make sure we resolve against an absolute path
     std::string base_path(rel2abs(import.base_path));
     // first try to resolve the load path relative to the base path
-    std::vector<Include> vec(resolve_includes(base_path, import.imp_path, exts));
+    std::vector<Include> vec(resolve_includes(base_path, import.imp_path));
     // then search in every include path (but only if nothing found yet)
     for (size_t i = 0, S = include_paths.size(); vec.size() == 0 && i < S; ++i)
     {
       // call resolve_includes and individual base path and append all results
-      std::vector<Include> resolved(resolve_includes(include_paths[i], import.imp_path, exts));
+      std::vector<Include> resolved(resolve_includes(include_paths[i], import.imp_path));
       if (resolved.size()) vec.insert(vec.end(), resolved.begin(), resolved.end());
     }
     // return vector
@@ -403,14 +365,6 @@ namespace Sass {
     // process the resolved entry
     else if (resolved.size() == 1) {
       bool use_cache = c_importers.size() == 0;
-      if (resolved[0].deprecated) {
-        // emit deprecation warning when import resolves to a .css file
-        deprecated(
-          "Including .css files with @import is non-standard behaviour which will be removed in future versions of LibSass.",
-          "Use a custom importer to maintain this behaviour. Check your implementations documentation on how to create a custom importer.",
-          true, pstate
-        );
-      }
       // use cache for the resource loading
       if (use_cache && sheets.count(resolved[0].abs_path)) return resolved[0];
       // try to read the content of the resolved file entry

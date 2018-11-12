@@ -83,7 +83,7 @@
     "object-merge": "^2.5.1",
     "read-yaml": "^1.0.0",
     "rimraf": "^2.5.2",
-    "sass-spec": "3.5.4-1",
+    "sass-spec": "https://github.com/sass/sass-spec.git#dc2d573",
     "unique-temp-dir": "^1.0.0"
   }
 }

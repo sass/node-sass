@@ -1598,6 +1598,19 @@ namespace Sass {
                                1, // alpha channel
                                parsed);
     }
+    else if (parsed.length() == 5) {
+      std::string r(2, parsed[1]);
+      std::string g(2, parsed[2]);
+      std::string b(2, parsed[3]);
+      std::string a(2, parsed[4]);
+      color = SASS_MEMORY_NEW(Color,
+                               pstate,
+                               static_cast<double>(strtol(r.c_str(), NULL, 16)),
+                               static_cast<double>(strtol(g.c_str(), NULL, 16)),
+                               static_cast<double>(strtol(b.c_str(), NULL, 16)),
+                               static_cast<double>(strtol(a.c_str(), NULL, 16)) / 255,
+                               parsed);
+    }
     else if (parsed.length() == 7) {
       std::string r(parsed.substr(1,2));
       std::string g(parsed.substr(3,2));
@@ -1694,17 +1707,7 @@ namespace Sass {
     { return lexed_hex_color(lexed); }
 
     if (lex< hexa >())
-    {
-      std::string s = lexed.to_string();
-
-      deprecated(
-        "The value \""+s+"\" is currently parsed as a string, but it will be parsed as a color in",
-        "future versions of Sass. Use \"unquote('"+s+"')\" to continue parsing it as a string.",
-        true, pstate
-      );
-
-      return SASS_MEMORY_NEW(String_Quoted, pstate, lexed);
-    }
+    { return lexed_hex_color(lexed); }
 
     if (lex< sequence < exactly <'#'>, identifier > >())
     { return SASS_MEMORY_NEW(String_Quoted, pstate, lexed); }
@@ -1722,10 +1725,6 @@ namespace Sass {
 
     if (lex< variable >())
     { return SASS_MEMORY_NEW(Variable, pstate, Util::normalize_underscores(lexed)); }
-
-    // Special case handling for `%` proceeding an interpolant.
-    if (lex< sequence< exactly<'%'>, optional< percentage > > >())
-    { return SASS_MEMORY_NEW(String_Constant, pstate, lexed); }
 
     css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
 
@@ -2167,6 +2166,7 @@ namespace Sass {
       while (pp && peek< exactly< hash_lbrace > >(pp)) {
         pp = sequence< interpolant, real_uri_value >(pp);
       }
+      if (!pp) return 0;
       position = pp;
       return parse_interpolated_chunk(Token(p, position));
     }
