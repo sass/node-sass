@@ -230,13 +230,13 @@ debug-shared: shared
 lib:
 	$(MKDIR) lib
 
-lib/libsass.a: lib $(COBJECTS) $(OBJECTS)
+lib/libsass.a: $(COBJECTS) $(OBJECTS) | lib
 	$(AR) rcvs $@ $(COBJECTS) $(OBJECTS)
 
-lib/libsass.so: lib $(COBJECTS) $(OBJECTS)
+lib/libsass.so: $(COBJECTS) $(OBJECTS) | lib
 	$(CXX) -shared $(LDFLAGS) -o $@ $(COBJECTS) $(OBJECTS) $(LDLIBS)
 
-lib/libsass.dll: lib $(COBJECTS) $(OBJECTS) $(RCOBJECTS)
+lib/libsass.dll: $(COBJECTS) $(OBJECTS) $(RCOBJECTS) | lib
 	$(CXX) -shared $(LDFLAGS) -o $@ $(COBJECTS) $(OBJECTS) $(RCOBJECTS) $(LDLIBS) -s -Wl,--subsystem,windows,--out-implib,lib/libsass.a
 
 %.o: %.c
@@ -259,18 +259,17 @@ shared: $(SHAREDLIB)
 $(DESTDIR)$(PREFIX):
 	$(MKDIR) $(DESTDIR)$(PREFIX)
 
-$(DESTDIR)$(PREFIX)/lib: $(DESTDIR)$(PREFIX)
+$(DESTDIR)$(PREFIX)/lib: | $(DESTDIR)$(PREFIX)
 	$(MKDIR) $(DESTDIR)$(PREFIX)/lib
 
-$(DESTDIR)$(PREFIX)/include: $(DESTDIR)$(PREFIX)
+$(DESTDIR)$(PREFIX)/include: | $(DESTDIR)$(PREFIX)
 	$(MKDIR) $(DESTDIR)$(PREFIX)/include
 
-$(DESTDIR)$(PREFIX)/include/sass: $(DESTDIR)$(PREFIX)/include
+$(DESTDIR)$(PREFIX)/include/sass: | $(DESTDIR)$(PREFIX)/include
 	$(MKDIR) $(DESTDIR)$(PREFIX)/include/sass
 
 $(DESTDIR)$(PREFIX)/include/%.h: include/%.h \
-                                 $(DESTDIR)$(PREFIX)/include \
-                                 $(DESTDIR)$(PREFIX)/include/sass
+                                 | $(DESTDIR)$(PREFIX)/include/sass
 	$(INSTALL) -v -m0644 "$<" "$@"
 
 install-headers: $(DESTDIR)$(PREFIX)/include/sass.h \
@@ -282,15 +281,15 @@ install-headers: $(DESTDIR)$(PREFIX)/include/sass.h \
                  $(DESTDIR)$(PREFIX)/include/sass/functions.h
 
 $(DESTDIR)$(PREFIX)/lib/%.a: lib/%.a \
-                             $(DESTDIR)$(PREFIX)/lib
+                             | $(DESTDIR)$(PREFIX)/lib
 	@$(INSTALL) -v -m0755 "$<" "$@"
 
 $(DESTDIR)$(PREFIX)/lib/%.so: lib/%.so \
-                             $(DESTDIR)$(PREFIX)/lib
+                             | $(DESTDIR)$(PREFIX)/lib
 	@$(INSTALL) -v -m0755 "$<" "$@"
 
 $(DESTDIR)$(PREFIX)/lib/%.dll: lib/%.dll \
-                               $(DESTDIR)$(PREFIX)/lib
+                               | $(DESTDIR)$(PREFIX)/lib
 	@$(INSTALL) -v -m0755 "$<" "$@"
 
 install-static: $(DESTDIR)$(PREFIX)/lib/libsass.a
@@ -320,7 +319,7 @@ test_full: $(SASSC_BIN)
 test_probe: $(SASSC_BIN)
 	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -V 3.5 -c $(SASSC_BIN) --impl libsass --probe-todo $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
 
-clean-objects: lib
+clean-objects: | lib
 	-$(RM) lib/*.a lib/*.so lib/*.dll lib/*.la
 	-$(RMDIR) lib
 clean: clean-objects
