@@ -15,7 +15,7 @@ INSTALL  ?= install
 CFLAGS   ?= -Wall
 CXXFLAGS ?= -Wall
 LDFLAGS  ?= -Wall
-ifeq "x$(COVERAGE)" "x"
+ifndef COVERAGE
   CFLAGS   += -O2
   CXXFLAGS += -O2
   LDFLAGS  += -O2
@@ -28,39 +28,25 @@ CAT ?= $(if $(filter $(OS),Windows_NT),type,cat)
 
 ifneq (,$(findstring /cygdrive/,$(PATH)))
 	UNAME := Cygwin
+else ifneq (,$(findstring Windows_NT,$(OS)))
+	UNAME := Windows
+else ifneq (,$(findstring mingw32,$(MAKE)))
+	UNAME := Windows
+else ifneq (,$(findstring MINGW32,$(shell uname -s)))
+	UNAME := Windows
 else
-	ifneq (,$(findstring Windows_NT,$(OS)))
-		UNAME := Windows
-	else
-		ifneq (,$(findstring mingw32,$(MAKE)))
-			UNAME := Windows
-		else
-			ifneq (,$(findstring MINGW32,$(shell uname -s)))
-				UNAME = Windows
-			else
-				UNAME := $(shell uname -s)
-			endif
-		endif
-	endif
+	UNAME := $(shell uname -s)
 endif
 
-ifeq ($(SASS_LIBSASS_PATH),)
-	SASS_LIBSASS_PATH = $(abspath $(CURDIR))
-endif
-
-ifeq ($(LIBSASS_VERSION),)
+ifndef LIBSASS_VERSION
 	ifneq ($(wildcard ./.git/ ),)
 		LIBSASS_VERSION ?= $(shell git describe --abbrev=4 --dirty --always --tags)
 	endif
-endif
-
-ifeq ($(LIBSASS_VERSION),)
 	ifneq ($(wildcard VERSION),)
 		LIBSASS_VERSION ?= $(shell $(CAT) VERSION)
 	endif
 endif
-
-ifneq ($(LIBSASS_VERSION),)
+ifdef LIBSASS_VERSION
 	CFLAGS   += -DLIBSASS_VERSION="\"$(LIBSASS_VERSION)\""
 	CXXFLAGS += -DLIBSASS_VERSION="\"$(LIBSASS_VERSION)\""
 endif
@@ -82,7 +68,10 @@ else
 	LDFLAGS  += -std=c++0x
 endif
 
-ifneq ($(SASS_LIBSASS_PATH),)
+ifndef SASS_LIBSASS_PATH
+	SASS_LIBSASS_PATH = $(abspath $(CURDIR))
+endif
+ifdef SASS_LIBSASS_PATH
 	CFLAGS   += -I $(SASS_LIBSASS_PATH)/include
 	CXXFLAGS += -I $(SASS_LIBSASS_PATH)/include
 else
@@ -91,18 +80,11 @@ else
 	CXXFLAGS += -I include
 endif
 
-ifneq ($(EXTRA_CFLAGS),)
-	CFLAGS   += $(EXTRA_CFLAGS)
-endif
-ifneq ($(EXTRA_CXXFLAGS),)
-	CXXFLAGS += $(EXTRA_CXXFLAGS)
-endif
-ifneq ($(EXTRA_LDFLAGS),)
-	LDFLAGS  += $(EXTRA_LDFLAGS)
-endif
+CFLAGS   += $(EXTRA_CFLAGS)
+CXXFLAGS += $(EXTRA_CXXFLAGS)
+LDFLAGS  += $(EXTRA_LDFLAGS)
 
 LDLIBS = -lm
-
 ifneq ($(BUILD),shared)
 	LDLIBS += -lstdc++
 endif
@@ -142,7 +124,7 @@ ifeq ($(DEBUG),1)
 	BUILD := debug-$(BUILD)
 endif
 
-ifeq (,$(TRAVIS_BUILD_DIR))
+ifndef TRAVIS_BUILD_DIR
 	ifeq ($(OS),SunOS)
 		PREFIX ?= /opt/local
 	else
@@ -152,54 +134,34 @@ else
 	PREFIX ?= $(TRAVIS_BUILD_DIR)
 endif
 
-
 SASS_SASSC_PATH ?= sassc
 SASS_SPEC_PATH ?= sass-spec
 SASS_SPEC_SPEC_DIR ?= spec
 SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc
 RUBY_BIN = ruby
 
+RESOURCES =
+STATICLIB = lib/libsass.a
+SHAREDLIB = lib/libsass.so
 LIB_STATIC = $(SASS_LIBSASS_PATH)/lib/libsass.a
 LIB_SHARED = $(SASS_LIBSASS_PATH)/lib/libsass.so
 
 ifeq (Windows,$(UNAME))
-	ifeq (shared,$(BUILD))
-		CFLAGS     += -D ADD_EXPORTS
-		CXXFLAGS   += -D ADD_EXPORTS
-		LIB_SHARED  = $(SASS_LIBSASS_PATH)/lib/libsass.dll
-	endif
-else
-	ifneq (Cygwin,$(UNAME))
-		CFLAGS   += -fPIC
-		CXXFLAGS += -fPIC
-		LDFLAGS  += -fPIC
-	endif
-endif
-
-ifeq (Windows,$(UNAME))
 	SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc.exe
-endif
-
-include Makefile.conf
-
-RESOURCES =
-STATICLIB = lib/libsass.a
-SHAREDLIB = lib/libsass.so
-ifeq (Windows,$(UNAME))
 	RESOURCES += res/resource.rc
 	SHAREDLIB  = lib/libsass.dll
 	ifeq (shared,$(BUILD))
 		CFLAGS    += -D ADD_EXPORTS
 		CXXFLAGS  += -D ADD_EXPORTS
+		LIB_SHARED  = $(SASS_LIBSASS_PATH)/lib/libsass.dll
 	endif
-else
-	ifneq (Cygwin,$(UNAME))
-		CFLAGS   += -fPIC
-		CXXFLAGS += -fPIC
-		LDFLAGS  += -fPIC
-	endif
+else ifneq (Cygwin,$(UNAME))
+	CFLAGS   += -fPIC
+	CXXFLAGS += -fPIC
+	LDFLAGS  += -fPIC
 endif
 
+include Makefile.conf
 OBJECTS = $(addprefix src/,$(SOURCES:.cpp=.o))
 COBJECTS = $(addprefix src/,$(CSOURCES:.c=.o))
 RCOBJECTS = $(RESOURCES:.rc=.o)
@@ -303,11 +265,9 @@ sassc: $(SASSC_BIN)
 	$(SASSC_BIN) -v
 
 version: $(SASSC_BIN)
-	$(SASSC_BIN) -h
 	$(SASSC_BIN) -v
 
-test: $(SASSC_BIN)
-	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -V 3.5 -c $(SASSC_BIN) --impl libsass $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
+test: test_build
 
 test_build: $(SASSC_BIN)
 	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -V 3.5 -c $(SASSC_BIN) --impl libsass $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
