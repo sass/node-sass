@@ -98,7 +98,7 @@ struct Sass_Inspect_Options {
 
   // initialization list (constructor with defaults)
   Sass_Inspect_Options(Sass_Output_Style style = Sass::NESTED,
-                       int precision = 5)
+                       int precision = 10)
   : output_style(style), precision(precision)
   { }
 
