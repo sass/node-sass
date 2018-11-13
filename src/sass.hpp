@@ -128,7 +128,7 @@ struct Sass_Output_Options : Sass_Inspect_Options {
 
   // initialization list (constructor with defaults)
   Sass_Output_Options(Sass_Output_Style style = Sass::NESTED,
-                      int precision = 5,
+                      int precision = 10,
                       const char* indent = "  ",
                       const char* linefeed = "\n",
                       bool source_comments = false)
