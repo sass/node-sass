@@ -49,8 +49,6 @@ namespace Sass {
     #endif
     static bool taint;
     long refcounter;
-    // long refcount;
-    bool detached;
     #ifdef DEBUG_SHARED_PTR
       bool dbg;
     #endif
@@ -82,7 +80,7 @@ namespace Sass {
     virtual const std::string to_string() const = 0;
 
     virtual ~SharedObj();
-    long getRefCount() {
+    long getRefCount() const {
       return refcounter;
     }
   };
@@ -123,11 +121,10 @@ namespace Sass {
     bool isNull () const {
       return node == NULL;
     };
-    SharedObj* detach() const {
-      if (node) {
-        node->detached = true;
-      }
-      return node;
+    SharedObj* detach() {
+      SharedObj* result = node;
+      node = NULL;
+      return result;
     };
     operator bool() const {
       return node != NULL;
@@ -197,8 +194,7 @@ namespace Sass {
     T* ptr () const {
       return static_cast<T*>(this->obj());
     };
-    T* detach() const {
-      if (this->obj() == NULL) return NULL;
+    T* detach() {
       return static_cast<T*>(SharedPtr::detach());
     }
     bool isNull() const {
