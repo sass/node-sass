@@ -52,7 +52,7 @@ namespace Sass {
   {
     return ctx.cwd();
   }
-  
+
   struct Sass_Inspect_Options& Eval::options()
   {
     return ctx.c_options;
@@ -1636,15 +1636,14 @@ namespace Sass {
         if (s->selector()->find(hasNotSelector)) {
           s->selector()->clear();
           s->name(" ");
-        } else if (s->selector()->length() == 1) {
-          Complex_Selector_Ptr cs = s->selector()->at(0);
-          if (cs->tail()) {
-            s->selector()->clear();
-            s->name(" ");
+        } else {
+          for (size_t i = 0; i < s->selector()->length(); ++i) {
+            Complex_Selector_Ptr cs = s->selector()->at(i);
+            if (cs->tail()) {
+              s->selector()->clear();
+              s->name(" ");
+            }
           }
-        } else if (s->selector()->length() > 1) {
-          s->selector()->clear();
-          s->name(" ");
         }
       }
     }
