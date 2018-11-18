@@ -505,36 +505,28 @@ namespace Sass {
     return false;
   }
 
+  namespace {
+
+  int SelectorOrder(Simple_Selector_Ptr sel) {
+    if (Cast<Element_Selector>(sel)) return 1;
+    if (Cast<Id_Selector>(sel) || Cast<Class_Selector>(sel)) return 2;
+    if (Cast<Attribute_Selector>(sel)) return 3;
+    if (Cast<Pseudo_Selector>(sel)) return Cast<Pseudo_Selector>(sel)->is_pseudo_element() ? 6 : 4;
+    if (Cast<Wrapped_Selector>(sel)) return 5;
+    return 7;
+  }
+
+  }  // namespace
+
   Compound_Selector_Ptr Simple_Selector::unify_with(Compound_Selector_Ptr rhs)
   {
-    for (size_t i = 0, L = rhs->length(); i < L; ++i)
+    const size_t rsize = rhs->length();
+    for (size_t i = 0; i < rsize; ++i)
     { if (to_string() == rhs->at(i)->to_string()) return rhs; }
-
-    // check for pseudo elements because they are always last
-    size_t i, L;
-    bool found = false;
-    if (typeid(*this) == typeid(Pseudo_Selector) || typeid(*this) == typeid(Wrapped_Selector) || typeid(*this) == typeid(Attribute_Selector))
-    {
-      for (i = 0, L = rhs->length(); i < L; ++i)
-      {
-        if ((Cast<Pseudo_Selector>((*rhs)[i]) || Cast<Wrapped_Selector>((*rhs)[i]) || Cast<Attribute_Selector>((*rhs)[i])) && (*rhs)[L-1]->is_pseudo_element())
-        { found = true; break; }
-      }
-    }
-    else
-    {
-      for (i = 0, L = rhs->length(); i < L; ++i)
-      {
-        if (Cast<Pseudo_Selector>((*rhs)[i]) || Cast<Wrapped_Selector>((*rhs)[i]) || Cast<Attribute_Selector>((*rhs)[i]))
-        { found = true; break; }
-      }
-    }
-    if (!found)
-    {
-      rhs->append(this);
-    } else {
-      rhs->elements().insert(rhs->elements().begin() + i, this);
-    }
+    const int lhs_order = SelectorOrder(this);
+    size_t i = rsize;
+    while (i > 0 && lhs_order < SelectorOrder(rhs->at(i - 1))) --i;
+    rhs->elements().insert(rhs->elements().begin() + i, this);
     return rhs;
   }
 
