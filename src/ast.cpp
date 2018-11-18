@@ -505,27 +505,14 @@ namespace Sass {
     return false;
   }
 
-  namespace {
-
-  int SelectorOrder(Simple_Selector_Ptr sel) {
-    if (Cast<Element_Selector>(sel)) return 1;
-    if (Cast<Id_Selector>(sel) || Cast<Class_Selector>(sel)) return 2;
-    if (Cast<Attribute_Selector>(sel)) return 3;
-    if (Cast<Pseudo_Selector>(sel)) return Cast<Pseudo_Selector>(sel)->is_pseudo_element() ? 6 : 4;
-    if (Cast<Wrapped_Selector>(sel)) return 5;
-    return 7;
-  }
-
-  }  // namespace
-
   Compound_Selector_Ptr Simple_Selector::unify_with(Compound_Selector_Ptr rhs)
   {
     const size_t rsize = rhs->length();
     for (size_t i = 0; i < rsize; ++i)
     { if (to_string() == rhs->at(i)->to_string()) return rhs; }
-    const int lhs_order = SelectorOrder(this);
+    const int lhs_order = this->unification_order();
     size_t i = rsize;
-    while (i > 0 && lhs_order < SelectorOrder(rhs->at(i - 1))) --i;
+    while (i > 0 && lhs_order < rhs->at(i - 1)->unification_order()) --i;
     rhs->elements().insert(rhs->elements().begin() + i, this);
     return rhs;
   }

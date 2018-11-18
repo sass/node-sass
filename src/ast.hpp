@@ -2215,6 +2215,7 @@ namespace Sass {
     virtual ~Selector() = 0;
     virtual size_t hash() = 0;
     virtual unsigned long specificity() const = 0;
+    virtual int unification_order() const = 0;
     virtual void set_media_block(Media_Block_Ptr mb) {
       media_block(mb);
     }
@@ -2394,6 +2395,10 @@ namespace Sass {
     {
       return 0;
     }
+    int unification_order() const
+    {
+      throw std::runtime_error("unification_order for Parent_Selector is undefined");
+    }
     std::string type() const { return "selector"; }
     static std::string type_name() { return "selector"; }
     ATTACH_AST_OPERATIONS(Parent_Selector)
@@ -2433,6 +2438,10 @@ namespace Sass {
     {
       return Constants::Specificity_Base;
     }
+    int unification_order() const
+    {
+      return Constants::UnificationOrder_Placeholder;
+    }
     virtual bool has_placeholder() {
       return true;
     }
@@ -2456,6 +2465,10 @@ namespace Sass {
     {
       if (name() == "*") return 0;
       else               return Constants::Specificity_Element;
+    }
+    int unification_order() const
+    {
+      return Constants::UnificationOrder_Element;
     }
     virtual Simple_Selector_Ptr unify_with(Simple_Selector_Ptr);
     virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr);
@@ -2482,6 +2495,10 @@ namespace Sass {
     {
       return Constants::Specificity_Class;
     }
+    int unification_order() const
+    {
+      return Constants::UnificationOrder_Class;
+    }
     virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr);
     ATTACH_AST_OPERATIONS(Class_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -2501,6 +2518,10 @@ namespace Sass {
     virtual unsigned long specificity() const
     {
       return Constants::Specificity_ID;
+    }
+    int unification_order() const
+    {
+      return Constants::UnificationOrder_Id;
     }
     virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr);
     ATTACH_AST_OPERATIONS(Id_Selector)
@@ -2537,6 +2558,10 @@ namespace Sass {
     virtual unsigned long specificity() const
     {
       return Constants::Specificity_Attr;
+    }
+    int unification_order() const
+    {
+      return Constants::UnificationOrder_Attribute;
     }
     virtual bool operator==(const Simple_Selector& rhs) const;
     virtual bool operator==(const Attribute_Selector& rhs) const;
@@ -2599,6 +2624,12 @@ namespace Sass {
         return Constants::Specificity_Element;
       return Constants::Specificity_Pseudo;
     }
+    int unification_order() const
+    {
+      if (is_pseudo_element())
+        return Constants::UnificationOrder_PseudoElement;
+      return Constants::UnificationOrder_PseudoClass;
+    }
     virtual bool operator==(const Simple_Selector& rhs) const;
     virtual bool operator==(const Pseudo_Selector& rhs) const;
     virtual bool operator<(const Simple_Selector& rhs) const;
@@ -2627,6 +2658,10 @@ namespace Sass {
     virtual bool has_parent_ref() const;
     virtual bool has_real_parent_ref() const;
     virtual unsigned long specificity() const;
+    int unification_order() const
+    {
+      return Constants::UnificationOrder_Wrapped;
+    }
     virtual bool find ( bool (*f)(AST_Node_Obj) );
     virtual bool operator==(const Simple_Selector& rhs) const;
     virtual bool operator==(const Wrapped_Selector& rhs) const;
@@ -2708,6 +2743,10 @@ namespace Sass {
       for (size_t i = 0, L = length(); i < L; ++i)
       { sum += (*this)[i]->specificity(); }
       return sum;
+    }
+    int unification_order() const
+    {
+      throw std::runtime_error("unification_order for Compound_Selector is undefined");
     }
 
     virtual bool has_placeholder()
@@ -2837,6 +2876,10 @@ namespace Sass {
       if (tail()) sum += tail()->specificity();
       return sum;
     }
+    int unification_order() const
+    {
+      throw std::runtime_error("unification_order for Complex_Selector is undefined");
+    }
     virtual void set_media_block(Media_Block_Ptr mb) {
       media_block(mb);
       if (tail_) tail_->set_media_block(mb);
@@ -2959,6 +3002,10 @@ namespace Sass {
         if (sum < specificity) sum = specificity;
       }
       return sum;
+    }
+    int unification_order() const
+    {
+      throw std::runtime_error("unification_order for Selector_List is undefined");
     }
     virtual void set_media_block(Media_Block_Ptr mb) {
       media_block(mb);
