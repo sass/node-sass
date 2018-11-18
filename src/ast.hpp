@@ -2204,6 +2204,8 @@ namespace Sass {
     // dispatch to correct handlers
     virtual bool operator<(const Selector& rhs) const = 0;
     virtual bool operator==(const Selector& rhs) const = 0;
+    bool operator>(const Selector& rhs) const { return rhs < *this; };
+    bool operator!=(const Selector& rhs) const { return !(rhs == *this); };
     ATTACH_VIRTUAL_AST_OPERATIONS(Selector);
   };
   inline Selector::~Selector() { }
@@ -2290,6 +2292,7 @@ namespace Sass {
     {
       if (hash_ == 0) {
         hash_combine(hash_, std::hash<int>()(SELECTOR));
+        hash_combine(hash_, std::hash<int>()(simple_type()));
         hash_combine(hash_, std::hash<std::string>()(ns()));
         hash_combine(hash_, std::hash<std::string>()(name()));
       }
