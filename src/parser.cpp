@@ -706,7 +706,7 @@ namespace Sass {
     }
     // update for end position
     group->update_pstate(pstate);
-    if (sel) sel->last()->has_line_break(false);
+    if (sel) sel->mutable_last()->has_line_break(false);
     return group.detach();
   }
   // EO parse_selector_list

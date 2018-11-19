@@ -91,8 +91,7 @@ namespace Sass {
     // AST_Node(AST_Node& ptr) = delete;
 
     virtual ~AST_Node() = 0;
-    virtual size_t hash() { return 0; }
-    ATTACH_VIRTUAL_AST_OPERATIONS(AST_Node);
+    virtual size_t hash() const { return 0; }
     virtual std::string inspect() const { return to_string({ INSPECT, 5 }); }
     virtual std::string to_sass() const { return to_string({ TO_SASS, 5 }); }
     virtual const std::string to_string(Sass_Inspect_Options opt) const;
@@ -101,12 +100,11 @@ namespace Sass {
     // generic find function (not fully implemented yet)
     // ToDo: add specific implementions to all children
     virtual bool find ( bool (*f)(AST_Node_Obj) ) { return f(this); };
-  public:
     void update_pstate(const ParserState& pstate);
-  public:
     Offset off() { return pstate(); }
     Position pos() { return pstate(); }
-    ATTACH_CRTP_PERFORM_METHODS()
+    ATTACH_ABSTRACT_AST_OPERATIONS(AST_Node);
+    ATTACH_ABSTRACT_CRTP_PERFORM_METHODS()
   };
   inline AST_Node::~AST_Node() { }
 
@@ -191,10 +189,8 @@ namespace Sass {
     virtual bool has_interpolant() const { return is_interpolant(); }
     virtual bool is_left_interpolant() const { return is_interpolant(); }
     virtual bool is_right_interpolant() const { return is_interpolant(); }
-    virtual std::string inspect() const { return to_string({ INSPECT, 5 }); }
-    virtual std::string to_sass() const { return to_string({ TO_SASS, 5 }); }
     ATTACH_VIRTUAL_AST_OPERATIONS(Expression);
-    virtual size_t hash() { return 0; }
+    size_t hash() const override { return 0; }
   };
 
   //////////////////////////////////////////////////////////////////////
@@ -226,7 +222,6 @@ namespace Sass {
     : PreValue(ptr)
     { }
     ATTACH_VIRTUAL_AST_OPERATIONS(Value);
-    virtual bool operator== (const Expression& rhs) const = 0;
   };
 }
 
@@ -264,11 +259,11 @@ namespace Sass {
   class Vectorized {
     std::vector<T> elements_;
   protected:
-    size_t hash_;
+    mutable size_t hash_;
     void reset_hash() { hash_ = 0; }
     virtual void adjust_after_pushing(T element) { }
   public:
-    Vectorized(size_t s = 0) : elements_(std::vector<T>()), hash_(0)
+    Vectorized(size_t s = 0) : hash_(0)
     { elements_.reserve(s); }
     virtual ~Vectorized() = 0;
     size_t length() const   { return elements_.size(); }
@@ -301,10 +296,10 @@ namespace Sass {
     const std::vector<T>& elements() const { return elements_; }
     std::vector<T>& elements(std::vector<T>& e) { elements_ = e; return elements_; }
 
-    virtual size_t hash()
+    virtual size_t hash() const
     {
       if (hash_ == 0) {
-        for (T& el : elements_) {
+        for (const T& el : elements_) {
           hash_combine(hash_, el->hash());
         }
       }
@@ -331,7 +326,7 @@ namespace Sass {
     ExpressionMap elements_;
     std::vector<Expression_Obj> list_;
   protected:
-    size_t hash_;
+    mutable size_t hash_;
     Expression_Obj duplicate_key_;
     void reset_hash() { hash_ = 0; }
     void reset_duplicate_key() { duplicate_key_ = 0; }
@@ -453,7 +448,7 @@ namespace Sass {
     ADD_PROPERTY(bool, is_root)
     // needed for properly formatted CSS emission
   protected:
-    void adjust_after_pushing(Statement_Obj s)
+    void adjust_after_pushing(Statement_Obj s) override
     {
     }
   public:
@@ -467,7 +462,7 @@ namespace Sass {
       Vectorized<Statement_Obj>(*ptr),
       is_root_(ptr->is_root_)
     { }
-    virtual bool has_content()
+    bool has_content() override
     {
       for (size_t i = 0, L = elements().size(); i < L; ++i) {
         if (elements()[i]->has_content()) return true;
@@ -490,7 +485,7 @@ namespace Sass {
     Has_Block(const Has_Block* ptr)
     : Statement(ptr), block_(ptr->block_)
     { }
-    virtual bool has_content()
+    virtual bool has_content() override
     {
       return (block_ && block_->has_content()) || Statement::has_content();
     }
@@ -514,7 +509,7 @@ namespace Sass {
       selector_(ptr->selector_),
       is_root_(ptr->is_root_)
     { statement_type(RULESET); }
-    bool is_invisible() const;
+    bool is_invisible() const override;
     ATTACH_AST_OPERATIONS(Ruleset)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -534,7 +529,7 @@ namespace Sass {
       node_(ptr->node_),
       group_end_(ptr->group_end_)
     { }
-    bool bubbles() { return true; }
+    bool bubbles() override { return true; }
     ATTACH_AST_OPERATIONS(Bubble)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -570,8 +565,8 @@ namespace Sass {
     Media_Block(const Media_Block* ptr)
     : Has_Block(ptr), media_queries_(ptr->media_queries_)
     { statement_type(MEDIA); }
-    bool bubbles() { return true; }
-    bool is_invisible() const;
+    bool bubbles() override { return true; }
+    bool is_invisible() const override;
     ATTACH_AST_OPERATIONS(Media_Block)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -594,7 +589,7 @@ namespace Sass {
       selector_(ptr->selector_),
       value_(ptr->value_) // set value manually if needed
     { statement_type(DIRECTIVE); }
-    bool bubbles() { return is_keyframes() || is_media(); }
+    bool bubbles() override { return is_keyframes() || is_media(); }
     bool is_media() {
       return keyword_.compare("@-webkit-media") == 0 ||
              keyword_.compare("@-moz-media") == 0 ||
@@ -651,7 +646,7 @@ namespace Sass {
       is_custom_property_(ptr->is_custom_property_),
       is_indented_(ptr->is_indented_)
     { statement_type(DECLARATION); }
-    virtual bool is_invisible() const;
+    bool is_invisible() const override;
     ATTACH_AST_OPERATIONS(Declaration)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -791,7 +786,7 @@ namespace Sass {
       text_(ptr->text_),
       is_important_(ptr->is_important_)
     { statement_type(COMMENT); }
-    virtual bool is_invisible() const
+    bool is_invisible() const override
     { return /* is_important() == */ false; }
     ATTACH_AST_OPERATIONS(Comment)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -812,7 +807,7 @@ namespace Sass {
       predicate_(ptr->predicate_),
       alternative_(ptr->alternative_)
     { statement_type(IF); }
-    virtual bool has_content()
+    bool has_content() override
     {
       return Has_Block::has_content() || (alternative_ && alternative_->has_content());
     }
@@ -1035,7 +1030,7 @@ namespace Sass {
   // type-tag.) Also used to represent variable-length argument lists.
   ///////////////////////////////////////////////////////////////////////
   class List final : public Value, public Vectorized<Expression_Obj> {
-    void adjust_after_pushing(Expression_Obj e) { is_expanded(false); }
+    void adjust_after_pushing(Expression_Obj e) override { is_expanded(false); }
   private:
     ADD_PROPERTY(enum Sass_Separator, separator)
     ADD_PROPERTY(bool, is_arglist)
@@ -1059,18 +1054,18 @@ namespace Sass {
       is_bracketed_(ptr->is_bracketed_),
       from_selector_(ptr->from_selector_)
     { concrete_type(LIST); }
-    std::string type() const { return is_arglist_ ? "arglist" : "list"; }
+    std::string type() const override { return is_arglist_ ? "arglist" : "list"; }
     static std::string type_name() { return "list"; }
     const char* sep_string(bool compressed = false) const {
       return separator() == SASS_SPACE ?
         " " : (compressed ? "," : ", ");
     }
-    bool is_invisible() const { return empty() && !is_bracketed(); }
+    bool is_invisible() const override { return empty() && !is_bracketed(); }
     Expression_Obj value_at_index(size_t i);
 
     virtual size_t size() const;
 
-    virtual size_t hash()
+    size_t hash() const override
     {
       if (hash_ == 0) {
         hash_ = std::hash<std::string>()(sep_string());
@@ -1081,13 +1076,7 @@ namespace Sass {
       return hash_;
     }
 
-    virtual void set_delayed(bool delayed)
-    {
-      is_delayed(delayed);
-      // don't set children
-    }
-
-    virtual bool operator== (const Expression& rhs) const;
+    bool operator== (const Expression& rhs) const override;
 
     ATTACH_AST_OPERATIONS(List)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -1097,7 +1086,7 @@ namespace Sass {
   // Key value paris.
   ///////////////////////////////////////////////////////////////////////
   class Map final : public Value, public Hashed {
-    void adjust_after_pushing(std::pair<Expression_Obj, Expression_Obj> p) { is_expanded(false); }
+    void adjust_after_pushing(std::pair<Expression_Obj, Expression_Obj> p) override { is_expanded(false); }
   public:
     Map(ParserState pstate,
          size_t size = 0)
@@ -1108,12 +1097,12 @@ namespace Sass {
     : Value(ptr),
       Hashed(*ptr)
     { concrete_type(MAP); }
-    std::string type() const { return "map"; }
+    std::string type() const override { return "map"; }
     static std::string type_name() { return "map"; }
-    bool is_invisible() const { return empty(); }
+    bool is_invisible() const override { return empty(); }
     List_Obj to_list(ParserState& pstate);
 
-    virtual size_t hash()
+    size_t hash() const override
     {
       if (hash_ == 0) {
         for (auto key : keys()) {
@@ -1125,7 +1114,7 @@ namespace Sass {
       return hash_;
     }
 
-    virtual bool operator== (const Expression& rhs) const;
+    bool operator== (const Expression& rhs) const override;
 
     ATTACH_AST_OPERATIONS(Map)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -1183,7 +1172,7 @@ namespace Sass {
     HASH_PROPERTY(Operand, op)
     HASH_PROPERTY(Expression_Obj, left)
     HASH_PROPERTY(Expression_Obj, right)
-    size_t hash_;
+    mutable size_t hash_;
   public:
     Binary_Expression(ParserState pstate,
                       Operand op, Expression_Obj lhs, Expression_Obj rhs)
@@ -1202,20 +1191,20 @@ namespace Sass {
     const std::string separator() {
       return sass_op_separator(optype());
     }
-    bool is_left_interpolant(void) const;
-    bool is_right_interpolant(void) const;
-    bool has_interpolant() const
+    bool is_left_interpolant(void) const override;
+    bool is_right_interpolant(void) const override;
+    bool has_interpolant() const override
     {
       return is_left_interpolant() ||
              is_right_interpolant();
     }
-    virtual void set_delayed(bool delayed)
+    void set_delayed(bool delayed) override
     {
       right()->set_delayed(delayed);
       left()->set_delayed(delayed);
       is_delayed(delayed);
     }
-    virtual bool operator==(const Expression& rhs) const
+    bool operator==(const Expression& rhs) const override
     {
       try
       {
@@ -1231,7 +1220,7 @@ namespace Sass {
       }
       catch (...) { throw; }
     }
-    virtual size_t hash()
+    size_t hash() const override
     {
       if (hash_ == 0) {
         hash_ = std::hash<size_t>()(optype());
@@ -1254,7 +1243,7 @@ namespace Sass {
   private:
     HASH_PROPERTY(Type, optype)
     HASH_PROPERTY(Expression_Obj, operand)
-    size_t hash_;
+    mutable size_t hash_;
   public:
     Unary_Expression(ParserState pstate, Type t, Expression_Obj o)
     : Expression(pstate), optype_(t), operand_(o), hash_(0)
@@ -1274,7 +1263,7 @@ namespace Sass {
         default: return "invalid";
       }
     }
-    virtual bool operator==(const Expression& rhs) const
+    bool operator==(const Expression& rhs) const override
     {
       try
       {
@@ -1289,7 +1278,7 @@ namespace Sass {
       }
       catch (...) { throw; }
     }
-    virtual size_t hash()
+    size_t hash() const override
     {
       if (hash_ == 0) {
         hash_ = std::hash<size_t>()(optype_);
@@ -1309,7 +1298,7 @@ namespace Sass {
     HASH_CONSTREF(std::string, name)
     ADD_PROPERTY(bool, is_rest_argument)
     ADD_PROPERTY(bool, is_keyword_argument)
-    size_t hash_;
+    mutable size_t hash_;
   public:
     Argument(ParserState pstate, Expression_Obj val, std::string n = "", bool rest = false, bool keyword = false)
     : Expression(pstate), value_(val), name_(n), is_rest_argument_(rest), is_keyword_argument_(keyword), hash_(0)
@@ -1331,8 +1320,8 @@ namespace Sass {
       }
     }
 
-    virtual void set_delayed(bool delayed);
-    virtual bool operator==(const Expression& rhs) const
+    void set_delayed(bool delayed) override;
+    bool operator==(const Expression& rhs) const override
     {
       try
       {
@@ -1347,7 +1336,7 @@ namespace Sass {
       catch (...) { throw; }
     }
 
-    virtual size_t hash()
+    size_t hash() const override
     {
       if (hash_ == 0) {
         hash_ = std::hash<std::string>()(name());
@@ -1370,7 +1359,7 @@ namespace Sass {
     ADD_PROPERTY(bool, has_rest_argument)
     ADD_PROPERTY(bool, has_keyword_argument)
   protected:
-    void adjust_after_pushing(Argument_Obj a);
+    void adjust_after_pushing(Argument_Obj a) override;
   public:
     Arguments(ParserState pstate)
     : Expression(pstate),
@@ -1387,7 +1376,7 @@ namespace Sass {
       has_keyword_argument_(ptr->has_keyword_argument_)
     { }
 
-    virtual void set_delayed(bool delayed);
+    void set_delayed(bool delayed) override;
 
     Argument_Obj get_rest_argument();
     Argument_Obj get_keyword_argument();
@@ -1411,9 +1400,9 @@ namespace Sass {
     : Value(ptr), definition_(ptr->definition_), is_css_(ptr->is_css_)
     { concrete_type(FUNCTION_VAL); }
 
-    std::string type() const { return "function"; }
+    std::string type() const override { return "function"; }
     static std::string type_name() { return "function"; }
-    bool is_invisible() const { return true; }
+    bool is_invisible() const override { return true; }
 
     std::string name() {
       if (definition_) {
@@ -1422,7 +1411,7 @@ namespace Sass {
       return "";
     }
 
-    virtual bool operator== (const Expression& rhs) const;
+    bool operator== (const Expression& rhs) const override;
 
     ATTACH_AST_OPERATIONS(Function)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -1437,7 +1426,7 @@ namespace Sass {
     HASH_PROPERTY(Function_Obj, func)
     ADD_PROPERTY(bool, via_call)
     ADD_PROPERTY(void*, cookie)
-    size_t hash_;
+    mutable size_t hash_;
   public:
     Function_Call(ParserState pstate, std::string n, Arguments_Obj args, void* cookie);
     Function_Call(ParserState pstate, std::string n, Arguments_Obj args, Function_Obj func);
@@ -1453,7 +1442,7 @@ namespace Sass {
     : PreValue(pstate), sname_(n), arguments_(args), via_call_(false), cookie_(0), hash_(0)
     { concrete_type(FUNCTION); }
 
-    std::string name() {
+    std::string name() const {
       return sname();
     }
 
@@ -1472,9 +1461,9 @@ namespace Sass {
       return false;
     }
 
-    virtual bool operator==(const Expression& rhs) const;
+    bool operator==(const Expression& rhs) const override;
 
-    virtual size_t hash();
+    size_t hash() const override;
 
     ATTACH_AST_OPERATIONS(Function_Call)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -1493,7 +1482,7 @@ namespace Sass {
     : PreValue(ptr), name_(ptr->name_)
     { concrete_type(VARIABLE); }
 
-    virtual bool operator==(const Expression& rhs) const
+    bool operator==(const Expression& rhs) const override
     {
       try
       {
@@ -1507,7 +1496,7 @@ namespace Sass {
       catch (...) { throw; }
     }
 
-    virtual size_t hash()
+    size_t hash() const override
     {
       return std::hash<std::string>()(name());
     }
@@ -1522,7 +1511,7 @@ namespace Sass {
   class Number final : public Value, public Units {
     HASH_PROPERTY(double, value)
     ADD_PROPERTY(bool, zero)
-    size_t hash_;
+    mutable size_t hash_;
   public:
     Number(ParserState pstate, double val, std::string u = "", bool zero = true);
 
@@ -1534,13 +1523,13 @@ namespace Sass {
     { concrete_type(NUMBER); }
 
     bool zero() { return zero_; }
-    std::string type() const { return "number"; }
+    std::string type() const override { return "number"; }
     static std::string type_name() { return "number"; }
 
     void reduce();
     void normalize();
 
-    virtual size_t hash()
+    size_t hash() const override
     {
       if (hash_ == 0) {
         hash_ = std::hash<double>()(value_);
@@ -1552,9 +1541,9 @@ namespace Sass {
       return hash_;
     }
 
-    virtual bool operator< (const Number& rhs) const;
-    virtual bool operator== (const Number& rhs) const;
-    virtual bool operator== (const Expression& rhs) const;
+    bool operator< (const Number& rhs) const;
+    bool operator== (const Number& rhs) const;
+    bool operator== (const Expression& rhs) const override;
     ATTACH_AST_OPERATIONS(Number)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -1568,7 +1557,7 @@ namespace Sass {
     HASH_PROPERTY(double, b)
     HASH_PROPERTY(double, a)
     ADD_CONSTREF(std::string, disp)
-    size_t hash_;
+    mutable size_t hash_;
   public:
     Color(ParserState pstate, double r, double g, double b, double a = 1, const std::string disp = "")
     : Value(pstate), r_(r), g_(g), b_(b), a_(a), disp_(disp),
@@ -1583,10 +1572,10 @@ namespace Sass {
       disp_(ptr->disp_),
       hash_(ptr->hash_)
     { concrete_type(COLOR); }
-    std::string type() const { return "color"; }
+    std::string type() const override { return "color"; }
     static std::string type_name() { return "color"; }
 
-    virtual size_t hash()
+    size_t hash() const override
     {
       if (hash_ == 0) {
         hash_ = std::hash<double>()(a_);
@@ -1597,7 +1586,7 @@ namespace Sass {
       return hash_;
     }
 
-    virtual bool operator== (const Expression& rhs) const;
+    bool operator== (const Expression& rhs) const override;
 
     ATTACH_AST_OPERATIONS(Color)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -1615,7 +1604,7 @@ namespace Sass {
     Custom_Error(const Custom_Error* ptr)
     : Value(ptr), message_(ptr->message_)
     { concrete_type(C_ERROR); }
-    virtual bool operator== (const Expression& rhs) const;
+    bool operator== (const Expression& rhs) const override;
     ATTACH_AST_OPERATIONS(Custom_Error)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -1632,7 +1621,7 @@ namespace Sass {
     Custom_Warning(const Custom_Warning* ptr)
     : Value(ptr), message_(ptr->message_)
     { concrete_type(C_WARNING); }
-    virtual bool operator== (const Expression& rhs) const;
+    bool operator== (const Expression& rhs) const override;
     ATTACH_AST_OPERATIONS(Custom_Warning)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -1642,7 +1631,7 @@ namespace Sass {
   ////////////
   class Boolean final : public Value {
     HASH_PROPERTY(bool, value)
-    size_t hash_;
+    mutable size_t hash_;
   public:
     Boolean(ParserState pstate, bool val)
     : Value(pstate), value_(val),
@@ -1653,12 +1642,12 @@ namespace Sass {
       value_(ptr->value_),
       hash_(ptr->hash_)
     { concrete_type(BOOLEAN); }
-    virtual operator bool() { return value_; }
-    std::string type() const { return "bool"; }
+    operator bool() override { return value_; }
+    std::string type() const override { return "bool"; }
     static std::string type_name() { return "bool"; }
-    virtual bool is_false() { return !value_; }
+    bool is_false() override { return !value_; }
 
-    virtual size_t hash()
+    size_t hash() const override
     {
       if (hash_ == 0) {
         hash_ = std::hash<bool>()(value_);
@@ -1666,7 +1655,7 @@ namespace Sass {
       return hash_;
     }
 
-    virtual bool operator== (const Expression& rhs) const;
+    bool operator== (const Expression& rhs) const override;
 
     ATTACH_AST_OPERATIONS(Boolean)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -1687,7 +1676,6 @@ namespace Sass {
     static std::string type_name() { return "string"; }
     virtual ~String() = 0;
     virtual void rtrim() = 0;
-    virtual bool operator==(const Expression& rhs) const = 0;
     virtual bool operator<(const Expression& rhs) const {
       return this->to_string() < rhs.to_string();
     };
@@ -1702,7 +1690,7 @@ namespace Sass {
   ///////////////////////////////////////////////////////////////////////
   class String_Schema final : public String, public Vectorized<PreValue_Obj> {
     ADD_PROPERTY(bool, css)
-    size_t hash_;
+    mutable size_t hash_;
   public:
     String_Schema(ParserState pstate, size_t size = 0, bool css = true)
     : String(pstate), Vectorized<PreValue_Obj>(size), css_(css), hash_(0)
@@ -1714,11 +1702,11 @@ namespace Sass {
       hash_(ptr->hash_)
     { concrete_type(STRING); }
 
-    std::string type() const { return "string"; }
+    std::string type() const override { return "string"; }
     static std::string type_name() { return "string"; }
 
-    bool is_left_interpolant(void) const;
-    bool is_right_interpolant(void) const;
+    bool is_left_interpolant(void) const override;
+    bool is_right_interpolant(void) const override;
     // void has_interpolants(bool tc) { }
     bool has_interpolants() {
       for (auto el : elements()) {
@@ -1726,22 +1714,22 @@ namespace Sass {
       }
       return false;
     }
-    virtual void rtrim();
+    void rtrim() override;
 
-    virtual size_t hash()
+    size_t hash() const override
     {
       if (hash_ == 0) {
-        for (auto string : elements())
-          hash_combine(hash_, string->hash());
+        for (const auto &str : elements())
+          hash_combine(hash_, str->hash());
       }
       return hash_;
     }
 
-    virtual void set_delayed(bool delayed) {
+    void set_delayed(bool delayed) override {
       is_delayed(delayed);
     }
 
-    virtual bool operator==(const Expression& rhs) const;
+    bool operator==(const Expression& rhs) const override;
     ATTACH_AST_OPERATIONS(String_Schema)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -1754,7 +1742,7 @@ namespace Sass {
     ADD_PROPERTY(bool, can_compress_whitespace)
     HASH_CONSTREF(std::string, value)
   protected:
-    size_t hash_;
+    mutable size_t hash_;
   public:
     String_Constant(const String_Constant* ptr)
     : String(ptr),
@@ -1775,12 +1763,12 @@ namespace Sass {
     String_Constant(ParserState pstate, const Token& tok, bool css = true)
     : String(pstate), quote_mark_(0), can_compress_whitespace_(false), value_(read_css_string(std::string(tok.begin, tok.end), css)), hash_(0)
     { }
-    std::string type() const { return "string"; }
+    std::string type() const override { return "string"; }
     static std::string type_name() { return "string"; }
-    virtual bool is_invisible() const;
-    virtual void rtrim();
+    bool is_invisible() const override;
+    virtual void rtrim() override;
 
-    virtual size_t hash()
+    size_t hash() const override
     {
       if (hash_ == 0) {
         hash_ = std::hash<std::string>()(value_);
@@ -1788,8 +1776,8 @@ namespace Sass {
       return hash_;
     }
 
-    virtual bool operator==(const Expression& rhs) const;
-    virtual std::string inspect() const; // quotes are forced on inspection
+    bool operator==(const Expression& rhs) const override;
+    virtual std::string inspect() const override; // quotes are forced on inspection
 
     // static char auto_quote() { return '*'; }
     static char double_quote() { return '"'; }
@@ -1802,7 +1790,7 @@ namespace Sass {
   ////////////////////////////////////////////////////////
   // Possibly quoted string (unquote on instantiation)
   ////////////////////////////////////////////////////////
-  class String_Quoted : public String_Constant {
+  class String_Quoted final : public String_Constant {
   public:
     String_Quoted(ParserState pstate, std::string val, char q = 0,
       bool keep_utf8_escapes = false, bool skip_unquoting = false,
@@ -1817,8 +1805,8 @@ namespace Sass {
     String_Quoted(const String_Quoted* ptr)
     : String_Constant(ptr)
     { }
-    virtual bool operator==(const Expression& rhs) const;
-    virtual std::string inspect() const; // quotes are forced on inspection
+    bool operator==(const Expression& rhs) const override;
+    std::string inspect() const override; // quotes are forced on inspection
     ATTACH_AST_OPERATIONS(String_Quoted)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -1882,7 +1870,7 @@ namespace Sass {
     Supports_Block(const Supports_Block* ptr)
     : Has_Block(ptr), condition_(ptr->condition_)
     { statement_type(SUPPORTS); }
-    bool bubbles() { return true; }
+    bool bubbles() override { return true; }
     ATTACH_AST_OPERATIONS(Supports_Block)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -1923,7 +1911,7 @@ namespace Sass {
       right_(ptr->right_),
       operand_(ptr->operand_)
     { }
-    virtual bool needs_parens(Supports_Condition_Obj cond) const;
+    bool needs_parens(Supports_Condition_Obj cond) const override;
     ATTACH_AST_OPERATIONS(Supports_Operator)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -1941,7 +1929,7 @@ namespace Sass {
     Supports_Negation(const Supports_Negation* ptr)
     : Supports_Condition(ptr), condition_(ptr->condition_)
     { }
-    virtual bool needs_parens(Supports_Condition_Obj cond) const;
+    bool needs_parens(Supports_Condition_Obj cond) const override;
     ATTACH_AST_OPERATIONS(Supports_Negation)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -1962,7 +1950,7 @@ namespace Sass {
       feature_(ptr->feature_),
       value_(ptr->value_)
     { }
-    virtual bool needs_parens(Supports_Condition_Obj cond) const { return false; }
+    bool needs_parens(Supports_Condition_Obj cond) const override { return false; }
     ATTACH_AST_OPERATIONS(Supports_Declaration)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -1981,7 +1969,7 @@ namespace Sass {
     : Supports_Condition(ptr),
       value_(ptr->value_)
     { }
-    virtual bool needs_parens(Supports_Condition_Obj cond) const { return false; }
+    bool needs_parens(Supports_Condition_Obj cond) const override { return false; }
     ATTACH_AST_OPERATIONS(Supports_Interpolation)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -2019,7 +2007,7 @@ namespace Sass {
     At_Root_Block(const At_Root_Block* ptr)
     : Has_Block(ptr), expression_(ptr->expression_)
     { statement_type(ATROOT); }
-    bool bubbles() { return true; }
+    bool bubbles() override { return true; }
     bool exclude_node(Statement_Obj s) {
       if (expression() == 0)
       {
@@ -2064,33 +2052,21 @@ namespace Sass {
   public:
     Null(ParserState pstate) : Value(pstate) { concrete_type(NULL_VAL); }
     Null(const Null* ptr) : Value(ptr) { concrete_type(NULL_VAL); }
-    std::string type() const { return "null"; }
+    std::string type() const override { return "null"; }
     static std::string type_name() { return "null"; }
-    bool is_invisible() const { return true; }
-    operator bool() { return false; }
-    bool is_false() { return true; }
+    bool is_invisible() const override { return true; }
+    operator bool() override { return false; }
+    bool is_false() override { return true; }
 
-    virtual size_t hash()
+    size_t hash() const override
     {
       return -1;
     }
 
-    virtual bool operator== (const Expression& rhs) const;
+    bool operator== (const Expression& rhs) const override;
 
     ATTACH_AST_OPERATIONS(Null)
     ATTACH_CRTP_PERFORM_METHODS()
-  };
-
-  /////////////////////////////////
-  // Thunks for delayed evaluation.
-  /////////////////////////////////
-  class Thunk final : public Expression {
-    ADD_PROPERTY(Expression_Obj, expression)
-    ADD_PROPERTY(Env*, environment)
-  public:
-    Thunk(ParserState pstate, Expression_Obj exp, Env* env = 0)
-    : Expression(pstate), expression_(exp), environment_(env)
-    { }
   };
 
   /////////////////////////////////////////////////////////
@@ -2136,7 +2112,7 @@ namespace Sass {
     ADD_PROPERTY(bool, has_optional_parameters)
     ADD_PROPERTY(bool, has_rest_parameter)
   protected:
-    void adjust_after_pushing(Parameter_Obj p)
+    void adjust_after_pushing(Parameter_Obj p) override
     {
       if (p->default_value()) {
         if (has_rest_parameter()) {
@@ -2193,7 +2169,7 @@ namespace Sass {
     // otherwise we create circular references
     ADD_PROPERTY(Media_Block_Ptr, media_block)
   protected:
-    size_t hash_;
+    mutable size_t hash_;
   public:
     Selector(ParserState pstate)
     : Expression(pstate),
@@ -2213,7 +2189,7 @@ namespace Sass {
       hash_(ptr->hash_)
     { concrete_type(SELECTOR); }
     virtual ~Selector() = 0;
-    virtual size_t hash() = 0;
+    size_t hash() const override = 0;
     virtual unsigned long specificity() const = 0;
     virtual int unification_order() const = 0;
     virtual void set_media_block(Media_Block_Ptr mb) {
@@ -2243,7 +2219,7 @@ namespace Sass {
     // otherwise we create circular references
     ADD_PROPERTY(Media_Block_Ptr, media_block)
     // store computed hash
-    size_t hash_;
+    mutable size_t hash_;
   public:
     Selector_Schema(ParserState pstate, String_Obj c)
     : AST_Node(pstate),
@@ -2259,14 +2235,14 @@ namespace Sass {
       media_block_(ptr->media_block_),
       hash_(ptr->hash_)
     { }
-    virtual bool has_parent_ref() const;
-    virtual bool has_real_parent_ref() const;
-    virtual bool operator<(const Selector& rhs) const;
-    virtual bool operator==(const Selector& rhs) const;
+    bool has_parent_ref() const;
+    bool has_real_parent_ref() const;
+    bool operator<(const Selector& rhs) const;
+    bool operator==(const Selector& rhs) const;
     // selector schema is not yet a final selector, so we do not
     // have a specificity for it yet. We need to
-    virtual unsigned long specificity() const { return 0; }
-    virtual size_t hash() {
+    unsigned long specificity() const { return 0; }
+    size_t hash() const override {
       if (hash_ == 0) {
         hash_combine(hash_, contents_->hash());
       }
@@ -2303,14 +2279,14 @@ namespace Sass {
       name_(ptr->name_),
       has_ns_(ptr->has_ns_)
     { simple_type(SIMPLE); }
-    virtual std::string ns_name() const
+    std::string ns_name() const
     {
       std::string name("");
       if (has_ns_)
         name += ns_ + "|";
       return name + name_;
     }
-    virtual size_t hash()
+    size_t hash() const override
     {
       if (hash_ == 0) {
         hash_combine(hash_, std::hash<int>()(SELECTOR));
@@ -2343,7 +2319,7 @@ namespace Sass {
       return has_ns_ && ns_ != "" && ns_ != "*";
     }
     // name query functions
-    bool is_universal() const
+    virtual bool is_universal() const
     {
       return name_ == "*";
     }
@@ -2354,18 +2330,16 @@ namespace Sass {
 
     virtual ~Simple_Selector() = 0;
     virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr);
-    virtual bool has_parent_ref() const { return false; };
-    virtual bool has_real_parent_ref() const  { return false; };
     virtual bool is_pseudo_element() const { return false; }
 
-    virtual bool is_superselector_of(Compound_Selector_Obj sub) { return false; }
+    virtual bool is_superselector_of(Compound_Selector_Obj sub) const { return false; }
 
-    virtual bool operator==(const Selector& rhs) const;
+    bool operator==(const Selector& rhs) const final override;
     virtual bool operator==(const Simple_Selector& rhs) const;
     inline bool operator!=(const Simple_Selector& rhs) const { return !(*this == rhs); }
 
-    bool operator<(const Selector& rhs) const;
-    bool operator<(const Simple_Selector& rhs) const;
+    bool operator<(const Selector& rhs) const final override;
+    virtual bool operator<(const Simple_Selector& rhs) const;
     // default implementation should work for most of the simple selectors (otherwise overload)
     ATTACH_VIRTUAL_AST_OPERATIONS(Simple_Selector);
     ATTACH_CRTP_PERFORM_METHODS();
@@ -2389,17 +2363,17 @@ namespace Sass {
     : Simple_Selector(ptr), real_(ptr->real_)
     { /* has_reference(true); */ }
     bool is_real_parent_ref() const { return real(); };
-    virtual bool has_parent_ref() const { return true; };
-    virtual bool has_real_parent_ref() const { return is_real_parent_ref(); };
-    virtual unsigned long specificity() const
+    bool has_parent_ref() const override { return true; };
+    bool has_real_parent_ref() const override { return is_real_parent_ref(); };
+    unsigned long specificity() const override
     {
       return 0;
     }
-    int unification_order() const
+    int unification_order() const override
     {
       throw std::runtime_error("unification_order for Parent_Selector is undefined");
     }
-    std::string type() const { return "selector"; }
+    std::string type() const override { return "selector"; }
     static std::string type_name() { return "selector"; }
     ATTACH_AST_OPERATIONS(Parent_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -2414,9 +2388,9 @@ namespace Sass {
     : Value(pstate) {}
     Parent_Reference(const Parent_Reference* ptr)
     : Value(ptr) {}
-    std::string type() const { return "parent"; }
+    std::string type() const override { return "parent"; }
     static std::string type_name() { return "parent"; }
-    virtual bool operator==(const Expression& rhs) const {
+    bool operator==(const Expression& rhs) const override {
       return true; // can they ever be not equal?
     };
     ATTACH_AST_OPERATIONS(Parent_Reference)
@@ -2434,15 +2408,15 @@ namespace Sass {
     Placeholder_Selector(const Placeholder_Selector* ptr)
     : Simple_Selector(ptr)
     { }
-    virtual unsigned long specificity() const
+    unsigned long specificity() const override
     {
       return Constants::Specificity_Base;
     }
-    int unification_order() const
+    int unification_order() const override
     {
       return Constants::UnificationOrder_Placeholder;
     }
-    virtual bool has_placeholder() {
+    bool has_placeholder() override {
       return true;
     }
     virtual ~Placeholder_Selector() {};
@@ -2461,21 +2435,21 @@ namespace Sass {
     Element_Selector(const Element_Selector* ptr)
     : Simple_Selector(ptr)
     { }
-    virtual unsigned long specificity() const
+    unsigned long specificity() const override
     {
       if (name() == "*") return 0;
       else               return Constants::Specificity_Element;
     }
-    int unification_order() const
+    int unification_order() const override
     {
       return Constants::UnificationOrder_Element;
     }
-    virtual Simple_Selector_Ptr unify_with(Simple_Selector_Ptr);
-    virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr);
-    virtual bool operator==(const Simple_Selector& rhs) const;
-    virtual bool operator==(const Element_Selector& rhs) const;
-    virtual bool operator<(const Simple_Selector& rhs) const;
-    virtual bool operator<(const Element_Selector& rhs) const;
+    Simple_Selector_Ptr unify_with(Simple_Selector_Ptr);
+    Compound_Selector_Ptr unify_with(Compound_Selector_Ptr) override;
+    bool operator==(const Simple_Selector& rhs) const override;
+    bool operator==(const Element_Selector& rhs) const;
+    bool operator<(const Simple_Selector& rhs) const override;
+    bool operator<(const Element_Selector& rhs) const;
     ATTACH_AST_OPERATIONS(Element_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -2491,15 +2465,15 @@ namespace Sass {
     Class_Selector(const Class_Selector* ptr)
     : Simple_Selector(ptr)
     { }
-    virtual unsigned long specificity() const
+    unsigned long specificity() const override
     {
       return Constants::Specificity_Class;
     }
-    int unification_order() const
+    int unification_order() const override
     {
       return Constants::UnificationOrder_Class;
     }
-    virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr);
+    Compound_Selector_Ptr unify_with(Compound_Selector_Ptr) override;
     ATTACH_AST_OPERATIONS(Class_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -2515,15 +2489,15 @@ namespace Sass {
     Id_Selector(const Id_Selector* ptr)
     : Simple_Selector(ptr)
     { }
-    virtual unsigned long specificity() const
+    unsigned long specificity() const override
     {
       return Constants::Specificity_ID;
     }
-    int unification_order() const
+    int unification_order() const override
     {
       return Constants::UnificationOrder_Id;
     }
-    virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr);
+    Compound_Selector_Ptr unify_with(Compound_Selector_Ptr) override;
     ATTACH_AST_OPERATIONS(Id_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -2546,7 +2520,7 @@ namespace Sass {
       value_(ptr->value_),
       modifier_(ptr->modifier_)
     { simple_type(ATTR_SEL); }
-    virtual size_t hash()
+    size_t hash() const override
     {
       if (hash_ == 0) {
         hash_combine(hash_, Simple_Selector::hash());
@@ -2555,18 +2529,18 @@ namespace Sass {
       }
       return hash_;
     }
-    virtual unsigned long specificity() const
+    unsigned long specificity() const override
     {
       return Constants::Specificity_Attr;
     }
-    int unification_order() const
+    int unification_order() const override
     {
       return Constants::UnificationOrder_Attribute;
     }
-    virtual bool operator==(const Simple_Selector& rhs) const;
-    virtual bool operator==(const Attribute_Selector& rhs) const;
-    virtual bool operator<(const Simple_Selector& rhs) const;
-    virtual bool operator<(const Attribute_Selector& rhs) const;
+    bool operator==(const Simple_Selector& rhs) const override;
+    bool operator==(const Attribute_Selector& rhs) const;
+    bool operator<(const Simple_Selector& rhs) const override;
+    bool operator<(const Attribute_Selector& rhs) const;
     ATTACH_AST_OPERATIONS(Attribute_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -2605,12 +2579,12 @@ namespace Sass {
     // in CSS levels 1 and 2 (namely, :first-line, :first-letter, :before and
     // :after). This compatibility is not allowed for the new pseudo-elements
     // introduced in this specification.
-    virtual bool is_pseudo_element() const
+    bool is_pseudo_element() const override
     {
       return (name_[0] == ':' && name_[1] == ':')
              || is_pseudo_class_element(name_);
     }
-    virtual size_t hash()
+    size_t hash() const override
     {
       if (hash_ == 0) {
         hash_combine(hash_, Simple_Selector::hash());
@@ -2618,23 +2592,23 @@ namespace Sass {
       }
       return hash_;
     }
-    virtual unsigned long specificity() const
+    unsigned long specificity() const override
     {
       if (is_pseudo_element())
         return Constants::Specificity_Element;
       return Constants::Specificity_Pseudo;
     }
-    int unification_order() const
+    int unification_order() const override
     {
       if (is_pseudo_element())
         return Constants::UnificationOrder_PseudoElement;
       return Constants::UnificationOrder_PseudoClass;
     }
-    virtual bool operator==(const Simple_Selector& rhs) const;
-    virtual bool operator==(const Pseudo_Selector& rhs) const;
-    virtual bool operator<(const Simple_Selector& rhs) const;
-    virtual bool operator<(const Pseudo_Selector& rhs) const;
-    virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr);
+    bool operator==(const Simple_Selector& rhs) const override;
+    bool operator==(const Pseudo_Selector& rhs) const;
+    bool operator<(const Simple_Selector& rhs) const override;
+    bool operator<(const Pseudo_Selector& rhs) const;
+    Compound_Selector_Ptr unify_with(Compound_Selector_Ptr) override;
     ATTACH_AST_OPERATIONS(Pseudo_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -2651,23 +2625,24 @@ namespace Sass {
     Wrapped_Selector(const Wrapped_Selector* ptr)
     : Simple_Selector(ptr), selector_(ptr->selector_)
     { simple_type(WRAPPED_SEL); }
-    virtual bool is_superselector_of(Wrapped_Selector_Obj sub);
+    using Simple_Selector::is_superselector_of;
+    bool is_superselector_of(Wrapped_Selector_Obj sub) const;
     // Selectors inside the negation pseudo-class are counted like any
     // other, but the negation itself does not count as a pseudo-class.
-    virtual size_t hash();
-    virtual bool has_parent_ref() const;
-    virtual bool has_real_parent_ref() const;
-    virtual unsigned long specificity() const;
-    int unification_order() const
+    size_t hash() const override;
+    bool has_parent_ref() const override;
+    bool has_real_parent_ref() const override;
+    unsigned long specificity() const override;
+    int unification_order() const override
     {
       return Constants::UnificationOrder_Wrapped;
     }
-    virtual bool find ( bool (*f)(AST_Node_Obj) );
-    virtual bool operator==(const Simple_Selector& rhs) const;
-    virtual bool operator==(const Wrapped_Selector& rhs) const;
-    virtual bool operator<(const Simple_Selector& rhs) const;
-    virtual bool operator<(const Wrapped_Selector& rhs) const;
-    virtual void cloneChildren();
+    bool find ( bool (*f)(AST_Node_Obj) ) override;
+    bool operator==(const Simple_Selector& rhs) const override;
+    bool operator==(const Wrapped_Selector& rhs) const;
+    bool operator<(const Simple_Selector& rhs) const override;
+    bool operator<(const Wrapped_Selector& rhs) const;
+    void cloneChildren() override;
     ATTACH_AST_OPERATIONS(Wrapped_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -2682,7 +2657,7 @@ namespace Sass {
     ADD_PROPERTY(bool, extended);
     ADD_PROPERTY(bool, has_parent_reference);
   protected:
-    void adjust_after_pushing(Simple_Selector_Obj s)
+    void adjust_after_pushing(Simple_Selector_Obj s) override
     {
       // if (s->has_reference())   has_reference(true);
       // if (s->has_placeholder()) has_placeholder(true);
@@ -2707,7 +2682,7 @@ namespace Sass {
       return false;
     };
 
-    void append(Simple_Selector_Ptr element);
+    void append(Simple_Selector_Obj element) override;
 
     bool is_universal() const
     {
@@ -2717,8 +2692,8 @@ namespace Sass {
     Complex_Selector_Obj to_complex();
     Compound_Selector_Ptr unify_with(Compound_Selector_Ptr rhs);
     // virtual Placeholder_Selector_Ptr find_placeholder();
-    virtual bool has_parent_ref() const;
-    virtual bool has_real_parent_ref() const;
+    bool has_parent_ref() const override;
+    bool has_real_parent_ref() const override;
     Simple_Selector_Ptr base() const {
       if (length() == 0) return 0;
       // ToDo: why is this needed?
@@ -2726,10 +2701,10 @@ namespace Sass {
         return (*this)[0];
       return 0;
     }
-    virtual bool is_superselector_of(Compound_Selector_Obj sub, std::string wrapped = "");
-    virtual bool is_superselector_of(Complex_Selector_Obj sub, std::string wrapped = "");
-    virtual bool is_superselector_of(Selector_List_Obj sub, std::string wrapped = "");
-    virtual size_t hash()
+    bool is_superselector_of(Compound_Selector_Obj sub, std::string wrapped = "") const;
+    bool is_superselector_of(Complex_Selector_Obj sub, std::string wrapped = "") const;
+    bool is_superselector_of(Selector_List_Obj sub, std::string wrapped = "") const;
+    size_t hash() const override
     {
       if (Selector::hash_ == 0) {
         hash_combine(Selector::hash_, std::hash<int>()(SELECTOR));
@@ -2737,19 +2712,19 @@ namespace Sass {
       }
       return Selector::hash_;
     }
-    virtual unsigned long specificity() const
+    unsigned long specificity() const override
     {
       int sum = 0;
       for (size_t i = 0, L = length(); i < L; ++i)
       { sum += (*this)[i]->specificity(); }
       return sum;
     }
-    int unification_order() const
+    int unification_order() const override
     {
       throw std::runtime_error("unification_order for Compound_Selector is undefined");
     }
 
-    virtual bool has_placeholder()
+    bool has_placeholder()
     {
       if (length() == 0) return false;
       if (Simple_Selector_Obj ss = elements().front()) {
@@ -2764,11 +2739,11 @@ namespace Sass {
              Cast<Parent_Selector>((*this)[0]);
     }
 
-    virtual bool find ( bool (*f)(AST_Node_Obj) );
-    virtual bool operator<(const Selector& rhs) const;
-    virtual bool operator==(const Selector& rhs) const;
-    virtual bool operator<(const Compound_Selector& rhs) const;
-    virtual bool operator==(const Compound_Selector& rhs) const;
+    bool find ( bool (*f)(AST_Node_Obj) ) override;
+    bool operator<(const Selector& rhs) const override;
+    bool operator==(const Selector& rhs) const override;
+    bool operator<(const Compound_Selector& rhs) const;
+    bool operator==(const Compound_Selector& rhs) const;
     inline bool operator!=(const Compound_Selector& rhs) const { return !(*this == rhs); }
 
     ComplexSelectorSet& sources() { return sources_; }
@@ -2776,7 +2751,7 @@ namespace Sass {
     void mergeSources(ComplexSelectorSet& sources);
 
     Compound_Selector_Ptr minus(Compound_Selector_Ptr rhs);
-    virtual void cloneChildren();
+    void cloneChildren() override;
     ATTACH_AST_OPERATIONS(Compound_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -2816,8 +2791,8 @@ namespace Sass {
       head_(ptr->head_), tail_(ptr->tail_),
       reference_(ptr->reference_)
     {};
-    virtual bool has_parent_ref() const;
-    virtual bool has_real_parent_ref() const;
+    bool has_parent_ref() const override;
+    bool has_real_parent_ref() const override;
 
     Complex_Selector_Obj skip_empty_reference()
     {
@@ -2843,23 +2818,23 @@ namespace Sass {
 
     // front returns the first real tail
     // skips over parent and empty ones
-    Complex_Selector_Obj first();
-    // last returns the last real tail
-    Complex_Selector_Obj last();
+    Complex_Selector_Ptr_Const first() const;
+    Complex_Selector_Ptr mutable_first();
 
-    // some shortcuts that should be removed
-    Complex_Selector_Obj innermost() { return last(); };
+    // last returns the last real tail
+    Complex_Selector_Ptr_Const last() const;
+    Complex_Selector_Ptr mutable_last();
 
     size_t length() const;
     Selector_List_Ptr resolve_parent_refs(SelectorStack& pstack, Backtraces& traces, bool implicit_parent = true);
-    virtual bool is_superselector_of(Compound_Selector_Obj sub, std::string wrapping = "");
-    virtual bool is_superselector_of(Complex_Selector_Obj sub, std::string wrapping = "");
-    virtual bool is_superselector_of(Selector_List_Obj sub, std::string wrapping = "");
+    bool is_superselector_of(Compound_Selector_Obj sub, std::string wrapping = "") const;
+    bool is_superselector_of(Complex_Selector_Obj sub, std::string wrapping = "") const;
+    bool is_superselector_of(Selector_List_Obj sub, std::string wrapping = "") const;
     Selector_List_Ptr unify_with(Complex_Selector_Ptr rhs);
     Combinator clear_innermost();
     void append(Complex_Selector_Obj, Backtraces& traces);
     void set_innermost(Complex_Selector_Obj, Combinator);
-    virtual size_t hash()
+    size_t hash() const override
     {
       if (hash_ == 0) {
         hash_combine(hash_, std::hash<int>()(SELECTOR));
@@ -2869,32 +2844,32 @@ namespace Sass {
       }
       return hash_;
     }
-    virtual unsigned long specificity() const
+    unsigned long specificity() const override
     {
       int sum = 0;
       if (head()) sum += head()->specificity();
       if (tail()) sum += tail()->specificity();
       return sum;
     }
-    int unification_order() const
+    int unification_order() const override
     {
       throw std::runtime_error("unification_order for Complex_Selector is undefined");
     }
-    virtual void set_media_block(Media_Block_Ptr mb) {
+    void set_media_block(Media_Block_Ptr mb) override {
       media_block(mb);
       if (tail_) tail_->set_media_block(mb);
       if (head_) head_->set_media_block(mb);
     }
-    virtual bool has_placeholder() {
+    bool has_placeholder() {
       if (head_ && head_->has_placeholder()) return true;
       if (tail_ && tail_->has_placeholder()) return true;
       return false;
     }
-    virtual bool find ( bool (*f)(AST_Node_Obj) );
-    virtual bool operator<(const Selector& rhs) const;
-    virtual bool operator==(const Selector& rhs) const;
-    virtual bool operator<(const Complex_Selector& rhs) const;
-    virtual bool operator==(const Complex_Selector& rhs) const;
+    bool find ( bool (*f)(AST_Node_Obj) ) override;
+    bool operator<(const Selector& rhs) const override;
+    bool operator==(const Selector& rhs) const override;
+    bool operator<(const Complex_Selector& rhs) const;
+    bool operator==(const Complex_Selector& rhs) const;
     inline bool operator!=(const Complex_Selector& rhs) const { return !(*this == rhs); }
     const ComplexSelectorSet sources()
     {
@@ -2945,7 +2920,7 @@ namespace Sass {
       }
     }
 
-    virtual void cloneChildren();
+    void cloneChildren() override;
     ATTACH_AST_OPERATIONS(Complex_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -2957,7 +2932,7 @@ namespace Sass {
     ADD_PROPERTY(Selector_Schema_Obj, schema)
     ADD_CONSTREF(std::vector<std::string>, wspace)
   protected:
-    void adjust_after_pushing(Complex_Selector_Obj c);
+    void adjust_after_pushing(Complex_Selector_Obj c) override;
   public:
     Selector_List(ParserState pstate, size_t s = 0)
     : Selector(pstate),
@@ -2971,20 +2946,20 @@ namespace Sass {
       schema_(ptr->schema_),
       wspace_(ptr->wspace_)
     { }
-    std::string type() const { return "list"; }
+    std::string type() const override { return "list"; }
     // remove parent selector references
     // basically unwraps parsed selectors
-    virtual bool has_parent_ref() const;
-    virtual bool has_real_parent_ref() const;
+    bool has_parent_ref() const override;
+    bool has_real_parent_ref() const override;
     void remove_parent_selectors();
     Selector_List_Ptr resolve_parent_refs(SelectorStack& pstack, Backtraces& traces, bool implicit_parent = true);
-    virtual bool is_superselector_of(Compound_Selector_Obj sub, std::string wrapping = "");
-    virtual bool is_superselector_of(Complex_Selector_Obj sub, std::string wrapping = "");
-    virtual bool is_superselector_of(Selector_List_Obj sub, std::string wrapping = "");
+    bool is_superselector_of(Compound_Selector_Obj sub, std::string wrapping = "") const;
+    bool is_superselector_of(Complex_Selector_Obj sub, std::string wrapping = "") const;
+    bool is_superselector_of(Selector_List_Obj sub, std::string wrapping = "") const;
     Selector_List_Ptr unify_with(Selector_List_Ptr);
     void populate_extends(Selector_List_Obj, Subset_Map&);
     Selector_List_Obj eval(Eval& eval);
-    virtual size_t hash()
+    size_t hash() const override
     {
       if (Selector::hash_ == 0) {
         hash_combine(Selector::hash_, std::hash<int>()(SELECTOR));
@@ -2992,7 +2967,7 @@ namespace Sass {
       }
       return Selector::hash_;
     }
-    virtual unsigned long specificity() const
+    unsigned long specificity() const override
     {
       unsigned long sum = 0;
       unsigned long specificity;
@@ -3003,30 +2978,30 @@ namespace Sass {
       }
       return sum;
     }
-    int unification_order() const
+    int unification_order() const override
     {
       throw std::runtime_error("unification_order for Selector_List is undefined");
     }
-    virtual void set_media_block(Media_Block_Ptr mb) {
+    void set_media_block(Media_Block_Ptr mb) override {
       media_block(mb);
       for (Complex_Selector_Obj cs : elements()) {
         cs->set_media_block(mb);
       }
     }
-    virtual bool has_placeholder() {
+    bool has_placeholder() {
       for (Complex_Selector_Obj cs : elements()) {
         if (cs->has_placeholder()) return true;
       }
       return false;
     }
-    virtual bool find ( bool (*f)(AST_Node_Obj) );
-    virtual bool operator<(const Selector& rhs) const;
-    virtual bool operator==(const Selector& rhs) const;
-    virtual bool operator<(const Selector_List& rhs) const;
-    virtual bool operator==(const Selector_List& rhs) const;
+    bool find ( bool (*f)(AST_Node_Obj) ) override;
+    bool operator<(const Selector& rhs) const override;
+    bool operator==(const Selector& rhs) const override;
+    bool operator<(const Selector_List& rhs) const;
+    bool operator==(const Selector_List& rhs) const;
     // Selector Lists can be compared to comma lists
-    virtual bool operator==(const Expression& rhs) const;
-    virtual void cloneChildren();
+    bool operator==(const Expression& rhs) const override;
+    void cloneChildren() override;
     ATTACH_AST_OPERATIONS(Selector_List)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -3037,11 +3012,5 @@ namespace Sass {
   struct cmp_simple_selector { inline bool operator() (const Simple_Selector_Obj l, const Simple_Selector_Obj r) { return (*l < *r); } };
 
 }
-
-#ifdef __clang__
-
-#pragma clang diagnostic pop
-
-#endif
 
 #endif

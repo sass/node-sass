@@ -69,23 +69,31 @@ private:
 
 #ifdef DEBUG_SHARED_PTR
 
-#define ATTACH_VIRTUAL_AST_OPERATIONS(klass) \
+#define ATTACH_ABSTRACT_AST_OPERATIONS(klass) \
   virtual klass##_Ptr copy(std::string, size_t) const = 0; \
   virtual klass##_Ptr clone(std::string, size_t) const = 0; \
 
+#define ATTACH_VIRTUAL_AST_OPERATIONS(klass) \
+  virtual klass##_Ptr copy(std::string, size_t) const override = 0; \
+  virtual klass##_Ptr clone(std::string, size_t) const override = 0; \
+
 #define ATTACH_AST_OPERATIONS(klass) \
-  virtual klass##_Ptr copy(std::string, size_t) const; \
-  virtual klass##_Ptr clone(std::string, size_t) const; \
+  virtual klass##_Ptr copy(std::string, size_t) const override; \
+  virtual klass##_Ptr clone(std::string, size_t) const override; \
 
 #else
 
-#define ATTACH_VIRTUAL_AST_OPERATIONS(klass) \
+#define ATTACH_ABSTRACT_AST_OPERATIONS(klass) \
   virtual klass##_Ptr copy() const = 0; \
   virtual klass##_Ptr clone() const = 0; \
 
+#define ATTACH_VIRTUAL_AST_OPERATIONS(klass) \
+  virtual klass##_Ptr copy() const override = 0; \
+  virtual klass##_Ptr clone() const override = 0; \
+
 #define ATTACH_AST_OPERATIONS(klass) \
-  virtual klass##_Ptr copy() const; \
-  virtual klass##_Ptr clone() const; \
+  virtual klass##_Ptr copy() const override; \
+  virtual klass##_Ptr clone() const override; \
 
 #endif
 

@@ -47,11 +47,11 @@ namespace Sass {
   void Emitter::set_filename(const std::string& str)
   { wbuf.smap.file = str; }
 
-  void Emitter::schedule_mapping(const AST_Node_Ptr node)
+  void Emitter::schedule_mapping(AST_Node_Ptr_Const node)
   { scheduled_mapping = node; }
-  void Emitter::add_open_mapping(const AST_Node_Ptr node)
+  void Emitter::add_open_mapping(AST_Node_Ptr_Const node)
   { wbuf.smap.add_open_mapping(node); }
-  void Emitter::add_close_mapping(const AST_Node_Ptr node)
+  void Emitter::add_close_mapping(AST_Node_Ptr_Const node)
   { wbuf.smap.add_close_mapping(node); }
   ParserState Emitter::remap(const ParserState& pstate)
   { return wbuf.smap.remap(pstate); }

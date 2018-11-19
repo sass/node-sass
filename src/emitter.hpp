@@ -25,9 +25,9 @@ namespace Sass {
       // proxy methods for source maps
       void add_source_index(size_t idx);
       void set_filename(const std::string& str);
-      void add_open_mapping(const AST_Node_Ptr node);
-      void add_close_mapping(const AST_Node_Ptr node);
-      void schedule_mapping(const AST_Node_Ptr node);
+      void add_open_mapping(AST_Node_Ptr_Const node);
+      void add_close_mapping(AST_Node_Ptr_Const node);
+      void schedule_mapping(AST_Node_Ptr_Const node);
       std::string render_srcmap(Context &ctx);
       ParserState remap(const ParserState& pstate);
 
@@ -37,8 +37,8 @@ namespace Sass {
       size_t scheduled_space;
       size_t scheduled_linefeed;
       bool scheduled_delimiter;
-      AST_Node_Ptr scheduled_crutch;
-      AST_Node_Ptr scheduled_mapping;
+      AST_Node_Ptr_Const scheduled_crutch;
+      AST_Node_Ptr_Const scheduled_mapping;
 
     public:
       // output strings different in custom css properties

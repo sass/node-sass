@@ -138,10 +138,10 @@ namespace Sass {
             // TODO: Add check for namespace stuff
 
             // append any selectors in childSeq's head
-            parentSeqClone->innermost()->head()->concat(base->head());
+            parentSeqClone->mutable_last()->head()->concat(base->head());
 
             // Set parentSeqClone new tail
-            parentSeqClone->innermost()->tail( base->tail() );
+            parentSeqClone->mutable_last()->tail( base->tail() );
 
             newElements.push_back(parentSeqClone);
           }

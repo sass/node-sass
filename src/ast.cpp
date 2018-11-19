@@ -807,7 +807,7 @@ namespace Sass {
     return ns() < rhs.ns();
   }
 
-  bool Wrapped_Selector::is_superselector_of(Wrapped_Selector_Obj sub)
+  bool Wrapped_Selector::is_superselector_of(Wrapped_Selector_Obj sub) const
   {
     if (this->name() != sub->name()) return false;
     if (this->name() == ":current") return false;
@@ -820,7 +820,7 @@ namespace Sass {
     return false;
   }
 
-  bool Compound_Selector::is_superselector_of(Selector_List_Obj rhs, std::string wrapped)
+  bool Compound_Selector::is_superselector_of(Selector_List_Obj rhs, std::string wrapped) const
   {
     for (Complex_Selector_Obj item : rhs->elements()) {
       if (is_superselector_of(item, wrapped)) return true;
@@ -828,15 +828,15 @@ namespace Sass {
     return false;
   }
 
-  bool Compound_Selector::is_superselector_of(Complex_Selector_Obj rhs, std::string wrapped)
+  bool Compound_Selector::is_superselector_of(Complex_Selector_Obj rhs, std::string wrapped) const
   {
     if (rhs->head()) return is_superselector_of(rhs->head(), wrapped);
     return false;
   }
 
-  bool Compound_Selector::is_superselector_of(Compound_Selector_Obj rhs, std::string wrapping)
+  bool Compound_Selector::is_superselector_of(Compound_Selector_Obj rhs, std::string wrapping) const
   {
-    Compound_Selector_Ptr lhs = this;
+    Compound_Selector_Ptr_Const lhs = this;
     Simple_Selector_Ptr lbase = lhs->base();
     Simple_Selector_Ptr rbase = rhs->base();
 
@@ -963,8 +963,8 @@ namespace Sass {
   {
 
     // get last tails (on the right side)
-    Complex_Selector_Obj l_last = this->last();
-    Complex_Selector_Obj r_last = other->last();
+    Complex_Selector_Obj l_last = this->mutable_last();
+    Complex_Selector_Obj r_last = other->mutable_last();
 
     // check valid pointers (assertion)
     SASS_ASSERT(l_last, "lhs is null");
@@ -1059,21 +1059,21 @@ namespace Sass {
     // there is no break?!
   }
 
-  bool Complex_Selector::is_superselector_of(Compound_Selector_Obj rhs, std::string wrapping)
+  bool Complex_Selector::is_superselector_of(Compound_Selector_Obj rhs, std::string wrapping) const
   {
     return last()->head() && last()->head()->is_superselector_of(rhs, wrapping);
   }
 
-  bool Complex_Selector::is_superselector_of(Complex_Selector_Obj rhs, std::string wrapping)
+  bool Complex_Selector::is_superselector_of(Complex_Selector_Obj rhs, std::string wrapping) const
   {
-    Complex_Selector_Ptr lhs = this;
+    Complex_Selector_Ptr_Const lhs = this;
     // check for selectors with leading or trailing combinators
     if (!lhs->head() || !rhs->head())
     { return false; }
-    Complex_Selector_Obj l_innermost = lhs->innermost();
+    Complex_Selector_Ptr_Const l_innermost = lhs->last();
     if (l_innermost->combinator() != Complex_Selector::ANCESTOR_OF)
     { return false; }
-    Complex_Selector_Obj r_innermost = rhs->innermost();
+    Complex_Selector_Ptr_Const r_innermost = rhs->last();
     if (r_innermost->combinator() != Complex_Selector::ANCESTOR_OF)
     { return false; }
     // more complex (i.e., longer) selectors are always more specific
@@ -1212,19 +1212,20 @@ namespace Sass {
       // std::cerr << "has no or empty head\n";
     }
 
-    if (last()) {
-      if (last()->combinator() != ANCESTOR_OF && c != ANCESTOR_OF) {
+    Complex_Selector_Ptr last = mutable_last();
+    if (last) {
+      if (last->combinator() != ANCESTOR_OF && c != ANCESTOR_OF) {
         Complex_Selector_Ptr inter = SASS_MEMORY_NEW(Complex_Selector, pstate());
         inter->reference(r);
         inter->combinator(c);
         inter->tail(t);
-        last()->tail(inter);
+        last->tail(inter);
       } else {
-        if (last()->combinator() == ANCESTOR_OF) {
-          last()->combinator(c);
-          last()->reference(r);
+        if (last->combinator() == ANCESTOR_OF) {
+          last->combinator(c);
+          last->reference(r);
         }
-        last()->tail(t);
+        last->tail(t);
       }
     }
 
@@ -1413,16 +1414,16 @@ namespace Sass {
   }
 
   // return the last tail that is defined
-  Complex_Selector_Obj Complex_Selector::first()
+  Complex_Selector_Ptr_Const Complex_Selector::first() const
   {
     // declare variables used in loop
-    Complex_Selector_Obj cur = this;
-    Compound_Selector_Obj head;
+    Complex_Selector_Ptr_Const cur = this;
+    Compound_Selector_Ptr_Const head;
     // processing loop
     while (cur)
     {
       // get the head
-      head = cur->head_;
+      head = cur->head_.ptr();
       // abort (and return) if it is not a parent selector
       if (!head || head->length() != 1 || !Cast<Parent_Selector>((*head)[0])) {
         break;
@@ -1434,17 +1435,27 @@ namespace Sass {
     return cur;
   }
 
-  // return the last tail that is defined
-  Complex_Selector_Obj Complex_Selector::last()
+  Complex_Selector_Ptr Complex_Selector::mutable_first()
   {
-    Complex_Selector_Ptr cur = this;
-    Complex_Selector_Ptr nxt = cur;
+    return const_cast<Complex_Selector_Ptr>(first());
+  }
+
+  // return the last tail that is defined
+  Complex_Selector_Ptr_Const Complex_Selector::last() const
+  {
+    Complex_Selector_Ptr_Const cur = this;
+    Complex_Selector_Ptr_Const nxt = cur;
     // loop until last
     while (nxt) {
       cur = nxt;
-      nxt = cur->tail();
+      nxt = cur->tail_.ptr();
     }
     return cur;
+  }
+
+  Complex_Selector_Ptr Complex_Selector::mutable_last()
+  {
+    return const_cast<Complex_Selector_Ptr>(last());
   }
 
   Complex_Selector::Combinator Complex_Selector::clear_innermost()
@@ -1453,16 +1464,16 @@ namespace Sass {
     if (!tail() || tail()->tail() == 0)
     { c = combinator(); combinator(ANCESTOR_OF); tail(0); }
     else
-    { c = tail()->clear_innermost(); }
+    { c = tail_->clear_innermost(); }
     return c;
   }
 
   void Complex_Selector::set_innermost(Complex_Selector_Obj val, Combinator c)
   {
-    if (!tail())
-    { tail(val); combinator(c); }
+    if (!tail_)
+    { tail_ = val; combinator(c); }
     else
-    { tail()->set_innermost(val, c); }
+    { tail_->set_innermost(val, c); }
   }
 
   void Complex_Selector::cloneChildren()
@@ -1515,7 +1526,7 @@ namespace Sass {
     }
   }
 
-  size_t Wrapped_Selector::hash()
+  size_t Wrapped_Selector::hash() const
   {
     if (hash_ == 0) {
       hash_combine(hash_, Simple_Selector::hash());
@@ -1579,7 +1590,7 @@ namespace Sass {
 
   // it's a superselector if every selector of the right side
   // list is a superselector of the given left side selector
-  bool Complex_Selector::is_superselector_of(Selector_List_Obj sub, std::string wrapping)
+  bool Complex_Selector::is_superselector_of(Selector_List_Obj sub, std::string wrapping) const
   {
     // Check every rhs selector against left hand list
     for(size_t i = 0, L = sub->length(); i < L; ++i) {
@@ -1590,7 +1601,7 @@ namespace Sass {
 
   // it's a superselector if every selector of the right side
   // list is a superselector of the given left side selector
-  bool Selector_List::is_superselector_of(Selector_List_Obj sub, std::string wrapping)
+  bool Selector_List::is_superselector_of(Selector_List_Obj sub, std::string wrapping) const
   {
     // Check every rhs selector against left hand list
     for(size_t i = 0, L = sub->length(); i < L; ++i) {
@@ -1601,7 +1612,7 @@ namespace Sass {
 
   // it's a superselector if every selector on the right side
   // is a superselector of any one of the left side selectors
-  bool Selector_List::is_superselector_of(Compound_Selector_Obj sub, std::string wrapping)
+  bool Selector_List::is_superselector_of(Compound_Selector_Obj sub, std::string wrapping) const
   {
     // Check every lhs selector against right hand
     for(size_t i = 0, L = length(); i < L; ++i) {
@@ -1612,7 +1623,7 @@ namespace Sass {
 
   // it's a superselector if every selector on the right side
   // is a superselector of any one of the left side selectors
-  bool Selector_List::is_superselector_of(Complex_Selector_Obj sub, std::string wrapping)
+  bool Selector_List::is_superselector_of(Complex_Selector_Obj sub, std::string wrapping) const
   {
     // Check every lhs selector against right hand
     for(size_t i = 0, L = length(); i < L; ++i) {
@@ -1679,7 +1690,7 @@ namespace Sass {
     }
   };
 
-  void Compound_Selector::append(Simple_Selector_Ptr element)
+  void Compound_Selector::append(Simple_Selector_Obj element)
   {
     Vectorized<Simple_Selector_Obj>::append(element);
     pstate_.offset += element->pstate().offset;
@@ -2112,7 +2123,7 @@ namespace Sass {
     catch (...) { throw; }
   }
 
-  size_t Function_Call::hash()
+  size_t Function_Call::hash() const
   {
     if (hash_ == 0) {
       hash_ = std::hash<std::string>()(name());

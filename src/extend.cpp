@@ -1959,7 +1959,7 @@ namespace Sass {
                       Compound_Selector_Obj ext_head = NULL;
                       if (ext_cs->first()) ext_head = ext_cs->first()->head();
                       if (ext_head && ext_head && ext_head->length() > 0) {
-                        cpy_ws_sl->append(ext_cs->first());
+                        cpy_ws_sl->append(ext_cs->mutable_first());
                       }
                       // assign list to clone
                       cpy_ws->selector(cpy_ws_sl);
@@ -2086,8 +2086,8 @@ namespace Sass {
     if (b->is_root()) {
       // debug_subset_map(subset_map);
       for(auto const &it : subset_map.values()) {
-        Complex_Selector_Ptr sel = NULL;
-        Compound_Selector_Ptr ext = NULL;
+        Complex_Selector_Ptr_Const sel = nullptr;
+        Compound_Selector_Ptr_Const ext = nullptr;
         if (it.first) sel = it.first->first();
         if (it.second) ext = it.second;
         if (ext && (ext->extended() || ext->is_optional())) continue;

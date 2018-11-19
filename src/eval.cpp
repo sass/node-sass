@@ -1533,7 +1533,7 @@ namespace Sass {
     Selector_List_Obj resolved = s->resolve_parent_refs(exp.selector_stack, traces, implicit_parent);
     if (is_in_selector_schema) exp.selector_stack.pop_back();
     for (size_t i = 0; i < resolved->length(); i++) {
-      Complex_Selector_Ptr is = resolved->at(i)->first();
+      Complex_Selector_Ptr is = resolved->at(i)->mutable_first();
       while (is) {
         if (is->head()) {
           is->head(operator()(is->head()));

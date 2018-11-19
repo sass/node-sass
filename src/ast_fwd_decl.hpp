@@ -37,9 +37,6 @@ namespace Sass {
   class PreValue;
   typedef PreValue* PreValue_Ptr;
   typedef PreValue const* PreValue_Ptr_Const;
-  class Thunk;
-  typedef Thunk* Thunk_Ptr;
-  typedef Thunk const* Thunk_Ptr_Const;
   class Block;
   typedef Block* Block_Ptr;
   typedef Block const* Block_Ptr_Const;
@@ -302,7 +299,6 @@ namespace Sass {
   IMPL_MEM_OBJ(Comment);
   IMPL_MEM_OBJ(PreValue);
   IMPL_MEM_OBJ(Has_Block);
-  IMPL_MEM_OBJ(Thunk);
   IMPL_MEM_OBJ(If);
   IMPL_MEM_OBJ(For);
   IMPL_MEM_OBJ(Each);

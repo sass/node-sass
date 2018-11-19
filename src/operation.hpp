@@ -11,20 +11,31 @@
 
 namespace Sass {
 
+  #define ATTACH_ABSTRACT_CRTP_PERFORM_METHODS()\
+    virtual void perform(Operation<void>* op) = 0; \
+    virtual Value_Ptr perform(Operation<Value_Ptr>* op) = 0; \
+    virtual std::string perform(Operation<std::string>* op) = 0; \
+    virtual AST_Node_Ptr perform(Operation<AST_Node_Ptr>* op) = 0; \
+    virtual Selector_Ptr perform(Operation<Selector_Ptr>* op) = 0; \
+    virtual Statement_Ptr perform(Operation<Statement_Ptr>* op) = 0; \
+    virtual Expression_Ptr perform(Operation<Expression_Ptr>* op) = 0; \
+    virtual union Sass_Value* perform(Operation<union Sass_Value*>* op) = 0; \
+    virtual Supports_Condition_Ptr perform(Operation<Supports_Condition_Ptr>* op) = 0; \
+
   // you must add operators to every class
   // ensures `this` of actual instance type
   // we therefore call the specific operator
   // they are virtual so most specific is used
   #define ATTACH_CRTP_PERFORM_METHODS()\
-    virtual void perform(Operation<void>* op) { return (*op)(this); } \
-    virtual Value_Ptr perform(Operation<Value_Ptr>* op) { return (*op)(this); } \
-    virtual std::string perform(Operation<std::string>* op) { return (*op)(this); } \
-    virtual AST_Node_Ptr perform(Operation<AST_Node_Ptr>* op) { return (*op)(this); } \
-    virtual Selector_Ptr perform(Operation<Selector_Ptr>* op) { return (*op)(this); } \
-    virtual Statement_Ptr perform(Operation<Statement_Ptr>* op) { return (*op)(this); } \
-    virtual Expression_Ptr perform(Operation<Expression_Ptr>* op) { return (*op)(this); } \
-    virtual union Sass_Value* perform(Operation<union Sass_Value*>* op) { return (*op)(this); } \
-    virtual Supports_Condition_Ptr perform(Operation<Supports_Condition_Ptr>* op) { return (*op)(this); } \
+    virtual void perform(Operation<void>* op) override { return (*op)(this); } \
+    virtual Value_Ptr perform(Operation<Value_Ptr>* op) override { return (*op)(this); } \
+    virtual std::string perform(Operation<std::string>* op) override { return (*op)(this); } \
+    virtual AST_Node_Ptr perform(Operation<AST_Node_Ptr>* op) override { return (*op)(this); } \
+    virtual Selector_Ptr perform(Operation<Selector_Ptr>* op) override { return (*op)(this); } \
+    virtual Statement_Ptr perform(Operation<Statement_Ptr>* op) override { return (*op)(this); } \
+    virtual Expression_Ptr perform(Operation<Expression_Ptr>* op) override { return (*op)(this); } \
+    virtual union Sass_Value* perform(Operation<union Sass_Value*>* op) override { return (*op)(this); } \
+    virtual Supports_Condition_Ptr perform(Operation<Supports_Condition_Ptr>* op) override { return (*op)(this); } \
 
   template<typename T>
   class Operation {
@@ -186,7 +197,7 @@ namespace Sass {
     // fallback with specific type U
     // will be called if not overloaded
     template <typename U> T fallback(U x)
-    { 
+    {
       std::string msg(typeid(*this).name());
       msg += ": CRTP not implemented for ";
       throw std::runtime_error(msg + typeid(*x).name());
