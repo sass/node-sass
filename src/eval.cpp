@@ -960,8 +960,8 @@ namespace Sass {
     }
 
     if (Cast<String_Schema>(c->sname())) {
-      Expression_Ptr evaluated_name = c->sname()->perform(this);
-      Expression_Ptr evaluated_args = c->arguments()->perform(this);
+      Expression_Obj evaluated_name = c->sname()->perform(this);
+      Expression_Obj evaluated_args = c->arguments()->perform(this);
       std::string str(evaluated_name->to_string());
       str += evaluated_args->to_string();
       return SASS_MEMORY_NEW(String_Constant, c->pstate(), str);
