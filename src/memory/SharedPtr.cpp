@@ -32,11 +32,12 @@ namespace Sass {
   bool SharedObj::taint = false;
 
   SharedObj::SharedObj()
-  : refcounter(0)
+  : detached(false)
     #ifdef DEBUG_SHARED_PTR
     , dbg(false)
     #endif
   {
+    refcounter = 0;
     #ifdef DEBUG_SHARED_PTR
       if (taint) all.push_back(this);
     #endif
@@ -62,7 +63,9 @@ namespace Sass {
           // AST_Node_Ptr ast = dynamic_cast<AST_Node*>(node);
           if (node->dbg) std::cerr << "DELETE NODE " << node << "\n";
         #endif
-        delete(node);
+        if (!node->detached) {
+          delete(node);
+        }
       }
     }
   }
@@ -70,6 +73,7 @@ namespace Sass {
   void SharedPtr::incRefCount() {
     if (node) {
       ++ node->refcounter;
+      node->detached = false;
       #ifdef DEBUG_SHARED_PTR
         if (node->dbg) {
           std::cerr << "+ " << node << " X " << node->refcounter << " (" << this << ") " << "\n";
