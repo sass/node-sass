@@ -48,7 +48,7 @@ namespace Sass {
       size_t line;
     #endif
     static bool taint;
-    size_t refcounter;
+    long refcounter;
     #ifdef DEBUG_SHARED_PTR
       bool dbg;
     #endif
@@ -72,9 +72,6 @@ namespace Sass {
       void setDbg(bool dbg) {
         this->dbg = dbg;
       }
-      size_t getRefCount() const {
-        return refcounter;
-      }
     #endif
     static void setTaint(bool val) {
       taint = val;
@@ -83,6 +80,9 @@ namespace Sass {
     virtual const std::string to_string() const = 0;
 
     virtual ~SharedObj();
+    long getRefCount() const {
+      return refcounter;
+    }
   };
 
 
@@ -114,6 +114,9 @@ namespace Sass {
     };
     SharedObj* operator-> () const {
       return node;
+    };
+    bool isNull () {
+      return node == NULL;
     };
     bool isNull () const {
       return node == NULL;
@@ -176,8 +179,6 @@ namespace Sass {
 
     ~SharedImpl() {};
   public:
-    using SharedPtr::isNull;
-    using SharedPtr::operator bool;
     operator T*() const {
       return static_cast<T*>(this->obj());
     }
@@ -196,6 +197,15 @@ namespace Sass {
     T* detach() {
       return static_cast<T*>(SharedPtr::detach());
     }
+    bool isNull() const {
+      return this->obj() == NULL;
+    }
+    bool operator<(const T& rhs) const {
+      return *this->ptr() < rhs;
+    };
+    operator bool() const {
+      return this->obj() != NULL;
+    };
   };
 
 }

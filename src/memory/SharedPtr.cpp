@@ -62,8 +62,7 @@ namespace Sass {
           // AST_Node_Ptr ast = dynamic_cast<AST_Node*>(node);
           if (node->dbg) std::cerr << "DELETE NODE " << node << "\n";
         #endif
-        delete node;
-        node = NULL;
+        delete(node);
       }
     }
   }
