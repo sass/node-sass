@@ -51,21 +51,19 @@ ifdef LIBSASS_VERSION
 	CXXFLAGS += -DLIBSASS_VERSION="\"$(LIBSASS_VERSION)\""
 endif
 
-# enable mandatory flag
+CXXFLAGS += -std=c++11
+LDFLAGS  += -std=c++11
+
 ifeq (Windows,$(UNAME))
 	ifneq ($(BUILD),shared)
 		STATIC_ALL     ?= 1
 	endif
 	STATIC_LIBGCC    ?= 1
 	STATIC_LIBSTDCPP ?= 1
-	CXXFLAGS += -std=gnu++0x
-	LDFLAGS  += -std=gnu++0x
 else
 	STATIC_ALL       ?= 0
 	STATIC_LIBGCC    ?= 0
 	STATIC_LIBSTDCPP ?= 0
-	CXXFLAGS += -std=c++0x
-	LDFLAGS  += -std=c++0x
 endif
 
 ifndef SASS_LIBSASS_PATH
