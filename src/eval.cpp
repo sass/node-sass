@@ -1103,9 +1103,15 @@ namespace Sass {
       }
       union Sass_Value* c_val = c_func(c_args, c_function, compiler());
       if (sass_value_get_tag(c_val) == SASS_ERROR) {
-        error("error in C function " + c->name() + ": " + sass_error_get_message(c_val), c->pstate(), traces);
+        std::string message("error in C function " + c->name() + ": " + sass_error_get_message(c_val));
+        sass_delete_value(c_val);
+        sass_delete_value(c_args);
+        error(message, c->pstate(), traces);
       } else if (sass_value_get_tag(c_val) == SASS_WARNING) {
-        error("warning in C function " + c->name() + ": " + sass_warning_get_message(c_val), c->pstate(), traces);
+        std::string message("warning in C function " + c->name() + ": " + sass_warning_get_message(c_val));
+        sass_delete_value(c_val);
+        sass_delete_value(c_args);
+        error(message, c->pstate(), traces);
       }
       result = c2ast(c_val, traces, c->pstate());
 

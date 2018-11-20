@@ -290,7 +290,7 @@ extern "C" {
   union Sass_Value* ADDCALL sass_value_op (enum Sass_OP op, const union Sass_Value* a, const union Sass_Value* b)
   {
 
-    Sass::Value_Ptr rv;
+    Sass::Value_Obj rv;
 
     try {
 
@@ -341,8 +341,7 @@ extern "C" {
       if (!rv) return sass_make_error("invalid return value");
 
       // convert result back to ast node
-      return ast_node_to_sass_value(rv);
-
+      return ast_node_to_sass_value(rv.ptr());
     }
 
     // simply pass the error message back to the caller for now
