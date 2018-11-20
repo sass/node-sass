@@ -807,7 +807,7 @@ namespace Sass {
     return ns() < rhs.ns();
   }
 
-  bool Wrapped_Selector::is_superselector_of(Wrapped_Selector_Obj sub) const
+  bool Wrapped_Selector::is_superselector_of(Wrapped_Selector_Ptr_Const sub) const
   {
     if (this->name() != sub->name()) return false;
     if (this->name() == ":current") return false;
@@ -820,7 +820,7 @@ namespace Sass {
     return false;
   }
 
-  bool Compound_Selector::is_superselector_of(Selector_List_Obj rhs, std::string wrapped) const
+  bool Compound_Selector::is_superselector_of(Selector_List_Ptr_Const rhs, std::string wrapped) const
   {
     for (Complex_Selector_Obj item : rhs->elements()) {
       if (is_superselector_of(item, wrapped)) return true;
@@ -828,13 +828,13 @@ namespace Sass {
     return false;
   }
 
-  bool Compound_Selector::is_superselector_of(Complex_Selector_Obj rhs, std::string wrapped) const
+  bool Compound_Selector::is_superselector_of(Complex_Selector_Ptr_Const rhs, std::string wrapped) const
   {
     if (rhs->head()) return is_superselector_of(rhs->head(), wrapped);
     return false;
   }
 
-  bool Compound_Selector::is_superselector_of(Compound_Selector_Obj rhs, std::string wrapping) const
+  bool Compound_Selector::is_superselector_of(Compound_Selector_Ptr_Const rhs, std::string wrapping) const
   {
     Compound_Selector_Ptr_Const lhs = this;
     Simple_Selector_Ptr lbase = lhs->base();
@@ -895,7 +895,7 @@ namespace Sass {
         if (wrapped->name() == ":matches" || wrapped->name() == ":-moz-any") {
           wlhs = wrapped->selector();
           if (Selector_List_Obj list = Cast<Selector_List>(wrapped->selector())) {
-            if (Compound_Selector_Obj comp = Cast<Compound_Selector>(rhs)) {
+            if (Compound_Selector_Ptr_Const comp = Cast<Compound_Selector>(rhs)) {
               if (!wrapping.empty() && wrapping != wrapped->name()) return false;
               if (wrapping.empty() || wrapping != wrapped->name()) {;
                 if (list->is_superselector_of(comp, wrapped->name())) return true;
@@ -956,7 +956,7 @@ namespace Sass {
                            pstate(),
                            Complex_Selector::ANCESTOR_OF,
                            this,
-                           0);
+                           {});
   }
 
   Selector_List_Ptr Complex_Selector::unify_with(Complex_Selector_Ptr other)
@@ -997,7 +997,7 @@ namespace Sass {
     if (is_universal)
     {
       // move the head
-      l_last->head(0);
+      l_last->head({});
       r_last->head(unified);
     }
 
@@ -1059,12 +1059,12 @@ namespace Sass {
     // there is no break?!
   }
 
-  bool Complex_Selector::is_superselector_of(Compound_Selector_Obj rhs, std::string wrapping) const
+  bool Complex_Selector::is_superselector_of(Compound_Selector_Ptr_Const rhs, std::string wrapping) const
   {
     return last()->head() && last()->head()->is_superselector_of(rhs, wrapping);
   }
 
-  bool Complex_Selector::is_superselector_of(Complex_Selector_Obj rhs, std::string wrapping) const
+  bool Complex_Selector::is_superselector_of(Complex_Selector_Ptr_Const rhs, std::string wrapping) const
   {
     Complex_Selector_Ptr_Const lhs = this;
     // check for selectors with leading or trailing combinators
@@ -1098,7 +1098,7 @@ namespace Sass {
     }
 
     bool found = false;
-    Complex_Selector_Obj marker = rhs;
+    Complex_Selector_Ptr_Const marker = rhs;
     for (size_t i = 0, L = rhs->length(); i < L; ++i) {
       if (i == L-1)
       { return false; }
@@ -1297,7 +1297,7 @@ namespace Sass {
                   h->erase(h->begin());
                   ss->head(h);
                 } else {
-                  ss->head(NULL);
+                  ss->head({});
                 }
                 // adjust for parent selector (1 char)
                 // if (h->length()) {
@@ -1334,7 +1334,7 @@ namespace Sass {
                 h->erase(h->begin());
                 ss->head(h);
               } else {
-                ss->head(NULL);
+                ss->head({});
               }
               // \/ IMO ruby sass bug \/
               ss->has_line_feed(false);
@@ -1362,7 +1362,7 @@ namespace Sass {
               cpy->head(SASS_MEMORY_NEW(Compound_Selector, head->pstate()));
               for (size_t i = 1, L = this->head()->length(); i < L; ++i)
                 cpy->head()->append((*this->head())[i]);
-              if (!cpy->head()->length()) cpy->head(0);
+              if (!cpy->head()->length()) cpy->head({});
               retval->append(cpy->skip_empty_reference());
             }
           }
@@ -1372,7 +1372,7 @@ namespace Sass {
             cpy->head(SASS_MEMORY_NEW(Compound_Selector, head->pstate()));
             for (size_t i = 1, L = this->head()->length(); i < L; ++i)
               cpy->head()->append((*this->head())[i]);
-            if (!cpy->head()->length()) cpy->head(0);
+            if (!cpy->head()->length()) cpy->head({});
             retval->append(cpy->skip_empty_reference());
           }
         }
@@ -1461,8 +1461,8 @@ namespace Sass {
   Complex_Selector::Combinator Complex_Selector::clear_innermost()
   {
     Combinator c;
-    if (!tail() || tail()->tail() == 0)
-    { c = combinator(); combinator(ANCESTOR_OF); tail(0); }
+    if (!tail() || tail()->tail() == nullptr)
+    { c = combinator(); combinator(ANCESTOR_OF); tail({}); }
     else
     { c = tail_->clear_innermost(); }
     return c;
@@ -1590,7 +1590,7 @@ namespace Sass {
 
   // it's a superselector if every selector of the right side
   // list is a superselector of the given left side selector
-  bool Complex_Selector::is_superselector_of(Selector_List_Obj sub, std::string wrapping) const
+  bool Complex_Selector::is_superselector_of(Selector_List_Ptr_Const sub, std::string wrapping) const
   {
     // Check every rhs selector against left hand list
     for(size_t i = 0, L = sub->length(); i < L; ++i) {
@@ -1601,7 +1601,7 @@ namespace Sass {
 
   // it's a superselector if every selector of the right side
   // list is a superselector of the given left side selector
-  bool Selector_List::is_superselector_of(Selector_List_Obj sub, std::string wrapping) const
+  bool Selector_List::is_superselector_of(Selector_List_Ptr_Const sub, std::string wrapping) const
   {
     // Check every rhs selector against left hand list
     for(size_t i = 0, L = sub->length(); i < L; ++i) {
@@ -1612,7 +1612,7 @@ namespace Sass {
 
   // it's a superselector if every selector on the right side
   // is a superselector of any one of the left side selectors
-  bool Selector_List::is_superselector_of(Compound_Selector_Obj sub, std::string wrapping) const
+  bool Selector_List::is_superselector_of(Compound_Selector_Ptr_Const sub, std::string wrapping) const
   {
     // Check every lhs selector against right hand
     for(size_t i = 0, L = length(); i < L; ++i) {
@@ -1623,7 +1623,7 @@ namespace Sass {
 
   // it's a superselector if every selector on the right side
   // is a superselector of any one of the left side selectors
-  bool Selector_List::is_superselector_of(Complex_Selector_Obj sub, std::string wrapping) const
+  bool Selector_List::is_superselector_of(Complex_Selector_Ptr_Const sub, std::string wrapping) const
   {
     // Check every lhs selector against right hand
     for(size_t i = 0, L = length(); i < L; ++i) {
@@ -1736,7 +1736,7 @@ namespace Sass {
         }
       }
     }
-    return NULL;
+    return {};
   }
 
   Argument_Obj Arguments::get_keyword_argument()
@@ -1748,7 +1748,7 @@ namespace Sass {
         }
       }
     }
-    return NULL;
+    return {};
   }
 
   void Arguments::adjust_after_pushing(Argument_Obj a)
@@ -2034,7 +2034,7 @@ namespace Sass {
   {
     if (elements_.count(k))
     { return elements_.at(k); }
-    else { return NULL; }
+    else { return {}; }
   }
 
   bool Binary_Expression::is_left_interpolant(void) const
@@ -2096,7 +2096,7 @@ namespace Sass {
   }
 
   Function_Call::Function_Call(ParserState pstate, std::string n, Arguments_Obj args, void* cookie)
-  : PreValue(pstate), sname_(SASS_MEMORY_NEW(String_Constant, pstate, n)), arguments_(args), func_(0), via_call_(false), cookie_(cookie), hash_(0)
+  : PreValue(pstate), sname_(SASS_MEMORY_NEW(String_Constant, pstate, n)), arguments_(args), func_(), via_call_(false), cookie_(cookie), hash_(0)
   { concrete_type(FUNCTION); }
   Function_Call::Function_Call(ParserState pstate, std::string n, Arguments_Obj args, Function_Obj func)
   : PreValue(pstate), sname_(SASS_MEMORY_NEW(String_Constant, pstate, n)), arguments_(args), func_(func), via_call_(false), cookie_(0), hash_(0)

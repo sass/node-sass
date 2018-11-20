@@ -102,7 +102,7 @@ namespace Sass {
     BUILT_IN(min)
     {
       List_Ptr arglist = ARG("$numbers", List);
-      Number_Obj least = NULL;
+      Number_Obj least;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Expression_Obj val = arglist->value_at_index(i);
         Number_Obj xi = Cast<Number>(val);
@@ -120,7 +120,7 @@ namespace Sass {
     BUILT_IN(max)
     {
       List_Ptr arglist = ARG("$numbers", List);
-      Number_Obj greatest = NULL;
+      Number_Obj greatest;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Expression_Obj val = arglist->value_at_index(i);
         Number_Obj xi = Cast<Number>(val);

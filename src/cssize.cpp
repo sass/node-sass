@@ -421,7 +421,7 @@ namespace Sass {
 
   Block_Ptr Cssize::debubble(Block_Ptr children, Statement_Ptr parent)
   {
-    Has_Block_Obj previous_parent = 0;
+    Has_Block_Obj previous_parent;
     std::vector<std::pair<bool, Block_Obj>> baz = slice_by_bubble(children);
     Block_Obj result = SASS_MEMORY_NEW(Block, children->pstate());
 
@@ -497,7 +497,7 @@ namespace Sass {
         wrapper_block->append(wrapper);
 
         if (wrapper->length()) {
-          previous_parent = NULL;
+          previous_parent = {};
         }
 
         if (wrapper_block) {
@@ -584,7 +584,7 @@ namespace Sass {
 
     Media_Query_Ptr mm = SASS_MEMORY_NEW(Media_Query,
                                          mq1->pstate(),
-                                         0,
+                                         {},
                                          mq1->length() + mq2->length(),
                                          mod == "not",
                                          mod == "only");

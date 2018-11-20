@@ -55,7 +55,7 @@ namespace Sass {
     : ParserState(pstate), ctx(ctx), block_stack(), stack(0), last_media_block(),
       source(0), position(0), end(0), before_token(pstate), after_token(pstate),
       pstate(pstate), traces(traces), indentation(0), nestings(0)
-    { 
+    {
       stack.push_back(Scope::Root);
     }
 
@@ -375,7 +375,7 @@ namespace Sass {
           return SASS_MEMORY_NEW(String_Constant, pstate, lexed);
         }
       }
-      return 0;
+      return {};
     }
 
   public:

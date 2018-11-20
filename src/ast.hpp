@@ -329,13 +329,13 @@ namespace Sass {
     mutable size_t hash_;
     Expression_Obj duplicate_key_;
     void reset_hash() { hash_ = 0; }
-    void reset_duplicate_key() { duplicate_key_ = 0; }
+    void reset_duplicate_key() { duplicate_key_ = {}; }
     virtual void adjust_after_pushing(std::pair<Expression_Obj, Expression_Obj> p) { }
   public:
     Hashed(size_t s = 0)
     : elements_(ExpressionMap(s)),
       list_(std::vector<Expression_Obj>()),
-      hash_(0), duplicate_key_(NULL)
+      hash_(0), duplicate_key_({})
     { elements_.reserve(s); list_.reserve(s); }
     virtual ~Hashed();
     size_t length() const                  { return list_.size(); }
@@ -501,7 +501,7 @@ namespace Sass {
     ADD_PROPERTY(Selector_List_Obj, selector)
     ADD_PROPERTY(bool, is_root);
   public:
-    Ruleset(ParserState pstate, Selector_List_Obj s = 0, Block_Obj b = 0)
+    Ruleset(ParserState pstate, Selector_List_Obj s = {}, Block_Obj b = {})
     : Has_Block(pstate, b), selector_(s), is_root_(false)
     { statement_type(RULESET); }
     Ruleset(const Ruleset* ptr)
@@ -521,7 +521,7 @@ namespace Sass {
     ADD_PROPERTY(Statement_Obj, node)
     ADD_PROPERTY(bool, group_end)
   public:
-    Bubble(ParserState pstate, Statement_Obj n, Statement_Obj g = 0, size_t t = 0)
+    Bubble(ParserState pstate, Statement_Obj n, Statement_Obj g = {}, size_t t = 0)
     : Statement(pstate, Statement::BUBBLE, t), node_(n), group_end_(g == 0)
     { }
     Bubble(const Bubble* ptr)
@@ -541,7 +541,7 @@ namespace Sass {
     ADD_CONSTREF(char, type)
     ADD_CONSTREF(std::string, name)
   public:
-    Trace(ParserState pstate, std::string n, Block_Obj b = 0, char type = 'm')
+    Trace(ParserState pstate, std::string n, Block_Obj b = {}, char type = 'm')
     : Has_Block(pstate, b), type_(type), name_(n)
     { }
     Trace(const Trace* ptr)
@@ -580,7 +580,7 @@ namespace Sass {
     ADD_PROPERTY(Selector_List_Obj, selector)
     ADD_PROPERTY(Expression_Obj, value)
   public:
-    Directive(ParserState pstate, std::string kwd, Selector_List_Obj sel = 0, Block_Obj b = 0, Expression_Obj val = 0)
+    Directive(ParserState pstate, std::string kwd, Selector_List_Obj sel = {}, Block_Obj b = {}, Expression_Obj val = {})
     : Has_Block(pstate, b), keyword_(kwd), selector_(sel), value_(val) // set value manually if needed
     { statement_type(DIRECTIVE); }
     Directive(const Directive* ptr)
@@ -635,7 +635,7 @@ namespace Sass {
     ADD_PROPERTY(bool, is_indented)
   public:
     Declaration(ParserState pstate,
-                String_Obj prop, Expression_Obj val, bool i = false, bool c = false, Block_Obj b = 0)
+                String_Obj prop, Expression_Obj val, bool i = false, bool c = false, Block_Obj b = {})
     : Has_Block(pstate, b), property_(prop), value_(val), is_important_(i), is_custom_property_(c), is_indented_(false)
     { statement_type(DECLARATION); }
     Declaration(const Declaration* ptr)
@@ -799,7 +799,7 @@ namespace Sass {
     ADD_PROPERTY(Expression_Obj, predicate)
     ADD_PROPERTY(Block_Obj, alternative)
   public:
-    If(ParserState pstate, Expression_Obj pred, Block_Obj con, Block_Obj alt = 0)
+    If(ParserState pstate, Expression_Obj pred, Block_Obj con, Block_Obj alt = {})
     : Has_Block(pstate, con), predicate_(pred), alternative_(alt)
     { statement_type(IF); }
     If(const If* ptr)
@@ -957,7 +957,7 @@ namespace Sass {
                Parameters_Obj params,
                Native_Function func_ptr,
                bool overload_stub = false)
-    : Has_Block(pstate, 0),
+    : Has_Block(pstate, {}),
       name_(n),
       parameters_(params),
       environment_(0),
@@ -973,7 +973,7 @@ namespace Sass {
                std::string n,
                Parameters_Obj params,
                Sass_Function_Entry c_func)
-    : Has_Block(pstate, 0),
+    : Has_Block(pstate, {}),
       name_(n),
       parameters_(params),
       environment_(0),
@@ -995,7 +995,7 @@ namespace Sass {
     ADD_CONSTREF(std::string, name)
     ADD_PROPERTY(Arguments_Obj, arguments)
   public:
-    Mixin_Call(ParserState pstate, std::string n, Arguments_Obj args, Block_Obj b = 0)
+    Mixin_Call(ParserState pstate, std::string n, Arguments_Obj args, Block_Obj b = {})
     : Has_Block(pstate, b), name_(n), arguments_(args)
     { }
     Mixin_Call(const Mixin_Call* ptr)
@@ -1433,7 +1433,7 @@ namespace Sass {
     Function_Call(ParserState pstate, std::string n, Arguments_Obj args);
 
     Function_Call(ParserState pstate, String_Obj n, Arguments_Obj args, void* cookie)
-    : PreValue(pstate), sname_(n), arguments_(args), func_(0), via_call_(false), cookie_(cookie), hash_(0)
+    : PreValue(pstate), sname_(n), arguments_(args), func_(), via_call_(false), cookie_(cookie), hash_(0)
     { concrete_type(FUNCTION); }
     Function_Call(ParserState pstate, String_Obj n, Arguments_Obj args, Function_Obj func)
     : PreValue(pstate), sname_(n), arguments_(args), func_(func), via_call_(false), cookie_(0), hash_(0)
@@ -1821,7 +1821,7 @@ namespace Sass {
     ADD_PROPERTY(bool, is_restricted)
   public:
     Media_Query(ParserState pstate,
-                String_Obj t = 0, size_t s = 0, bool n = false, bool r = false)
+                String_Obj t = {}, size_t s = 0, bool n = false, bool r = false)
     : Expression(pstate), Vectorized<Media_Query_Expression_Obj>(s),
       media_type_(t), is_negated_(n), is_restricted_(r)
     { }
@@ -1864,7 +1864,7 @@ namespace Sass {
   class Supports_Block final : public Has_Block {
     ADD_PROPERTY(Supports_Condition_Obj, condition)
   public:
-    Supports_Block(ParserState pstate, Supports_Condition_Obj condition, Block_Obj block = 0)
+    Supports_Block(ParserState pstate, Supports_Condition_Obj condition, Block_Obj block = {})
     : Has_Block(pstate, block), condition_(condition)
     { statement_type(SUPPORTS); }
     Supports_Block(const Supports_Block* ptr)
@@ -1982,7 +1982,7 @@ namespace Sass {
     ADD_PROPERTY(Expression_Obj, feature)
     ADD_PROPERTY(Expression_Obj, value)
   public:
-    At_Root_Query(ParserState pstate, Expression_Obj f = 0, Expression_Obj v = 0, bool i = false)
+    At_Root_Query(ParserState pstate, Expression_Obj f = {}, Expression_Obj v = {}, bool i = false)
     : Expression(pstate), feature_(f), value_(v)
     { }
     At_Root_Query(const At_Root_Query* ptr)
@@ -2001,7 +2001,7 @@ namespace Sass {
   class At_Root_Block final : public Has_Block {
     ADD_PROPERTY(At_Root_Query_Obj, expression)
   public:
-    At_Root_Block(ParserState pstate, Block_Obj b = 0, At_Root_Query_Obj e = 0)
+    At_Root_Block(ParserState pstate, Block_Obj b = {}, At_Root_Query_Obj e = {})
     : Has_Block(pstate, b), expression_(e)
     { statement_type(ATROOT); }
     At_Root_Block(const At_Root_Block* ptr)
@@ -2078,7 +2078,7 @@ namespace Sass {
     ADD_PROPERTY(bool, is_rest_parameter)
   public:
     Parameter(ParserState pstate,
-              std::string n, Expression_Obj def = 0, bool rest = false)
+              std::string n, Expression_Obj def = {}, bool rest = false)
     : AST_Node(pstate), name_(n), default_value_(def), is_rest_parameter_(rest)
     {
       // tried to come up with a spec test for this, but it does no longer
@@ -2335,7 +2335,7 @@ namespace Sass {
     virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr);
     virtual bool is_pseudo_element() const { return false; }
 
-    virtual bool is_superselector_of(Compound_Selector_Obj sub) const { return false; }
+    virtual bool is_superselector_of(Compound_Selector_Ptr_Const sub) const { return false; }
 
     bool operator==(const Selector& rhs) const final override;
     virtual bool operator==(const Simple_Selector& rhs) const;
@@ -2567,7 +2567,7 @@ namespace Sass {
   class Pseudo_Selector final : public Simple_Selector {
     ADD_PROPERTY(String_Obj, expression)
   public:
-    Pseudo_Selector(ParserState pstate, std::string n, String_Obj expr = 0)
+    Pseudo_Selector(ParserState pstate, std::string n, String_Obj expr = {})
     : Simple_Selector(pstate, n), expression_(expr)
     { simple_type(PSEUDO_SEL); }
     Pseudo_Selector(const Pseudo_Selector* ptr)
@@ -2629,7 +2629,7 @@ namespace Sass {
     : Simple_Selector(ptr), selector_(ptr->selector_)
     { simple_type(WRAPPED_SEL); }
     using Simple_Selector::is_superselector_of;
-    bool is_superselector_of(Wrapped_Selector_Obj sub) const;
+    bool is_superselector_of(Wrapped_Selector_Ptr_Const sub) const;
     // Selectors inside the negation pseudo-class are counted like any
     // other, but the negation itself does not count as a pseudo-class.
     size_t hash() const override;
@@ -2704,9 +2704,9 @@ namespace Sass {
         return (*this)[0];
       return 0;
     }
-    bool is_superselector_of(Compound_Selector_Obj sub, std::string wrapped = "") const;
-    bool is_superselector_of(Complex_Selector_Obj sub, std::string wrapped = "") const;
-    bool is_superselector_of(Selector_List_Obj sub, std::string wrapped = "") const;
+    bool is_superselector_of(Compound_Selector_Ptr_Const sub, std::string wrapped = "") const;
+    bool is_superselector_of(Complex_Selector_Ptr_Const sub, std::string wrapped = "") const;
+    bool is_superselector_of(Selector_List_Ptr_Const sub, std::string wrapped = "") const;
     size_t hash() const override
     {
       if (Selector::hash_ == 0) {
@@ -2780,9 +2780,9 @@ namespace Sass {
     };
     Complex_Selector(ParserState pstate,
                      Combinator c = ANCESTOR_OF,
-                     Compound_Selector_Obj h = 0,
-                     Complex_Selector_Obj t = 0,
-                     String_Obj r = 0)
+                     Compound_Selector_Obj h = {},
+                     Complex_Selector_Obj t = {},
+                     String_Obj r = {})
     : Selector(pstate),
       combinator_(c),
       head_(h), tail_(t),
@@ -2802,7 +2802,7 @@ namespace Sass {
       if ((!head_ || !head_->length() || head_->is_empty_reference()) &&
           combinator() == Combinator::ANCESTOR_OF)
       {
-        if (!tail_) return 0;
+        if (!tail_) return {};
         tail_->has_line_feed_ = this->has_line_feed_;
         // tail_->has_line_break_ = this->has_line_break_;
         return tail_->skip_empty_reference();
@@ -2830,9 +2830,9 @@ namespace Sass {
 
     size_t length() const;
     Selector_List_Ptr resolve_parent_refs(SelectorStack& pstack, Backtraces& traces, bool implicit_parent = true);
-    bool is_superselector_of(Compound_Selector_Obj sub, std::string wrapping = "") const;
-    bool is_superselector_of(Complex_Selector_Obj sub, std::string wrapping = "") const;
-    bool is_superselector_of(Selector_List_Obj sub, std::string wrapping = "") const;
+    bool is_superselector_of(Compound_Selector_Ptr_Const sub, std::string wrapping = "") const;
+    bool is_superselector_of(Complex_Selector_Ptr_Const sub, std::string wrapping = "") const;
+    bool is_superselector_of(Selector_List_Ptr_Const sub, std::string wrapping = "") const;
     Selector_List_Ptr unify_with(Complex_Selector_Ptr rhs);
     Combinator clear_innermost();
     void append(Complex_Selector_Obj, Backtraces& traces);
@@ -2940,7 +2940,7 @@ namespace Sass {
     Selector_List(ParserState pstate, size_t s = 0)
     : Selector(pstate),
       Vectorized<Complex_Selector_Obj>(s),
-      schema_(NULL),
+      schema_({}),
       wspace_(0)
     { }
     Selector_List(const Selector_List* ptr)
@@ -2956,9 +2956,9 @@ namespace Sass {
     bool has_real_parent_ref() const override;
     void remove_parent_selectors();
     Selector_List_Ptr resolve_parent_refs(SelectorStack& pstack, Backtraces& traces, bool implicit_parent = true);
-    bool is_superselector_of(Compound_Selector_Obj sub, std::string wrapping = "") const;
-    bool is_superselector_of(Complex_Selector_Obj sub, std::string wrapping = "") const;
-    bool is_superselector_of(Selector_List_Obj sub, std::string wrapping = "") const;
+    bool is_superselector_of(Compound_Selector_Ptr_Const sub, std::string wrapping = "") const;
+    bool is_superselector_of(Complex_Selector_Ptr_Const sub, std::string wrapping = "") const;
+    bool is_superselector_of(Selector_List_Ptr_Const sub, std::string wrapping = "") const;
     Selector_List_Ptr unify_with(Selector_List_Ptr);
     void populate_extends(Selector_List_Obj, Subset_Map&);
     Selector_List_Obj eval(Eval& eval);

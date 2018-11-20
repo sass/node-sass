@@ -18,7 +18,7 @@ namespace Sass {
     NodeDequePtr null;
 
     Complex_Selector_Ptr pStripped = SASS_MEMORY_COPY(&pSelector);
-    pStripped->tail(NULL);
+    pStripped->tail({});
     pStripped->combinator(Complex_Selector::ANCESTOR_OF);
 
     Node n(SELECTOR, Complex_Selector::ANCESTOR_OF, pStripped, null /*pCollection*/);
@@ -234,7 +234,7 @@ namespace Sass {
     NodeDeque& childNodes = *toConvert.collection();
 
     std::string noPath("");
-    Complex_Selector_Obj pFirst = SASS_MEMORY_NEW(Complex_Selector, ParserState("[NODE]"), Complex_Selector::ANCESTOR_OF, NULL, NULL);
+    Complex_Selector_Obj pFirst = SASS_MEMORY_NEW(Complex_Selector, ParserState("[NODE]"), Complex_Selector::ANCESTOR_OF, {}, {});
 
     Complex_Selector_Obj pCurrent = pFirst;
 
@@ -259,7 +259,7 @@ namespace Sass {
         if (childIter+1 != childIterEnd) {
           Node& nextNode = *(childIter+1);
           if (nextNode.isCombinator()) {
-            pCurrent->tail(SASS_MEMORY_NEW(Complex_Selector, ParserState("[NODE]"), Complex_Selector::ANCESTOR_OF, NULL, NULL));
+            pCurrent->tail(SASS_MEMORY_NEW(Complex_Selector, ParserState("[NODE]"), Complex_Selector::ANCESTOR_OF, {}, {}));
             if (nextNode.got_line_feed) pCurrent->tail()->has_line_feed(nextNode.got_line_feed);
             pCurrent = pCurrent->tail();
           }

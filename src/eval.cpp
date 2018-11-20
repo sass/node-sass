@@ -163,7 +163,7 @@ namespace Sass {
 
   Expression_Ptr Eval::operator()(If_Ptr i)
   {
-    Expression_Obj rv = 0;
+    Expression_Obj rv;
     Env env(environment());
     env_stack().push_back(&env);
     Expression_Obj cond = i->predicate()->perform(this);
@@ -242,8 +242,8 @@ namespace Sass {
     Expression_Obj expr = e->list()->perform(this);
     Env env(environment(), true);
     env_stack().push_back(&env);
-    List_Obj list = 0;
-    Map_Ptr map = 0;
+    List_Obj list;
+    Map_Ptr map = nullptr;
     if (expr->concrete_type() == Expression::MAP) {
       map = Cast<Map>(expr);
     }
@@ -261,7 +261,7 @@ namespace Sass {
     }
 
     Block_Obj body = e->block();
-    Expression_Obj val = 0;
+    Expression_Obj val;
 
     if (map) {
       for (Expression_Obj key : map->keys()) {
@@ -1135,7 +1135,7 @@ namespace Sass {
 
   Expression_Ptr Eval::operator()(Variable_Ptr v)
   {
-    Expression_Obj value = 0;
+    Expression_Obj value;
     Env* env = environment();
     const std::string& name(v->name());
     EnvResult rv(env->find(name));
@@ -1535,7 +1535,7 @@ namespace Sass {
   Selector_List_Ptr Eval::operator()(Complex_Selector_Ptr s)
   {
     bool implicit_parent = !exp.old_at_root_without_rule;
-    if (is_in_selector_schema) exp.selector_stack.push_back(0);
+    if (is_in_selector_schema) exp.selector_stack.push_back({});
     Selector_List_Obj resolved = s->resolve_parent_refs(exp.selector_stack, traces, implicit_parent);
     if (is_in_selector_schema) exp.selector_stack.pop_back();
     for (size_t i = 0; i < resolved->length(); i++) {

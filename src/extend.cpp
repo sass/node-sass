@@ -286,7 +286,7 @@ namespace Sass {
     Element_Selector_Obj fakeParent = SASS_MEMORY_NEW(Element_Selector, ParserState("[FAKE]"), "temp");
     Compound_Selector_Obj fakeHead = SASS_MEMORY_NEW(Compound_Selector, ParserState("[FAKE]"), 1 /*size*/);
     fakeHead->elements().push_back(fakeParent);
-    Complex_Selector_Obj fakeParentContainer = SASS_MEMORY_NEW(Complex_Selector, ParserState("[FAKE]"), Complex_Selector::ANCESTOR_OF, fakeHead /*head*/, NULL /*tail*/);
+    Complex_Selector_Obj fakeParentContainer = SASS_MEMORY_NEW(Complex_Selector, ParserState("[FAKE]"), Complex_Selector::ANCESTOR_OF, fakeHead /*head*/, {} /*tail*/);
 
     pOne->set_innermost(fakeParentContainer, Complex_Selector::ANCESTOR_OF);
     pTwo->set_innermost(fakeParentContainer, Complex_Selector::ANCESTOR_OF);
@@ -440,8 +440,8 @@ namespace Sass {
     //DEBUG_PRINTLN(LCS, "LCS: X=" << x << " Y=" << y)
     // TODO: make printComplexSelectorDeque and use DEBUG_EXEC AND DEBUG_PRINTLN HERE to get equivalent output
 
-    x.push_front(NULL);
-    y.push_front(NULL);
+    x.push_front({});
+    y.push_front({});
 
     LCSTable table;
     lcs_table(x, y, comparator, table);
@@ -646,7 +646,7 @@ namespace Sass {
     Element_Selector_Obj fakeParent = SASS_MEMORY_NEW(Element_Selector, ParserState("[FAKE]"), "temp");
     Compound_Selector_Obj fakeHead = SASS_MEMORY_NEW(Compound_Selector, ParserState("[FAKE]"), 1 /*size*/);
     fakeHead->elements().push_back(fakeParent);
-    Complex_Selector_Obj fakeParentContainer = SASS_MEMORY_NEW(Complex_Selector, ParserState("[FAKE]"), Complex_Selector::ANCESTOR_OF, fakeHead /*head*/, NULL /*tail*/);
+    Complex_Selector_Obj fakeParentContainer = SASS_MEMORY_NEW(Complex_Selector, ParserState("[FAKE]"), Complex_Selector::ANCESTOR_OF, fakeHead /*head*/, {} /*tail*/);
 
     Complex_Selector_Obj pOneWithFakeParent = nodeToComplexSelector(one);
     pOneWithFakeParent->set_innermost(fakeParentContainer, Complex_Selector::ANCESTOR_OF);
@@ -1595,7 +1595,7 @@ namespace Sass {
       // out and aren't operated on.
       Complex_Selector_Obj pNewSelector = SASS_MEMORY_CLONE(pExtComplexSelector); // ->first();
 
-      Complex_Selector_Obj pNewInnerMost = SASS_MEMORY_NEW(Complex_Selector, pSelector->pstate(), Complex_Selector::ANCESTOR_OF, pUnifiedSelector, NULL);
+      Complex_Selector_Obj pNewInnerMost = SASS_MEMORY_NEW(Complex_Selector, pSelector->pstate(), Complex_Selector::ANCESTOR_OF, pUnifiedSelector, {});
 
       Complex_Selector::Combinator combinator = pNewSelector->clear_innermost();
       pNewSelector->set_innermost(pNewInnerMost, combinator);
@@ -1956,7 +1956,7 @@ namespace Sass {
                       Wrapped_Selector_Obj cpy_ws = SASS_MEMORY_COPY(ws);
                       Selector_List_Obj cpy_ws_sl = SASS_MEMORY_NEW(Selector_List, sl->pstate());
                       // remove parent selectors from inner selector
-                      Compound_Selector_Obj ext_head = NULL;
+                      Compound_Selector_Obj ext_head;
                       if (ext_cs->first()) ext_head = ext_cs->first()->head();
                       if (ext_head && ext_head && ext_head->length() > 0) {
                         cpy_ws_sl->append(ext_cs->mutable_first());

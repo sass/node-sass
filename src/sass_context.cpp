@@ -74,14 +74,14 @@ namespace Sass {
         // move line_beg pointer to line start
         while (line_beg && *line_beg && lines != 0) {
           if (*line_beg == '\n') --lines;
-          utf8::unchecked::next(line_beg); 
+          utf8::unchecked::next(line_beg);
         }
         const char* line_end = line_beg;
         // move line_end before next newline character
         while (line_end && *line_end && *line_end != '\n') {
           if (*line_end == '\n') break;
           if (*line_end == '\r') break;
-          utf8::unchecked::next(line_end); 
+          utf8::unchecked::next(line_end);
         }
         if (line_end && *line_end != 0) ++ line_end;
         size_t line_len = line_end - line_beg;
@@ -212,7 +212,7 @@ namespace Sass {
   {
 
     // assert valid pointer
-    if (compiler == 0) return 0;
+    if (compiler == 0) return {};
     // The cpp context must be set by now
     Context* cpp_ctx = compiler->cpp_ctx;
     Sass_Context* c_ctx = compiler->c_ctx;
@@ -233,7 +233,7 @@ namespace Sass {
       // dispatch parse call
       Block_Obj root(cpp_ctx->parse());
       // abort on errors
-      if (!root) return 0;
+      if (!root) return {};
 
       // skip all prefixed files? (ToDo: check srcmap)
       // IMO source-maps should point to headers already
@@ -253,7 +253,7 @@ namespace Sass {
     catch (...) { handle_errors(c_ctx); }
 
     // error
-    return 0;
+    return {};
 
   }
 
@@ -617,7 +617,7 @@ extern "C" {
     if (cpp_ctx) delete(cpp_ctx);
     compiler->cpp_ctx = NULL;
     compiler->c_ctx = NULL;
-    compiler->root = NULL;
+    compiler->root = {};
     free(compiler);
   }
 
