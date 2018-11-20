@@ -1,6 +1,8 @@
 language: cpp
-sudo: false
 
+# ASan needs ptrace support which currently requires `sudo: required`.
+# See https://github.com/travis-ci/travis-ci/issues/9033.
+sudo: required
 
 # don't create redundant code coverage reports
 # - AUTOTOOLS=yes COVERAGE=yes BUILD=static
