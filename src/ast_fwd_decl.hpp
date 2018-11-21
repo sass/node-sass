@@ -383,6 +383,19 @@ namespace Sass {
     }
   };
 
+  struct HashPtr {
+    template <class T>
+    size_t operator() (const T *ref) const {
+      return ref->hash();
+    }
+  };
+  struct ComparePtrs {
+    template <class T>
+    bool operator() (const T *lhs, const T *rhs) const {
+      return *lhs == *rhs;
+    }
+  };
+
   // ###########################################################################
   // some often used typedefs
   // ###########################################################################

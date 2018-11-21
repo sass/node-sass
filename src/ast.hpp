@@ -2288,7 +2288,7 @@ namespace Sass {
         name += ns_ + "|";
       return name + name_;
     }
-    size_t hash() const override
+    virtual size_t hash() const override
     {
       if (hash_ == 0) {
         hash_combine(hash_, std::hash<int>()(SELECTOR));
