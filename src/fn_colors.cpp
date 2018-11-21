@@ -102,10 +102,10 @@ namespace Sass {
         return SASS_MEMORY_NEW(String_Constant, pstate, strm.str());
       }
 
-      Color_Ptr new_c = SASS_MEMORY_COPY(c_arg);
+      Color_Obj new_c = SASS_MEMORY_COPY(c_arg);
       new_c->a(ALPHA_NUM("$alpha"));
       new_c->disp("");
-      return new_c;
+      return new_c.detach();
     }
 
     ////////////////
