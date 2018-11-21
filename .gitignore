@@ -2,6 +2,7 @@
 
 /sassc
 /sass-spec
+/plugins/
 
 VERSION
 .DS_Store
