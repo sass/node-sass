@@ -15,8 +15,8 @@ namespace Sass {
       prefix("Error"), pstate(pstate), traces(traces)
     { }
 
-    InvalidSass::InvalidSass(ParserState pstate, Backtraces traces, std::string msg)
-    : Base(pstate, msg, traces)
+    InvalidSass::InvalidSass(ParserState pstate, Backtraces traces, std::string msg, char* owned_src)
+    : Base(pstate, msg, traces), owned_src(owned_src)
     { }
 
 

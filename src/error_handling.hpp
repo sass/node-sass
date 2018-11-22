@@ -37,8 +37,9 @@ namespace Sass {
 
     class InvalidSass : public Base {
       public:
-        InvalidSass(ParserState pstate, Backtraces traces, std::string msg);
-        virtual ~InvalidSass() throw() {};
+        InvalidSass(ParserState pstate, Backtraces traces, std::string msg, char* owned_src = nullptr);
+        virtual ~InvalidSass() throw() { sass_free_memory(owned_src); };
+        char *owned_src;
     };
 
     class InvalidParent : public Base {
