@@ -67,23 +67,23 @@ namespace Sass {
       }
 
       // now create the code trace (ToDo: maybe have util functions?)
-      if (e.pstate.line != std::string::npos && e.pstate.column != std::string::npos) {
+      if (e.pstate.line != std::string::npos &&
+          e.pstate.column != std::string::npos &&
+          e.pstate.src != nullptr) {
         size_t lines = e.pstate.line;
-        const char* line_beg = e.pstate.src;
         // scan through src until target line
         // move line_beg pointer to line start
-        while (line_beg && *line_beg && lines != 0) {
+        const char* line_beg;
+        for (line_beg = e.pstate.src; *line_beg != '\0'; ++line_beg) {
+          if (lines == 0) break;
           if (*line_beg == '\n') --lines;
-          utf8::unchecked::next(line_beg);
         }
-        const char* line_end = line_beg;
         // move line_end before next newline character
-        while (line_end && *line_end && *line_end != '\n') {
-          if (*line_end == '\n') break;
-          if (*line_end == '\r') break;
-          utf8::unchecked::next(line_end);
+        const char* line_end;
+        for (line_end = line_beg; *line_end != '\0'; ++line_end) {
+          if (*line_end == '\n' || *line_end == '\r') break;
         }
-        if (line_end && *line_end != 0) ++ line_end;
+        if (*line_end != '\0') ++line_end;
         size_t line_len = line_end - line_beg;
         size_t move_in = 0; size_t shorten = 0;
         size_t left_chars = 42; size_t max_chars = 76;
