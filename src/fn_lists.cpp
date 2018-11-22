@@ -84,7 +84,7 @@ namespace Sass {
       if (index < 0 || index > len - 1) error("index out of bounds for `" + std::string(sig) + "`", pstate, traces);
 
       if (m) {
-        l = SASS_MEMORY_NEW(List, pstate, 1);
+        l = SASS_MEMORY_NEW(List, pstate, 2);
         l->append(m->keys()[static_cast<unsigned int>(index)]);
         l->append(m->at(m->keys()[static_cast<unsigned int>(index)]));
         return l.detach();

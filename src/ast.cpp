@@ -1240,7 +1240,7 @@ namespace Sass {
     Selector_List_Ptr parents = pstack.back();
 
     if (!this->has_real_parent_ref() && !implicit_parent) {
-      Selector_List_Ptr retval = SASS_MEMORY_NEW(Selector_List, pstate());
+      Selector_List_Ptr retval = SASS_MEMORY_NEW(Selector_List, pstate(), 1);
       retval->append(this);
       return retval;
     }
