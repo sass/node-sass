@@ -10,11 +10,11 @@ namespace Sass {
 
     bool special_number(String_Constant_Ptr s) {
       if (s) {
-        std::string calc("calc(");
-        std::string var("var(");
-        std::string ss(s->value());
-        return std::equal(calc.begin(), calc.end(), ss.begin()) ||
-               std::equal(var.begin(), var.end(), ss.begin());
+        static const char* const calc = "calc(";
+        static const char* const var = "var(";
+        const std::string& str = s->value();
+        return str.compare(0, strlen(calc), calc) == 0 ||
+               str.compare(0, strlen(var), var) == 0;
       }
       return false;
     }
