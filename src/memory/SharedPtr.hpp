@@ -3,6 +3,8 @@
 
 #include "sass/base.h"
 
+#include <iostream>
+#include <string>
 #include <vector>
 
 namespace Sass {
@@ -39,177 +41,148 @@ namespace Sass {
   #endif
 
   class SharedObj {
-  protected:
-  friend class SharedPtr;
-  friend class Memory_Manager;
-    #ifdef DEBUG_SHARED_PTR
-      static std::vector<SharedObj*> all;
-      std::string file;
-      size_t line;
-    #endif
-    static bool taint;
-    long refcounter;
-    // long refcount;
-    bool detached;
-    #ifdef DEBUG_SHARED_PTR
-      bool dbg;
-    #endif
-  public:
-    #ifdef DEBUG_SHARED_PTR
-      static void dumpMemLeaks();
-      SharedObj* trace(std::string file, size_t line) {
-        this->file = file;
-        this->line = line;
-        return this;
-      }
-    #endif
-    SharedObj();
-    #ifdef DEBUG_SHARED_PTR
-      std::string getDbgFile() {
-        return file;
-      }
-      size_t getDbgLine() {
-        return line;
-      }
-      void setDbg(bool dbg) {
-        this->dbg = dbg;
-      }
-    #endif
-    static void setTaint(bool val) {
-      taint = val;
+   public:
+    SharedObj() : refcount(0), detached(false) {
+      #ifdef DEBUG_SHARED_PTR
+      if (taint) all.push_back(this);
+      #endif
     }
+    virtual ~SharedObj() {
+      #ifdef DEBUG_SHARED_PTR
+      all.clear();
+      #endif
+    }
+
+    #ifdef DEBUG_SHARED_PTR
+    static void dumpMemLeaks();
+    SharedObj* trace(std::string file, size_t line) {
+      this->file = file;
+      this->line = line;
+      return this;
+    }
+    std::string getDbgFile() { return file; }
+    size_t getDbgLine() { return line; }
+    void setDbg(bool dbg) { this->dbg = dbg; }
+    size_t getRefCount() const { return refcount; }
+    #endif
+
+    static void setTaint(bool val) { taint = val; }
 
     virtual const std::string to_string() const = 0;
-
-    virtual ~SharedObj();
-    long getRefCount() {
-      return refcounter;
-    }
+   protected:
+    friend class SharedPtr;
+    friend class Memory_Manager;
+    size_t refcount;
+    bool detached;
+    static bool taint;
+    #ifdef DEBUG_SHARED_PTR
+    std::string file;
+    size_t line;
+    bool dbg = false;
+    static std::vector<SharedObj*> all;
+    #endif
   };
-
 
   class SharedPtr {
-  protected:
-    SharedObj* node;
-  protected:
-    void decRefCount();
-    void incRefCount();
-  public:
-    // the empty constructor
-    SharedPtr()
-    : node(NULL) {};
-    // the create constructor
-    SharedPtr(SharedObj* ptr);
-    // the copy constructor
-    SharedPtr(const SharedPtr& obj);
-    // the move constructor
-    SharedPtr(SharedPtr&& obj);
-    // copy assignment operator
-    SharedPtr& operator=(const SharedPtr& obj);
-    // move assignment operator
-    SharedPtr& operator=(SharedPtr&& obj);
-    // pure virtual destructor
-    virtual ~SharedPtr() = 0;
-  public:
-    SharedObj* obj () const {
-      return node;
-    };
-    SharedObj* operator-> () const {
-      return node;
-    };
-    bool isNull () {
-      return node == NULL;
-    };
-    bool isNull () const {
-      return node == NULL;
-    };
-    SharedObj* detach() const {
-      if (node) {
-        node->detached = true;
-      }
-      return node;
-    };
-    operator bool() const {
-      return node != NULL;
-    };
+   public:
+    SharedPtr() : node(nullptr) {}
+    SharedPtr(SharedObj* ptr) : node(ptr) {
+      incRefCount();
+    }
+    SharedPtr(const SharedPtr& obj) : SharedPtr(obj.node) {}
+    ~SharedPtr() {
+      decRefCount();
+    }
 
+    SharedPtr& operator=(SharedObj* other_node) {
+      if (node != other_node) {
+        decRefCount();
+        node = other_node;
+        incRefCount();
+      } else if (node != nullptr) {
+        node->detached = false;
+      }
+      return *this;
+    }
+
+    SharedPtr& operator=(const SharedPtr& obj) {
+      return *this = obj.node;
+    }
+
+    // Prevents all SharedPtrs from freeing this node until it is assigned to another SharedPtr.
+    SharedObj* detach() {
+      if (node != nullptr) node->detached = true;
+      return node;
+    }
+
+    SharedObj* obj() const { return node; }
+    SharedObj* operator->() const { return node; }
+    bool isNull() const { return node == nullptr; }
+    operator bool() const { return node != nullptr; }
+
+   protected:
+    SharedObj* node;
+    void decRefCount() {
+      if (node == nullptr) return;
+      --node->refcount;
+      #ifdef DEBUG_SHARED_PTR
+      if (node->dbg) std::cerr << "- " << node << " X " << node->refcount << " (" << this << ") " << "\n";
+      #endif
+      if (node->refcount == 0 && !node->detached) {
+        #ifdef DEBUG_SHARED_PTR
+        if (node->dbg) std::cerr << "DELETE NODE " << node << "\n";
+        #endif
+        delete node;
+      }
+    }
+    void incRefCount() {
+      if (node == nullptr) return;
+      node->detached = false;
+      ++node->refcount;
+      #ifdef DEBUG_SHARED_PTR
+      if (node->dbg) std::cerr << "+ " << node << " X " << node->refcount << " (" << this << ") " << "\n";
+      #endif
+    }
   };
 
-  template < class T >
+  template <class T>
   class SharedImpl : private SharedPtr {
-  public:
-    SharedImpl()
-    : SharedPtr(NULL) {};
-    SharedImpl(T* node)
-    : SharedPtr(node) {};
-    template < class U >
-    SharedImpl(SharedImpl<U> obj)
-    : SharedPtr(static_cast<T*>(obj.ptr())) {}
-    SharedImpl(T&& node)
-    : SharedPtr(node) {};
-    SharedImpl(const T& node)
-    : SharedPtr(node) {};
-    // the copy constructor
-    SharedImpl(const SharedImpl<T>& impl)
-    : SharedPtr(impl.node) {};
-    // the move constructor
-    SharedImpl(SharedImpl<T>&& impl)
-    : SharedPtr(impl.node) {};
-    // copy assignment operator
-    SharedImpl<T>& operator=(const SharedImpl<T>& rhs) {
-      if (node) decRefCount();
-      node = rhs.node;
-      incRefCount();
-      return *this;
-    }
-    // move assignment operator
-    SharedImpl<T>& operator=(SharedImpl<T>&& rhs) {
-      // don't move our self
-      if (this != &rhs) {
-        if (node) decRefCount();
-        node = std::move(rhs.node);
-        rhs.node = NULL;
-      }
-      return *this;
+   public:
+    SharedImpl() : SharedPtr(nullptr) {}
+
+    template <class U>
+    SharedImpl(U* node) :
+      SharedPtr(static_cast<T*>(node)) {}
+
+    template <class U>
+    SharedImpl(const SharedImpl<U>& impl) :
+      SharedImpl(impl.ptr()) {}
+
+    template <class U>
+    SharedImpl<T>& operator=(U *rhs) {
+      return static_cast<SharedImpl<T>&>(
+        SharedPtr::operator=(static_cast<T*>(rhs)));
     }
 
-    // allow implicit conversion to string
-    // relies on base class implementation
+    template <class U>
+    SharedImpl<T>& operator=(const SharedImpl<U>& rhs) {
+      return static_cast<SharedImpl<T>&>(
+        SharedPtr::operator=(static_cast<const SharedImpl<T>&>(rhs)));
+    }
+
     operator const std::string() const {
       if (node) return node->to_string();
-      else return std::string("[NULLPTR]");
+      return "[nullptr]";
     }
 
-    ~SharedImpl() {};
-  public:
-    operator T*() const {
-      return static_cast<T*>(this->obj());
-    }
-    operator T&() const {
-      return *static_cast<T*>(this->obj());
-    }
-    T& operator* () const {
-      return *static_cast<T*>(this->obj());
-    };
-    T* operator-> () const {
-      return static_cast<T*>(this->obj());
-    };
-    T* ptr () const {
-      return static_cast<T*>(this->obj());
-    };
-    T* detach() const {
-      if (this->obj() == NULL) return NULL;
-      return static_cast<T*>(SharedPtr::detach());
-    }
-    bool isNull() const {
-      return this->obj() == NULL;
-    }
-    bool operator<(const T& rhs) const {
-      return *this->ptr() < rhs;
-    };
-    operator bool() const {
-      return this->obj() != NULL;
-    };
+    using SharedPtr::isNull;
+    using SharedPtr::operator bool;
+    operator T*() const { return static_cast<T*>(this->obj()); }
+    operator T&() const { return *static_cast<T*>(this->obj()); }
+    T& operator* () const { return *static_cast<T*>(this->obj()); };
+    T* operator-> () const { return static_cast<T*>(this->obj()); };
+    T* ptr () const { return static_cast<T*>(this->obj()); };
+    T* detach() { return static_cast<T*>(SharedPtr::detach()); }
   };
 
 }
