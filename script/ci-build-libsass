@@ -92,6 +92,9 @@ else
 
   make $MAKE_OPTS clean
 
+  # Run C++ unit tests
+  make -C test clean
+  make -C test test
 fi
 
 # install to prefix directory
