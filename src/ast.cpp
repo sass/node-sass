@@ -1561,7 +1561,7 @@ namespace Sass {
   {
     if (String_Schema_Obj schema = Cast<String_Schema>(contents())) {
       if (schema->length() == 0) return false;
-      return Cast<Parent_Reference>(schema->at(0));
+      return Cast<Parent_Reference>(schema->at(0)) != nullptr;
     }
     return false;
   }

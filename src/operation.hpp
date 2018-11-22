@@ -200,7 +200,7 @@ namespace Sass {
     {
       std::string msg(typeid(*this).name());
       msg += ": CRTP not implemented for ";
-      throw std::runtime_error(msg + typeid(*x).name());
+      throw std::runtime_error(msg + typeid(x).name());
     }
 
   };
