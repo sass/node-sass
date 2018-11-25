@@ -1012,34 +1012,17 @@ namespace Sass {
 
   bool Compound_Selector::operator== (const Compound_Selector& rhs) const
   {
-    // for array access
-    size_t i = 0, n = 0;
-    size_t iL = length();
-    size_t nL = rhs.length();
-    // create temporary vectors and sort them
-    std::vector<Simple_Selector_Obj> l_lst = this->elements();
-    std::vector<Simple_Selector_Obj> r_lst = rhs.elements();
-    std::sort(l_lst.begin(), l_lst.end(), OrderNodes());
-    std::sort(r_lst.begin(), r_lst.end(), OrderNodes());
-    // process loop
-    while (true)
-    {
-      // first check for valid index
-      if (i == iL) return iL == nL;
-      else if (n == nL) return iL == nL;
-      // the access the vector items
-      Simple_Selector_Obj l = l_lst[i];
-      Simple_Selector_Obj r = r_lst[n];
-      // skip nulls
-      if (!l) ++i;
-      if (!r) ++n;
-      // do the check now
-      else if (*l != *r)
-      { return false; }
-      // advance now
-      ++i; ++n;
+    if (&rhs == this) return true;
+    if (rhs.length() != length()) return false;
+    std::unordered_set<const Simple_Selector *, HashPtr, ComparePtrs> lhs_set;
+    lhs_set.reserve(length());
+    for (const Simple_Selector_Obj &element : elements()) {
+      lhs_set.insert(element.ptr());
     }
-    // there is no break?!
+    for (const Simple_Selector_Obj &element : rhs.elements()) {
+      if (lhs_set.find(element.ptr()) == lhs_set.end()) return false;
+    }
+    return true;
   }
 
   bool Complex_Selector::is_superselector_of(Compound_Selector_Ptr_Const rhs, std::string wrapping) const
