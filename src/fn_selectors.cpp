@@ -140,11 +140,13 @@ namespace Sass {
 
             // TODO: Add check for namespace stuff
 
-            // append any selectors in childSeq's head
-            parentSeqClone->mutable_last()->head()->concat(base->head());
-
-            // Set parentSeqClone new tail
-            parentSeqClone->mutable_last()->tail( base->tail() );
+            Complex_Selector_Ptr lastComponent = parentSeqClone->mutable_last();
+            if (lastComponent->head() == nullptr) {
+              std::string msg = "Parent \"" + parentSeqClone->to_string() + "\" is incompatible with \"" + base->to_string() + "\"";
+              error(msg, pstate, traces);
+            }
+            lastComponent->head()->concat(base->head());
+            lastComponent->tail(base->tail());
 
             newElements.push_back(parentSeqClone);
           }
