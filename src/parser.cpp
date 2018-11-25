@@ -1918,7 +1918,7 @@ namespace Sass {
 
   String_Obj Parser::parse_ie_keyword_arg()
   {
-    String_Schema_Ptr kwd_arg = SASS_MEMORY_NEW(String_Schema, pstate, 3);
+    String_Schema_Obj kwd_arg = SASS_MEMORY_NEW(String_Schema, pstate, 3);
     if (lex< variable >()) {
       kwd_arg->append(SASS_MEMORY_NEW(Variable, pstate, Util::normalize_underscores(lexed)));
     } else {
