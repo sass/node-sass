@@ -121,13 +121,13 @@ namespace Sass {
         std::stringstream msg;
         msg << argname << ": null is not a valid selector: it must be a string,\n";
         msg << "a list of strings, or a list of lists of strings for `" << function_name(sig) << "'";
-        error(msg.str(), pstate, traces);
+        error(msg.str(), exp->pstate(), traces);
       }
       if (String_Constant_Ptr str = Cast<String_Constant>(exp)) {
         str->quote_mark(0);
       }
       std::string exp_src = exp->to_string(ctx.c_options);
-      return Parser::parse_selector(exp_src.c_str(), ctx, traces);
+      return Parser::parse_selector(exp_src.c_str(), ctx, traces, exp->pstate(), pstate.src);
     }
 
     Compound_Selector_Obj get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, Context& ctx) {
@@ -135,13 +135,13 @@ namespace Sass {
       if (exp->concrete_type() == Expression::NULL_VAL) {
         std::stringstream msg;
         msg << argname << ": null is not a string for `" << function_name(sig) << "'";
-        error(msg.str(), pstate, traces);
+        error(msg.str(), exp->pstate(), traces);
       }
       if (String_Constant_Ptr str = Cast<String_Constant>(exp)) {
         str->quote_mark(0);
       }
       std::string exp_src = exp->to_string(ctx.c_options);
-      Selector_List_Obj sel_list = Parser::parse_selector(exp_src.c_str(), ctx, traces);
+      Selector_List_Obj sel_list = Parser::parse_selector(exp_src.c_str(), ctx, traces, exp->pstate(), pstate.src);
       if (sel_list->length() == 0) return {};
       Complex_Selector_Obj first = sel_list->first();
       if (!first->tail()) return first->head();

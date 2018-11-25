@@ -83,7 +83,10 @@ namespace Sass {
           str->quote_mark(0);
         }
         std::string exp_src = exp->to_string();
-        Selector_List_Obj sel = Parser::parse_selector(exp_src.c_str(), ctx, traces);
+        Selector_List_Obj sel = Parser::parse_selector(exp_src.c_str(), ctx, traces,
+                                                       exp->pstate(), pstate.src,
+                                                       /*allow_parent=*/false);
+
         parsedSelectors.push_back(sel);
       }
 

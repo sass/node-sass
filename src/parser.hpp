@@ -48,23 +48,24 @@ namespace Sass {
     Backtraces traces;
     size_t indentation;
     size_t nestings;
+    bool allow_parent;
 
     Token lexed;
 
-    Parser(Context& ctx, const ParserState& pstate, Backtraces traces)
+    Parser(Context& ctx, const ParserState& pstate, Backtraces traces, bool allow_parent = true)
     : ParserState(pstate), ctx(ctx), block_stack(), stack(0), last_media_block(),
       source(0), position(0), end(0), before_token(pstate), after_token(pstate),
-      pstate(pstate), traces(traces), indentation(0), nestings(0)
+      pstate(pstate), traces(traces), indentation(0), nestings(0), allow_parent(allow_parent)
     {
       stack.push_back(Scope::Root);
     }
 
     // static Parser from_string(const std::string& src, Context& ctx, ParserState pstate = ParserState("[STRING]"));
-    static Parser from_c_str(const char* src, Context& ctx, Backtraces, ParserState pstate = ParserState("[CSTRING]"), const char* source = 0);
-    static Parser from_c_str(const char* beg, const char* end, Context& ctx, Backtraces, ParserState pstate = ParserState("[CSTRING]"), const char* source = 0);
-    static Parser from_token(Token t, Context& ctx, Backtraces, ParserState pstate = ParserState("[TOKEN]"), const char* source = 0);
+    static Parser from_c_str(const char* src, Context& ctx, Backtraces, ParserState pstate = ParserState("[CSTRING]"), const char* source = nullptr, bool allow_parent = true);
+    static Parser from_c_str(const char* beg, const char* end, Context& ctx, Backtraces, ParserState pstate = ParserState("[CSTRING]"), const char* source = nullptr, bool allow_parent = true);
+    static Parser from_token(Token t, Context& ctx, Backtraces, ParserState pstate = ParserState("[TOKEN]"), const char* source = nullptr);
     // special static parsers to convert strings into certain selectors
-    static Selector_List_Obj parse_selector(const char* src, Context& ctx, Backtraces, ParserState pstate = ParserState("[SELECTOR]"), const char* source = 0);
+    static Selector_List_Obj parse_selector(const char* src, Context& ctx, Backtraces, ParserState pstate = ParserState("[SELECTOR]"), const char* source = nullptr, bool allow_parent = true);
 
 #ifdef __clang__
 

@@ -30,11 +30,11 @@ namespace Sass {
   using namespace Constants;
   using namespace Prelexer;
 
-  Parser Parser::from_c_str(const char* beg, Context& ctx, Backtraces traces, ParserState pstate, const char* source)
+  Parser Parser::from_c_str(const char* beg, Context& ctx, Backtraces traces, ParserState pstate, const char* source, bool allow_parent)
   {
     pstate.offset.column = 0;
     pstate.offset.line = 0;
-    Parser p(ctx, pstate, traces);
+    Parser p(ctx, pstate, traces, allow_parent);
     p.source   = source ? source : beg;
     p.position = beg ? beg : p.source;
     p.end      = p.position + strlen(p.position);
@@ -44,11 +44,11 @@ namespace Sass {
     return p;
   }
 
-  Parser Parser::from_c_str(const char* beg, const char* end, Context& ctx, Backtraces traces, ParserState pstate, const char* source)
+  Parser Parser::from_c_str(const char* beg, const char* end, Context& ctx, Backtraces traces, ParserState pstate, const char* source, bool allow_parent)
   {
     pstate.offset.column = 0;
     pstate.offset.line = 0;
-    Parser p(ctx, pstate, traces);
+    Parser p(ctx, pstate, traces, allow_parent);
     p.source   = source ? source : beg;
     p.position = beg ? beg : p.source;
     p.end      = end ? end : p.position + strlen(p.position);
@@ -66,10 +66,9 @@ namespace Sass {
       pstate.offset.line = 0;
     }
 
-  Selector_List_Obj Parser::parse_selector(const char* beg, Context& ctx, Backtraces traces, ParserState pstate, const char* source)
+  Selector_List_Obj Parser::parse_selector(const char* beg, Context& ctx, Backtraces traces, ParserState pstate, const char* source, bool allow_parent)
   {
-    Parser p = Parser::from_c_str(beg, ctx, traces, pstate, source);
-    // ToDo: ruby sass errors on parent references
+    Parser p = Parser::from_c_str(beg, ctx, traces, pstate, source, allow_parent);
     // ToDo: remap the source-map entries somehow
     return p.parse_selector_list(false);
   }
@@ -818,6 +817,7 @@ namespace Sass {
       // parse parent selector
       else if (lex< exactly<'&'> >(false))
       {
+        if (!allow_parent) error("Parent selectors aren't allowed here.");
         // this produces a linefeed!?
         seq->has_parent_reference(true);
         seq->append(SASS_MEMORY_NEW(Parent_Selector, pstate));
