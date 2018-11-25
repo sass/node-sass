@@ -994,14 +994,16 @@ namespace Sass {
   class Mixin_Call final : public Has_Block {
     ADD_CONSTREF(std::string, name)
     ADD_PROPERTY(Arguments_Obj, arguments)
+    ADD_PROPERTY(Parameters_Obj, block_parameters)
   public:
-    Mixin_Call(ParserState pstate, std::string n, Arguments_Obj args, Block_Obj b = {})
-    : Has_Block(pstate, b), name_(n), arguments_(args)
+    Mixin_Call(ParserState pstate, std::string n, Arguments_Obj args, Parameters_Obj b_params = {}, Block_Obj b = {})
+    : Has_Block(pstate, b), name_(n), arguments_(args), block_parameters_(b_params)
     { }
     Mixin_Call(const Mixin_Call* ptr)
     : Has_Block(ptr),
       name_(ptr->name_),
-      arguments_(ptr->arguments_)
+      arguments_(ptr->arguments_),
+      block_parameters_(ptr->block_parameters_)
     { }
     ATTACH_AST_OPERATIONS(Mixin_Call)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -1011,15 +1013,15 @@ namespace Sass {
   // The @content directive for mixin content blocks.
   ///////////////////////////////////////////////////
   class Content final : public Statement {
-    ADD_PROPERTY(Media_Block_Ptr, media_block)
+    ADD_PROPERTY(Arguments_Obj, arguments)
   public:
-    Content(ParserState pstate)
+    Content(ParserState pstate, Arguments_Obj args)
     : Statement(pstate),
-      media_block_(NULL)
+      arguments_(args)
     { statement_type(CONTENT); }
     Content(const Content* ptr)
     : Statement(ptr),
-      media_block_(ptr->media_block_)
+      arguments_(ptr->arguments_)
     { statement_type(CONTENT); }
     ATTACH_AST_OPERATIONS(Content)
     ATTACH_CRTP_PERFORM_METHODS()

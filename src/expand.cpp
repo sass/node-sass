@@ -730,11 +730,13 @@ namespace Sass {
     Env new_env(def->environment());
     env_stack.push_back(&new_env);
     if (c->block()) {
+      Parameters_Obj params = c->block_parameters();
+      if (!params) params = SASS_MEMORY_NEW(Parameters, c->pstate());
       // represent mixin content blocks as thunks/closures
       Definition_Obj thunk = SASS_MEMORY_NEW(Definition,
                                           c->pstate(),
                                           "@content",
-                                          SASS_MEMORY_NEW(Parameters, c->pstate()),
+                                          params,
                                           c->block(),
                                           Definition::MIXIN);
       thunk->environment(env);
@@ -779,10 +781,13 @@ namespace Sass {
       selector_stack.push_back({});
     }
 
+    Arguments_Obj args = c->arguments();
+    if (!args) args = SASS_MEMORY_NEW(Arguments, c->pstate());
+
     Mixin_Call_Obj call = SASS_MEMORY_NEW(Mixin_Call,
                                        c->pstate(),
                                        "@content",
-                                       SASS_MEMORY_NEW(Arguments, c->pstate()));
+                                       args);
 
     Trace_Obj trace = Cast<Trace>(call->perform(this));
 

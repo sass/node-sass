@@ -25,6 +25,7 @@ namespace Sass {
     const char* kwd_gte(const char* src);
     const char* kwd_lt(const char* src);
     const char* kwd_lte(const char* src);
+    const char* kwd_using(const char* src);
 
     // Match standard control chars
     const char* kwd_at(const char* src);

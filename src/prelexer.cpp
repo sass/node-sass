@@ -1260,6 +1260,9 @@ namespace Sass {
     const char* kwd_lte(const char* src) {
       return exactly<lte>(src);
     }
+    const char* kwd_using(const char* src) {
+      return keyword<using_kwd>(src);
+    }
 
     // match specific IE syntax
     const char* ie_progid(const char* src) {

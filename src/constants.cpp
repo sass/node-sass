@@ -125,6 +125,9 @@ namespace Sass {
     extern const char true_kwd[]  = "true";
     extern const char false_kwd[] = "false";
 
+    // definition keywords
+    extern const char using_kwd[]   = "using";
+
     // miscellaneous punctuation and delimiters
     extern const char percent_str[]     = "%";
     extern const char empty_str[]       = "";

@@ -398,8 +398,8 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     Content_Ptr block = Cast<Content>(node);
     std::cerr << ind << "Content " << block;
     std::cerr << " (" << pstate_source_position(node) << ")";
-    std::cerr << " [@media:" << block->media_block() << "]";
     std::cerr << " " << block->tabs() << std::endl;
+    debug_ast(block->arguments(), ind + " args: ", env);
   } else if (Cast<Import_Stub>(node)) {
     Import_Stub_Ptr block = Cast<Import_Stub>(node);
     std::cerr << ind << "Import_Stub " << block;
@@ -480,7 +480,8 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     std::cerr << " (" << pstate_source_position(block) << ")";
     std::cerr << " [" <<  block->name() << "]";
     std::cerr << " [has_content: " << block->has_content() << "] " << std::endl;
-    debug_ast(block->arguments(), ind + " args: ");
+    debug_ast(block->arguments(), ind + " args: ", env);
+    debug_ast(block->block_parameters(), ind + " block_params: ", env);
     if (block->block()) debug_ast(block->block(), ind + " ", env);
   } else if (Ruleset_Ptr ruleset = Cast<Ruleset>(node)) {
     std::cerr << ind << "Ruleset " << ruleset;
@@ -605,12 +606,6 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
       " [hash: " << expression->hash() << "] " <<
       std::endl;
     for(const auto& i : expression->elements()) { debug_ast(i, ind + " ", env); }
-  } else if (Cast<Content>(node)) {
-    Content_Ptr expression = Cast<Content>(node);
-    std::cerr << ind << "Content " << expression;
-    std::cerr << " (" << pstate_source_position(node) << ")";
-    std::cerr << " [@media:" << expression->media_block() << "]";
-    std::cerr << " [Statement]" << std::endl;
   } else if (Cast<Boolean>(node)) {
     Boolean_Ptr expression = Cast<Boolean>(node);
     std::cerr << ind << "Boolean " << expression;
