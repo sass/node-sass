@@ -2,6 +2,7 @@
 #include <iostream>
 #include "output.hpp"
 #include "plugins.hpp"
+#include "util.hpp"
 
 #ifdef _WIN32
 #include <windows.h>

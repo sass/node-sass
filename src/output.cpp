@@ -1,6 +1,7 @@
 #include "sass.hpp"
 #include "ast.hpp"
 #include "output.hpp"
+#include "util.hpp"
 
 namespace Sass {
 

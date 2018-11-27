@@ -11,13 +11,6 @@
 namespace Sass {
   class Context;
 
-  // Refactor to make it generic to find linefeed (look behind)
-  inline bool ends_with(std::string const & value, std::string const & ending)
-  {
-    if (ending.size() > value.size()) return false;
-    return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
-  }
-
   class Output : public Inspect {
   protected:
     using Inspect::operator();

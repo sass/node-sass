@@ -3,20 +3,17 @@
 #include "ast.hpp"
 #include "fn_utils.hpp"
 #include "fn_colors.hpp"
+#include "util.hpp"
 
 namespace Sass {
 
   namespace Functions {
 
     bool special_number(String_Constant_Ptr s) {
-      if (s) {
-        static const char* const calc = "calc(";
-        static const char* const var = "var(";
-        const std::string& str = s->value();
-        return str.compare(0, strlen(calc), calc) == 0 ||
-               str.compare(0, strlen(var), var) == 0;
-      }
-      return false;
+      if (s == nullptr) return false;
+      const std::string& str = s->value();
+      return starts_with(str, "calc(") ||
+             starts_with(str, "var(");
     }
 
     Signature rgb_sig = "rgb($red, $green, $blue)";
