@@ -23,21 +23,20 @@ namespace Sass {
   {
     if (empty()) return rhs;
     Compound_Selector_Obj unified = SASS_MEMORY_COPY(rhs);
-    for (size_t i = 0, L = length(); i < L; ++i)
-    {
+    for (const Simple_Selector_Obj& sel : elements()) {
       if (unified.isNull()) break;
-      unified = at(i)->unify_with(unified);
+      unified = sel->unify_with(unified);
     }
     return unified.detach();
   }
 
   Compound_Selector_Ptr Simple_Selector::unify_with(Compound_Selector_Ptr rhs)
   {
-    const size_t rsize = rhs->length();
-    for (size_t i = 0; i < rsize; ++i)
-    { if (*this == *rhs->get(i)) return rhs; }
+    for (const Simple_Selector_Obj& sel : rhs->elements()) {
+      if (*this == *sel) return rhs;
+    }
     const int lhs_order = this->unification_order();
-    size_t i = rsize;
+    size_t i = rhs->length();
     while (i > 0 && lhs_order < rhs->at(i - 1)->unification_order()) --i;
     rhs->elements().insert(rhs->elements().begin() + i, this);
     return rhs;
@@ -128,10 +127,9 @@ namespace Sass {
 
   Compound_Selector_Ptr Id_Selector::unify_with(Compound_Selector_Ptr rhs)
   {
-    for (size_t i = 0, L = rhs->length(); i < L; ++i)
-    {
-      if (Id_Selector_Ptr sel = Cast<Id_Selector>(rhs->at(i))) {
-        if (sel->name() != name()) return 0;
+    for (const Simple_Selector_Obj& sel : rhs->elements()) {
+      if (Id_Selector_Ptr id_sel = Cast<Id_Selector>(sel)) {
+        if (id_sel->name() != name()) return nullptr;
       }
     }
     rhs->has_line_break(has_line_break());
@@ -140,12 +138,10 @@ namespace Sass {
 
   Compound_Selector_Ptr Pseudo_Selector::unify_with(Compound_Selector_Ptr rhs)
   {
-    if (is_pseudo_element())
-    {
-      for (size_t i = 0, L = rhs->length(); i < L; ++i)
-      {
-        if (Pseudo_Selector_Ptr sel = Cast<Pseudo_Selector>(rhs->at(i))) {
-          if (sel->is_pseudo_element() && sel->name() != name()) return 0;
+    if (is_pseudo_element()) {
+      for (const Simple_Selector_Obj& sel : rhs->elements()) {
+        if (Pseudo_Selector_Ptr pseudo_sel = Cast<Pseudo_Selector>(sel)) {
+          if (pseudo_sel->is_pseudo_element() && pseudo_sel->name() != name()) return nullptr;
         }
       }
     }
@@ -221,26 +217,22 @@ namespace Sass {
   }
 
   Selector_List_Ptr Selector_List::unify_with(Selector_List_Ptr rhs) {
-    std::vector<Complex_Selector_Obj> unified_complex_selectors;
+    std::vector<Complex_Selector_Obj> result;
     // Unify all of children with RHS's children, storing the results in `unified_complex_selectors`
-    for (size_t lhs_i = 0, lhs_L = length(); lhs_i < lhs_L; ++lhs_i) {
-      Complex_Selector_Obj seq1 = (*this)[lhs_i];
-      for(size_t rhs_i = 0, rhs_L = rhs->length(); rhs_i < rhs_L; ++rhs_i) {
-        Complex_Selector_Ptr seq2 = rhs->at(rhs_i);
-
-        Selector_List_Obj result = seq1->unify_with(seq2);
-        if( result ) {
-          for(size_t i = 0, L = result->length(); i < L; ++i) {
-            unified_complex_selectors.push_back( (*result)[i] );
-          }
+    for (Complex_Selector_Obj& seq1 : elements()) {
+      for (Complex_Selector_Obj& seq2 : rhs->elements()) {
+        Selector_List_Obj unified = seq1->unify_with(seq2);
+        if (unified) {
+          result.reserve(result.size() + unified->length());
+          std::copy(unified->begin(), unified->end(), std::back_inserter(result));
         }
       }
     }
 
     // Creates the final Selector_List by combining all the complex selectors
-    Selector_List_Ptr final_result = SASS_MEMORY_NEW(Selector_List, pstate());
-    for (auto itr = unified_complex_selectors.begin(); itr != unified_complex_selectors.end(); ++itr) {
-      final_result->append(*itr);
+    Selector_List_Ptr final_result = SASS_MEMORY_NEW(Selector_List, pstate(), result.size());
+    for (Complex_Selector_Obj& sel : result) {
+      final_result->append(sel);
     }
     return final_result;
   }
