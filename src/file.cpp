@@ -81,7 +81,10 @@ namespace Sass {
         wchar_t resolved[32768];
         // windows unicode filepaths are encoded in utf16
         std::string abspath(join_paths(get_cwd(), path));
-        std::wstring wpath(UTF_8::convert_to_utf16("\\\\?\\" + abspath));
+        if (!(abspath[0] == '/' && abspath[1] == '/')) {
+          abspath = "//?/" + abspath;
+        }
+        std::wstring wpath(UTF_8::convert_to_utf16(abspath));
         std::replace(wpath.begin(), wpath.end(), '/', '\\');
         DWORD rv = GetFullPathNameW(wpath.c_str(), 32767, resolved, NULL);
         if (rv > 32767) throw Exception::OperationError("Path is too long");
@@ -434,7 +437,10 @@ namespace Sass {
         wchar_t resolved[32768];
         // windows unicode filepaths are encoded in utf16
         std::string abspath(join_paths(get_cwd(), path));
-        std::wstring wpath(UTF_8::convert_to_utf16("\\\\?\\" + abspath));
+        if (!(abspath[0] == '/' && abspath[1] == '/')) {
+          abspath = "//?/" + abspath;
+        }
+        std::wstring wpath(UTF_8::convert_to_utf16(abspath));
         std::replace(wpath.begin(), wpath.end(), '/', '\\');
         DWORD rv = GetFullPathNameW(wpath.c_str(), 32767, resolved, NULL);
         if (rv > 32767) throw Exception::OperationError("Path is too long");
