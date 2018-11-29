@@ -1515,7 +1515,8 @@ namespace Sass {
 
 #ifdef __clang__
 
-#pragma clang diagnostic pop
+// #pragma clang diagnostic pop
+// #pragma clang diagnostic push
 
 #endif
 

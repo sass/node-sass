@@ -62,7 +62,7 @@ namespace Sass {
     : PreValue(ptr)
     { }
     ATTACH_VIRTUAL_AST_OPERATIONS(Value);
-    virtual bool operator== (const Expression& rhs) const = 0;
+    virtual bool operator== (const Expression& rhs) const override = 0;
   };
 
   ///////////////////////////////////////////////////////////////////////
@@ -70,7 +70,7 @@ namespace Sass {
   // type-tag.) Also used to represent variable-length argument lists.
   ///////////////////////////////////////////////////////////////////////
   class List : public Value, public Vectorized<Expression_Obj> {
-    void adjust_after_pushing(Expression_Obj e) { is_expanded(false); }
+    void adjust_after_pushing(Expression_Obj e) override { is_expanded(false); }
   private:
     ADD_PROPERTY(enum Sass_Separator, separator)
     ADD_PROPERTY(bool, is_arglist)
@@ -94,18 +94,18 @@ namespace Sass {
       is_bracketed_(ptr->is_bracketed_),
       from_selector_(ptr->from_selector_)
     { concrete_type(LIST); }
-    std::string type() const { return is_arglist_ ? "arglist" : "list"; }
+    std::string type() const override { return is_arglist_ ? "arglist" : "list"; }
     static std::string type_name() { return "list"; }
     const char* sep_string(bool compressed = false) const {
       return separator() == SASS_SPACE ?
         " " : (compressed ? "," : ", ");
     }
-    bool is_invisible() const { return empty() && !is_bracketed(); }
+    bool is_invisible() const override { return empty() && !is_bracketed(); }
     Expression_Obj value_at_index(size_t i);
 
     virtual size_t size() const;
 
-    virtual size_t hash()
+    virtual size_t hash() const override
     {
       if (hash_ == 0) {
         hash_ = std::hash<std::string>()(sep_string());
@@ -116,13 +116,13 @@ namespace Sass {
       return hash_;
     }
 
-    virtual void set_delayed(bool delayed)
+    virtual void set_delayed(bool delayed) override
     {
       is_delayed(delayed);
       // don't set children
     }
 
-    virtual bool operator== (const Expression& rhs) const;
+    virtual bool operator== (const Expression& rhs) const override;
 
     ATTACH_AST_OPERATIONS(List)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -132,7 +132,7 @@ namespace Sass {
   // Key value paris.
   ///////////////////////////////////////////////////////////////////////
   class Map : public Value, public Hashed {
-    void adjust_after_pushing(std::pair<Expression_Obj, Expression_Obj> p) { is_expanded(false); }
+    void adjust_after_pushing(std::pair<Expression_Obj, Expression_Obj> p) override { is_expanded(false); }
   public:
     Map(ParserState pstate,
          size_t size = 0)
@@ -143,12 +143,12 @@ namespace Sass {
     : Value(ptr),
       Hashed(*ptr)
     { concrete_type(MAP); }
-    std::string type() const { return "map"; }
+    std::string type() const override { return "map"; }
     static std::string type_name() { return "map"; }
-    bool is_invisible() const { return empty(); }
+    bool is_invisible() const override { return empty(); }
     List_Obj to_list(ParserState& pstate);
 
-    virtual size_t hash()
+    virtual size_t hash() const override
     {
       if (hash_ == 0) {
         for (auto key : keys()) {
@@ -160,7 +160,7 @@ namespace Sass {
       return hash_;
     }
 
-    virtual bool operator== (const Expression& rhs) const;
+    virtual bool operator== (const Expression& rhs) const override;
 
     ATTACH_AST_OPERATIONS(Map)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -177,7 +177,7 @@ namespace Sass {
     HASH_PROPERTY(Operand, op)
     HASH_PROPERTY(Expression_Obj, left)
     HASH_PROPERTY(Expression_Obj, right)
-    size_t hash_;
+    mutable size_t hash_;
   public:
     Binary_Expression(ParserState pstate,
                       Operand op, Expression_Obj lhs, Expression_Obj rhs)
@@ -196,20 +196,20 @@ namespace Sass {
     const std::string separator() {
       return sass_op_separator(optype());
     }
-    bool is_left_interpolant(void) const;
-    bool is_right_interpolant(void) const;
-    bool has_interpolant() const
+    bool is_left_interpolant(void) const override;
+    bool is_right_interpolant(void) const override;
+    bool has_interpolant() const override
     {
       return is_left_interpolant() ||
              is_right_interpolant();
     }
-    virtual void set_delayed(bool delayed)
+    virtual void set_delayed(bool delayed) override
     {
       right()->set_delayed(delayed);
       left()->set_delayed(delayed);
       is_delayed(delayed);
     }
-    virtual bool operator==(const Expression& rhs) const
+    virtual bool operator==(const Expression& rhs) const override
     {
       try
       {
@@ -225,7 +225,7 @@ namespace Sass {
       }
       catch (...) { throw; }
     }
-    virtual size_t hash()
+    virtual size_t hash() const override
     {
       if (hash_ == 0) {
         hash_ = std::hash<size_t>()(optype());
