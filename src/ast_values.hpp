@@ -79,7 +79,7 @@ namespace Sass {
 
     virtual size_t hash() const override;
     virtual size_t size() const;
-    virtual void set_delayed(bool delayed);
+    virtual void set_delayed(bool delayed) override;
     virtual bool operator== (const Expression& rhs) const override;
 
     ATTACH_AST_OPERATIONS(List)
@@ -131,7 +131,7 @@ namespace Sass {
 
     virtual bool operator==(const Expression& rhs) const override;
 
-    virtual size_t hash() const;
+    virtual size_t hash() const override;
     enum Sass_OP optype() const { return op_.operand; }
     ATTACH_AST_OPERATIONS(Binary_Expression)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -196,8 +196,8 @@ namespace Sass {
     ADD_CONSTREF(std::string, name)
   public:
     Variable(ParserState pstate, std::string n);
-    virtual bool operator==(const Expression& rhs) const;
-    virtual size_t hash();
+    virtual bool operator==(const Expression& rhs) const override;
+    virtual size_t hash() const override;
     ATTACH_AST_OPERATIONS(Variable)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -292,7 +292,7 @@ namespace Sass {
     Boolean(ParserState pstate, bool val);
     operator bool() override { return value_; }
 
-    std::string type() const { return "bool"; }
+    std::string type() const override { return "bool"; }
     static std::string type_name() { return "bool"; }
 
     size_t hash() const override;
@@ -343,7 +343,7 @@ namespace Sass {
     bool has_interpolants();
     void rtrim() override;
     size_t hash() const override;
-    virtual void set_delayed(bool delayed);
+    virtual void set_delayed(bool delayed) override;
 
     bool operator==(const Expression& rhs) const override;
     ATTACH_AST_OPERATIONS(String_Schema)

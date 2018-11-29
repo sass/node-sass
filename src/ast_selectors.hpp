@@ -134,8 +134,8 @@ namespace Sass {
     virtual ~Simple_Selector() = 0;
     virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr);
 
-    virtual bool has_parent_ref() const;
-    virtual bool has_real_parent_ref() const ;
+    virtual bool has_parent_ref() const override;
+    virtual bool has_real_parent_ref() const override;
     virtual bool is_pseudo_element() const;
     virtual bool is_superselector_of(Compound_Selector_Ptr_Const sub) const;
 
@@ -169,10 +169,10 @@ namespace Sass {
   public:
     Parent_Selector(ParserState pstate, bool r = true);
 
-    virtual bool has_parent_ref() const;
-    virtual bool has_real_parent_ref() const;
+    virtual bool has_parent_ref() const override;
+    virtual bool has_real_parent_ref() const override;
 
-    virtual unsigned long specificity() const;
+    virtual unsigned long specificity() const override;
     int unification_order() const override
     {
       throw std::runtime_error("unification_order for Parent_Selector is undefined");
@@ -200,10 +200,10 @@ namespace Sass {
       return Constants::UnificationOrder_Placeholder;
     }
     virtual ~Placeholder_Selector() {};
-    virtual unsigned long specificity() const;
-    virtual bool has_placeholder();
-    bool operator<(const Simple_Selector& rhs) const;
-    bool operator==(const Simple_Selector& rhs) const;
+    virtual unsigned long specificity() const override;
+    virtual bool has_placeholder() override;
+    bool operator<(const Simple_Selector& rhs) const override;
+    bool operator==(const Simple_Selector& rhs) const override;
     bool operator<(const Placeholder_Selector& rhs) const;
     bool operator==(const Placeholder_Selector& rhs) const;
     ATTACH_AST_OPERATIONS(Placeholder_Selector)
@@ -216,7 +216,7 @@ namespace Sass {
   class Type_Selector final : public Simple_Selector {
   public:
     Type_Selector(ParserState pstate, std::string n);
-    virtual unsigned long specificity() const;
+    virtual unsigned long specificity() const override;
     int unification_order() const override
     {
       return Constants::UnificationOrder_Element;
@@ -237,7 +237,7 @@ namespace Sass {
   class Class_Selector final : public Simple_Selector {
   public:
     Class_Selector(ParserState pstate, std::string n);
-    virtual unsigned long specificity() const;
+    virtual unsigned long specificity() const override;
     int unification_order() const override
     {
       return Constants::UnificationOrder_Class;
@@ -257,7 +257,7 @@ namespace Sass {
   class Id_Selector final : public Simple_Selector {
   public:
     Id_Selector(ParserState pstate, std::string n);
-    virtual unsigned long specificity() const;
+    virtual unsigned long specificity() const override;
     int unification_order() const override
     {
       return Constants::UnificationOrder_Id;
@@ -282,7 +282,7 @@ namespace Sass {
   public:
     Attribute_Selector(ParserState pstate, std::string n, std::string m, String_Obj v, char o = 0);
     size_t hash() const override;
-    virtual unsigned long specificity() const;
+    virtual unsigned long specificity() const override;
     int unification_order() const override
     {
       return Constants::UnificationOrder_Attribute;
@@ -315,9 +315,9 @@ namespace Sass {
     ADD_PROPERTY(String_Obj, expression)
   public:
     Pseudo_Selector(ParserState pstate, std::string n, String_Obj expr = {});
-    virtual bool is_pseudo_element() const;
+    virtual bool is_pseudo_element() const override;
     size_t hash() const override;
-    virtual unsigned long specificity() const;
+    virtual unsigned long specificity() const override;
     int unification_order() const override
     {
       if (is_pseudo_element())
@@ -478,8 +478,8 @@ namespace Sass {
     void set_innermost(Complex_Selector_Obj, Combinator);
 
     size_t hash() const override;
-    virtual unsigned long specificity() const;
-    virtual void set_media_block(Media_Block_Ptr mb);
+    virtual unsigned long specificity() const override;
+    virtual void set_media_block(Media_Block_Ptr mb) override;
     virtual bool has_placeholder();
     int unification_order() const override
     {
@@ -532,8 +532,8 @@ namespace Sass {
     Selector_List_Obj eval(Eval& eval);
 
     size_t hash() const override;
-    virtual unsigned long specificity() const;
-    virtual void set_media_block(Media_Block_Ptr mb);
+    virtual unsigned long specificity() const override;
+    virtual void set_media_block(Media_Block_Ptr mb) override;
     virtual bool has_placeholder();
     int unification_order() const override
     {

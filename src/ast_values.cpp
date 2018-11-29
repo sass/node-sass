@@ -361,7 +361,7 @@ namespace Sass {
     return false;
   }
 
-  size_t Variable::hash()
+  size_t Variable::hash() const
   {
     return std::hash<std::string>()(name());
   }

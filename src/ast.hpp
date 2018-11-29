@@ -495,7 +495,7 @@ namespace Sass {
     ADD_PROPERTY(bool, group_end)
   public:
     Bubble(ParserState pstate, Statement_Obj n, Statement_Obj g = {}, size_t t = 0);
-    bool bubbles();
+    bool bubbles() override;
     ATTACH_AST_OPERATIONS(Bubble)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -806,7 +806,7 @@ namespace Sass {
   public:
     Unary_Expression(ParserState pstate, Type t, Expression_Obj o);
     const std::string type_name();
-    virtual bool operator==(const Expression& rhs) const;
+    virtual bool operator==(const Expression& rhs) const override;
     size_t hash() const override;
     ATTACH_AST_OPERATIONS(Unary_Expression)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -898,7 +898,7 @@ namespace Sass {
     ADD_PROPERTY(At_Root_Query_Obj, expression)
   public:
     At_Root_Block(ParserState pstate, Block_Obj b = {}, At_Root_Query_Obj e = {});
-    bool bubbles();
+    bool bubbles() override;
     bool exclude_node(Statement_Obj s);
     ATTACH_AST_OPERATIONS(At_Root_Block)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -926,7 +926,7 @@ namespace Sass {
     ADD_PROPERTY(bool, has_optional_parameters)
     ADD_PROPERTY(bool, has_rest_parameter)
   protected:
-    void adjust_after_pushing(Parameter_Obj p);
+    void adjust_after_pushing(Parameter_Obj p) override;
   public:
     Parameters(ParserState pstate);
     ATTACH_AST_OPERATIONS(Parameters)
