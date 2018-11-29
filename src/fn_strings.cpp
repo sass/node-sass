@@ -69,7 +69,7 @@ namespace Sass {
         return qstr;
       }
       // all other nodes must be converted to a string node
-      std::string str(quote(arg->to_string(ctx.c_options), String_Constant::double_quote()));
+      std::string str(quote(arg->to_string(ctx.c_options), '"'));
       String_Quoted_Ptr result = SASS_MEMORY_NEW(String_Quoted, pstate, str);
       result->quote_mark('*');
       return result;

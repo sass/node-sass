@@ -126,7 +126,7 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
 //    if (selector->not_selector()) cerr << " [in_declaration]";
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " <" << selector->hash() << ">";
-    std::cerr << " [" << (selector->is_real_parent_ref() ? "REAL" : "FAKE") << "]";
+    std::cerr << " [" << (selector->real() ? "REAL" : "FAKE") << "]";
     std::cerr << " <" << prettyprint(selector->pstate().token.ws_before()) << ">" << std::endl;
 //    debug_ast(selector->selector(), ind + "->", env);
 
