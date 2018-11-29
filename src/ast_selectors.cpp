@@ -7,6 +7,7 @@
 #include "emitter.hpp"
 #include "color_maps.hpp"
 #include "ast_fwd_decl.hpp"
+#include "ast_selectors.hpp"
 #include <set>
 #include <iomanip>
 #include <iostream>
@@ -154,19 +155,17 @@ namespace Sass {
       return false;
     }
 
-    // would like to replace this without stringification
+    // replaced compare without stringification
     // https://github.com/sass/sass/issues/2229
-    // SimpleSelectorSet lset, rset;
-    std::set<std::string> lset, rset;
+    SelectorSet lset, rset;
 
     if (lbase && rbase)
     {
-      if (lbase->to_string() == rbase->to_string()) {
-        for (size_t i = 1, L = length(); i < L; ++i)
-        { lset.insert((*this)[i]->to_string()); }
-        for (size_t i = 1, L = rhs->length(); i < L; ++i)
-        { rset.insert((*rhs)[i]->to_string()); }
-        return includes(rset.begin(), rset.end(), lset.begin(), lset.end());
+      if (*lbase == *rbase) {
+        // create ordered sets for includes query
+        lset.insert(this->begin(), this->end());
+        rset.insert(rhs->begin(), rhs->end());
+        return std::includes(rset.begin(), rset.end(), lset.begin(), lset.end(), OrderSelectors);
       }
       return false;
     }
@@ -203,8 +202,7 @@ namespace Sass {
           }}
         }
       }
-      // match from here on as strings
-      lset.insert(wlhs->to_string());
+      lset.insert(wlhs);
     }
 
     for (size_t n = 0, nL = rhs->length(); n < nL; ++n)
@@ -227,15 +225,16 @@ namespace Sass {
           }
         }
       }
-      rset.insert(r->to_string());
+      rset.insert(r);
     }
 
     //for (auto l : lset) { cerr << "l: " << l << endl; }
     //for (auto r : rset) { cerr << "r: " << r << endl; }
 
     if (lset.empty()) return true;
+
     // return true if rset contains all the elements of lset
-    return includes(rset.begin(), rset.end(), lset.begin(), lset.end());
+    return std::includes(rset.begin(), rset.end(), lset.begin(), lset.end(), OrderSelectors);
 
   }
 
@@ -361,7 +360,7 @@ namespace Sass {
         Compound_Selector_Obj rh = last()->head();
         size_t i;
         size_t L = h->length();
-        if (Cast<Element_Selector>(h->first())) {
+        if (Cast<Type_Selector>(h->first())) {
           if (Class_Selector_Ptr cs = Cast<Class_Selector>(rh->last())) {
             Class_Selector_Ptr sqs = SASS_MEMORY_COPY(cs);
             sqs->name(sqs->name() + (*h)[0]->name());
@@ -376,8 +375,8 @@ namespace Sass {
             (*rh)[rh->length()-1] = sqs;
             rh->pstate(h->pstate());
             for (i = 1; i < L; ++i) rh->append((*h)[i]);
-          } else if (Element_Selector_Ptr ts = Cast<Element_Selector>(rh->last())) {
-            Element_Selector_Ptr tss = SASS_MEMORY_COPY(ts);
+          } else if (Type_Selector_Ptr ts = Cast<Type_Selector>(rh->last())) {
+            Type_Selector_Ptr tss = SASS_MEMORY_COPY(ts);
             tss->name(tss->name() + (*h)[0]->name());
             tss->pstate((*h)[0]->pstate());
             (*rh)[rh->length()-1] = tss;
@@ -899,7 +898,7 @@ namespace Sass {
   IMPLEMENT_AST_OPERATORS(Attribute_Selector);
   IMPLEMENT_AST_OPERATORS(Compound_Selector);
   IMPLEMENT_AST_OPERATORS(Complex_Selector);
-  IMPLEMENT_AST_OPERATORS(Element_Selector);
+  IMPLEMENT_AST_OPERATORS(Type_Selector);
   IMPLEMENT_AST_OPERATORS(Class_Selector);
   IMPLEMENT_AST_OPERATORS(Id_Selector);
   IMPLEMENT_AST_OPERATORS(Pseudo_Selector);

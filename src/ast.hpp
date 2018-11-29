@@ -131,7 +131,7 @@ namespace Sass {
   //////////////////////////////////////////////////////////////////////
   class Expression : public AST_Node {
   public:
-    enum Concrete_Type {
+    enum Type {
       NONE,
       BOOLEAN,
       NUMBER,
@@ -148,21 +148,15 @@ namespace Sass {
       VARIABLE,
       NUM_TYPES
     };
-    enum Simple_Type {
-      SIMPLE,
-      ATTR_SEL,
-      PSEUDO_SEL,
-      WRAPPED_SEL,
-    };
   private:
     // expressions in some contexts shouldn't be evaluated
     ADD_PROPERTY(bool, is_delayed)
     ADD_PROPERTY(bool, is_expanded)
     ADD_PROPERTY(bool, is_interpolant)
-    ADD_PROPERTY(Concrete_Type, concrete_type)
+    ADD_PROPERTY(Type, concrete_type)
   public:
     Expression(ParserState pstate,
-               bool d = false, bool e = false, bool i = false, Concrete_Type ct = NONE)
+               bool d = false, bool e = false, bool i = false, Type ct = NONE)
     : AST_Node(pstate),
       is_delayed_(d),
       is_expanded_(e),
@@ -183,7 +177,10 @@ namespace Sass {
     static std::string type_name() { return ""; }
     virtual bool is_false() { return false; }
     // virtual bool is_true() { return !is_false(); }
+    virtual bool operator< (const Expression& rhs) const { return false; }
     virtual bool operator== (const Expression& rhs) const { return false; }
+    inline bool operator>(const Expression& rhs) const { return rhs < *this; }
+    inline bool operator!=(const Expression& rhs) const { return !(rhs == *this); }
     virtual bool eq(const Expression& rhs) const { return *this == rhs; };
     virtual void set_delayed(bool delayed) { is_delayed(delayed); }
     virtual bool has_interpolant() const { return is_interpolant(); }
@@ -244,6 +241,7 @@ namespace Sass {
     T& operator[](size_t i) { return elements_[i]; }
     virtual const T& at(size_t i) const { return elements_.at(i); }
     virtual T& at(size_t i) { return elements_.at(i); }
+    const T& get(size_t i) const { return elements_[i]; }
     const T& operator[](size_t i) const { return elements_[i]; }
     virtual void append(T element)
     {
@@ -361,7 +359,7 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////
   class Statement : public AST_Node {
   public:
-    enum Statement_Type {
+    enum Type {
       NONE,
       RULESET,
       MEDIA,
@@ -387,11 +385,11 @@ namespace Sass {
       IF
     };
   private:
-    ADD_PROPERTY(Statement_Type, statement_type)
+    ADD_PROPERTY(Type, statement_type)
     ADD_PROPERTY(size_t, tabs)
     ADD_PROPERTY(bool, group_end)
   public:
-    Statement(ParserState pstate, Statement_Type st = NONE, size_t t = 0)
+    Statement(ParserState pstate, Type st = NONE, size_t t = 0)
     : AST_Node(pstate), statement_type_(st), tabs_(t), group_end_(false)
      { }
     Statement(const Statement* ptr)
