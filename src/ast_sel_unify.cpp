@@ -17,105 +17,136 @@
 
 #include "ast_selectors.hpp"
 
+// #define DEBUG_UNIFY
+
 namespace Sass {
 
   Compound_Selector_Ptr Compound_Selector::unify_with(Compound_Selector_Ptr rhs)
   {
+    #ifdef DEBUG_UNIFY
+    const std::string debug_call = "unify(Compound[" + this->to_string() + "], Compound[" + rhs->to_string() + "])";
+    std::cerr << debug_call << std::endl;
+    #endif
+
     if (empty()) return rhs;
     Compound_Selector_Obj unified = SASS_MEMORY_COPY(rhs);
     for (const Simple_Selector_Obj& sel : elements()) {
-      if (unified.isNull()) break;
       unified = sel->unify_with(unified);
+      if (unified.isNull()) break;
     }
+
+    #ifdef DEBUG_UNIFY
+    std::cerr << "> " << debug_call << " = Compound[" << unified->to_string() << "]" << std::endl;
+    #endif
     return unified.detach();
   }
 
   Compound_Selector_Ptr Simple_Selector::unify_with(Compound_Selector_Ptr rhs)
   {
+    #ifdef DEBUG_UNIFY
+    const std::string debug_call = "unify(Simple[" + this->to_string() + "], Compound[" + rhs->to_string() + "])";
+    std::cerr << debug_call << std::endl;
+    #endif
+
+    if (rhs->length() == 1) {
+      if (rhs->at(0)->is_universal()) {
+        Compound_Selector_Ptr this_compound = SASS_MEMORY_NEW(Compound_Selector, pstate(), 1);
+        this_compound->append(SASS_MEMORY_COPY(this));
+        Compound_Selector_Ptr unified = rhs->at(0)->unify_with(this_compound);
+        if (unified == nullptr || unified != this_compound) delete this_compound;
+
+        #ifdef DEBUG_UNIFY
+        std::cerr << "> " << debug_call << " = " << "Compound[" << unified->to_string() << "]" << std::endl;
+        #endif
+        return unified;
+      }
+    }
     for (const Simple_Selector_Obj& sel : rhs->elements()) {
-      if (*this == *sel) return rhs;
+      if (*this == *sel) {
+        #ifdef DEBUG_UNIFY
+        std::cerr << "> " << debug_call << " = " << "Compound[" << rhs->to_string() << "]" << std::endl;
+        #endif
+        return rhs;
+      }
     }
     const int lhs_order = this->unification_order();
     size_t i = rhs->length();
     while (i > 0 && lhs_order < rhs->at(i - 1)->unification_order()) --i;
-    rhs->elements().insert(rhs->elements().begin() + i, this);
+    rhs->insert(rhs->begin() + i, this);
+    #ifdef DEBUG_UNIFY
+    std::cerr << "> " << debug_call << " = " << "Compound[" << rhs->to_string() << "]" << std::endl;
+    #endif
     return rhs;
   }
 
   Simple_Selector_Ptr Type_Selector::unify_with(Simple_Selector_Ptr rhs)
   {
-    // check if ns can be extended
-    // true for no ns or universal
-    if (has_universal_ns())
-    {
-      // but dont extend with universal
-      // true for valid ns and universal
-      if (!rhs->is_universal_ns())
-      {
-        // overwrite the name if star is given as name
-        if (this->name() == "*") { this->name(rhs->name()); }
-        // now overwrite the namespace name and flag
-        this->ns(rhs->ns()); this->has_ns(rhs->has_ns());
-        // return copy
-        return this;
+    #ifdef DEBUG_UNIFY
+    const std::string debug_call = "unify(Type[" + this->to_string() + "], Simple[" + rhs->to_string() + "])";
+    std::cerr << debug_call << std::endl;
+    #endif
+
+    bool rhs_ns = false;
+    if (!(is_ns_eq(*rhs) || rhs->is_universal_ns())) {
+      if (!is_universal_ns()) {
+        #ifdef DEBUG_UNIFY
+        std::cerr << "> " << debug_call << " = nullptr" << std::endl;
+        #endif
+        return nullptr;
       }
+      rhs_ns = true;
     }
-    // namespace may changed, check the name now
-    // overwrite star (but not with another star)
-    if (name() == "*" && rhs->name() != "*")
-    {
-      // simply set the new name
-      this->name(rhs->name());
-      // return copy
-      return this;
+    bool rhs_name = false;
+    if (!(name_ == rhs->name() || rhs->is_universal())) {
+      if (!(is_universal())) {
+        #ifdef DEBUG_UNIFY
+        std::cerr << "> " << debug_call << " = nullptr" << std::endl;
+        #endif
+        return nullptr;
+      }
+      rhs_name = true;
     }
-    // return original
+    if (rhs_ns) {
+      ns(rhs->ns());
+      has_ns(rhs->has_ns());
+    }
+    if (rhs_name) name(rhs->name());
+    #ifdef DEBUG_UNIFY
+    std::cerr << "> " << debug_call << " = Simple[" << this->to_string() << "]" << std::endl;
+    #endif
     return this;
   }
 
   Compound_Selector_Ptr Type_Selector::unify_with(Compound_Selector_Ptr rhs)
   {
-    // TODO: handle namespaces
+    #ifdef DEBUG_UNIFY
+    const std::string debug_call = "unify(Type[" + this->to_string() + "], Compound[" + rhs->to_string() + "])";
+    std::cerr << debug_call << std::endl;
+    #endif
 
-    // if the rhs is empty, just return a copy of this
-    if (rhs->length() == 0) {
+    if (rhs->empty()) {
       rhs->append(this);
+      #ifdef DEBUG_UNIFY
+      std::cerr << "> " << debug_call << " = Compound[" << rhs->to_string() << "]" << std::endl;
+      #endif
       return rhs;
     }
-
-    Simple_Selector_Ptr rhs_0 = rhs->at(0);
-    // otherwise, this is a tag name
-    if (name() == "*")
-    {
-      if (typeid(*rhs_0) == typeid(Type_Selector))
-      {
-        // if rhs is universal, just return this tagname + rhs's qualifiers
-        Type_Selector_Ptr ts = Cast<Type_Selector>(rhs_0);
-        rhs->at(0) = this->unify_with(ts);
-        return rhs;
+    Type_Selector_Ptr rhs_0 = Cast<Type_Selector>(rhs->at(0));
+    if (rhs_0 != nullptr) {
+      Simple_Selector_Ptr unified = unify_with(rhs_0);
+      if (unified == nullptr) {
+        #ifdef DEBUG_UNIFY
+        std::cerr << "> " << debug_call << " = nullptr" << std::endl;
+        #endif
+        return nullptr;
       }
-      else if (Cast<Class_Selector>(rhs_0) || Cast<Id_Selector>(rhs_0)) {
-        // qualifier is `.class`, so we can prefix with `ns|*.class`
-        if (has_ns() && !rhs_0->has_ns()) {
-          if (ns() != "*") rhs->elements().insert(rhs->begin(), this);
-        }
-        return rhs;
-      }
-
-      return rhs;
+      rhs->elements()[0] = unified;
+    } else if (!is_universal() || (has_ns_ && ns_ != "*")) {
+      rhs->insert(rhs->begin(), this);
     }
-
-    if (typeid(*rhs_0) == typeid(Type_Selector))
-    {
-      // if rhs is universal, just return this tagname + rhs's qualifiers
-      if (rhs_0->name() != "*" && rhs_0->ns() != "*" && rhs_0->name() != name()) return 0;
-      // otherwise create new compound and unify first simple selector
-      rhs->at(0) = this->unify_with(rhs_0);
-      return rhs;
-
-    }
-    // else it's a tag name and a bunch of qualifiers -- just append them
-    if (name() != "*") rhs->elements().insert(rhs->begin(), this);
+    #ifdef DEBUG_UNIFY
+    std::cerr << "> " << debug_call << " = Compound[" << rhs->to_string() << "]" << std::endl;
+    #endif
     return rhs;
   }
 
@@ -148,12 +179,16 @@ namespace Sass {
     return Simple_Selector::unify_with(rhs);
   }
 
-  Selector_List_Ptr Complex_Selector::unify_with(Complex_Selector_Ptr other)
+  Selector_List_Ptr Complex_Selector::unify_with(Complex_Selector_Ptr rhs)
   {
+    #ifdef DEBUG_UNIFY
+    const std::string debug_call = "unify(Complex[" + this->to_string() + "], Complex[" + rhs->to_string() + "])";
+    std::cerr << debug_call << std::endl;
+    #endif
 
     // get last tails (on the right side)
-    Complex_Selector_Obj l_last = this->mutable_last();
-    Complex_Selector_Obj r_last = other->mutable_last();
+    Complex_Selector_Ptr l_last = this->mutable_last();
+    Complex_Selector_Ptr r_last = rhs->mutable_last();
 
     // check valid pointers (assertion)
     SASS_ASSERT(l_last, "lhs is null");
@@ -162,12 +197,12 @@ namespace Sass {
     // Not sure about this check, but closest way I could check
     // was to see if this is a ruby 'SimpleSequence' equivalent.
     // It seems to do the job correctly as some specs react to this
-    if (l_last->combinator() != Combinator::ANCESTOR_OF) return 0;
-    if (r_last->combinator() != Combinator::ANCESTOR_OF ) return 0;
+    if (l_last->combinator() != Combinator::ANCESTOR_OF) return nullptr;
+    if (r_last->combinator() != Combinator::ANCESTOR_OF) return nullptr;
 
     // get the headers for the last tails
-    Compound_Selector_Obj l_last_head = l_last->head();
-    Compound_Selector_Obj r_last_head = r_last->head();
+    Compound_Selector_Ptr l_last_head = l_last->head();
+    Compound_Selector_Ptr r_last_head = r_last->head();
 
     // check valid head pointers (assertion)
     SASS_ASSERT(l_last_head, "lhs head is null");
@@ -177,51 +212,53 @@ namespace Sass {
     Compound_Selector_Obj unified = r_last_head->unify_with(l_last_head);
 
     // abort if we could not unify heads
-    if (unified == 0) return 0;
+    if (unified == nullptr) return nullptr;
 
-    // check for universal (star: `*`) selector
-    bool is_universal = l_last_head->is_universal() ||
-                        r_last_head->is_universal();
+    // move the head
+    if (l_last_head->is_universal()) l_last->head({});
+    r_last->head(unified);
 
-    if (is_universal)
-    {
-      // move the head
-      l_last->head({});
-      r_last->head(unified);
-    }
+    #ifdef DEBUG_UNIFY
+    std::cerr << "> " << debug_call << " before weave: lhs=" << this->to_string() << " rhs=" << rhs->to_string() << std::endl;
+    #endif
 
     // create nodes from both selectors
     Node lhsNode = complexSelectorToNode(this);
-    Node rhsNode = complexSelectorToNode(other);
+    Node rhsNode = complexSelectorToNode(rhs);
 
-    // overwrite universal base
-    if (!is_universal)
-    {
-      // create some temporaries to convert to node
-      Complex_Selector_Obj fake = unified->to_complex();
-      Node unified_node = complexSelectorToNode(fake);
-      // add to permutate the list?
-      rhsNode.plus(unified_node);
-    }
+    // Complex_Selector_Obj fake = unified->to_complex();
+    // Node unified_node = complexSelectorToNode(fake);
+    // // add to permutate the list?
+    // rhsNode.plus(unified_node);
 
     // do some magic we inherit from node and extend
     Node node = subweave(lhsNode, rhsNode);
-    Selector_List_Obj result = SASS_MEMORY_NEW(Selector_List, pstate());
-    NodeDequePtr col = node.collection(); // move from collection to list
-    for (NodeDeque::iterator it = col->begin(), end = col->end(); it != end; it++)
-    { result->append(nodeToComplexSelector(Node::naiveTrim(*it))); }
+    Selector_List_Obj result = SASS_MEMORY_NEW(Selector_List, pstate(), node.collection()->size());
+    for (auto &item : *node.collection()) {
+      result->append(nodeToComplexSelector(Node::naiveTrim(item)));
+    }
+
+    #ifdef DEBUG_UNIFY
+    std::cerr << "> " << debug_call << " = " << result->to_string() << std::endl;
+    #endif
 
     // only return if list has some entries
-    return result->length() ? result.detach() : 0;
-
+    return result->length() ? result.detach() : nullptr;
   }
 
   Selector_List_Ptr Selector_List::unify_with(Selector_List_Ptr rhs) {
+    #ifdef DEBUG_UNIFY
+    const std::string debug_call = "unify(List[" + this->to_string() + "], List[" + rhs->to_string() + "])";
+    std::cerr << debug_call << std::endl;
+    #endif
+
     std::vector<Complex_Selector_Obj> result;
     // Unify all of children with RHS's children, storing the results in `unified_complex_selectors`
     for (Complex_Selector_Obj& seq1 : elements()) {
       for (Complex_Selector_Obj& seq2 : rhs->elements()) {
-        Selector_List_Obj unified = seq1->unify_with(seq2);
+        Complex_Selector_Obj seq1_copy = SASS_MEMORY_CLONE(seq1);
+        Complex_Selector_Obj seq2_copy = SASS_MEMORY_CLONE(seq2);
+        Selector_List_Obj unified = seq1_copy->unify_with(seq2_copy);
         if (unified) {
           result.reserve(result.size() + unified->length());
           std::copy(unified->begin(), unified->end(), std::back_inserter(result));
@@ -234,6 +271,9 @@ namespace Sass {
     for (Complex_Selector_Obj& sel : result) {
       final_result->append(sel);
     }
+    #ifdef DEBUG_UNIFY
+    std::cerr << "> " << debug_call << " = " << final_result->to_string() << std::endl;
+    #endif
     return final_result;
   }
 

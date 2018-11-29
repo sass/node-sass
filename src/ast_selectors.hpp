@@ -109,10 +109,10 @@ namespace Sass {
       PLACEHOLDER_SEL,
     };
   public:
-    ADD_CONSTREF(std::string, ns)
-    ADD_CONSTREF(std::string, name)
+    HASH_CONSTREF(std::string, ns)
+    HASH_CONSTREF(std::string, name)
     ADD_PROPERTY(Simple_Type, simple_type)
-    ADD_PROPERTY(bool, has_ns)
+    HASH_PROPERTY(bool, has_ns)
   public:
     Simple_Selector(ParserState pstate, std::string n = "");
     Simple_Selector(const Simple_Selector* ptr);
@@ -123,7 +123,6 @@ namespace Sass {
     bool is_ns_eq(const Simple_Selector& r) const;
     // namespace query functions
     bool is_universal_ns() const;
-    bool has_universal_ns() const;
     bool is_empty_ns() const;
     bool has_empty_ns() const;
     bool has_qualified_ns() const;

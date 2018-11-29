@@ -35,6 +35,15 @@ namespace Sass {
 
   bool peek_linefeed(const char* start);
 
+  // Returns true iff `elements` ⊆ `container`.
+  template <typename C, typename T>
+  bool contains_all(C container, T elements) {
+    for (const auto &el : elements) {
+      if (container.find(el) == container.end()) return false;
+    }
+    return true;
+  }
+
   // C++20 `starts_with` equivalent.
   // See https://en.cppreference.com/w/cpp/string/basic_string/starts_with
   inline bool starts_with(const std::string& str, const char* prefix, size_t prefix_len) {

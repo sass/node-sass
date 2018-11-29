@@ -648,7 +648,7 @@ namespace Sass {
     // parse mandatory arguments
     call->arguments(parse_arguments());
     // parse using and optional block parameters
-    bool has_parameters = lex< kwd_using >();
+    bool has_parameters = lex< kwd_using >() != nullptr;
 
     if (has_parameters) {
       if (!peek< exactly<'('> >()) css_error("Invalid CSS", " after ", ": expected \"(\", was ");

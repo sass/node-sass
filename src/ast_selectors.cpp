@@ -8,6 +8,7 @@
 #include "color_maps.hpp"
 #include "ast_fwd_decl.hpp"
 #include "ast_selectors.hpp"
+#include <array>
 #include <set>
 #include <iomanip>
 #include <iostream>
@@ -135,8 +136,8 @@ namespace Sass {
     if (hash_ == 0) {
       hash_combine(hash_, std::hash<int>()(SELECTOR));
       hash_combine(hash_, std::hash<int>()(simple_type()));
-      hash_combine(hash_, std::hash<std::string>()(ns()));
-      hash_combine(hash_, std::hash<std::string>()(name()));
+      if (!name_.empty()) hash_combine(hash_, std::hash<std::string>()(name()));
+      if (has_ns_) hash_combine(hash_, std::hash<std::string>()(ns()));
     }
     return hash_;
   }
@@ -148,27 +149,13 @@ namespace Sass {
   // namespace compare functions
   bool Simple_Selector::is_ns_eq(const Simple_Selector& r) const
   {
-    // https://github.com/sass/sass/issues/2229
-    if ((has_ns_ == r.has_ns_) ||
-        (has_ns_ && ns_.empty()) ||
-        (r.has_ns_ && r.ns_.empty())
-    ) {
-      if (ns_.empty() && r.ns() == "*") return false;
-      else if (r.ns().empty() && ns() == "*") return false;
-      else return ns() == r.ns();
-    }
-    return false;
+    return has_ns_ == r.has_ns_ && ns_ == r.ns_;
   }
 
   // namespace query functions
   bool Simple_Selector::is_universal_ns() const
   {
     return has_ns_ && ns_ == "*";
-  }
-
-  bool Simple_Selector::has_universal_ns() const
-  {
-    return !has_ns_ || ns_ == "*";
   }
 
   bool Simple_Selector::is_empty_ns() const
@@ -284,7 +271,7 @@ namespace Sass {
   Class_Selector::Class_Selector(const Class_Selector* ptr)
   : Simple_Selector(ptr)
   { simple_type(CLASS_SEL); }
-  
+
   unsigned long Class_Selector::specificity() const
   {
     return Constants::Specificity_Class;
@@ -299,7 +286,7 @@ namespace Sass {
   Id_Selector::Id_Selector(const Id_Selector* ptr)
   : Simple_Selector(ptr)
   { simple_type(ID_SEL); }
-  
+
   unsigned long Id_Selector::specificity() const
   {
     return Constants::Specificity_ID;
@@ -511,53 +498,38 @@ namespace Sass {
 
   bool Compound_Selector::is_superselector_of(Compound_Selector_Ptr_Const rhs, std::string wrapping) const
   {
-    Compound_Selector_Ptr_Const lhs = this;
-    Simple_Selector_Ptr lbase = lhs->base();
-    Simple_Selector_Ptr rbase = rhs->base();
-
     // Check if pseudo-elements are the same between the selectors
-
-    std::set<std::string> lpsuedoset, rpsuedoset;
-    for (size_t i = 0, L = length(); i < L; ++i)
     {
-      if ((*this)[i]->is_pseudo_element()) {
-        std::string pseudo((*this)[i]->to_string());
-        pseudo = pseudo.substr(pseudo.find_first_not_of(":")); // strip off colons to ensure :after matches ::after since ruby sass is forgiving
-        lpsuedoset.insert(pseudo);
+      std::array<std::set<std::string>, 2> pseudosets;
+      std::array<Compound_Selector_Ptr_Const, 2> compounds = {{this, rhs}};
+      for (int i = 0; i < 2; ++i) {
+        for (const Simple_Selector_Obj& el : compounds[i]->elements()) {
+          if (el->is_pseudo_element()) {
+            std::string pseudo(el->to_string());
+            // strip off colons to ensure :after matches ::after since ruby sass is forgiving
+            pseudosets[i].insert(pseudo.substr(pseudo.find_first_not_of(":")));
+          }
+        }
+      }
+      if (pseudosets[0] != pseudosets[1]) return false;
+    }
+
+    {
+      Simple_Selector_Ptr_Const lbase = this->base();
+      Simple_Selector_Ptr_Const rbase = rhs->base();
+      if (lbase && rbase) {
+        return *lbase == *rbase &&
+               contains_all(std::unordered_set<Simple_Selector_Ptr_Const, HashPtr, ComparePtrs>(rhs->begin(), rhs->end()),
+                            std::unordered_set<Simple_Selector_Ptr_Const, HashPtr, ComparePtrs>(this->begin(), this->end()));
       }
     }
-    for (size_t i = 0, L = rhs->length(); i < L; ++i)
-    {
-      if ((*rhs)[i]->is_pseudo_element()) {
-        std::string pseudo((*rhs)[i]->to_string());
-        pseudo = pseudo.substr(pseudo.find_first_not_of(":")); // strip off colons to ensure :after matches ::after since ruby sass is forgiving
-        rpsuedoset.insert(pseudo);
-      }
-    }
-    if (lpsuedoset != rpsuedoset) {
-      return false;
-    }
 
-    // replaced compare without stringification
-    // https://github.com/sass/sass/issues/2229
-    SelectorSet lset, rset;
-
-    if (lbase && rbase)
-    {
-      if (*lbase == *rbase) {
-        // create ordered sets for includes query
-        lset.insert(this->begin(), this->end());
-        rset.insert(rhs->begin(), rhs->end());
-        return std::includes(rset.begin(), rset.end(), lset.begin(), lset.end(), OrderSelectors);
-      }
-      return false;
-    }
-
+    std::unordered_set<Selector_Ptr_Const, HashPtr, ComparePtrs> lset;
     for (size_t i = 0, iL = length(); i < iL; ++i)
     {
-      Selector_Obj wlhs = (*this)[i];
+      Selector_Ptr_Const wlhs = (*this)[i].ptr();
       // very special case for wrapped matches selector
-      if (Wrapped_Selector_Obj wrapped = Cast<Wrapped_Selector>(wlhs)) {
+      if (Wrapped_Selector_Ptr_Const wrapped = Cast<Wrapped_Selector>(wlhs)) {
         if (wrapped->name() == ":not") {
           if (Selector_List_Obj not_list = Cast<Selector_List>(wrapped->selector())) {
             if (not_list->is_superselector_of(rhs, wrapped->name())) return false;
@@ -576,7 +548,7 @@ namespace Sass {
             }
           }
         }
-        Simple_Selector_Ptr rhs_sel = NULL;
+        Simple_Selector_Ptr rhs_sel = nullptr;
         if (rhs->elements().size() > i) rhs_sel = (*rhs)[i];
         if (Wrapped_Selector_Ptr wrapped_r = Cast<Wrapped_Selector>(rhs_sel)) {
           if (wrapped->name() == wrapped_r->name()) {
@@ -588,6 +560,9 @@ namespace Sass {
       lset.insert(wlhs);
     }
 
+    if (lset.empty()) return true;
+
+    std::unordered_set<Selector_Ptr_Const, HashPtr, ComparePtrs> rset;
     for (size_t n = 0, nL = rhs->length(); n < nL; ++n)
     {
       Selector_Obj r = (*rhs)[n];
@@ -611,14 +586,7 @@ namespace Sass {
       rset.insert(r);
     }
 
-    //for (auto l : lset) { cerr << "l: " << l << endl; }
-    //for (auto r : rset) { cerr << "r: " << r << endl; }
-
-    if (lset.empty()) return true;
-
-    // return true if rset contains all the elements of lset
-    return std::includes(rset.begin(), rset.end(), lset.begin(), lset.end(), OrderSelectors);
-
+    return contains_all(rset, lset);
   }
 
   bool Compound_Selector::is_universal() const
@@ -761,10 +729,13 @@ namespace Sass {
   size_t Complex_Selector::hash() const
   {
     if (hash_ == 0) {
-      hash_combine(hash_, std::hash<int>()(SELECTOR));
-      hash_combine(hash_, std::hash<int>()(combinator_));
-      if (head_) hash_combine(hash_, head_->hash());
+      if (head_) {
+        hash_combine(hash_, head_->hash());
+      } else {
+        hash_combine(hash_, std::hash<int>()(SELECTOR));
+      }
       if (tail_) hash_combine(hash_, tail_->hash());
+      if (combinator_ != ANCESTOR_OF) hash_combine(hash_, std::hash<int>()(combinator_));
     }
     return hash_;
   }
@@ -1445,8 +1416,11 @@ namespace Sass {
   size_t Selector_List::hash() const
   {
     if (Selector::hash_ == 0) {
-      hash_combine(Selector::hash_, std::hash<int>()(SELECTOR));
-      hash_combine(Selector::hash_, Vectorized::hash());
+      if (empty()) {
+        hash_combine(Selector::hash_, std::hash<int>()(SELECTOR));
+      } else {
+        hash_combine(Selector::hash_, Vectorized::hash());
+      }
     }
     return Selector::hash_;
   }

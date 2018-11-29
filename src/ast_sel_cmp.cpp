@@ -467,10 +467,7 @@ namespace Sass {
 
   bool Simple_Selector::operator== (const Selector_List& rhs) const
   {
-    size_t len = rhs.length();
-    if (len > 1) return false;
-    if (len == 0) return empty();
-    return *this == *rhs.at(0);
+    return rhs.length() == 1 && *this == *rhs.at(0);
   }
 
   bool Simple_Selector::operator< (const Selector_List& rhs) const
@@ -483,9 +480,9 @@ namespace Sass {
 
   bool Simple_Selector::operator== (const Complex_Selector& rhs) const
   {
-    if (rhs.tail()) return false;
-    if (!rhs.head()) return empty();
-    return *this == *rhs.head();
+    return !rhs.tail() && rhs.head() &&
+           rhs.combinator() == Complex_Selector::ANCESTOR_OF &&
+           *this == *rhs.head();
   }
 
   bool Simple_Selector::operator< (const Complex_Selector& rhs) const
@@ -497,10 +494,7 @@ namespace Sass {
 
   bool Simple_Selector::operator== (const Compound_Selector& rhs) const
   {
-    size_t len = rhs.length();
-    if (len > 1) return false;
-    if (len == 0) return empty();
-    return *this == *rhs.at(0);
+    return rhs.length() == 1 && *this == *rhs.at(0);
   }
 
   bool Simple_Selector::operator< (const Compound_Selector& rhs) const
@@ -832,15 +826,11 @@ namespace Sass {
 
   bool Type_Selector::operator< (const Type_Selector& rhs) const
   {
-    if (is_ns_eq(rhs))
-    { 
-      if (rhs.has_ns_ && has_ns_)
-        return name() < rhs.name();
-      if (!rhs.has_ns_ && !has_ns_)
-        return name() < rhs.name();
-      return true;
-    }
-    return ns() < rhs.ns();
+    return has_ns_ == rhs.has_ns_
+      ? (ns_ == rhs.ns_
+         ? name_ < rhs.name_
+         : ns_ < rhs.ns_)
+      : has_ns_ < rhs.has_ns_;
   }
 
   bool Class_Selector::operator< (const Class_Selector& rhs) const

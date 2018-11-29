@@ -1,6 +1,7 @@
 #ifndef SASS_BASE_H
 #define SASS_BASE_H
 
+// #define DEBUG
 // #define DEBUG_SHARED_PTR
 
 #ifdef _MSC_VER

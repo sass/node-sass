@@ -319,6 +319,12 @@ namespace Sass {
       return hash_;
     }
 
+    template <typename P, typename V>
+    typename std::vector<T>::iterator insert(P position, const V& val) {
+      reset_hash();
+      return elements_.insert(position, val);
+    }
+
     typename std::vector<T>::iterator end() { return elements_.end(); }
     typename std::vector<T>::iterator begin() { return elements_.begin(); }
     typename std::vector<T>::const_iterator end() const { return elements_.end(); }
