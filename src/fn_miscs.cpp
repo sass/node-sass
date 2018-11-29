@@ -2,7 +2,6 @@
 #include "expand.hpp"
 #include "fn_utils.hpp"
 #include "fn_miscs.hpp"
-#include "debugger.hpp"
 
 namespace Sass {
 
@@ -169,7 +168,6 @@ namespace Sass {
       bool is_true = !cond->is_false();
       Expression_Obj res = ARG(is_true ? "$if-true" : "$if-false", Expression);
       Value_Obj qwe = Cast<Value>(res->perform(&expand.eval));
-      // if (qwe == 0) debug_ast(res);
       // res = res->perform(&expand.eval.val_eval);
       qwe->set_delayed(false); // clone?
       return qwe.detach();
