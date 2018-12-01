@@ -1,6 +1,12 @@
 # node-sass
 
-#### Supported Node.js versions vary by release, please consult the [releases page](https://github.com/sass/node-sass/releases)
+#### Supported Node.js versions vary by release, please consult the [releases page](https://github.com/sass/node-sass/releases). Below is a quick guide for minimium support:
+
+NodeJS  | Minium node-sass version
+--------|-------------------------
+Node 11 | 4.10+
+Node 10 | 4.9+
+Node 8  | 4.5.3+
 
 <table>
   <tr>
