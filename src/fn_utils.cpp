@@ -127,7 +127,7 @@ namespace Sass {
         str->quote_mark(0);
       }
       std::string exp_src = exp->to_string(ctx.c_options);
-      return Parser::parse_selector(exp_src.c_str(), ctx, traces, exp->pstate(), pstate.src);
+      return Parser::parse_selector(exp_src.c_str(), ctx, traces, exp->pstate(), pstate.src, /*allow_parent=*/false);
     }
 
     Compound_Selector_Obj get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, Context& ctx) {
@@ -141,7 +141,7 @@ namespace Sass {
         str->quote_mark(0);
       }
       std::string exp_src = exp->to_string(ctx.c_options);
-      Selector_List_Obj sel_list = Parser::parse_selector(exp_src.c_str(), ctx, traces, exp->pstate(), pstate.src);
+      Selector_List_Obj sel_list = Parser::parse_selector(exp_src.c_str(), ctx, traces, exp->pstate(), pstate.src, /*allow_parent=*/false);
       if (sel_list->length() == 0) return {};
       Complex_Selector_Obj first = sel_list->first();
       if (!first->tail()) return first->head();
