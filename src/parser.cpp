@@ -929,7 +929,7 @@ namespace Sass {
   // it can contain more selectors inside parentheses
   Simple_Selector_Obj Parser::parse_pseudo_selector() {
     if (lex< sequence<
-          optional < pseudo_prefix >,
+          pseudo_prefix,
           // we keep the space within the name, strange enough
           // ToDo: refactor output to schedule the space for it
           // or do we really want to keep the real white-space?
