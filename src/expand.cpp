@@ -640,7 +640,7 @@ namespace Sass {
 
   Statement* Expand::operator()(Extension_Ptr e)
   {
-    if (Selector_List_Ptr extender = selector()) {
+    if (Selector_List_Obj extender = selector()) {
       Selector_List_Ptr sl = e->selector();
       // abort on invalid selector
       if (sl == NULL) return NULL;
