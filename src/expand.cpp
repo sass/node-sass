@@ -202,7 +202,7 @@ namespace Sass {
     if (ae) ae = ae->perform(&eval);
     else ae = SASS_MEMORY_NEW(At_Root_Query, a->pstate());
 
-    LOCAL_FLAG(at_root_without_rule, true);
+    LOCAL_FLAG(at_root_without_rule, Cast<At_Root_Query>(ae)->exclude("rule"));
     LOCAL_FLAG(in_keyframes, false);
 
                                        ;
