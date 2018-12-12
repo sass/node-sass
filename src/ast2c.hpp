@@ -16,7 +16,8 @@ namespace Sass {
 
     union Sass_Value* operator()(Boolean_Ptr);
     union Sass_Value* operator()(Number_Ptr);
-    union Sass_Value* operator()(Color_Ptr);
+    union Sass_Value* operator()(Color_RGBA_Ptr);
+    union Sass_Value* operator()(Color_HSLA_Ptr);
     union Sass_Value* operator()(String_Constant_Ptr);
     union Sass_Value* operator()(String_Quoted_Ptr);
     union Sass_Value* operator()(Custom_Warning_Ptr);

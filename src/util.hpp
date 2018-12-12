@@ -1,17 +1,31 @@
 #ifndef SASS_UTIL_H
 #define SASS_UTIL_H
 
-#include <cstring>
-#include <vector>
-#include <string>
-#include <assert.h>
 #include "sass.hpp"
 #include "sass/base.h"
 #include "ast_fwd_decl.hpp"
 
+#include <cstring>
+#include <vector>
+#include <string>
+#include <assert.h>
+#include <math.h>
+
 #define SASS_ASSERT(cond, msg) assert(cond && msg)
 
 namespace Sass {
+
+  template <typename T>
+  T clip(const T& n, const T& lower, const T& upper) {
+    return std::max(lower, std::min(n, upper));
+  }
+
+  template <typename T>
+  T absmod(const T& n, const T& r) {
+    T m = std::fmod(n, r);
+    if (m < 0.0) m += r;
+    return m;
+  }
 
   double round(double val, size_t precision = 0);
   double sass_strtod(const char* str);

@@ -81,6 +81,8 @@ namespace Sass {
     virtual T operator()(Variable_Ptr x)               = 0;
     virtual T operator()(Number_Ptr x)                 = 0;
     virtual T operator()(Color_Ptr x)                  = 0;
+    virtual T operator()(Color_RGBA_Ptr x)             = 0;
+    virtual T operator()(Color_HSLA_Ptr x)             = 0;
     virtual T operator()(Boolean_Ptr x)                = 0;
     virtual T operator()(String_Schema_Ptr x)          = 0;
     virtual T operator()(String_Quoted_Ptr x)          = 0;
@@ -162,6 +164,8 @@ namespace Sass {
     T operator()(Variable_Ptr x)               { return static_cast<D*>(this)->fallback(x); }
     T operator()(Number_Ptr x)                 { return static_cast<D*>(this)->fallback(x); }
     T operator()(Color_Ptr x)                  { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Color_RGBA_Ptr x)             { return static_cast<D*>(this)->fallback(x); }
+    T operator()(Color_HSLA_Ptr x)             { return static_cast<D*>(this)->fallback(x); }
     T operator()(Boolean_Ptr x)                { return static_cast<D*>(this)->fallback(x); }
     T operator()(String_Schema_Ptr x)          { return static_cast<D*>(this)->fallback(x); }
     T operator()(String_Constant_Ptr x)        { return static_cast<D*>(this)->fallback(x); }

@@ -24,7 +24,8 @@ namespace Sass {
     Value_Ptr operator()(Argument_Ptr);
     Value_Ptr operator()(Boolean_Ptr);
     Value_Ptr operator()(Number_Ptr);
-    Value_Ptr operator()(Color_Ptr);
+    Value_Ptr operator()(Color_RGBA_Ptr);
+    Value_Ptr operator()(Color_HSLA_Ptr);
     Value_Ptr operator()(String_Constant_Ptr);
     Value_Ptr operator()(String_Quoted_Ptr);
     Value_Ptr operator()(Custom_Warning_Ptr);

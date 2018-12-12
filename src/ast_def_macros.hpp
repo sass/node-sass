@@ -74,6 +74,7 @@ private:
   virtual klass##_Ptr clone(std::string, size_t) const = 0; \
 
 #define ATTACH_VIRTUAL_AST_OPERATIONS(klass) \
+  klass(const klass* ptr); \
   virtual klass##_Ptr copy(std::string, size_t) const override = 0; \
   virtual klass##_Ptr clone(std::string, size_t) const override = 0; \
 
@@ -89,6 +90,7 @@ private:
   virtual klass##_Ptr clone() const = 0; \
 
 #define ATTACH_VIRTUAL_AST_OPERATIONS(klass) \
+  klass(const klass* ptr); \
   virtual klass##_Ptr copy() const override = 0; \
   virtual klass##_Ptr clone() const override = 0; \
 

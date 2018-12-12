@@ -55,7 +55,8 @@ namespace Sass {
     // virtual void operator()(Custom_Error_Ptr);
     virtual void operator()(Variable_Ptr);
     virtual void operator()(Number_Ptr);
-    virtual void operator()(Color_Ptr);
+    virtual void operator()(Color_RGBA_Ptr);
+    virtual void operator()(Color_HSLA_Ptr);
     virtual void operator()(Boolean_Ptr);
     virtual void operator()(String_Schema_Ptr);
     virtual void operator()(String_Constant_Ptr);

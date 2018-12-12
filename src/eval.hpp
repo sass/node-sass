@@ -58,7 +58,8 @@ namespace Sass {
     Expression_Ptr operator()(Function_Call_Ptr);
     Expression_Ptr operator()(Variable_Ptr);
     Expression_Ptr operator()(Number_Ptr);
-    Expression_Ptr operator()(Color_Ptr);
+    Expression_Ptr operator()(Color_RGBA_Ptr);
+    Expression_Ptr operator()(Color_HSLA_Ptr);
     Expression_Ptr operator()(Boolean_Ptr);
     Expression_Ptr operator()(String_Schema_Ptr);
     Expression_Ptr operator()(String_Quoted_Ptr);

@@ -1594,7 +1594,7 @@ namespace Sass {
 
   Value_Ptr Parser::lexed_hex_color(const ParserState& pstate, const std::string& parsed)
   {
-    Color_Ptr color = NULL;
+    Color_RGBA_Ptr color = NULL;
     if (parsed[0] != '#') {
       return SASS_MEMORY_NEW(String_Quoted, pstate, parsed);
     }
@@ -1604,7 +1604,7 @@ namespace Sass {
       std::string r(2, parsed[1]);
       std::string g(2, parsed[2]);
       std::string b(2, parsed[3]);
-      color = SASS_MEMORY_NEW(Color,
+      color = SASS_MEMORY_NEW(Color_RGBA,
                                pstate,
                                static_cast<double>(strtol(r.c_str(), NULL, 16)),
                                static_cast<double>(strtol(g.c_str(), NULL, 16)),
@@ -1617,7 +1617,7 @@ namespace Sass {
       std::string g(2, parsed[2]);
       std::string b(2, parsed[3]);
       std::string a(2, parsed[4]);
-      color = SASS_MEMORY_NEW(Color,
+      color = SASS_MEMORY_NEW(Color_RGBA,
                                pstate,
                                static_cast<double>(strtol(r.c_str(), NULL, 16)),
                                static_cast<double>(strtol(g.c_str(), NULL, 16)),
@@ -1629,7 +1629,7 @@ namespace Sass {
       std::string r(parsed.substr(1,2));
       std::string g(parsed.substr(3,2));
       std::string b(parsed.substr(5,2));
-      color = SASS_MEMORY_NEW(Color,
+      color = SASS_MEMORY_NEW(Color_RGBA,
                                pstate,
                                static_cast<double>(strtol(r.c_str(), NULL, 16)),
                                static_cast<double>(strtol(g.c_str(), NULL, 16)),
@@ -1642,7 +1642,7 @@ namespace Sass {
       std::string g(parsed.substr(3,2));
       std::string b(parsed.substr(5,2));
       std::string a(parsed.substr(7,2));
-      color = SASS_MEMORY_NEW(Color,
+      color = SASS_MEMORY_NEW(Color_RGBA,
                                pstate,
                                static_cast<double>(strtol(r.c_str(), NULL, 16)),
                                static_cast<double>(strtol(g.c_str(), NULL, 16)),
@@ -1658,7 +1658,7 @@ namespace Sass {
   Value_Ptr Parser::color_or_string(const std::string& lexed) const
   {
     if (auto color = name_to_color(lexed)) {
-      auto c = SASS_MEMORY_NEW(Color, color);
+      auto c = SASS_MEMORY_NEW(Color_RGBA, color);
       c->is_delayed(true);
       c->pstate(pstate);
       c->disp(lexed);
