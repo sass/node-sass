@@ -17,6 +17,16 @@ namespace Sass {
              starts_with(str, "var(");
     }
 
+    void hsla_alpha_percent_deprecation(const ParserState& pstate, const std::string val)
+    {
+
+      std::string msg("Passing a percentage as the alpha value to hsla() will be interpreted");
+      std::string tail("differently in future versions of Sass. For now, use " + val + " instead.");
+
+      deprecated(msg, tail, false, pstate);
+
+    }
+
     Signature rgb_sig = "rgb($red, $green, $blue)";
     BUILT_IN(rgb)
     {
@@ -209,6 +219,15 @@ namespace Sass {
                                                         + env["$alpha"]->to_string()
                                                         + ")"
         );
+      }
+
+      Number_Ptr alpha = ARG("$alpha", Number);
+      if (alpha && alpha->unit() == "%") {
+        Number_Obj val = SASS_MEMORY_COPY(alpha);
+        val->numerators.clear(); // convert
+        val->value(val->value() / 100.0);
+        std::string nr(val->to_string(ctx.c_options));
+        hsla_alpha_percent_deprecation(pstate, nr);
       }
 
       return SASS_MEMORY_NEW(Color_HSLA,
