@@ -318,17 +318,23 @@ extern "C" {
       }
       else if (sass_value_is_number(a) && sass_value_is_color(a)) {
         Number_Ptr_Const l_n = Cast<Number>(lhs);
-        Color_Ptr_Const r_c = Cast<Color>(rhs);
+        // Direct HSLA operations are not supported
+        // All color maths will be deprecated anyway
+        Color_RGBA_Obj r_c = Cast<Color>(rhs)->toRGBA();
         rv = Operators::op_number_color(op, *l_n, *r_c, options, l_n->pstate());
       }
       else if (sass_value_is_color(a) && sass_value_is_number(b)) {
-        Color_Ptr_Const l_c = Cast<Color>(lhs);
+        // Direct HSLA operations are not supported
+        // All color maths will be deprecated anyway
+        Color_RGBA_Obj l_c = Cast<Color>(lhs)->toRGBA();
         Number_Ptr_Const r_n = Cast<Number>(rhs);
         rv = Operators::op_color_number(op, *l_c, *r_n, options, l_c->pstate());
       }
       else if (sass_value_is_color(a) && sass_value_is_color(b)) {
-        Color_Ptr_Const l_c = Cast<Color>(lhs);
-        Color_Ptr_Const r_c = Cast<Color>(rhs);
+        // Direct HSLA operations are not supported
+        // All color maths will be deprecated anyway
+        Color_RGBA_Obj l_c = Cast<Color>(lhs)->toRGBA();
+        Color_RGBA_Obj r_c = Cast<Color>(rhs)->toRGBA();
         rv = Operators::op_colors(op, *l_c, *r_c, options, l_c->pstate());
       }
       else /* convert other stuff to string and apply operation */ {

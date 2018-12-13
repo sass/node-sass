@@ -612,14 +612,22 @@ inline void debug_ast(AST_Node_Ptr node, std::string ind, Env* env)
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " [interpolant: " << expression->is_interpolant() << "] ";
     std::cerr << " [" << expression->value() << "]" << std::endl;
-  } else if (Cast<Color>(node)) {
-    Color_Ptr expression = Cast<Color>(node);
+  } else if (Cast<Color_RGBA>(node)) {
+    Color_RGBA_Ptr expression = Cast<Color_RGBA>(node);
     std::cerr << ind << "Color " << expression;
     std::cerr << " (" << pstate_source_position(node) << ")";
     std::cerr << " [name: " << expression->disp() << "] ";
     std::cerr << " [delayed: " << expression->is_delayed() << "] ";
     std::cerr << " [interpolant: " << expression->is_interpolant() << "] ";
-    std::cerr << " [" << expression->r() << ":"  << expression->g() << ":" << expression->b() << "@" << expression->a() << "]" << std::endl;
+    std::cerr << " rgba[" << expression->r() << ":"  << expression->g() << ":" << expression->b() << "@" << expression->a() << "]" << std::endl;
+  } else if (Cast<Color_HSLA>(node)) {
+    Color_HSLA_Ptr expression = Cast<Color_HSLA>(node);
+    std::cerr << ind << "Color " << expression;
+    std::cerr << " (" << pstate_source_position(node) << ")";
+    std::cerr << " [name: " << expression->disp() << "] ";
+    std::cerr << " [delayed: " << expression->is_delayed() << "] ";
+    std::cerr << " [interpolant: " << expression->is_interpolant() << "] ";
+    std::cerr << " hsla[" << expression->h() << ":"  << expression->s() << ":" << expression->l() << "@" << expression->a() << "]" << std::endl;
   } else if (Cast<Number>(node)) {
     Number_Ptr expression = Cast<Number>(node);
     std::cerr << ind << "Number " << expression;

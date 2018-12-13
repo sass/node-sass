@@ -29,7 +29,13 @@ namespace Sass {
   }
 
   // Color is a valid value
-  Value_Ptr To_Value::operator()(Color_Ptr c)
+  Value_Ptr To_Value::operator()(Color_RGBA_Ptr c)
+  {
+    return c;
+  }
+
+  // Color is a valid value
+  Value_Ptr To_Value::operator()(Color_HSLA_Ptr c)
   {
     return c;
   }

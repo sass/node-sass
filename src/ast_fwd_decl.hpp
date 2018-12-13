@@ -166,6 +166,12 @@ namespace Sass {
   class Color;
   typedef Color* Color_Ptr;
   typedef Color const* Color_Ptr_Const;
+  class Color_RGBA;
+  typedef Color_RGBA* Color_RGBA_Ptr;
+  typedef Color_RGBA const* Color_RGBA_Ptr_Const;
+  class Color_HSLA;
+  typedef Color_HSLA* Color_HSLA_Ptr;
+  typedef Color_HSLA const* Color_HSLA_Ptr_Const;
   class Boolean;
   typedef Boolean* Boolean_Ptr;
   typedef Boolean const* Boolean_Ptr_Const;
@@ -321,6 +327,8 @@ namespace Sass {
   IMPL_MEM_OBJ(Variable);
   IMPL_MEM_OBJ(Number);
   IMPL_MEM_OBJ(Color);
+  IMPL_MEM_OBJ(Color_RGBA);
+  IMPL_MEM_OBJ(Color_HSLA);
   IMPL_MEM_OBJ(Boolean);
   IMPL_MEM_OBJ(String_Schema);
   IMPL_MEM_OBJ(String);
@@ -477,6 +485,7 @@ namespace Sass {
   DECLARE_BASE_CAST(PreValue)
   DECLARE_BASE_CAST(Value)
   DECLARE_BASE_CAST(List)
+  DECLARE_BASE_CAST(Color)
   DECLARE_BASE_CAST(String)
   DECLARE_BASE_CAST(String_Constant)
   DECLARE_BASE_CAST(Supports_Condition)

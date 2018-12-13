@@ -571,7 +571,7 @@ namespace Sass {
     else                return c;
   }
 
-  void Inspect::operator()(Color_Ptr c)
+  void Inspect::operator()(Color_RGBA_Ptr c)
   {
     // output the final token
     std::stringstream ss;
@@ -590,7 +590,7 @@ namespace Sass {
 
     // get color from given name (if one was given at all)
     if (name != "" && name_to_color(name)) {
-      Color_Ptr_Const n = name_to_color(name);
+      Color_RGBA_Ptr_Const n = name_to_color(name);
       r = Sass::round(cap_channel<0xff>(n->r()), opt.precision);
       g = Sass::round(cap_channel<0xff>(n->g()), opt.precision);
       b = Sass::round(cap_channel<0xff>(n->b()), opt.precision);
@@ -655,6 +655,12 @@ namespace Sass {
 
     append_token(ss.str(), c);
 
+  }
+
+  void Inspect::operator()(Color_HSLA_Ptr c)
+  {
+    Color_RGBA_Obj rgba = c->toRGBA();
+    operator()(rgba);
   }
 
   void Inspect::operator()(Boolean_Ptr b)

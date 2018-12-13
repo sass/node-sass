@@ -511,6 +511,25 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////
 
+  Expression::Expression(ParserState pstate, bool d, bool e, bool i, Type ct)
+  : AST_Node(pstate),
+    is_delayed_(d),
+    is_expanded_(e),
+    is_interpolant_(i),
+    concrete_type_(ct)
+  { }
+
+  Expression::Expression(const Expression* ptr)
+  : AST_Node(ptr),
+    is_delayed_(ptr->is_delayed_),
+    is_expanded_(ptr->is_expanded_),
+    is_interpolant_(ptr->is_interpolant_),
+    concrete_type_(ptr->concrete_type_)
+  { }
+
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
   Unary_Expression::Unary_Expression(ParserState pstate, Type t, Expression_Obj o)
   : Expression(pstate), optype_(t), operand_(o), hash_(0)
   { }

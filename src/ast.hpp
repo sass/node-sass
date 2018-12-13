@@ -80,7 +80,7 @@ namespace Sass {
       case LT: return "lt";
       case LTE: return "lte";
       case ADD: return "plus";
-      case SUB: return "sub";
+      case SUB: return "minus";
       case MUL: return "times";
       case DIV: return "div";
       case MOD: return "mod";
@@ -198,21 +198,7 @@ namespace Sass {
     ADD_PROPERTY(bool, is_interpolant)
     ADD_PROPERTY(Type, concrete_type)
   public:
-    Expression(ParserState pstate,
-               bool d = false, bool e = false, bool i = false, Type ct = NONE)
-    : AST_Node(pstate),
-      is_delayed_(d),
-      is_expanded_(e),
-      is_interpolant_(i),
-      concrete_type_(ct)
-    { }
-    Expression(const Expression* ptr)
-    : AST_Node(ptr),
-      is_delayed_(ptr->is_delayed_),
-      is_expanded_(ptr->is_expanded_),
-      is_interpolant_(ptr->is_interpolant_),
-      concrete_type_(ptr->concrete_type_)
-    { }
+    Expression(ParserState pstate, bool d = false, bool e = false, bool i = false, Type ct = NONE);
     virtual operator bool() { return true; }
     virtual ~Expression() { }
     virtual bool is_invisible() const { return false; }
@@ -441,7 +427,6 @@ namespace Sass {
     ADD_PROPERTY(bool, group_end)
   public:
     Statement(ParserState pstate, Type st = NONE, size_t t = 0);
-    Statement(const Statement* ptr); // copy constructor
     virtual ~Statement() = 0; // virtual destructor
     // needed for rearranging nested rulesets during CSS emission
     virtual bool bubbles();

@@ -50,7 +50,6 @@ namespace Sass {
     mutable size_t hash_;
   public:
     Selector(ParserState pstate);
-    Selector(const Selector* ptr);
     virtual ~Selector() = 0;
     size_t hash() const override = 0;
     virtual unsigned long specificity() const = 0;
@@ -115,7 +114,6 @@ namespace Sass {
     HASH_PROPERTY(bool, has_ns)
   public:
     Simple_Selector(ParserState pstate, std::string n = "");
-    Simple_Selector(const Simple_Selector* ptr);
     virtual std::string ns_name() const;
     size_t hash() const override;
     bool empty() const;

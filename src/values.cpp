@@ -16,7 +16,8 @@ namespace Sass {
     }
     else if (val->concrete_type() == Expression::COLOR)
     {
-      Color_Ptr_Const col = Cast<Color>(val);
+      // ToDo: allow to also use HSLA colors!!
+      Color_RGBA_Obj col = Cast<Color>(val)->toRGBA();
       return sass_make_color(col->r(), col->g(), col->b(), col->a());
     }
     else if (val->concrete_type() == Expression::LIST)
@@ -78,7 +79,8 @@ namespace Sass {
                                ParserState("[C-VALUE]"),
                                sass_boolean_get_value(val));
       case SASS_COLOR:
-        return SASS_MEMORY_NEW(Color,
+        // ToDo: allow to also use HSLA colors!!
+        return SASS_MEMORY_NEW(Color_RGBA,
                                ParserState("[C-VALUE]"),
                                sass_color_get_r(val),
                                sass_color_get_g(val),

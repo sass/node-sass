@@ -210,7 +210,7 @@ namespace Sass {
   {
     return sass_op_to_name(optype());
   }
-  
+
   const std::string Binary_Expression::separator()
   {
     return sass_op_separator(optype());
@@ -221,7 +221,7 @@ namespace Sass {
     return is_left_interpolant() ||
             is_right_interpolant();
   }
-  
+
   void Binary_Expression::set_delayed(bool delayed)
   {
     right()->set_delayed(delayed);
@@ -485,24 +485,52 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////
 
-  Color::Color(ParserState pstate, double r, double g, double b, double a, const std::string disp)
-  : Value(pstate), r_(r), g_(g), b_(b), a_(a), disp_(disp),
+  Color::Color(ParserState pstate, double a, const std::string disp)
+  : Value(pstate),
+    disp_(disp), a_(a),
     hash_(0)
   { concrete_type(COLOR); }
 
   Color::Color(const Color* ptr)
-  : Value(ptr),
-    r_(ptr->r_),
-    g_(ptr->g_),
-    b_(ptr->b_),
+  : Value(ptr->pstate()),
+    // reset on copy
+    disp_(""),
     a_(ptr->a_),
-    disp_(ptr->disp_),
     hash_(ptr->hash_)
   { concrete_type(COLOR); }
 
   bool Color::operator== (const Expression& rhs) const
   {
-    if (auto r = Cast<Color>(&rhs)) {
+    if (auto r = Cast<Color_RGBA>(&rhs)) {
+      return *this == *r;
+    }
+    else if (auto r = Cast<Color_HSLA>(&rhs)) {
+      return *this == *r;
+    }
+    else if (auto r = Cast<Color>(&rhs)) {
+      return a_ == r->a();
+    }
+    return false;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
+  Color_RGBA::Color_RGBA(ParserState pstate, double r, double g, double b, double a, const std::string disp)
+  : Color(pstate, a, disp),
+    r_(r), g_(g), b_(b)
+  { concrete_type(COLOR); }
+
+  Color_RGBA::Color_RGBA(const Color_RGBA* ptr)
+  : Color(ptr),
+    r_(ptr->r_),
+    g_(ptr->g_),
+    b_(ptr->b_)
+  { concrete_type(COLOR); }
+
+  bool Color_RGBA::operator== (const Expression& rhs) const
+  {
+    if (auto r = Cast<Color_RGBA>(&rhs)) {
       return r_ == r->r() &&
              g_ == r->g() &&
              b_ == r->b() &&
@@ -511,15 +539,138 @@ namespace Sass {
     return false;
   }
 
-  size_t Color::hash() const
+  size_t Color_RGBA::hash() const
   {
     if (hash_ == 0) {
-      hash_ = std::hash<double>()(a_);
+      hash_ = std::hash<std::string>()("RGBA");
+      hash_combine(hash_, std::hash<double>()(a_));
       hash_combine(hash_, std::hash<double>()(r_));
       hash_combine(hash_, std::hash<double>()(g_));
       hash_combine(hash_, std::hash<double>()(b_));
     }
     return hash_;
+  }
+
+  Color_HSLA_Ptr Color_RGBA::toHSLA(bool copy)
+  {
+
+    // Algorithm from http://en.wikipedia.org/wiki/wHSL_and_HSV#Conversion_from_RGB_to_HSL_or_HSV
+    double r = r_ / 255.0;
+    double g = g_ / 255.0;
+    double b = b_ / 255.0;
+
+    double max = std::max(r, std::max(g, b));
+    double min = std::min(r, std::min(g, b));
+    double delta = max - min;
+
+    double h = 0;
+    double s;
+    double l = (max + min) / 2.0;
+
+    if (NEAR_EQUAL(max, min)) {
+      h = s = 0; // achromatic
+    }
+    else {
+      if (l < 0.5) s = delta / (max + min);
+      else         s = delta / (2.0 - max - min);
+
+      if      (r == max) h = (g - b) / delta + (g < b ? 6 : 0);
+      else if (g == max) h = (b - r) / delta + 2;
+      else if (b == max) h = (r - g) / delta + 4;
+    }
+
+    // HSL hsl_struct;
+    h = h * 60;
+    s = s * 100;
+    l = l * 100;
+
+    return SASS_MEMORY_NEW(Color_HSLA,
+      pstate(), h, s, l, a(), ""
+    );
+  }
+
+  Color_RGBA_Ptr Color_RGBA::toRGBA(bool copy)
+  {
+    return copy ? SASS_MEMORY_COPY(this) : this;
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////
+
+  Color_HSLA::Color_HSLA(ParserState pstate, double h, double s, double l, double a, const std::string disp)
+  : Color(pstate, a, disp),
+    h_(absmod(h, 360.0)),
+    s_(clip(s, 0.0, 100.0)),
+    l_(clip(l, 0.0, 100.0))
+    // hash_(0)
+  { concrete_type(COLOR); }
+
+  Color_HSLA::Color_HSLA(const Color_HSLA* ptr)
+  : Color(ptr),
+    h_(ptr->h_),
+    s_(ptr->s_),
+    l_(ptr->l_)
+    // hash_(ptr->hash_)
+  { concrete_type(COLOR); }
+
+  bool Color_HSLA::operator== (const Expression& rhs) const
+  {
+    if (auto r = Cast<Color_HSLA>(&rhs)) {
+      return h_ == r->h() &&
+             s_ == r->s() &&
+             l_ == r->l() &&
+             a_ == r->a();
+    }
+    return false;
+  }
+
+  size_t Color_HSLA::hash() const
+  {
+    if (hash_ == 0) {
+      hash_ = std::hash<std::string>()("HSLA");
+      hash_combine(hash_, std::hash<double>()(a_));
+      hash_combine(hash_, std::hash<double>()(h_));
+      hash_combine(hash_, std::hash<double>()(s_));
+      hash_combine(hash_, std::hash<double>()(l_));
+    }
+    return hash_;
+  }
+
+  // hue to RGB helper function
+  double h_to_rgb(double m1, double m2, double h)
+  {
+    h = absmod(h, 1.0);
+    if (h*6.0 < 1) return m1 + (m2 - m1)*h*6;
+    if (h*2.0 < 1) return m2;
+    if (h*3.0 < 2) return m1 + (m2 - m1) * (2.0/3.0 - h)*6;
+    return m1;
+  }
+
+  Color_RGBA_Ptr Color_HSLA::toRGBA(bool copy)
+  {
+
+    double h = absmod(h_ / 360.0, 1.0);
+    double s = clip(s_ / 100.0, 0.0, 1.0);
+    double l = clip(l_ / 100.0, 0.0, 1.0);
+
+    // Algorithm from the CSS3 spec: http://www.w3.org/TR/css3-color/#hsl-color.
+    double m2;
+    if (l <= 0.5) m2 = l*(s+1.0);
+    else m2 = (l+s)-(l*s);
+    double m1 = (l*2.0)-m2;
+    // round the results -- consider moving this into the Color constructor
+    double r = (h_to_rgb(m1, m2, h + 1.0/3.0) * 255.0);
+    double g = (h_to_rgb(m1, m2, h) * 255.0);
+    double b = (h_to_rgb(m1, m2, h - 1.0/3.0) * 255.0);
+
+    return SASS_MEMORY_NEW(Color_RGBA,
+      pstate(), r, g, b, a(), ""
+    );
+  }
+
+  Color_HSLA_Ptr Color_HSLA::toHSLA(bool copy)
+  {
+    return copy ? SASS_MEMORY_COPY(this) : this;
   }
 
   /////////////////////////////////////////////////////////////////////////
@@ -796,7 +947,8 @@ namespace Sass {
   IMPLEMENT_AST_OPERATORS(Function_Call);
   IMPLEMENT_AST_OPERATORS(Variable);
   IMPLEMENT_AST_OPERATORS(Number);
-  IMPLEMENT_AST_OPERATORS(Color);
+  IMPLEMENT_AST_OPERATORS(Color_RGBA);
+  IMPLEMENT_AST_OPERATORS(Color_HSLA);
   IMPLEMENT_AST_OPERATORS(Custom_Error);
   IMPLEMENT_AST_OPERATORS(Custom_Warning);
   IMPLEMENT_AST_OPERATORS(Boolean);

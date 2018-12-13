@@ -631,7 +631,9 @@ namespace Sass {
         }
       }
       // lhs is number and rhs is color
-      else if (Color_Ptr r_c = Cast<Color>(rhs)) {
+      // Todo: allow to work with HSLA colors
+      else if (Color_Ptr r_col = Cast<Color>(rhs)) {
+        Color_RGBA_Obj r_c = r_col->toRGBA();
         try {
           switch (op_type) {
             case Sass_OP::EQ: return *l_n == *r_c ? bool_true : bool_false;
@@ -648,9 +650,11 @@ namespace Sass {
         }
       }
     }
-    else if (Color_Ptr l_c = Cast<Color>(lhs)) {
+    else if (Color_Ptr l_col = Cast<Color>(lhs)) {
+      Color_RGBA_Obj l_c = l_col->toRGBA();
       // lhs is color and rhs is color
-      if (Color_Ptr r_c = Cast<Color>(rhs)) {
+      if (Color_Ptr r_col = Cast<Color>(rhs)) {
+        Color_RGBA_Obj r_c = r_col->toRGBA();
         try {
           switch (op_type) {
             case Sass_OP::EQ: return *l_c == *r_c ? bool_true : bool_false;
@@ -834,17 +838,17 @@ namespace Sass {
       }
       else if (l_type == Expression::NUMBER && r_type == Expression::COLOR) {
         Number_Ptr l_n = Cast<Number>(lhs);
-        Color_Ptr r_c = Cast<Color>(rhs);
+        Color_RGBA_Obj r_c = Cast<Color>(rhs)->toRGBA();
         rv = Operators::op_number_color(op_type, *l_n, *r_c, options(), pstate);
       }
       else if (l_type == Expression::COLOR && r_type == Expression::NUMBER) {
-        Color_Ptr l_c = Cast<Color>(lhs);
+        Color_RGBA_Obj l_c = Cast<Color>(lhs)->toRGBA();
         Number_Ptr r_n = Cast<Number>(rhs);
         rv = Operators::op_color_number(op_type, *l_c, *r_n, options(), pstate);
       }
       else if (l_type == Expression::COLOR && r_type == Expression::COLOR) {
-        Color_Ptr l_c = Cast<Color>(lhs);
-        Color_Ptr r_c = Cast<Color>(rhs);
+        Color_RGBA_Obj l_c = Cast<Color>(lhs)->toRGBA();
+        Color_RGBA_Obj r_c = Cast<Color>(rhs)->toRGBA();
         rv = Operators::op_colors(op_type, *l_c, *r_c, options(), pstate);
       }
       else {
@@ -1151,7 +1155,12 @@ namespace Sass {
     return value.detach();
   }
 
-  Expression_Ptr Eval::operator()(Color_Ptr c)
+  Expression_Ptr Eval::operator()(Color_RGBA_Ptr c)
+  {
+    return c;
+  }
+
+  Expression_Ptr Eval::operator()(Color_HSLA_Ptr c)
   {
     return c;
   }

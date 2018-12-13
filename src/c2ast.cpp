@@ -21,7 +21,7 @@ namespace Sass {
         e = SASS_MEMORY_NEW(Number, pstate, sass_number_get_value(v), sass_number_get_unit(v));
       } break;
       case SASS_COLOR: {
-        e = SASS_MEMORY_NEW(Color, pstate, sass_color_get_r(v), sass_color_get_g(v), sass_color_get_b(v), sass_color_get_a(v));
+        e = SASS_MEMORY_NEW(Color_RGBA, pstate, sass_color_get_r(v), sass_color_get_g(v), sass_color_get_b(v), sass_color_get_a(v));
       } break;
       case SASS_STRING: {
         if (sass_string_is_quoted(v))
