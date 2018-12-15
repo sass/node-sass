@@ -23,7 +23,6 @@
 #include "listize.hpp"
 #include "extend.hpp"
 #include "remove_placeholders.hpp"
-#include "functions.hpp"
 #include "sass_functions.hpp"
 #include "backtrace.hpp"
 #include "sass2scss.h"

@@ -36,7 +36,6 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\extend.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\file.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\fn_utils.hpp" />
-    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\functions.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\fn_miscs.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\fn_maps.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\fn_lists.hpp" />
@@ -111,7 +110,6 @@
     <ClCompile Include="$(LIBSASS_SRC_DIR)\fn_numbers.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\fn_strings.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\fn_selectors.cpp" />
-    <ClCompile Include="$(LIBSASS_SRC_DIR)\functions.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\inspect.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\json.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\lexer.cpp" />

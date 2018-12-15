@@ -1,7 +1,6 @@
 #include "sass.hpp"
 #include "parser.hpp"
 #include "fn_utils.hpp"
-#include "functions.hpp"
 
 namespace Sass {
 
