@@ -14,15 +14,15 @@ namespace Sass {
       try {
        throw;
       }
-      catch (utf8::invalid_code_point) {
+      catch (utf8::invalid_code_point&) {
         std::string msg("utf8::invalid_code_point");
         error(msg, pstate, traces);
       }
-      catch (utf8::not_enough_room) {
+      catch (utf8::not_enough_room&) {
         std::string msg("utf8::not_enough_room");
         error(msg, pstate, traces);
       }
-      catch (utf8::invalid_utf8) {
+      catch (utf8::invalid_utf8&) {
         std::string msg("utf8::invalid_utf8");
         error(msg, pstate, traces);
       }
