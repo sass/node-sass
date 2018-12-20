@@ -59,7 +59,7 @@ namespace Sass {
     {
       deprecated(
         "The operation `" + lsh + " " + sass_op_to_name(op) + " " + rhs +
-          "` is deprecated and will be an error in future versions.",
+        "` is deprecated and will be an error in future versions.",
         "Consider using Sass's color functions instead.\n"
         "http://sass-lang.com/documentation/Sass/Script/Functions.html#other_color_functions",
         /*with_column=*/false, pstate);
