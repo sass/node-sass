@@ -10,7 +10,7 @@
 namespace Sass {
 
   // convert value from C++ side to C-API
-  union Sass_Value* ast_node_to_sass_value (const Expression_Ptr val)
+  union Sass_Value* ast_node_to_sass_value (Expression_Ptr_Const val)
   {
     if (val->concrete_type() == Expression::NUMBER)
     {
@@ -19,9 +19,13 @@ namespace Sass {
     }
     else if (val->concrete_type() == Expression::COLOR)
     {
-      // ToDo: allow to also use HSLA colors!!
-      Color_RGBA_Obj col = Cast<Color>(val)->toRGBA();
-      return sass_make_color(col->r(), col->g(), col->b(), col->a());
+      if (Color_RGBA_Ptr_Const rgba = Cast<Color_RGBA>(val)) {
+        return sass_make_color(rgba->r(), rgba->g(), rgba->b(), rgba->a());
+      } else {
+        // ToDo: allow to also use HSLA colors!!
+        Color_RGBA_Obj col = Cast<Color>(val)->copyAsRGBA();
+        return sass_make_color(col->r(), col->g(), col->b(), col->a());
+      }
     }
     else if (val->concrete_type() == Expression::LIST)
     {

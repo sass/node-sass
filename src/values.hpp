@@ -5,7 +5,7 @@
 
 namespace Sass {
 
-  union Sass_Value* ast_node_to_sass_value (const Expression_Ptr val);
+  union Sass_Value* ast_node_to_sass_value (Expression_Ptr_Const val);
   Value_Ptr sass_value_to_ast_node (const union Sass_Value* val);
 
 }

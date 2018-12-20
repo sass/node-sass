@@ -23,7 +23,10 @@ namespace Sass {
   { return sass_make_color(c->r(), c->g(), c->b(), c->a()); }
 
   union Sass_Value* AST2C::operator()(Color_HSLA_Ptr c)
-  { return operator()(c->toRGBA()); }
+  {
+    Color_RGBA_Obj rgba = c->copyAsRGBA();
+    return operator()(rgba.ptr());
+  }
 
   union Sass_Value* AST2C::operator()(String_Constant_Ptr s)
   {
