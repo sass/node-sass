@@ -45,7 +45,7 @@ matrix:
       env: AUTOTOOLS=no COVERAGE=no BUILD=shared
     - os: osx
       compiler: clang
-      env: AUTOTOOLS=no COVERAGE=yes BUILD=static
+      env: AUTOTOOLS=no COVERAGE=no BUILD=static
     - os: osx
       compiler: clang
       env: AUTOTOOLS=yes COVERAGE=no BUILD=shared
