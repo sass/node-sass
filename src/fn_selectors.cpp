@@ -119,23 +119,15 @@ namespace Sass {
 
             // Must be a simple sequence
             if( childSeq->combinator() != Complex_Selector::Combinator::ANCESTOR_OF ) {
-              std::string msg("Can't append \"");
-              msg += childSeq->to_string();
-              msg += "\" to \"";
-              msg += parentSeqClone->to_string();
-              msg += "\" for `selector-append'";
-              error(msg, pstate, traces);
+              error("Can't append \"" + childSeq->to_string() + "\" to \"" +
+                parentSeqClone->to_string() + "\" for `selector-append'", pstate, traces);
             }
 
             // Cannot be a Universal selector
             Type_Selector_Obj pType = Cast<Type_Selector>(childSeq->head()->first());
             if(pType && pType->name() == "*") {
-              std::string msg("Can't append \"");
-              msg += childSeq->to_string();
-              msg += "\" to \"";
-              msg += parentSeqClone->to_string();
-              msg += "\" for `selector-append'";
-              error(msg, pstate, traces);
+              error("Can't append \"" + childSeq->to_string() + "\" to \"" +
+                parentSeqClone->to_string() + "\" for `selector-append'", pstate, traces);
             }
 
             // TODO: Add check for namespace stuff

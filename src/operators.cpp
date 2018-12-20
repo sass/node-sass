@@ -57,12 +57,12 @@ namespace Sass {
     /* colour math deprecation warning */
     void op_color_deprecation(enum Sass_OP op, std::string lsh, std::string rhs, const ParserState& pstate)
     {
-      std::string op_str(sass_op_to_name(op));
-
-      std::string msg("The operation `" + lsh + " " + op_str + " " + rhs + "` is deprecated and will be an error in future versions.");
-      std::string tail("Consider using Sass's color functions instead.\nhttp://sass-lang.com/documentation/Sass/Script/Functions.html#other_color_functions");
-
-      deprecated(msg, tail, false, pstate);
+      deprecated(
+        "The operation `" + lsh + " " + sass_op_to_name(op) + " " + rhs +
+          "` is deprecated and will be an error in future versions.",
+        "Consider using Sass's color functions instead.\n"
+        "http://sass-lang.com/documentation/Sass/Script/Functions.html#other_color_functions",
+        /*with_column=*/false, pstate);
     }
 
     /* static function, throws OperationError, has no traces but optional pstate for returned value */

@@ -202,9 +202,8 @@ namespace Sass {
     // will be called if not overloaded
     template <typename U> T fallback(U x)
     {
-      std::string msg(typeid(*this).name());
-      msg += ": CRTP not implemented for ";
-      throw std::runtime_error(msg + typeid(x).name());
+      throw std::runtime_error(
+        std::string(typeid(*this).name()) + ": CRTP not implemented for " + typeid(x).name());
     }
 
   };

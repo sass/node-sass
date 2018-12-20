@@ -35,13 +35,7 @@ namespace Sass {
     {
       T* val = Cast<T>(env[argname]);
       if (!val) {
-        std::string msg("argument `");
-        msg += argname;
-        msg += "` of `";
-        msg += sig;
-        msg += "` must be a ";
-        msg += T::type_name();
-        error(msg, pstate, traces);
+        error("argument `" + argname + "` of `" + sig + "` must be a " + T::type_name(), pstate, traces);
       }
       return val;
     }
