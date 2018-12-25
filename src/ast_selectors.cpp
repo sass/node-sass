@@ -88,7 +88,9 @@ namespace Sass {
   bool Selector_Schema::has_parent_ref() const
   {
     if (String_Schema_Obj schema = Cast<String_Schema>(contents())) {
-      return !schema->empty() && typeid(*schema->at(0)) == typeid(Parent_Selector);
+      if (schema->empty()) return false;
+      const auto& first = *schema->at(0);
+      return typeid(first) == typeid(Parent_Selector);
     }
     return false;
   }
@@ -96,7 +98,9 @@ namespace Sass {
   bool Selector_Schema::has_real_parent_ref() const
   {
     if (String_Schema_Obj schema = Cast<String_Schema>(contents())) {
-      return !schema->empty() && typeid(*schema->at(0)) == typeid(Parent_Reference);
+      if (schema->empty()) return false;
+      const auto& first = *schema->at(0);
+      return typeid(first) == typeid(Parent_Reference);
     }
     return false;
   }
