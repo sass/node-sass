@@ -38,7 +38,7 @@ namespace Sass {
 
   // ToDo: should this really be hardcoded
   // Note: most methods follow precision option
-  const double NUMBER_EPSILON = 0.00000000000001;
+  const double NUMBER_EPSILON = 1e-12;
 
   // macro to test if numbers are equal within a small error margin
   #define NEAR_EQUAL(lhs, rhs) std::fabs(lhs - rhs) < NUMBER_EPSILON
