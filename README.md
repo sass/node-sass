@@ -609,7 +609,6 @@ This module is brought to you and maintained by the following people:
 * Keith Cirkel ([Github](https://github.com/keithamus) / [Twitter](https://twitter.com/Keithamus))
 * Laurent Goderre ([Github](https://github.com/laurentgoderre) / [Twitter](https://twitter.com/laurentgoderre))
 * Nick Schonning ([Github](https://github.com/nschonni) / [Twitter](https://twitter.com/nschonni))
-* Adam Yeats ([Github](https://github.com/adamyeats) / [Twitter](https://twitter.com/adamyeats))
 * Adeel Mujahid ([Github](https://github.com/am11) / [Twitter](https://twitter.com/adeelbm))
 
 ## Contributors
