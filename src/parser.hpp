@@ -1,6 +1,8 @@
 #ifndef SASS_PARSER_H
 #define SASS_PARSER_H
 
+#include "sass.hpp"
+
 #include <string>
 #include <vector>
 

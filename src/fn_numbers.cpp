@@ -1,3 +1,5 @@
+#include "sass.hpp"
+
 #include <cstdint>
 #include <cstdlib>
 #include <cmath>
@@ -8,7 +10,6 @@
 #include <algorithm>
 
 #include "ast.hpp"
-#include "sass.hpp"
 #include "units.hpp"
 #include "fn_utils.hpp"
 #include "fn_numbers.hpp"

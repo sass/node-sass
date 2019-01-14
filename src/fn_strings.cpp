@@ -1,7 +1,7 @@
+#include "sass.hpp"
 #include <cctype>
 #include "utf8.h"
 #include "ast.hpp"
-#include "sass.hpp"
 #include "fn_utils.hpp"
 #include "fn_strings.hpp"
 

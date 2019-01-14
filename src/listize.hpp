@@ -1,6 +1,8 @@
 #ifndef SASS_LISTIZE_H
 #define SASS_LISTIZE_H
 
+#include "sass.hpp"
+
 #include <vector>
 #include <iostream>
 
