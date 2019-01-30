@@ -181,42 +181,48 @@ namespace Sass {
 
   void deprecated_function(std::string msg, ParserState pstate)
   {
-    std::string cwd(Sass::File::get_cwd());
-    std::string abs_path(Sass::File::rel2abs(pstate.path, cwd, cwd));
-    std::string rel_path(Sass::File::abs2rel(pstate.path, cwd, cwd));
-    std::string output_path(Sass::File::path_for_console(rel_path, abs_path, pstate.path));
+    if (!!process.env.NODE_SASS_NO_DEPRECATION && process.env.NODE_SASS_NO_DEPRECATION !== '0') {
+      std::string cwd(Sass::File::get_cwd());
+      std::string abs_path(Sass::File::rel2abs(pstate.path, cwd, cwd));
+      std::string rel_path(Sass::File::abs2rel(pstate.path, cwd, cwd));
+      std::string output_path(Sass::File::path_for_console(rel_path, abs_path, pstate.path));
 
-    std::cerr << "DEPRECATION WARNING: " << msg << std::endl;
-    std::cerr << "will be an error in future versions of Sass." << std::endl;
-    std::cerr << "        on line " << pstate.line+1 << " of " << output_path << std::endl;
+      std::cerr << "DEPRECATION WARNING: " << msg << std::endl;
+      std::cerr << "will be an error in future versions of Sass." << std::endl;
+      std::cerr << "        on line " << pstate.line+1 << " of " << output_path << std::endl;
+    }
   }
 
   void deprecated(std::string msg, std::string msg2, bool with_column, ParserState pstate)
   {
-    std::string cwd(Sass::File::get_cwd());
-    std::string abs_path(Sass::File::rel2abs(pstate.path, cwd, cwd));
-    std::string rel_path(Sass::File::abs2rel(pstate.path, cwd, cwd));
-    std::string output_path(Sass::File::path_for_console(rel_path, pstate.path, pstate.path));
+    if (!!process.env.NODE_SASS_NO_DEPRECATION && process.env.NODE_SASS_NO_DEPRECATION !== '0') {
+      std::string cwd(Sass::File::get_cwd());
+      std::string abs_path(Sass::File::rel2abs(pstate.path, cwd, cwd));
+      std::string rel_path(Sass::File::abs2rel(pstate.path, cwd, cwd));
+      std::string output_path(Sass::File::path_for_console(rel_path, pstate.path, pstate.path));
 
-    std::cerr << "DEPRECATION WARNING on line " << pstate.line + 1;
-    if (with_column) std::cerr << ", column " << pstate.column + pstate.offset.column + 1;
-    if (output_path.length()) std::cerr << " of " << output_path;
-    std::cerr << ":" << std::endl;
-    std::cerr << msg << std::endl;
-    if (msg2.length()) std::cerr << msg2 << std::endl;
-    std::cerr << std::endl;
+      std::cerr << "DEPRECATION WARNING on line " << pstate.line + 1;
+      if (with_column) std::cerr << ", column " << pstate.column + pstate.offset.column + 1;
+      if (output_path.length()) std::cerr << " of " << output_path;
+      std::cerr << ":" << std::endl;
+      std::cerr << msg << std::endl;
+      if (msg2.length()) std::cerr << msg2 << std::endl;
+      std::cerr << std::endl;
+    }
   }
 
   void deprecated_bind(std::string msg, ParserState pstate)
   {
-    std::string cwd(Sass::File::get_cwd());
-    std::string abs_path(Sass::File::rel2abs(pstate.path, cwd, cwd));
-    std::string rel_path(Sass::File::abs2rel(pstate.path, cwd, cwd));
-    std::string output_path(Sass::File::path_for_console(rel_path, abs_path, pstate.path));
+    if (!!process.env.NODE_SASS_NO_DEPRECATION && process.env.NODE_SASS_NO_DEPRECATION !== '0') {
+      std::string cwd(Sass::File::get_cwd());
+      std::string abs_path(Sass::File::rel2abs(pstate.path, cwd, cwd));
+      std::string rel_path(Sass::File::abs2rel(pstate.path, cwd, cwd));
+      std::string output_path(Sass::File::path_for_console(rel_path, abs_path, pstate.path));
 
-    std::cerr << "WARNING: " << msg << std::endl;
-    std::cerr << "        on line " << pstate.line+1 << " of " << output_path << std::endl;
-    std::cerr << "This will be an error in future versions of Sass." << std::endl;
+      std::cerr << "DEPRECATION WARNING: " << msg << std::endl;
+      std::cerr << "        on line " << pstate.line+1 << " of " << output_path << std::endl;
+      std::cerr << "This will be an error in future versions of Sass." << std::endl;
+    }
   }
 
   // should be replaced with error with backtraces
