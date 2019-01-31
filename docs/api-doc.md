@@ -152,7 +152,7 @@ const char* libsass_language_version(void);
 
 The `input_path` is part of `Sass_Options`, but it also is the main option for
 `Sass_File_Context`. It is also used to generate relative file links in source-
-maps. Therefore it is pretty usefull to pass this information if you have a
+maps. Therefore it is pretty useful to pass this information if you have a
 `Sass_Data_Context` and know the original path.
 
 **output_path**

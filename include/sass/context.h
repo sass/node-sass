@@ -43,7 +43,7 @@ ADDAPI struct Sass_Compiler* ADDCALL sass_make_file_compiler (struct Sass_File_C
 ADDAPI struct Sass_Compiler* ADDCALL sass_make_data_compiler (struct Sass_Data_Context* data_ctx);
 
 // Execute the different compilation steps individually
-// Usefull if you only want to query the included files
+// Useful if you only want to query the included files
 ADDAPI int ADDCALL sass_compiler_parse(struct Sass_Compiler* compiler);
 ADDAPI int ADDCALL sass_compiler_execute(struct Sass_Compiler* compiler);
 
