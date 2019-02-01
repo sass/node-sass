@@ -1,6 +1,8 @@
 #ifndef SASS_LISTIZE_H
 #define SASS_LISTIZE_H
 
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
 
 #include <vector>

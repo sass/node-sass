@@ -1,4 +1,7 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+
 #include <cstring>
 #include "util.hpp"
 #include "context.hpp"

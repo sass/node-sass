@@ -1,8 +1,12 @@
 #ifndef SASS_EMITTER_H
 #define SASS_EMITTER_H
 
-#include <string>
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+
+#include <string>
+
 #include "sass/base.h"
 #include "source_map.hpp"
 #include "ast_fwd_decl.hpp"

@@ -1,7 +1,10 @@
 #ifndef SASS_AST_SUPPORTS_H
 #define SASS_AST_SUPPORTS_H
 
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+
 #include <set>
 #include <deque>
 #include <vector>

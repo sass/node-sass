@@ -1,4 +1,7 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+
 #include <cctype>
 #include <iomanip>
 #include "ast.hpp"
@@ -123,7 +126,7 @@ namespace Sass {
 
     Signature red_sig = "red($color)";
     BUILT_IN(red)
-    { 
+    {
       Color_RGBA_Obj color = ARG("$color", Color)->toRGBA();
       return SASS_MEMORY_NEW(Number, pstate, color->r());
     }
