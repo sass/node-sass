@@ -64,6 +64,6 @@ freebsd_build_task:
           fullyQualifiedName="$(pwd)/$parent/${name}_binding.node";
           mv "$file" "$parent/${name}_binding.node";
           echo -e "New filename\072 $fullyQualifiedName";
-          ./scripts/upload-github-release-asset.sh github_api_token=$GH_API_TOKEN owner=am11 repo=node-sass tag=$CIRRUS_TAG filename=$fullyQualifiedName;
+          ./scripts/upload-github-release-asset.sh github_api_token=$GH_API_TOKEN owner=sass repo=node-sass tag=$CIRRUS_TAG filename=$fullyQualifiedName;
         done
       fi
