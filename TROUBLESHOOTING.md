@@ -7,10 +7,6 @@ should always follow these steps before opening a new issue.
 
 - [Installation problems](#installation-problems)
   - [404 downloading binding.node file](#404s)
-  - [Assertion failed: (handle->flags & UV_CLOSING), function uv__finish_close](#assertion-failed-handle-flags-&-uv_closing-function-uv__finish_close)
-  - [Cannot find module '/root/<...>/install.js'](#cannot-find-module-rootinstalljs)
-    - [Linux](#linux)
-  - [npm 5](#npm-5)
 - [Glossary](#glossary)
   - [Which node runtime am I using?](#which-node-runtime-am-i-using)
   - [Which version of node am I using?](#which-version-of-node-am-i-using)
