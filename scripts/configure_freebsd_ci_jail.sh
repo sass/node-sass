@@ -8,7 +8,6 @@ cbsd_workdir=/usr/jails
 jail_arch="i386"
 jail_ver="11.2"
 
-echo "Installing build dependencies for cbsd"
 pkg install -y cbsd
 
 # determine uplink ip address
