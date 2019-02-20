@@ -9,17 +9,7 @@ jail_arch="i386"
 jail_ver="11.2"
 
 echo "Installing build dependencies for cbsd"
-pkg install -y libssh2 rsync sqlite3 git pkgconf
-
-echo "Clone and setup cbsd"
-git clone https://github.com/cbsd/cbsd.git /usr/local/cbsd --single-branch --branch v12.0.4 --depth 1
-
-cd /usr/local/etc/rc.d
-ln -sf /usr/local/cbsd/rc.d/cbsdd
-mkdir -p /usr/local/libexec/bsdconfig
-cd /usr/local/libexec/bsdconfig
-ln -s /usr/local/cbsd/share/bsdconfig/cbsd
-pw useradd cbsd -s /bin/sh -d ${cbsd_workdir} -c "cbsd user"
+pkg install -y cbsd
 
 # determine uplink ip address
 # determine uplink iface
@@ -77,14 +67,6 @@ EOF
 
 echo "Initializing cbsd environment"
 env workdir=${cbsd_workdir} /usr/local/cbsd/sudoexec/initenv /usr/local/cbsd/share/initenv.conf
-
-echo "Writing 'FreeBSD-bases' configuration file"
-cat > ${cbsd_workdir}/etc/FreeBSD-bases.conf << EOF
-auto_baseupdate=0
-default_obtain_base_method="extract repo"
-default_obtain_base_extract_source="/usr/freebsd-dist/base.txz"
-default_obtain_base_repo_sources="https://bintray.com/am11/freebsd-dist/download_file?file_path=base-${jail_ver}-${jail_arch}.txz"
-EOF
 
 echo "Creating ${jailName}"
 cbsd jcreate jconf=/tmp/${jailName}.jconf inter=0
