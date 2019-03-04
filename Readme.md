@@ -88,7 +88,7 @@ Sass was originally conceived of by the co-creator of this library, Hampton Catl
 Most of the language has been the result of years of work by Natalie Weizenbaum ([@nex3]) and
 Chris Eppstein ([@chriseppstein]).
 
-For more information about Sass itself, please visit http://sass-lang.com
+For more information about Sass itself, please visit https://sass-lang.com
 
 Initial development of LibSass by Aaron Leung and Hampton Catlin was supported by [Moovweb](http://www.moovweb.com).
 
