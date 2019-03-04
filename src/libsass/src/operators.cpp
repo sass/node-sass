@@ -65,7 +65,7 @@ namespace Sass {
       );
 
       std::string msg("The operation `" + lsh + " " + op_str + " " + rhs + "` is deprecated and will be an error in future versions.");
-      std::string tail("Consider using Sass's color functions instead.\nhttps://sass-lang.com/documentation/Sass/Script/Functions.html#other_color_functions");
+      std::string tail("Consider using Sass's color functions instead.\nhttp://sass-lang.com/documentation/Sass/Script/Functions.html#other_color_functions");
 
       deprecated(msg, tail, false, pstate);
     }
