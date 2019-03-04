@@ -60,6 +60,6 @@ report. Once you verified all of the above, you may use the template below to fi
 [6]: http://www.sassmeister.com/
 [7]: https://rubygems.org/gems/sass
 
-[8]: http://sass-lang.com/
+[8]: https://sass-lang.com/
 [9]: https://github.com/sass/libsass/tree/master/docs
 [10]: https://github.com/sass/sass-spec
