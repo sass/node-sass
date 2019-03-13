@@ -9,6 +9,7 @@ var fs = require('fs'),
   sass = require('../lib/extensions'),
   request = require('request'),
   log = require('npmlog'),
+  Constants = require('../lib/constants'),
   downloadOptions = require('./util/downloadoptions');
 
 /**
@@ -95,15 +96,15 @@ function download(url, dest, cb) {
  * @api private
  */
 
-function checkAndDownloadBinary() {
+function checkAndDownloadBinary(options) {
   if (process.env.SKIP_SASS_BINARY_DOWNLOAD_FOR_CI) {
     console.log('Skipping downloading binaries on CI builds');
     return;
   }
 
-  var cachedBinary = sass.getCachedBinary(),
+  var cachedBinary = sass.getCachedBinary(options),
     cachePath = sass.getBinaryCachePath(),
-    binaryPath = sass.getBinaryPath();
+    binaryPath = sass.getBinaryPath(options);
 
   if (sass.hasBinary(binaryPath)) {
     console.log('node-sass build', 'Binary found at', binaryPath);
@@ -123,7 +124,7 @@ function checkAndDownloadBinary() {
     return;
   }
 
-  download(sass.getBinaryUrl(), binaryPath, function(err) {
+  download(sass.getBinaryUrl(options), binaryPath, function(err) {
     if (err) {
       console.error(err);
       return;
@@ -131,7 +132,7 @@ function checkAndDownloadBinary() {
 
     console.log('Binary saved to', binaryPath);
 
-    cachedBinary = path.join(cachePath, sass.getBinaryName());
+    cachedBinary = path.join(cachePath, sass.getBinaryName(options));
 
     if (cachePath) {
       console.log('Caching binary to', cachedBinary);
@@ -154,4 +155,4 @@ function checkAndDownloadBinary() {
  * If binary does not exist, download it
  */
 
-checkAndDownloadBinary();
+checkAndDownloadBinary(Constants.DefaultOptions);
