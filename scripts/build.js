@@ -100,8 +100,12 @@ var gypOptions = {
   target: argv.target,
   debug: argv.debug
 };
-
-if (Constants.ModuleVersions[argv.modulesVersion][0] === Constants.Runtimes.ELECTRON) {
+var ModuleDetails = Constants.ModuleVersions[argv.modulesVersion];
+if (!ModuleDetails) {
+  console.error('Unknown Node Modules Version: ' + argv.modulesVersion);
+  process.exit(1);
+}
+if (ModuleDetails[0] === Constants.Runtimes.ELECTRON) {
   gypOptions['dist-url'] = 'https://atom.io/download/electron';
 }
 
