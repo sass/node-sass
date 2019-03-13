@@ -2,7 +2,8 @@ process.env.NODESASS_COV ? require('../lib-cov') : require('../lib');
 
 var assert = require('assert'),
   sass = require('../lib/extensions'),
-  binding = require(sass.getBinaryPath());
+  Constants = require('../lib/constants'),
+  binding = require(sass.getBinaryPath(Constants.DefaultOptions));
 
 describe('lowlevel', function() {
   it('fail with options not an object', function(done) {
