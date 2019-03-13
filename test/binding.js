@@ -3,6 +3,7 @@
 var assert = require('assert'),
   path = require('path'),
   etx = require('../lib/extensions'),
+  Constants = require('../lib/constants'),
   binding = process.env.NODESASS_COV
       ? require('../lib-cov/binding')
       : require('../lib/binding');
@@ -33,7 +34,7 @@ describe('binding', function() {
 
           if ((err instanceof Error)) {
             return err.message.indexOf(
-              etx.getHumanEnvironment(etx.getBinaryName())
+              etx.getHumanEnvironment(etx.getBinaryName(Constants.DefaultOptions))
             ) !== -1;
           }
         }
