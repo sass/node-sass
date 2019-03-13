@@ -1,6 +1,6 @@
 var assert = require('assert'),
-  Constants = require('../lib/constants');
-sass = process.env.NODESASS_COV
+  Constants = require('../lib/constants'),
+  sass = process.env.NODESASS_COV
       ? require('../lib-cov/extensions')
       : require('../lib/extensions');
 
