@@ -107,7 +107,7 @@ if (!ModuleDetails) {
 }
 if (ModuleDetails[0] === Constants.Runtimes.ELECTRON) {
   gypOptions['dist-url'] = 'https://atom.io/download/electron';
-  gypOptions.arch = process.platform === 'win32' ? 'ia32' : process.arch;
+  argv.arch = gypOptions.arch = process.platform === 'win32' ? 'ia32' : process.arch;
 }
 
 build(gypOptions, function (errorCode) {
