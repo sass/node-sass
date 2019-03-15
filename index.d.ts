@@ -73,7 +73,7 @@ declare module "node-sass" {
    * @param done a callback function to invoke on async completion, takes an object literal containing 
    * 
    */
-  type Importer = (url: string, prev: string, done: (data: ImporterReturn) => void) => ImporterReturn
+  type Importer = (url: string, prev: string, done: (data: ImporterReturn) => void) => ImporterReturn | null | never
   type ImporterReturn = { file: string } | { contents: string } | Error | null
   
   type RenderOptions = Partial<{
