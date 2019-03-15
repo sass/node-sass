@@ -199,7 +199,7 @@ declare module "node-sass" {
   type RenderResult = {
     /** The compiled CSS. Write this to a file, or serve it out as needed. */
     css: Uint8Array;
-    map: Buffer | undefined;
+    map: Uint8Array | undefined;
     stats: {
       entry: string;
       start: number;
