@@ -29,6 +29,7 @@ install:
   - set PATH=C:\Ruby%ruby_version%\bin;%PATH%
   - ps: |
       if(!(gem which minitest 2>$nul)) { gem install minitest --no-ri --no-rdoc }
+      if(!(gem which hrx 2>$nul)) { gem install hrx --no-ri --no-rdoc }
       if ($env:Compiler -eq "mingw" -AND -Not (Test-Path "C:\mingw64")) {
         # Install MinGW.
         $file = "x86_64-4.9.2-release-win32-seh-rt_v4-rev3.7z"
