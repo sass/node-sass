@@ -63,7 +63,7 @@ namespace Sass {
 
       std::string name = Util::normalize_underscores(unquote(ss->value()));
 
-      if(d_env.has_global(name+"[f]")) {
+      if(d_env.has(name+"[f]")) {
         return SASS_MEMORY_NEW(Boolean, pstate, true);
       }
       else {
@@ -76,7 +76,7 @@ namespace Sass {
     {
       std::string s = Util::normalize_underscores(unquote(ARG("$name", String_Constant)->value()));
 
-      if(d_env.has_global(s+"[m]")) {
+      if(d_env.has(s+"[m]")) {
         return SASS_MEMORY_NEW(Boolean, pstate, true);
       }
       else {
