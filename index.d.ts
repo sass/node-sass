@@ -187,6 +187,8 @@ declare module "node-sass" {
   class RenderError extends Error {
     /** The error message. */
     message: string
+    /** The error message with line number annotation. */
+    formatted: string
     /** The line number of error. */
     line: number
     /** The column number of error. */
