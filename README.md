@@ -2,7 +2,7 @@
 
 #### Supported Node.js versions vary by release, please consult the [releases page](https://github.com/sass/node-sass/releases). Below is a quick guide for minimium support:
 
-NodeJS  | Minium node-sass version | Node Module
+NodeJS  | Minimum node-sass version | Node Module
 --------|--------------------------|------------
 Node 11 | 4.10+                    | 67
 Node 10 | 4.9+                     | 64
