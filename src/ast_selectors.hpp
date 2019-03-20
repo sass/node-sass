@@ -48,7 +48,7 @@ namespace Sass {
     ADD_PROPERTY(bool, is_optional)
     // must not be a reference counted object
     // otherwise we create circular references
-    ADD_PROPERTY(Media_Block_Ptr, media_block)
+    ADD_PROPERTY(Media_Block*, media_block)
   protected:
     mutable size_t hash_;
   public:
@@ -57,7 +57,7 @@ namespace Sass {
     size_t hash() const override = 0;
     virtual unsigned long specificity() const = 0;
     virtual int unification_order() const = 0;
-    virtual void set_media_block(Media_Block_Ptr mb);
+    virtual void set_media_block(Media_Block* mb);
     virtual bool has_parent_ref() const;
     virtual bool has_real_parent_ref() const;
     // dispatch to correct handlers
@@ -78,7 +78,7 @@ namespace Sass {
     ADD_PROPERTY(bool, connect_parent);
     // must not be a reference counted object
     // otherwise we create circular references
-    ADD_PROPERTY(Media_Block_Ptr, media_block)
+    ADD_PROPERTY(Media_Block*, media_block)
     // store computed hash
     mutable size_t hash_;
   public:
@@ -132,12 +132,12 @@ namespace Sass {
     virtual bool has_placeholder();
 
     virtual ~Simple_Selector() = 0;
-    virtual Compound_Selector_Ptr unify_with(Compound_Selector_Ptr);
+    virtual Compound_Selector* unify_with(Compound_Selector*);
 
     virtual bool has_parent_ref() const override;
     virtual bool has_real_parent_ref() const override;
     virtual bool is_pseudo_element() const;
-    virtual bool is_superselector_of(Compound_Selector_Ptr_Const sub) const;
+    virtual bool is_superselector_of(const Compound_Selector* sub) const;
 
     bool operator<(const Selector& rhs) const final override;
     bool operator==(const Selector& rhs) const final override;
@@ -221,8 +221,8 @@ namespace Sass {
     {
       return Constants::UnificationOrder_Element;
     }
-    Simple_Selector_Ptr unify_with(Simple_Selector_Ptr);
-    Compound_Selector_Ptr unify_with(Compound_Selector_Ptr) override;
+    Simple_Selector* unify_with(Simple_Selector*);
+    Compound_Selector* unify_with(Compound_Selector*) override;
     bool operator<(const Simple_Selector& rhs) const final override;
     bool operator==(const Simple_Selector& rhs) const final override;
     bool operator<(const Type_Selector& rhs) const;
@@ -242,7 +242,7 @@ namespace Sass {
     {
       return Constants::UnificationOrder_Class;
     }
-    Compound_Selector_Ptr unify_with(Compound_Selector_Ptr) override;
+    Compound_Selector* unify_with(Compound_Selector*) override;
     bool operator<(const Simple_Selector& rhs) const final override;
     bool operator==(const Simple_Selector& rhs) const final override;
     bool operator<(const Class_Selector& rhs) const;
@@ -262,7 +262,7 @@ namespace Sass {
     {
       return Constants::UnificationOrder_Id;
     }
-    Compound_Selector_Ptr unify_with(Compound_Selector_Ptr) override;
+    Compound_Selector* unify_with(Compound_Selector*) override;
     bool operator<(const Simple_Selector& rhs) const final override;
     bool operator==(const Simple_Selector& rhs) const final override;
     bool operator<(const Id_Selector& rhs) const;
@@ -328,7 +328,7 @@ namespace Sass {
     bool operator==(const Simple_Selector& rhs) const final override;
     bool operator<(const Pseudo_Selector& rhs) const;
     bool operator==(const Pseudo_Selector& rhs) const;
-    Compound_Selector_Ptr unify_with(Compound_Selector_Ptr) override;
+    Compound_Selector* unify_with(Compound_Selector*) override;
     ATTACH_AST_OPERATIONS(Pseudo_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
   };
@@ -341,7 +341,7 @@ namespace Sass {
   public:
     Wrapped_Selector(ParserState pstate, std::string n, Selector_List_Obj sel);
     using Simple_Selector::is_superselector_of;
-    bool is_superselector_of(Wrapped_Selector_Ptr_Const sub) const;
+    bool is_superselector_of(const Wrapped_Selector* sub) const;
     // Selectors inside the negation pseudo-class are counted like any
     // other, but the negation itself does not count as a pseudo-class.
     size_t hash() const override;
@@ -383,14 +383,14 @@ namespace Sass {
     void append(Simple_Selector_Obj element) override;
     bool is_universal() const;
     Complex_Selector_Obj to_complex();
-    Compound_Selector_Ptr unify_with(Compound_Selector_Ptr rhs);
-    // virtual Placeholder_Selector_Ptr find_placeholder();
+    Compound_Selector* unify_with(Compound_Selector* rhs);
+    // virtual Placeholder_Selector* find_placeholder();
     bool has_parent_ref() const override;
     bool has_real_parent_ref() const override;
-    Simple_Selector_Ptr base() const;
-    bool is_superselector_of(Compound_Selector_Ptr_Const sub, std::string wrapped = "") const;
-    bool is_superselector_of(Complex_Selector_Ptr_Const sub, std::string wrapped = "") const;
-    bool is_superselector_of(Selector_List_Ptr_Const sub, std::string wrapped = "") const;
+    Simple_Selector* base() const;
+    bool is_superselector_of(const Compound_Selector* sub, std::string wrapped = "") const;
+    bool is_superselector_of(const Complex_Selector* sub, std::string wrapped = "") const;
+    bool is_superselector_of(const Selector_List* sub, std::string wrapped = "") const;
     size_t hash() const override;
     virtual unsigned long specificity() const override;
     virtual bool has_placeholder();
@@ -416,7 +416,7 @@ namespace Sass {
     void clearSources() { sources_.clear(); }
     void mergeSources(ComplexSelectorSet& sources);
 
-    Compound_Selector_Ptr minus(Compound_Selector_Ptr rhs);
+    Compound_Selector* minus(Compound_Selector* rhs);
     void cloneChildren() override;
     ATTACH_AST_OPERATIONS(Compound_Selector)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -456,30 +456,30 @@ namespace Sass {
     // can still have a tail
     bool is_empty_ancestor() const;
 
-    Selector_List_Ptr tails(Selector_List_Ptr tails);
+    Selector_List* tails(Selector_List* tails);
 
     // front returns the first real tail
     // skips over parent and empty ones
-    Complex_Selector_Ptr_Const first() const;
-    Complex_Selector_Ptr mutable_first();
+    const Complex_Selector* first() const;
+    Complex_Selector* mutable_first();
 
     // last returns the last real tail
-    Complex_Selector_Ptr_Const last() const;
-    Complex_Selector_Ptr mutable_last();
+    const Complex_Selector* last() const;
+    Complex_Selector* mutable_last();
 
     size_t length() const;
-    Selector_List_Ptr resolve_parent_refs(SelectorStack& pstack, Backtraces& traces, bool implicit_parent = true);
-    bool is_superselector_of(Compound_Selector_Ptr_Const sub, std::string wrapping = "") const;
-    bool is_superselector_of(Complex_Selector_Ptr_Const sub, std::string wrapping = "") const;
-    bool is_superselector_of(Selector_List_Ptr_Const sub, std::string wrapping = "") const;
-    Selector_List_Ptr unify_with(Complex_Selector_Ptr rhs);
+    Selector_List* resolve_parent_refs(SelectorStack& pstack, Backtraces& traces, bool implicit_parent = true);
+    bool is_superselector_of(const Compound_Selector* sub, std::string wrapping = "") const;
+    bool is_superselector_of(const Complex_Selector* sub, std::string wrapping = "") const;
+    bool is_superselector_of(const Selector_List* sub, std::string wrapping = "") const;
+    Selector_List* unify_with(Complex_Selector* rhs);
     Combinator clear_innermost();
     void append(Complex_Selector_Obj, Backtraces& traces);
     void set_innermost(Complex_Selector_Obj, Combinator);
 
     size_t hash() const override;
     virtual unsigned long specificity() const override;
-    virtual void set_media_block(Media_Block_Ptr mb) override;
+    virtual void set_media_block(Media_Block* mb) override;
     virtual bool has_placeholder();
     int unification_order() const override
     {
@@ -523,17 +523,17 @@ namespace Sass {
     bool has_parent_ref() const override;
     bool has_real_parent_ref() const override;
     void remove_parent_selectors();
-    Selector_List_Ptr resolve_parent_refs(SelectorStack& pstack, Backtraces& traces, bool implicit_parent = true);
-    bool is_superselector_of(Compound_Selector_Ptr_Const sub, std::string wrapping = "") const;
-    bool is_superselector_of(Complex_Selector_Ptr_Const sub, std::string wrapping = "") const;
-    bool is_superselector_of(Selector_List_Ptr_Const sub, std::string wrapping = "") const;
-    Selector_List_Ptr unify_with(Selector_List_Ptr);
+    Selector_List* resolve_parent_refs(SelectorStack& pstack, Backtraces& traces, bool implicit_parent = true);
+    bool is_superselector_of(const Compound_Selector* sub, std::string wrapping = "") const;
+    bool is_superselector_of(const Complex_Selector* sub, std::string wrapping = "") const;
+    bool is_superselector_of(const Selector_List* sub, std::string wrapping = "") const;
+    Selector_List* unify_with(Selector_List*);
     void populate_extends(Selector_List_Obj, Subset_Map&);
     Selector_List_Obj eval(Eval& eval);
 
     size_t hash() const override;
     virtual unsigned long specificity() const override;
-    virtual void set_media_block(Media_Block_Ptr mb) override;
+    virtual void set_media_block(Media_Block* mb) override;
     virtual bool has_placeholder();
     int unification_order() const override
     {

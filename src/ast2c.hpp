@@ -14,22 +14,22 @@ namespace Sass {
     AST2C() { }
     ~AST2C() { }
 
-    union Sass_Value* operator()(Boolean_Ptr);
-    union Sass_Value* operator()(Number_Ptr);
-    union Sass_Value* operator()(Color_RGBA_Ptr);
-    union Sass_Value* operator()(Color_HSLA_Ptr);
-    union Sass_Value* operator()(String_Constant_Ptr);
-    union Sass_Value* operator()(String_Quoted_Ptr);
-    union Sass_Value* operator()(Custom_Warning_Ptr);
-    union Sass_Value* operator()(Custom_Error_Ptr);
-    union Sass_Value* operator()(List_Ptr);
-    union Sass_Value* operator()(Map_Ptr);
-    union Sass_Value* operator()(Null_Ptr);
-    union Sass_Value* operator()(Arguments_Ptr);
-    union Sass_Value* operator()(Argument_Ptr);
+    union Sass_Value* operator()(Boolean*);
+    union Sass_Value* operator()(Number*);
+    union Sass_Value* operator()(Color_RGBA*);
+    union Sass_Value* operator()(Color_HSLA*);
+    union Sass_Value* operator()(String_Constant*);
+    union Sass_Value* operator()(String_Quoted*);
+    union Sass_Value* operator()(Custom_Warning*);
+    union Sass_Value* operator()(Custom_Error*);
+    union Sass_Value* operator()(List*);
+    union Sass_Value* operator()(Map*);
+    union Sass_Value* operator()(Null*);
+    union Sass_Value* operator()(Arguments*);
+    union Sass_Value* operator()(Argument*);
 
     // return sass error if type is not supported
-    union Sass_Value* fallback(AST_Node_Ptr x)
+    union Sass_Value* fallback(AST_Node* x)
     { return sass_make_error("unknown type for C-API"); }
 
   };

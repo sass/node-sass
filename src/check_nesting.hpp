@@ -6,59 +6,59 @@
 
 namespace Sass {
 
-  class CheckNesting : public Operation_CRTP<Statement_Ptr, CheckNesting> {
+  class CheckNesting : public Operation_CRTP<Statement*, CheckNesting> {
 
-    std::vector<Statement_Ptr>  parents;
+    std::vector<Statement*>  parents;
     Backtraces                  traces;
-    Statement_Ptr               parent;
-    Definition_Ptr              current_mixin_definition;
+    Statement*               parent;
+    Definition*              current_mixin_definition;
 
-    Statement_Ptr before(Statement_Ptr);
-    Statement_Ptr visit_children(Statement_Ptr);
+    Statement* before(Statement*);
+    Statement* visit_children(Statement*);
 
   public:
     CheckNesting();
     ~CheckNesting() { }
 
-    Statement_Ptr operator()(Block_Ptr);
-    Statement_Ptr operator()(Definition_Ptr);
-    Statement_Ptr operator()(If_Ptr);
+    Statement* operator()(Block*);
+    Statement* operator()(Definition*);
+    Statement* operator()(If*);
 
     template <typename U>
-    Statement_Ptr fallback(U x) {
-      Statement_Ptr s = Cast<Statement>(x);
+    Statement* fallback(U x) {
+      Statement* s = Cast<Statement>(x);
       if (s && this->should_visit(s)) {
-        Block_Ptr b1 = Cast<Block>(s);
-        Has_Block_Ptr b2 = Cast<Has_Block>(s);
+        Block* b1 = Cast<Block>(s);
+        Has_Block* b2 = Cast<Has_Block>(s);
         if (b1 || b2) return visit_children(s);
       }
       return s;
     }
 
   private:
-    void invalid_content_parent(Statement_Ptr, AST_Node_Ptr);
-    void invalid_charset_parent(Statement_Ptr, AST_Node_Ptr);
-    void invalid_extend_parent(Statement_Ptr, AST_Node_Ptr);
-    // void invalid_import_parent(Statement_Ptr);
-    void invalid_mixin_definition_parent(Statement_Ptr, AST_Node_Ptr);
-    void invalid_function_parent(Statement_Ptr, AST_Node_Ptr);
+    void invalid_content_parent(Statement*, AST_Node*);
+    void invalid_charset_parent(Statement*, AST_Node*);
+    void invalid_extend_parent(Statement*, AST_Node*);
+    // void invalid_import_parent(Statement*);
+    void invalid_mixin_definition_parent(Statement*, AST_Node*);
+    void invalid_function_parent(Statement*, AST_Node*);
 
-    void invalid_function_child(Statement_Ptr);
-    void invalid_prop_child(Statement_Ptr);
-    void invalid_prop_parent(Statement_Ptr, AST_Node_Ptr);
-    void invalid_return_parent(Statement_Ptr, AST_Node_Ptr);
-    void invalid_value_child(AST_Node_Ptr);
+    void invalid_function_child(Statement*);
+    void invalid_prop_child(Statement*);
+    void invalid_prop_parent(Statement*, AST_Node*);
+    void invalid_return_parent(Statement*, AST_Node*);
+    void invalid_value_child(AST_Node*);
 
-    bool is_transparent_parent(Statement_Ptr, Statement_Ptr);
+    bool is_transparent_parent(Statement*, Statement*);
 
-    bool should_visit(Statement_Ptr);
+    bool should_visit(Statement*);
 
-    bool is_charset(Statement_Ptr);
-    bool is_mixin(Statement_Ptr);
-    bool is_function(Statement_Ptr);
-    bool is_root_node(Statement_Ptr);
-    bool is_at_root_node(Statement_Ptr);
-    bool is_directive_node(Statement_Ptr);
+    bool is_charset(Statement*);
+    bool is_mixin(Statement*);
+    bool is_function(Statement*);
+    bool is_root_node(Statement*);
+    bool is_at_root_node(Statement*);
+    bool is_directive_node(Statement*);
   };
 
 }

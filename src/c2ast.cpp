@@ -8,11 +8,11 @@
 
 namespace Sass {
 
-  Value_Ptr c2ast(union Sass_Value* v, Backtraces traces, ParserState pstate)
+  Value* c2ast(union Sass_Value* v, Backtraces traces, ParserState pstate)
   {
     using std::strlen;
     using std::strcpy;
-    Value_Ptr e = NULL;
+    Value* e = NULL;
     switch (sass_value_get_tag(v)) {
       case SASS_BOOLEAN: {
         e = SASS_MEMORY_NEW(Boolean, pstate, !!sass_boolean_get_value(v));
@@ -31,7 +31,7 @@ namespace Sass {
         }
       } break;
       case SASS_LIST: {
-        List_Ptr l = SASS_MEMORY_NEW(List, pstate, sass_list_get_length(v), sass_list_get_separator(v));
+        List* l = SASS_MEMORY_NEW(List, pstate, sass_list_get_length(v), sass_list_get_separator(v));
         for (size_t i = 0, L = sass_list_get_length(v); i < L; ++i) {
           l->append(c2ast(sass_list_get_value(v, i), traces, pstate));
         }
@@ -39,7 +39,7 @@ namespace Sass {
         e = l;
       } break;
       case SASS_MAP: {
-        Map_Ptr m = SASS_MEMORY_NEW(Map, pstate);
+        Map* m = SASS_MEMORY_NEW(Map, pstate);
         for (size_t i = 0, L = sass_map_get_length(v); i < L; ++i) {
           *m << std::make_pair(
             c2ast(sass_map_get_key(v, i), traces, pstate),

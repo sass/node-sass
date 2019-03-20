@@ -27,14 +27,14 @@ namespace Sass {
 
   class Context {
   public:
-    void import_url (Import_Ptr imp, std::string load_path, const std::string& ctx_path);
-    bool call_headers(const std::string& load_path, const char* ctx_path, ParserState& pstate, Import_Ptr imp)
+    void import_url (Import* imp, std::string load_path, const std::string& ctx_path);
+    bool call_headers(const std::string& load_path, const char* ctx_path, ParserState& pstate, Import* imp)
     { return call_loader(load_path, ctx_path, pstate, imp, c_headers, false); };
-    bool call_importers(const std::string& load_path, const char* ctx_path, ParserState& pstate, Import_Ptr imp)
+    bool call_importers(const std::string& load_path, const char* ctx_path, ParserState& pstate, Import* imp)
     { return call_loader(load_path, ctx_path, pstate, imp, c_importers, true); };
 
   private:
-    bool call_loader(const std::string& load_path, const char* ctx_path, ParserState& pstate, Import_Ptr imp, std::vector<Sass_Importer_Entry> importers, bool only_one = true);
+    bool call_loader(const std::string& load_path, const char* ctx_path, ParserState& pstate, Import* imp, std::vector<Sass_Importer_Entry> importers, bool only_one = true);
 
   public:
     const std::string CWD;

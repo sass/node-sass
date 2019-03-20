@@ -15,7 +15,7 @@ namespace Sass {
   class Eval;
   struct Backtrace;
 
-  class Expand : public Operation_CRTP<Statement_Ptr, Expand> {
+  class Expand : public Operation_CRTP<Statement*, Expand> {
   public:
 
     Env* environment();
@@ -45,31 +45,31 @@ namespace Sass {
     Expand(Context&, Env*, SelectorStack* stack = NULL);
     ~Expand() { }
 
-    Block_Ptr operator()(Block_Ptr);
-    Statement_Ptr operator()(Ruleset_Ptr);
-    Statement_Ptr operator()(Media_Block_Ptr);
-    Statement_Ptr operator()(Supports_Block_Ptr);
-    Statement_Ptr operator()(At_Root_Block_Ptr);
-    Statement_Ptr operator()(Directive_Ptr);
-    Statement_Ptr operator()(Declaration_Ptr);
-    Statement_Ptr operator()(Assignment_Ptr);
-    Statement_Ptr operator()(Import_Ptr);
-    Statement_Ptr operator()(Import_Stub_Ptr);
-    Statement_Ptr operator()(Warning_Ptr);
-    Statement_Ptr operator()(Error_Ptr);
-    Statement_Ptr operator()(Debug_Ptr);
-    Statement_Ptr operator()(Comment_Ptr);
-    Statement_Ptr operator()(If_Ptr);
-    Statement_Ptr operator()(For_Ptr);
-    Statement_Ptr operator()(Each_Ptr);
-    Statement_Ptr operator()(While_Ptr);
-    Statement_Ptr operator()(Return_Ptr);
-    Statement_Ptr operator()(Extension_Ptr);
-    Statement_Ptr operator()(Definition_Ptr);
-    Statement_Ptr operator()(Mixin_Call_Ptr);
-    Statement_Ptr operator()(Content_Ptr);
+    Block* operator()(Block*);
+    Statement* operator()(Ruleset*);
+    Statement* operator()(Media_Block*);
+    Statement* operator()(Supports_Block*);
+    Statement* operator()(At_Root_Block*);
+    Statement* operator()(Directive*);
+    Statement* operator()(Declaration*);
+    Statement* operator()(Assignment*);
+    Statement* operator()(Import*);
+    Statement* operator()(Import_Stub*);
+    Statement* operator()(Warning*);
+    Statement* operator()(Error*);
+    Statement* operator()(Debug*);
+    Statement* operator()(Comment*);
+    Statement* operator()(If*);
+    Statement* operator()(For*);
+    Statement* operator()(Each*);
+    Statement* operator()(While*);
+    Statement* operator()(Return*);
+    Statement* operator()(Extension*);
+    Statement* operator()(Definition*);
+    Statement* operator()(Mixin_Call*);
+    Statement* operator()(Content*);
 
-    void append_block(Block_Ptr);
+    void append_block(Block*);
 
   };
 

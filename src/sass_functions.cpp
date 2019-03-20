@@ -170,21 +170,21 @@ extern "C" {
 
   // Getters and Setters for environments (lexical, local and global)
   union Sass_Value* ADDCALL sass_env_get_lexical (Sass_Env_Frame env, const char* name) {
-    Expression_Ptr ex = Cast<Expression>((*env->frame)[name]);
+    Expression* ex = Cast<Expression>((*env->frame)[name]);
     return ex != NULL ? ast_node_to_sass_value(ex) : NULL;
   }
   void ADDCALL sass_env_set_lexical (Sass_Env_Frame env, const char* name, union Sass_Value* val) {
     (*env->frame)[name] = sass_value_to_ast_node(val);
   }
   union Sass_Value* ADDCALL sass_env_get_local (Sass_Env_Frame env, const char* name) {
-    Expression_Ptr ex = Cast<Expression>(env->frame->get_local(name));
+    Expression* ex = Cast<Expression>(env->frame->get_local(name));
     return ex != NULL ? ast_node_to_sass_value(ex) : NULL;
   }
   void ADDCALL sass_env_set_local (Sass_Env_Frame env, const char* name, union Sass_Value* val) {
     env->frame->set_local(name, sass_value_to_ast_node(val));
   }
   union Sass_Value* ADDCALL sass_env_get_global (Sass_Env_Frame env, const char* name) {
-    Expression_Ptr ex = Cast<Expression>(env->frame->get_global(name));
+    Expression* ex = Cast<Expression>(env->frame->get_global(name));
     return ex != NULL ? ast_node_to_sass_value(ex) : NULL;
   }
   void ADDCALL sass_env_set_global (Sass_Env_Frame env, const char* name, union Sass_Value* val) {

@@ -7,7 +7,7 @@
 
 namespace Sass {
 
-  Definition_Ptr make_native_function(Signature sig, Native_Function func, Context& ctx)
+  Definition* make_native_function(Signature sig, Native_Function func, Context& ctx)
   {
     Parser sig_parser = Parser::from_c_str(sig, ctx, ctx.traces, ParserState("[built-in function]"));
     sig_parser.lex<Prelexer::identifier>();
@@ -22,7 +22,7 @@ namespace Sass {
                           false);
   }
 
-  Definition_Ptr make_c_function(Sass_Function_Entry c_func, Context& ctx)
+  Definition* make_c_function(Sass_Function_Entry c_func, Context& ctx)
   {
     using namespace Prelexer;
 
@@ -52,11 +52,11 @@ namespace Sass {
       return str.substr(0, str.find('('));
     }
 
-    Map_Ptr get_arg_m(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces)
+    Map* get_arg_m(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces)
     {
-      AST_Node_Ptr value = env[argname];
-      if (Map_Ptr map = Cast<Map>(value)) return map;
-      List_Ptr list = Cast<List>(value);
+      AST_Node* value = env[argname];
+      if (Map* map = Cast<Map>(value)) return map;
+      List* list = Cast<List>(value);
       if (list && list->length() == 0) {
         return SASS_MEMORY_NEW(Map, pstate, 0);
       }
@@ -65,7 +65,7 @@ namespace Sass {
 
     double get_arg_r(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, double lo, double hi)
     {
-      Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, traces);
+      Number* val = get_arg<Number>(argname, env, sig, pstate, traces);
       Number tmpnr(val);
       tmpnr.reduce();
       double v = tmpnr.value();
@@ -78,9 +78,9 @@ namespace Sass {
       return v;
     }
 
-    Number_Ptr get_arg_n(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces)
+    Number* get_arg_n(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces)
     {
-      Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, traces);
+      Number* val = get_arg<Number>(argname, env, sig, pstate, traces);
       val = SASS_MEMORY_COPY(val);
       val->reduce();
       return val;
@@ -88,7 +88,7 @@ namespace Sass {
 
     double get_arg_val(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces)
     {
-      Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, traces);
+      Number* val = get_arg<Number>(argname, env, sig, pstate, traces);
       Number tmpnr(val);
       tmpnr.reduce();
       return tmpnr.value();
@@ -96,7 +96,7 @@ namespace Sass {
 
     double color_num(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces)
     {
-      Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, traces);
+      Number* val = get_arg<Number>(argname, env, sig, pstate, traces);
       Number tmpnr(val);
       tmpnr.reduce();
       if (tmpnr.unit() == "%") {
@@ -107,7 +107,7 @@ namespace Sass {
     }
 
     double alpha_num(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces) {
-      Number_Ptr val = get_arg<Number>(argname, env, sig, pstate, traces);
+      Number* val = get_arg<Number>(argname, env, sig, pstate, traces);
       Number tmpnr(val);
       tmpnr.reduce();
       if (tmpnr.unit() == "%") {
@@ -125,7 +125,7 @@ namespace Sass {
         msg << "a list of strings, or a list of lists of strings for `" << function_name(sig) << "'";
         error(msg.str(), exp->pstate(), traces);
       }
-      if (String_Constant_Ptr str = Cast<String_Constant>(exp)) {
+      if (String_Constant* str = Cast<String_Constant>(exp)) {
         str->quote_mark(0);
       }
       std::string exp_src = exp->to_string(ctx.c_options);
@@ -139,7 +139,7 @@ namespace Sass {
         msg << argname << ": null is not a string for `" << function_name(sig) << "'";
         error(msg.str(), exp->pstate(), traces);
       }
-      if (String_Constant_Ptr str = Cast<String_Constant>(exp)) {
+      if (String_Constant* str = Cast<String_Constant>(exp)) {
         str->quote_mark(0);
       }
       std::string exp_src = exp->to_string(ctx.c_options);

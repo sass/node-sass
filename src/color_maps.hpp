@@ -320,8 +320,8 @@ namespace Sass {
     extern const Color_RGBA transparent;
   }
 
-  Color_RGBA_Ptr_Const name_to_color(const char*);
-  Color_RGBA_Ptr_Const name_to_color(const std::string&);
+  const Color_RGBA* name_to_color(const char*);
+  const Color_RGBA* name_to_color(const std::string&);
   const char* color_to_name(const int);
   const char* color_to_name(const Color_RGBA&);
   const char* color_to_name(const double);

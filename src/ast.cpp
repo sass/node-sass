@@ -76,7 +76,7 @@ namespace Sass {
     Inspect i(emitter);
     i.in_declaration = true;
     // ToDo: inspect should be const
-    const_cast<AST_Node_Ptr>(this)->perform(&i);
+    const_cast<AST_Node*>(this)->perform(&i);
     return i.get_buffer();
   }
 
@@ -173,7 +173,7 @@ namespace Sass {
   { statement_type(RULESET); }
 
   bool Ruleset::is_invisible() const {
-    if (Selector_List_Ptr sl = Cast<Selector_List>(selector())) {
+    if (Selector_List* sl = Cast<Selector_List>(selector())) {
       for (size_t i = 0, L = sl->length(); i < L; ++i)
         if (!(*sl)[i]->has_placeholder()) return false;
     }
@@ -594,7 +594,7 @@ namespace Sass {
   {
     try
     {
-      Unary_Expression_Ptr_Const m = Cast<Unary_Expression>(&rhs);
+      const Unary_Expression* m = Cast<Unary_Expression>(&rhs);
       if (m == 0) return false;
       return type() == m->type() &&
               *operand() == *m->operand();
@@ -647,7 +647,7 @@ namespace Sass {
   {
     try
     {
-      Argument_Ptr_Const m = Cast<Argument>(&rhs);
+      const Argument* m = Cast<Argument>(&rhs);
       if (!(m && name() == m->name())) return false;
       return *value() == *m->value();
     }
@@ -794,7 +794,7 @@ namespace Sass {
   bool At_Root_Query::exclude(std::string str)
   {
     bool with = feature() && unquote(feature()->to_string()).compare("with") == 0;
-    List_Ptr l = static_cast<List_Ptr>(value().ptr());
+    List* l = static_cast<List*>(value().ptr());
     std::string v;
 
     if (with)

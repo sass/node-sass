@@ -244,7 +244,7 @@ namespace Sass {
     for (typename environment_map<std::string, T>::iterator i = local_frame_.begin(); i != local_frame_.end(); ++i) {
       if (!ends_with(i->first, "[f]") && !ends_with(i->first, "[f]4") && !ends_with(i->first, "[f]2")) {
         std::cerr << prefix << std::string(indent, ' ') << i->first << " " << i->second;
-        if (Value_Ptr val = Cast<Value>(i->second))
+        if (Value* val = Cast<Value>(i->second))
         { std::cerr << " : " << val->to_string(); }
         std::cerr << std::endl;
       }

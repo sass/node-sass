@@ -23,7 +23,7 @@ namespace Sass {
     { }
 
 
-    InvalidParent::InvalidParent(Selector_Ptr parent, Backtraces traces, Selector_Ptr selector)
+    InvalidParent::InvalidParent(Selector* parent, Backtraces traces, Selector* selector)
     : Base(selector->pstate(), def_msg, traces), parent(parent), selector(selector)
     {
       msg = "Invalid parent selector for "
@@ -31,14 +31,14 @@ namespace Sass {
         "\"" + parent->to_string(Sass_Inspect_Options()) + "\"";
     }
 
-    InvalidVarKwdType::InvalidVarKwdType(ParserState pstate, Backtraces traces, std::string name, const Argument_Ptr arg)
+    InvalidVarKwdType::InvalidVarKwdType(ParserState pstate, Backtraces traces, std::string name, const Argument* arg)
     : Base(pstate, def_msg, traces), name(name), arg(arg)
     {
       msg = "Variable keyword argument map must have string keys.\n" +
         name + " is not a string in " + arg->to_string() + ".";
     }
 
-    InvalidArgumentType::InvalidArgumentType(ParserState pstate, Backtraces traces, std::string fn, std::string arg, std::string type, const Value_Ptr value)
+    InvalidArgumentType::InvalidArgumentType(ParserState pstate, Backtraces traces, std::string fn, std::string arg, std::string type, const Value* value)
     : Base(pstate, def_msg, traces), fn(fn), arg(arg), type(type), value(value)
     {
       msg = arg + ": \"";
@@ -94,7 +94,7 @@ namespace Sass {
       msg = std::string("Incompatible units: '") + unit_to_string(rhs) + "' and '" + unit_to_string(lhs) + "'.";
     }
 
-    AlphaChannelsNotEqual::AlphaChannelsNotEqual(Expression_Ptr_Const lhs, Expression_Ptr_Const rhs, enum Sass_OP op)
+    AlphaChannelsNotEqual::AlphaChannelsNotEqual(const Expression* lhs, const Expression* rhs, enum Sass_OP op)
     : OperationError(), lhs(lhs), rhs(rhs), op(op)
     {
       msg = "Alpha channels must be equal: " +
@@ -109,7 +109,7 @@ namespace Sass {
       msg = "divided by 0";
     }
 
-    UndefinedOperation::UndefinedOperation(Expression_Ptr_Const lhs, Expression_Ptr_Const rhs, enum Sass_OP op)
+    UndefinedOperation::UndefinedOperation(const Expression* lhs, const Expression* rhs, enum Sass_OP op)
     : OperationError(), lhs(lhs), rhs(rhs), op(op)
     {
       msg = def_op_msg + ": \"" +
@@ -119,7 +119,7 @@ namespace Sass {
         "\".";
     }
 
-    InvalidNullOperation::InvalidNullOperation(Expression_Ptr_Const lhs, Expression_Ptr_Const rhs, enum Sass_OP op)
+    InvalidNullOperation::InvalidNullOperation(const Expression* lhs, const Expression* rhs, enum Sass_OP op)
     : UndefinedOperation(lhs, rhs, op)
     {
       msg = def_op_null_msg + ": \"" + lhs->inspect() + " " + sass_op_to_name(op) + " " + rhs->inspect() + "\".";

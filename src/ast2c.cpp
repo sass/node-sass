@@ -7,28 +7,28 @@
 
 namespace Sass {
 
-  union Sass_Value* AST2C::operator()(Boolean_Ptr b)
+  union Sass_Value* AST2C::operator()(Boolean* b)
   { return sass_make_boolean(b->value()); }
 
-  union Sass_Value* AST2C::operator()(Number_Ptr n)
+  union Sass_Value* AST2C::operator()(Number* n)
   { return sass_make_number(n->value(), n->unit().c_str()); }
 
-  union Sass_Value* AST2C::operator()(Custom_Warning_Ptr w)
+  union Sass_Value* AST2C::operator()(Custom_Warning* w)
   { return sass_make_warning(w->message().c_str()); }
 
-  union Sass_Value* AST2C::operator()(Custom_Error_Ptr e)
+  union Sass_Value* AST2C::operator()(Custom_Error* e)
   { return sass_make_error(e->message().c_str()); }
 
-  union Sass_Value* AST2C::operator()(Color_RGBA_Ptr c)
+  union Sass_Value* AST2C::operator()(Color_RGBA* c)
   { return sass_make_color(c->r(), c->g(), c->b(), c->a()); }
 
-  union Sass_Value* AST2C::operator()(Color_HSLA_Ptr c)
+  union Sass_Value* AST2C::operator()(Color_HSLA* c)
   {
     Color_RGBA_Obj rgba = c->copyAsRGBA();
     return operator()(rgba.ptr());
   }
 
-  union Sass_Value* AST2C::operator()(String_Constant_Ptr s)
+  union Sass_Value* AST2C::operator()(String_Constant* s)
   {
     if (s->quote_mark()) {
       return sass_make_qstring(s->value().c_str());
@@ -37,10 +37,10 @@ namespace Sass {
     }
   }
 
-  union Sass_Value* AST2C::operator()(String_Quoted_Ptr s)
+  union Sass_Value* AST2C::operator()(String_Quoted* s)
   { return sass_make_qstring(s->value().c_str()); }
 
-  union Sass_Value* AST2C::operator()(List_Ptr l)
+  union Sass_Value* AST2C::operator()(List* l)
   {
     union Sass_Value* v = sass_make_list(l->length(), l->separator(), l->is_bracketed());
     for (size_t i = 0, L = l->length(); i < L; ++i) {
@@ -49,7 +49,7 @@ namespace Sass {
     return v;
   }
 
-  union Sass_Value* AST2C::operator()(Map_Ptr m)
+  union Sass_Value* AST2C::operator()(Map* m)
   {
     union Sass_Value* v = sass_make_map(m->length());
     int i = 0;
@@ -61,7 +61,7 @@ namespace Sass {
     return v;
   }
 
-  union Sass_Value* AST2C::operator()(Arguments_Ptr a)
+  union Sass_Value* AST2C::operator()(Arguments* a)
   {
     union Sass_Value* v = sass_make_list(a->length(), SASS_COMMA, false);
     for (size_t i = 0, L = a->length(); i < L; ++i) {
@@ -70,11 +70,11 @@ namespace Sass {
     return v;
   }
 
-  union Sass_Value* AST2C::operator()(Argument_Ptr a)
+  union Sass_Value* AST2C::operator()(Argument* a)
   { return a->value()->perform(this); }
 
   // not strictly necessary because of the fallback
-  union Sass_Value* AST2C::operator()(Null_Ptr n)
+  union Sass_Value* AST2C::operator()(Null* n)
   { return sass_make_null(); }
 
 };

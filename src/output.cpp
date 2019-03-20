@@ -16,12 +16,12 @@ namespace Sass {
 
   Output::~Output() { }
 
-  void Output::fallback_impl(AST_Node_Ptr n)
+  void Output::fallback_impl(AST_Node* n)
   {
     return n->perform(this);
   }
 
-  void Output::operator()(Number_Ptr n)
+  void Output::operator()(Number* n)
   {
     // check for a valid unit here
     // includes result for reporting
@@ -35,12 +35,12 @@ namespace Sass {
     append_token(res, n);
   }
 
-  void Output::operator()(Import_Ptr imp)
+  void Output::operator()(Import* imp)
   {
     top_nodes.push_back(imp);
   }
 
-  void Output::operator()(Map_Ptr m)
+  void Output::operator()(Map* m)
   {
     // should be handle in check_expression
     throw Exception::InvalidValue({}, *m);
@@ -90,7 +90,7 @@ namespace Sass {
 
   }
 
-  void Output::operator()(Comment_Ptr c)
+  void Output::operator()(Comment* c)
   {
     std::string txt = c->text()->to_string(opt);
     // if (indentation && txt == "/**/") return;
@@ -112,7 +112,7 @@ namespace Sass {
     }
   }
 
-  void Output::operator()(Ruleset_Ptr r)
+  void Output::operator()(Ruleset* r)
   {
     Selector_Obj s     = r->selector();
     Block_Obj    b     = r->block();
@@ -146,19 +146,19 @@ namespace Sass {
       Statement_Obj stm = b->at(i);
       bool bPrintExpression = true;
       // Check print conditions
-      if (Declaration_Ptr dec = Cast<Declaration>(stm)) {
-        if (String_Constant_Ptr valConst = Cast<String_Constant>(dec->value())) {
+      if (Declaration* dec = Cast<Declaration>(stm)) {
+        if (String_Constant* valConst = Cast<String_Constant>(dec->value())) {
           std::string val(valConst->value());
-          if (String_Quoted_Ptr qstr = Cast<String_Quoted>(valConst)) {
+          if (String_Quoted* qstr = Cast<String_Quoted>(valConst)) {
             if (!qstr->quote_mark() && val.empty()) {
               bPrintExpression = false;
             }
           }
         }
-        else if (List_Ptr list = Cast<List>(dec->value())) {
+        else if (List* list = Cast<List>(dec->value())) {
           bool all_invisible = true;
           for (size_t list_i = 0, list_L = list->length(); list_i < list_L; ++list_i) {
-            Expression_Ptr item = list->at(list_i);
+            Expression* item = list->at(list_i);
             if (!item->is_invisible()) all_invisible = false;
           }
           if (all_invisible && !list->is_bracketed()) bPrintExpression = false;
@@ -173,7 +173,7 @@ namespace Sass {
     append_scope_closer(b);
 
   }
-  void Output::operator()(Keyframe_Rule_Ptr r)
+  void Output::operator()(Keyframe_Rule* r)
   {
     Block_Obj b = r->block();
     Selector_Obj v = r->name();
@@ -196,7 +196,7 @@ namespace Sass {
     append_scope_closer();
   }
 
-  void Output::operator()(Supports_Block_Ptr f)
+  void Output::operator()(Supports_Block* f)
   {
     if (f->is_invisible()) return;
 
@@ -233,7 +233,7 @@ namespace Sass {
 
   }
 
-  void Output::operator()(Media_Block_Ptr m)
+  void Output::operator()(Media_Block* m)
   {
     if (m->is_invisible()) return;
 
@@ -270,7 +270,7 @@ namespace Sass {
     append_scope_closer();
   }
 
-  void Output::operator()(Directive_Ptr a)
+  void Output::operator()(Directive* a)
   {
     std::string      kwd   = a->keyword();
     Selector_Obj   s     = a->selector();
@@ -313,7 +313,7 @@ namespace Sass {
     append_scope_closer();
   }
 
-  void Output::operator()(String_Quoted_Ptr s)
+  void Output::operator()(String_Quoted* s)
   {
     if (s->quote_mark()) {
       append_token(quote(s->value(), s->quote_mark()), s);
@@ -324,7 +324,7 @@ namespace Sass {
     }
   }
 
-  void Output::operator()(String_Constant_Ptr s)
+  void Output::operator()(String_Constant* s)
   {
     std::string value(s->value());
     if (s->can_compress_whitespace() && output_style() == COMPRESSED) {

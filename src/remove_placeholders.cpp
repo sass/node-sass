@@ -12,16 +12,16 @@ namespace Sass {
     Remove_Placeholders::Remove_Placeholders()
     { }
 
-    void Remove_Placeholders::operator()(Block_Ptr b) {
+    void Remove_Placeholders::operator()(Block* b) {
         for (size_t i = 0, L = b->length(); i < L; ++i) {
-            Statement_Ptr st = b->at(i);
+            Statement* st = b->at(i);
             st->perform(this);
         }
     }
 
-    Selector_List_Ptr Remove_Placeholders::remove_placeholders(Selector_List_Ptr sl)
+    Selector_List* Remove_Placeholders::remove_placeholders(Selector_List* sl)
     {
-      Selector_List_Ptr new_sl = SASS_MEMORY_NEW(Selector_List, sl->pstate());
+      Selector_List* new_sl = SASS_MEMORY_NEW(Selector_List, sl->pstate());
 
       for (size_t i = 0, L = sl->length(); i < L; ++i) {
           if (!sl->at(i)->contains_placeholder()) {
@@ -34,7 +34,7 @@ namespace Sass {
     }
 
 
-    void Remove_Placeholders::operator()(Ruleset_Ptr r) {
+    void Remove_Placeholders::operator()(Ruleset* r) {
         // Create a new selector group without placeholders
         Selector_List_Obj sl = Cast<Selector_List>(r->selector());
 
@@ -46,9 +46,9 @@ namespace Sass {
             while (cs) {
               if (cs->head()) {
                 for (Simple_Selector_Obj& ss : cs->head()->elements()) {
-                  if (Wrapped_Selector_Ptr ws = Cast<Wrapped_Selector>(ss)) {
-                    if (Selector_List_Ptr wsl = Cast<Selector_List>(ws->selector())) {
-                      Selector_List_Ptr clean = remove_placeholders(wsl);
+                  if (Wrapped_Selector* ws = Cast<Wrapped_Selector>(ss)) {
+                    if (Selector_List* wsl = Cast<Selector_List>(ws->selector())) {
+                      Selector_List* clean = remove_placeholders(wsl);
                       // also clean superflous parent selectors
                       // probably not really the correct place
                       clean->remove_parent_selectors();
@@ -73,14 +73,14 @@ namespace Sass {
         }
     }
 
-    void Remove_Placeholders::operator()(Media_Block_Ptr m) {
+    void Remove_Placeholders::operator()(Media_Block* m) {
         operator()(m->block());
     }
-    void Remove_Placeholders::operator()(Supports_Block_Ptr m) {
+    void Remove_Placeholders::operator()(Supports_Block* m) {
         operator()(m->block());
     }
 
-    void Remove_Placeholders::operator()(Directive_Ptr a) {
+    void Remove_Placeholders::operator()(Directive* a) {
         if (a->block()) a->block()->perform(this);
     }
 

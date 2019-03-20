@@ -18,15 +18,15 @@ namespace Sass {
     SelectorStack& selector_stack
 
   typedef const char* Signature;
-  typedef PreValue_Ptr (*Native_Function)(FN_PROTOTYPE);
-  #define BUILT_IN(name) PreValue_Ptr name(FN_PROTOTYPE)
+  typedef PreValue* (*Native_Function)(FN_PROTOTYPE);
+  #define BUILT_IN(name) PreValue* name(FN_PROTOTYPE)
 
   #define ARG(argname, argtype) get_arg<argtype>(argname, env, sig, pstate, traces)
   // special function for weird hsla percent (10px == 10% == 10 != 0.1)
   #define ARGVAL(argname) get_arg_val(argname, env, sig, pstate, traces) // double
 
-  Definition_Ptr make_native_function(Signature, Native_Function, Context& ctx);
-  Definition_Ptr make_c_function(Sass_Function_Entry c_func, Context& ctx);
+  Definition* make_native_function(Signature, Native_Function, Context& ctx);
+  Definition* make_c_function(Sass_Function_Entry c_func, Context& ctx);
 
   namespace Functions {
 
@@ -40,8 +40,8 @@ namespace Sass {
       return val;
     }
 
-    Map_Ptr get_arg_m(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces); // maps only
-    Number_Ptr get_arg_n(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces); // numbers only
+    Map* get_arg_m(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces); // maps only
+    Number* get_arg_n(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces); // numbers only
     double alpha_num(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces); // colors only
     double color_num(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces); // colors only
     double get_arg_r(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, double lo, double hi); // colors only

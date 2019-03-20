@@ -40,7 +40,7 @@ namespace Sass {
     BUILT_IN(map_keys)
     {
       Map_Obj m = ARGM("$map", Map);
-      List_Ptr result = SASS_MEMORY_NEW(List, pstate, m->length(), SASS_COMMA);
+      List* result = SASS_MEMORY_NEW(List, pstate, m->length(), SASS_COMMA);
       for ( auto key : m->keys()) {
         result->append(key);
       }
@@ -51,7 +51,7 @@ namespace Sass {
     BUILT_IN(map_values)
     {
       Map_Obj m = ARGM("$map", Map);
-      List_Ptr result = SASS_MEMORY_NEW(List, pstate, m->length(), SASS_COMMA);
+      List* result = SASS_MEMORY_NEW(List, pstate, m->length(), SASS_COMMA);
       for ( auto key : m->keys()) {
         result->append(m->at(key));
       }
@@ -65,7 +65,7 @@ namespace Sass {
       Map_Obj m2 = ARGM("$map2", Map);
 
       size_t len = m1->length() + m2->length();
-      Map_Ptr result = SASS_MEMORY_NEW(Map, pstate, len);
+      Map* result = SASS_MEMORY_NEW(Map, pstate, len);
       // concat not implemented for maps
       *result += m1;
       *result += m2;
@@ -78,7 +78,7 @@ namespace Sass {
       bool remove;
       Map_Obj m = ARGM("$map", Map);
       List_Obj arglist = ARG("$keys", List);
-      Map_Ptr result = SASS_MEMORY_NEW(Map, pstate, 1);
+      Map* result = SASS_MEMORY_NEW(Map, pstate, 1);
       for (auto key : m->keys()) {
         remove = false;
         for (size_t j = 0, K = arglist->length(); j < K && !remove; ++j) {

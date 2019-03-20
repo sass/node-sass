@@ -10,16 +10,16 @@
 namespace Sass {
 
   // convert value from C++ side to C-API
-  union Sass_Value* ast_node_to_sass_value (Expression_Ptr_Const val)
+  union Sass_Value* ast_node_to_sass_value (const Expression* val)
   {
     if (val->concrete_type() == Expression::NUMBER)
     {
-      Number_Ptr_Const res = Cast<Number>(val);
+      const Number* res = Cast<Number>(val);
       return sass_make_number(res->value(), res->unit().c_str());
     }
     else if (val->concrete_type() == Expression::COLOR)
     {
-      if (Color_RGBA_Ptr_Const rgba = Cast<Color_RGBA>(val)) {
+      if (const Color_RGBA* rgba = Cast<Color_RGBA>(val)) {
         return sass_make_color(rgba->r(), rgba->g(), rgba->b(), rgba->a());
       } else {
         // ToDo: allow to also use HSLA colors!!
@@ -29,7 +29,7 @@ namespace Sass {
     }
     else if (val->concrete_type() == Expression::LIST)
     {
-      List_Ptr_Const l = Cast<List>(val);
+      const List* l = Cast<List>(val);
       union Sass_Value* list = sass_make_list(l->size(), l->separator(), l->is_bracketed());
       for (size_t i = 0, L = l->length(); i < L; ++i) {
         Expression_Obj obj = l->at(i);
@@ -40,7 +40,7 @@ namespace Sass {
     }
     else if (val->concrete_type() == Expression::MAP)
     {
-      Map_Ptr_Const m = Cast<Map>(val);
+      const Map* m = Cast<Map>(val);
       union Sass_Value* map = sass_make_map(m->length());
       size_t i = 0; for (Expression_Obj key : m->keys()) {
         sass_map_set_key(map, i, ast_node_to_sass_value(key));
@@ -55,16 +55,16 @@ namespace Sass {
     }
     else if (val->concrete_type() == Expression::BOOLEAN)
     {
-      Boolean_Ptr_Const res = Cast<Boolean>(val);
+      const Boolean* res = Cast<Boolean>(val);
       return sass_make_boolean(res->value());
     }
     else if (val->concrete_type() == Expression::STRING)
     {
-      if (String_Quoted_Ptr_Const qstr = Cast<String_Quoted>(val))
+      if (const String_Quoted* qstr = Cast<String_Quoted>(val))
       {
         return sass_make_qstring(qstr->value().c_str());
       }
-      else if (String_Constant_Ptr_Const cstr = Cast<String_Constant>(val))
+      else if (const String_Constant* cstr = Cast<String_Constant>(val))
       {
         return sass_make_string(cstr->value().c_str());
       }
@@ -73,7 +73,7 @@ namespace Sass {
   }
 
   // convert value from C-API to C++ side
-  Value_Ptr sass_value_to_ast_node (const union Sass_Value* val)
+  Value* sass_value_to_ast_node (const union Sass_Value* val)
   {
     switch (sass_value_get_tag(val)) {
       case SASS_NUMBER:
@@ -103,7 +103,7 @@ namespace Sass {
                                  ParserState("[C-VALUE]"),
                                  sass_string_get_value(val));
       case SASS_LIST: {
-        List_Ptr l = SASS_MEMORY_NEW(List,
+        List* l = SASS_MEMORY_NEW(List,
                                   ParserState("[C-VALUE]"),
                                   sass_list_get_length(val),
                                   sass_list_get_separator(val));
@@ -114,7 +114,7 @@ namespace Sass {
         return l;
       }
       case SASS_MAP: {
-        Map_Ptr m = SASS_MEMORY_NEW(Map, ParserState("[C-VALUE]"));
+        Map* m = SASS_MEMORY_NEW(Map, ParserState("[C-VALUE]"));
         for (size_t i = 0, L = sass_map_get_length(val); i < L; ++i) {
           *m << std::make_pair(
             sass_value_to_ast_node(sass_map_get_key(val, i)),

@@ -19,260 +19,104 @@
 namespace Sass {
 
   class AST_Node;
-  typedef AST_Node* AST_Node_Ptr;
-  typedef AST_Node const* AST_Node_Ptr_Const;
 
   class Has_Block;
-  typedef Has_Block* Has_Block_Ptr;
-  typedef Has_Block const* Has_Block_Ptr_Const;
 
   class Simple_Selector;
-  typedef Simple_Selector* Simple_Selector_Ptr;
-  typedef Simple_Selector const* Simple_Selector_Ptr_Const;
 
   class Parent_Reference;
-  typedef Parent_Reference* Parent_Reference_Ptr;
-  typedef Parent_Reference const* Parent_Reference_Ptr_Const;
 
   class PreValue;
-  typedef PreValue* PreValue_Ptr;
-  typedef PreValue const* PreValue_Ptr_Const;
   class Block;
-  typedef Block* Block_Ptr;
-  typedef Block const* Block_Ptr_Const;
   class Expression;
-  typedef Expression* Expression_Ptr;
-  typedef Expression const* Expression_Ptr_Const;
   class Statement;
-  typedef Statement* Statement_Ptr;
-  typedef Statement const* Statement_Ptr_Const;
   class Value;
-  typedef Value* Value_Ptr;
-  typedef Value const* Value_Ptr_Const;
   class Declaration;
-  typedef Declaration* Declaration_Ptr;
-  typedef Declaration const* Declaration_Ptr_Const;
   class Ruleset;
-  typedef Ruleset* Ruleset_Ptr;
-  typedef Ruleset const* Ruleset_Ptr_Const;
   class Bubble;
-  typedef Bubble* Bubble_Ptr;
-  typedef Bubble const* Bubble_Ptr_Const;
   class Trace;
-  typedef Trace* Trace_Ptr;
-  typedef Trace const* Trace_Ptr_Const;
 
   class Media_Block;
-  typedef Media_Block* Media_Block_Ptr;
-  typedef Media_Block const* Media_Block_Ptr_Const;
   class Supports_Block;
-  typedef Supports_Block* Supports_Block_Ptr;
-  typedef Supports_Block const* Supports_Block_Ptr_Const;
   class Directive;
-  typedef Directive* Directive_Ptr;
-  typedef Directive const* Directive_Ptr_Const;
 
 
   class Keyframe_Rule;
-  typedef Keyframe_Rule* Keyframe_Rule_Ptr;
-  typedef Keyframe_Rule const* Keyframe_Rule_Ptr_Const;
   class At_Root_Block;
-  typedef At_Root_Block* At_Root_Block_Ptr;
-  typedef At_Root_Block const* At_Root_Block_Ptr_Const;
   class Assignment;
-  typedef Assignment* Assignment_Ptr;
-  typedef Assignment const* Assignment_Ptr_Const;
 
   class Import;
-  typedef Import* Import_Ptr;
-  typedef Import const* Import_Ptr_Const;
   class Import_Stub;
-  typedef Import_Stub* Import_Stub_Ptr;
-  typedef Import_Stub const* Import_Stub_Ptr_Const;
   class Warning;
-  typedef Warning* Warning_Ptr;
-  typedef Warning const* Warning_Ptr_Const;
 
   class Error;
-  typedef Error* Error_Ptr;
-  typedef Error const* Error_Ptr_Const;
   class Debug;
-  typedef Debug* Debug_Ptr;
-  typedef Debug const* Debug_Ptr_Const;
   class Comment;
-  typedef Comment* Comment_Ptr;
-  typedef Comment const* Comment_Ptr_Const;
 
   class If;
-  typedef If* If_Ptr;
-  typedef If const* If_Ptr_Const;
   class For;
-  typedef For* For_Ptr;
-  typedef For const* For_Ptr_Const;
   class Each;
-  typedef Each* Each_Ptr;
-  typedef Each const* Each_Ptr_Const;
   class While;
-  typedef While* While_Ptr;
-  typedef While const* While_Ptr_Const;
   class Return;
-  typedef Return* Return_Ptr;
-  typedef Return const* Return_Ptr_Const;
   class Content;
-  typedef Content* Content_Ptr;
-  typedef Content const* Content_Ptr_Const;
   class Extension;
-  typedef Extension* Extension_Ptr;
-  typedef Extension const* Extension_Ptr_Const;
   class Definition;
-  typedef Definition* Definition_Ptr;
-  typedef Definition const* Definition_Ptr_Const;
 
   class List;
-  typedef List* List_Ptr;
-  typedef List const* List_Ptr_Const;
   class Map;
-  typedef Map* Map_Ptr;
-  typedef Map const* Map_Ptr_Const;
   class Function;
-  typedef Function* Function_Ptr;
-  typedef Function const* Function_Ptr_Const;
 
   class Mixin_Call;
-  typedef Mixin_Call* Mixin_Call_Ptr;
-  typedef Mixin_Call const* Mixin_Call_Ptr_Const;
   class Binary_Expression;
-  typedef Binary_Expression* Binary_Expression_Ptr;
-  typedef Binary_Expression const* Binary_Expression_Ptr_Const;
   class Unary_Expression;
-  typedef Unary_Expression* Unary_Expression_Ptr;
-  typedef Unary_Expression const* Unary_Expression_Ptr_Const;
   class Function_Call;
-  typedef Function_Call* Function_Call_Ptr;
-  typedef Function_Call const* Function_Call_Ptr_Const;
   class Custom_Warning;
-  typedef Custom_Warning* Custom_Warning_Ptr;
-  typedef Custom_Warning const* Custom_Warning_Ptr_Const;
   class Custom_Error;
-  typedef Custom_Error* Custom_Error_Ptr;
-  typedef Custom_Error const* Custom_Error_Ptr_Const;
 
   class Variable;
-  typedef Variable* Variable_Ptr;
-  typedef Variable const* Variable_Ptr_Const;
   class Number;
-  typedef Number* Number_Ptr;
-  typedef Number const* Number_Ptr_Const;
   class Color;
-  typedef Color* Color_Ptr;
-  typedef Color const* Color_Ptr_Const;
   class Color_RGBA;
-  typedef Color_RGBA* Color_RGBA_Ptr;
-  typedef Color_RGBA const* Color_RGBA_Ptr_Const;
   class Color_HSLA;
-  typedef Color_HSLA* Color_HSLA_Ptr;
-  typedef Color_HSLA const* Color_HSLA_Ptr_Const;
   class Boolean;
-  typedef Boolean* Boolean_Ptr;
-  typedef Boolean const* Boolean_Ptr_Const;
   class String;
-  typedef String* String_Ptr;
-  typedef String const* String_Ptr_Const;
 
   class String_Schema;
-  typedef String_Schema* String_Schema_Ptr;
-  typedef String_Schema const* String_Schema_Ptr_Const;
   class String_Constant;
-  typedef String_Constant* String_Constant_Ptr;
-  typedef String_Constant const* String_Constant_Ptr_Const;
   class String_Quoted;
-  typedef String_Quoted* String_Quoted_Ptr;
-  typedef String_Quoted const* String_Quoted_Ptr_Const;
 
   class Media_Query;
-  typedef Media_Query* Media_Query_Ptr;
-  typedef Media_Query const* Media_Query_Ptr_Const;
   class Media_Query_Expression;
-  typedef Media_Query_Expression* Media_Query_Expression_Ptr;
-  typedef Media_Query_Expression const* Media_Query_Expression_Ptr_Const;
   class Supports_Condition;
-  typedef Supports_Condition* Supports_Condition_Ptr;
-  typedef Supports_Condition const* Supports_Condition_Ptr_Const;
   class Supports_Operator;
-  typedef Supports_Operator* Supports_Operator_Ptr;
-  typedef Supports_Operator const* Supports_Operator_Ptr_Const;
   class Supports_Negation;
-  typedef Supports_Negation* Supports_Negation_Ptr;
-  typedef Supports_Negation const* Supports_Negation_Ptr_Const;
   class Supports_Declaration;
-  typedef Supports_Declaration* Supports_Declaration_Ptr;
-  typedef Supports_Declaration const* Supports_Declaration_Ptr_Const;
   class Supports_Interpolation;
-  typedef Supports_Interpolation* Supports_Interpolation_Ptr;
-  typedef Supports_Interpolation const* Supports_Interpolation_Ptr_Const;
 
 
   class Null;
-  typedef Null* Null_Ptr;
-  typedef Null const* Null_Ptr_Const;
 
   class At_Root_Query;
-  typedef At_Root_Query* At_Root_Query_Ptr;
-  typedef At_Root_Query const* At_Root_Query_Ptr_Const;
   class Parent_Selector;
-  typedef Parent_Selector* Parent_Selector_Ptr;
-  typedef Parent_Selector const* Parent_Selector_Ptr_Const;
   class Parameter;
-  typedef Parameter* Parameter_Ptr;
-  typedef Parameter const* Parameter_Ptr_Const;
   class Parameters;
-  typedef Parameters* Parameters_Ptr;
-  typedef Parameters const* Parameters_Ptr_Const;
   class Argument;
-  typedef Argument* Argument_Ptr;
-  typedef Argument const* Argument_Ptr_Const;
   class Arguments;
-  typedef Arguments* Arguments_Ptr;
-  typedef Arguments const* Arguments_Ptr_Const;
   class Selector;
-  typedef Selector* Selector_Ptr;
-  typedef Selector const* Selector_Ptr_Const;
 
 
   class Selector_Schema;
-  typedef Selector_Schema* Selector_Schema_Ptr;
-  typedef Selector_Schema const* Selector_Schema_Ptr_Const;
   class Placeholder_Selector;
-  typedef Placeholder_Selector* Placeholder_Selector_Ptr;
-  typedef Placeholder_Selector const* Placeholder_Selector_Ptr_Const;
   class Type_Selector;
-  typedef Type_Selector* Type_Selector_Ptr;
-  typedef Type_Selector const* Type_Selector_Ptr_Const;
   class Class_Selector;
-  typedef Class_Selector* Class_Selector_Ptr;
-  typedef Class_Selector const* Class_Selector_Ptr_Const;
   class Id_Selector;
-  typedef Id_Selector* Id_Selector_Ptr;
-  typedef Id_Selector const* Id_Selector_Ptr_Const;
   class Attribute_Selector;
-  typedef Attribute_Selector* Attribute_Selector_Ptr;
-  typedef Attribute_Selector const* Attribute_Selector_Ptr_Const;
 
   class Pseudo_Selector;
-  typedef Pseudo_Selector* Pseudo_Selector_Ptr;
-  typedef Pseudo_Selector const * Pseudo_Selector_Ptr_Const;
   class Wrapped_Selector;
-  typedef Wrapped_Selector* Wrapped_Selector_Ptr;
-  typedef Wrapped_Selector const * Wrapped_Selector_Ptr_Const;
   class Compound_Selector;
-  typedef Compound_Selector* Compound_Selector_Ptr;
-  typedef Compound_Selector const * Compound_Selector_Ptr_Const;
   class Complex_Selector;
-  typedef Complex_Selector* Complex_Selector_Ptr;
-  typedef Complex_Selector const * Complex_Selector_Ptr_Const;
   class Selector_List;
-  typedef Selector_List* Selector_List_Ptr;
-  typedef Selector_List const * Selector_List_Ptr_Const;
 
 
   // common classes
@@ -447,10 +291,10 @@ namespace Sass {
   typedef std::set<Compound_Selector_Obj, OrderNodes> CompoundSelectorSet;
   typedef std::unordered_set<Simple_Selector_Obj, HashNodes, CompareNodes> SimpleSelectorDict;
 
-  typedef std::vector<Block_Ptr> BlockStack;
+  typedef std::vector<Block*> BlockStack;
   typedef std::vector<Sass_Callee> CalleeStack;
   typedef std::vector<AST_Node_Obj> CallStack;
-  typedef std::vector<Media_Block_Ptr> MediaStack;
+  typedef std::vector<Media_Block*> MediaStack;
   typedef std::vector<Selector_List_Obj> SelectorStack;
   typedef std::vector<Sass_Import_Entry> ImporterStack;
 

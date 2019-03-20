@@ -10,7 +10,7 @@ namespace Sass {
     Signature selector_nest_sig = "selector-nest($selectors...)";
     BUILT_IN(selector_nest)
     {
-      List_Ptr arglist = ARG("$selectors", List);
+      List* arglist = ARG("$selectors", List);
 
       // Not enough parameters
       if( arglist->length() == 0 )
@@ -63,7 +63,7 @@ namespace Sass {
     Signature selector_append_sig = "selector-append($selectors...)";
     BUILT_IN(selector_append)
     {
-      List_Ptr arglist = ARG("$selectors", List);
+      List* arglist = ARG("$selectors", List);
 
       // Not enough parameters
       if( arglist->length() == 0 )
@@ -79,7 +79,7 @@ namespace Sass {
           msg << "a list of strings, or a list of lists of strings for 'selector-append'";
           error(msg.str(), pstate, traces);
         }
-        if (String_Constant_Ptr str = Cast<String_Constant>(exp)) {
+        if (String_Constant* str = Cast<String_Constant>(exp)) {
           str->quote_mark(0);
         }
         std::string exp_src = exp->to_string();
@@ -132,7 +132,7 @@ namespace Sass {
 
             // TODO: Add check for namespace stuff
 
-            Complex_Selector_Ptr lastComponent = parentSeqClone->mutable_last();
+            Complex_Selector* lastComponent = parentSeqClone->mutable_last();
             if (lastComponent->head() == nullptr) {
               std::string msg = "Parent \"" + parentSeqClone->to_string() + "\" is incompatible with \"" + base->to_string() + "\"";
               error(msg, pstate, traces);
@@ -167,7 +167,7 @@ namespace Sass {
     {
       Compound_Selector_Obj sel = ARGSEL("$selector");
 
-      List_Ptr l = SASS_MEMORY_NEW(List, sel->pstate(), sel->length(), SASS_COMMA);
+      List* l = SASS_MEMORY_NEW(List, sel->pstate(), sel->length(), SASS_COMMA);
 
       for (size_t i = 0, L = sel->length(); i < L; ++i) {
         Simple_Selector_Obj ss = (*sel)[i];

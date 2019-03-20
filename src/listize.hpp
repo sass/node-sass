@@ -17,19 +17,19 @@ namespace Sass {
 
   struct Backtrace;
 
-  class Listize : public Operation_CRTP<Expression_Ptr, Listize> {
+  class Listize : public Operation_CRTP<Expression*, Listize> {
 
   public:
     Listize();
     ~Listize() { }
 
-    Expression_Ptr operator()(Selector_List_Ptr);
-    Expression_Ptr operator()(Complex_Selector_Ptr);
-    Expression_Ptr operator()(Compound_Selector_Ptr);
+    Expression* operator()(Selector_List*);
+    Expression* operator()(Complex_Selector*);
+    Expression* operator()(Compound_Selector*);
 
     // generic fallback
     template <typename U>
-    Expression_Ptr fallback(U x)
+    Expression* fallback(U x)
     { return Cast<Expression>(x); }
   };
 

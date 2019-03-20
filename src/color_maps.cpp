@@ -455,7 +455,7 @@ namespace Sass {
     { 102 * 0x10000 +  51 * 0x100 + 153, ColorNames::rebeccapurple }
   };
 
-  const std::map<const char*, Color_RGBA_Ptr_Const, map_cmp_str> names_to_colors
+  const std::map<const char*, const Color_RGBA*, map_cmp_str> names_to_colors
   {
     { ColorNames::aliceblue, &Colors::aliceblue },
     { ColorNames::antiquewhite, &Colors::antiquewhite },
@@ -608,12 +608,12 @@ namespace Sass {
     { ColorNames::transparent, &Colors::transparent }
   };
 
-  Color_RGBA_Ptr_Const name_to_color(const char* key)
+  const Color_RGBA* name_to_color(const char* key)
   {
     return name_to_color(std::string(key));
   }
 
-  Color_RGBA_Ptr_Const name_to_color(const std::string& key)
+  const Color_RGBA* name_to_color(const std::string& key)
   {
     // case insensitive lookup.  See #2462
     std::string lower{key};

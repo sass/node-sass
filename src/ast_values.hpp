@@ -253,11 +253,11 @@ namespace Sass {
 
     bool operator== (const Expression& rhs) const override;
 
-    virtual Color_RGBA_Ptr copyAsRGBA() const = 0;
-    virtual Color_RGBA_Ptr toRGBA() = 0;
+    virtual Color_RGBA* copyAsRGBA() const = 0;
+    virtual Color_RGBA* toRGBA() = 0;
 
-    virtual Color_HSLA_Ptr copyAsHSLA() const = 0;
-    virtual Color_HSLA_Ptr toHSLA() = 0;
+    virtual Color_HSLA* copyAsHSLA() const = 0;
+    virtual Color_HSLA* toHSLA() = 0;
 
     ATTACH_VIRTUAL_AST_OPERATIONS(Color)
   };
@@ -277,11 +277,11 @@ namespace Sass {
 
     size_t hash() const override;
 
-    Color_RGBA_Ptr copyAsRGBA() const override;
-    Color_RGBA_Ptr toRGBA() override { return this; }
+    Color_RGBA* copyAsRGBA() const override;
+    Color_RGBA* toRGBA() override { return this; }
 
-    Color_HSLA_Ptr copyAsHSLA() const override;
-    Color_HSLA_Ptr toHSLA() override { return copyAsHSLA(); }
+    Color_HSLA* copyAsHSLA() const override;
+    Color_HSLA* toHSLA() override { return copyAsHSLA(); }
 
     bool operator== (const Expression& rhs) const override;
 
@@ -305,11 +305,11 @@ namespace Sass {
 
     size_t hash() const override;
 
-    Color_RGBA_Ptr copyAsRGBA() const override;
-    Color_RGBA_Ptr toRGBA() override { return copyAsRGBA(); }
+    Color_RGBA* copyAsRGBA() const override;
+    Color_RGBA* toRGBA() override { return copyAsRGBA(); }
 
-    Color_HSLA_Ptr copyAsHSLA() const override;
-    Color_HSLA_Ptr toHSLA() override { return this; }
+    Color_HSLA* copyAsHSLA() const override;
+    Color_HSLA* toHSLA() override { return this; }
 
     bool operator== (const Expression& rhs) const override;
 

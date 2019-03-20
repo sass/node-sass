@@ -18,7 +18,7 @@ namespace Sass {
       Map_Obj result = SASS_MEMORY_NEW(Map, pstate, 1);
       for (size_t i = arglist->size(), L = arglist->length(); i < L; ++i) {
         Expression_Obj obj = arglist->at(i);
-        Argument_Obj arg = (Argument_Ptr) obj.ptr(); // XXX
+        Argument_Obj arg = (Argument*) obj.ptr(); // XXX
         std::string name = std::string(arg->name());
         name = name.erase(0, 1); // sanitize name (remove dollar sign)
         *result << std::make_pair(SASS_MEMORY_NEW(String_Quoted,
@@ -31,25 +31,25 @@ namespace Sass {
     Signature length_sig = "length($list)";
     BUILT_IN(length)
     {
-      if (Selector_List_Ptr sl = Cast<Selector_List>(env["$list"])) {
+      if (Selector_List* sl = Cast<Selector_List>(env["$list"])) {
         return SASS_MEMORY_NEW(Number, pstate, (double)sl->length());
       }
-      Expression_Ptr v = ARG("$list", Expression);
+      Expression* v = ARG("$list", Expression);
       if (v->concrete_type() == Expression::MAP) {
-        Map_Ptr map = Cast<Map>(env["$list"]);
+        Map* map = Cast<Map>(env["$list"]);
         return SASS_MEMORY_NEW(Number, pstate, (double)(map ? map->length() : 1));
       }
       if (v->concrete_type() == Expression::SELECTOR) {
-        if (Compound_Selector_Ptr h = Cast<Compound_Selector>(v)) {
+        if (Compound_Selector* h = Cast<Compound_Selector>(v)) {
           return SASS_MEMORY_NEW(Number, pstate, (double)h->length());
-        } else if (Selector_List_Ptr ls = Cast<Selector_List>(v)) {
+        } else if (Selector_List* ls = Cast<Selector_List>(v)) {
           return SASS_MEMORY_NEW(Number, pstate, (double)ls->length());
         } else {
           return SASS_MEMORY_NEW(Number, pstate, 1);
         }
       }
 
-      List_Ptr list = Cast<List>(env["$list"]);
+      List* list = Cast<List>(env["$list"]);
       return SASS_MEMORY_NEW(Number,
                              pstate,
                              (double)(list ? list->size() : 1));
@@ -59,8 +59,8 @@ namespace Sass {
     BUILT_IN(nth)
     {
       double nr = ARGVAL("$n");
-      Map_Ptr m = Cast<Map>(env["$list"]);
-      if (Selector_List_Ptr sl = Cast<Selector_List>(env["$list"])) {
+      Map* m = Cast<Map>(env["$list"]);
+      if (Selector_List* sl = Cast<Selector_List>(env["$list"])) {
         size_t len = m ? m->length() : sl->length();
         bool empty = m ? m->empty() : sl->empty();
         if (empty) error("argument `$list` of `" + std::string(sig) + "` must not be empty", pstate, traces);
@@ -113,7 +113,7 @@ namespace Sass {
       if (l->empty()) error("argument `$list` of `" + std::string(sig) + "` must not be empty", pstate, traces);
       double index = std::floor(n->value() < 0 ? l->length() + n->value() : n->value() - 1);
       if (index < 0 || index > l->length() - 1) error("index out of bounds for `" + std::string(sig) + "`", pstate, traces);
-      List_Ptr result = SASS_MEMORY_NEW(List, pstate, l->length(), l->separator(), false, l->is_bracketed());
+      List* result = SASS_MEMORY_NEW(List, pstate, l->length(), l->separator(), false, l->is_bracketed());
       for (size_t i = 0, L = l->length(); i < L; ++i) {
         result->append(((i == index) ? v : (*l)[i]));
       }
@@ -189,7 +189,7 @@ namespace Sass {
       Map_Obj m = Cast<Map>(env["$list"]);
       List_Obj l = Cast<List>(env["$list"]);
       Expression_Obj v = ARG("$val", Expression);
-      if (Selector_List_Ptr sl = Cast<Selector_List>(env["$list"])) {
+      if (Selector_List* sl = Cast<Selector_List>(env["$list"])) {
         Listize listize;
         l = Cast<List>(sl->perform(&listize));
       }
@@ -201,7 +201,7 @@ namespace Sass {
       if (m) {
         l = m->to_list(pstate);
       }
-      List_Ptr result = SASS_MEMORY_COPY(l);
+      List* result = SASS_MEMORY_COPY(l);
       std::string sep_str(unquote(sep->value()));
       if (sep_str != "auto") { // check default first
         if (sep_str == "space") result->separator(SASS_SPACE);
@@ -238,7 +238,7 @@ namespace Sass {
             ith->append(arglist->value_at_index(i));
           }
           if (arglist->is_arglist()) {
-            Argument_Obj arg = (Argument_Ptr)(arglist->at(i).ptr()); // XXX
+            Argument_Obj arg = (Argument*)(arglist->at(i).ptr()); // XXX
             arg->value(ith);
           } else {
             (*arglist)[i] = ith;
@@ -246,10 +246,10 @@ namespace Sass {
         }
         shortest = (i ? std::min(shortest, ith->length()) : ith->length());
       }
-      List_Ptr zippers = SASS_MEMORY_NEW(List, pstate, shortest, SASS_COMMA);
+      List* zippers = SASS_MEMORY_NEW(List, pstate, shortest, SASS_COMMA);
       size_t L = arglist->length();
       for (size_t i = 0; i < shortest; ++i) {
-        List_Ptr zipper = SASS_MEMORY_NEW(List, pstate, L);
+        List* zipper = SASS_MEMORY_NEW(List, pstate, L);
         for (size_t j = 0; j < L; ++j) {
           zipper->append(Cast<List>(arglist->value_at_index(j))->at(i));
         }

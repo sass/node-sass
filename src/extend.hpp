@@ -46,22 +46,22 @@ namespace Sass {
     > memoizeCompound;
     */
 
-    void extendObjectWithSelectorAndBlock(Ruleset_Ptr pObject);
-    Node extendComplexSelector(Complex_Selector_Ptr sel, CompoundSelectorSet& seen, bool isReplace, bool isOriginal);
-    Node extendCompoundSelector(Compound_Selector_Ptr sel, CompoundSelectorSet& seen, bool isReplace);
-    bool complexSelectorHasExtension(Complex_Selector_Ptr selector, CompoundSelectorSet& seen);
+    void extendObjectWithSelectorAndBlock(Ruleset* pObject);
+    Node extendComplexSelector(Complex_Selector* sel, CompoundSelectorSet& seen, bool isReplace, bool isOriginal);
+    Node extendCompoundSelector(Compound_Selector* sel, CompoundSelectorSet& seen, bool isReplace);
+    bool complexSelectorHasExtension(Complex_Selector* selector, CompoundSelectorSet& seen);
     Node trim(Node& seqses, bool isReplace);
     Node weave(Node& path);
 
   public:
     void setEval(Eval& eval);
-    Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, bool isReplace, bool& extendedSomething, CompoundSelectorSet& seen);
-    Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, bool isReplace = false) {
+    Selector_List* extendSelectorList(Selector_List_Obj pSelectorList, bool isReplace, bool& extendedSomething, CompoundSelectorSet& seen);
+    Selector_List* extendSelectorList(Selector_List_Obj pSelectorList, bool isReplace = false) {
       bool extendedSomething = false;
       CompoundSelectorSet seen;
       return extendSelectorList(pSelectorList, isReplace, extendedSomething, seen);
     }
-    Selector_List_Ptr extendSelectorList(Selector_List_Obj pSelectorList, CompoundSelectorSet& seen) {
+    Selector_List* extendSelectorList(Selector_List_Obj pSelectorList, CompoundSelectorSet& seen) {
       bool isReplace = false;
       bool extendedSomething = false;
       return extendSelectorList(pSelectorList, isReplace, extendedSomething, seen);
@@ -69,11 +69,11 @@ namespace Sass {
     Extend(Subset_Map&);
     ~Extend() { }
 
-    void operator()(Block_Ptr);
-    void operator()(Ruleset_Ptr);
-    void operator()(Supports_Block_Ptr);
-    void operator()(Media_Block_Ptr);
-    void operator()(Directive_Ptr);
+    void operator()(Block*);
+    void operator()(Ruleset*);
+    void operator()(Supports_Block*);
+    void operator()(Media_Block*);
+    void operator()(Directive*);
 
     // ignore missed types
     template <typename U>

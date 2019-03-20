@@ -21,7 +21,7 @@
 
 namespace Sass {
 
-  Compound_Selector_Ptr Compound_Selector::unify_with(Compound_Selector_Ptr rhs)
+  Compound_Selector* Compound_Selector::unify_with(Compound_Selector* rhs)
   {
     #ifdef DEBUG_UNIFY
     const std::string debug_call = "unify(Compound[" + this->to_string() + "], Compound[" + rhs->to_string() + "])";
@@ -41,7 +41,7 @@ namespace Sass {
     return unified.detach();
   }
 
-  Compound_Selector_Ptr Simple_Selector::unify_with(Compound_Selector_Ptr rhs)
+  Compound_Selector* Simple_Selector::unify_with(Compound_Selector* rhs)
   {
     #ifdef DEBUG_UNIFY
     const std::string debug_call = "unify(Simple[" + this->to_string() + "], Compound[" + rhs->to_string() + "])";
@@ -50,9 +50,9 @@ namespace Sass {
 
     if (rhs->length() == 1) {
       if (rhs->at(0)->is_universal()) {
-        Compound_Selector_Ptr this_compound = SASS_MEMORY_NEW(Compound_Selector, pstate(), 1);
+        Compound_Selector* this_compound = SASS_MEMORY_NEW(Compound_Selector, pstate(), 1);
         this_compound->append(SASS_MEMORY_COPY(this));
-        Compound_Selector_Ptr unified = rhs->at(0)->unify_with(this_compound);
+        Compound_Selector* unified = rhs->at(0)->unify_with(this_compound);
         if (unified == nullptr || unified != this_compound) delete this_compound;
 
         #ifdef DEBUG_UNIFY
@@ -79,7 +79,7 @@ namespace Sass {
     return rhs;
   }
 
-  Simple_Selector_Ptr Type_Selector::unify_with(Simple_Selector_Ptr rhs)
+  Simple_Selector* Type_Selector::unify_with(Simple_Selector* rhs)
   {
     #ifdef DEBUG_UNIFY
     const std::string debug_call = "unify(Type[" + this->to_string() + "], Simple[" + rhs->to_string() + "])";
@@ -117,7 +117,7 @@ namespace Sass {
     return this;
   }
 
-  Compound_Selector_Ptr Type_Selector::unify_with(Compound_Selector_Ptr rhs)
+  Compound_Selector* Type_Selector::unify_with(Compound_Selector* rhs)
   {
     #ifdef DEBUG_UNIFY
     const std::string debug_call = "unify(Type[" + this->to_string() + "], Compound[" + rhs->to_string() + "])";
@@ -131,9 +131,9 @@ namespace Sass {
       #endif
       return rhs;
     }
-    Type_Selector_Ptr rhs_0 = Cast<Type_Selector>(rhs->at(0));
+    Type_Selector* rhs_0 = Cast<Type_Selector>(rhs->at(0));
     if (rhs_0 != nullptr) {
-      Simple_Selector_Ptr unified = unify_with(rhs_0);
+      Simple_Selector* unified = unify_with(rhs_0);
       if (unified == nullptr) {
         #ifdef DEBUG_UNIFY
         std::cerr << "> " << debug_call << " = nullptr" << std::endl;
@@ -150,16 +150,16 @@ namespace Sass {
     return rhs;
   }
 
-  Compound_Selector_Ptr Class_Selector::unify_with(Compound_Selector_Ptr rhs)
+  Compound_Selector* Class_Selector::unify_with(Compound_Selector* rhs)
   {
     rhs->has_line_break(has_line_break());
     return Simple_Selector::unify_with(rhs);
   }
 
-  Compound_Selector_Ptr Id_Selector::unify_with(Compound_Selector_Ptr rhs)
+  Compound_Selector* Id_Selector::unify_with(Compound_Selector* rhs)
   {
     for (const Simple_Selector_Obj& sel : rhs->elements()) {
-      if (Id_Selector_Ptr id_sel = Cast<Id_Selector>(sel)) {
+      if (Id_Selector* id_sel = Cast<Id_Selector>(sel)) {
         if (id_sel->name() != name()) return nullptr;
       }
     }
@@ -167,11 +167,11 @@ namespace Sass {
     return Simple_Selector::unify_with(rhs);
   }
 
-  Compound_Selector_Ptr Pseudo_Selector::unify_with(Compound_Selector_Ptr rhs)
+  Compound_Selector* Pseudo_Selector::unify_with(Compound_Selector* rhs)
   {
     if (is_pseudo_element()) {
       for (const Simple_Selector_Obj& sel : rhs->elements()) {
-        if (Pseudo_Selector_Ptr pseudo_sel = Cast<Pseudo_Selector>(sel)) {
+        if (Pseudo_Selector* pseudo_sel = Cast<Pseudo_Selector>(sel)) {
           if (pseudo_sel->is_pseudo_element() && pseudo_sel->name() != name()) return nullptr;
         }
       }
@@ -179,7 +179,7 @@ namespace Sass {
     return Simple_Selector::unify_with(rhs);
   }
 
-  Selector_List_Ptr Complex_Selector::unify_with(Complex_Selector_Ptr rhs)
+  Selector_List* Complex_Selector::unify_with(Complex_Selector* rhs)
   {
     #ifdef DEBUG_UNIFY
     const std::string debug_call = "unify(Complex[" + this->to_string() + "], Complex[" + rhs->to_string() + "])";
@@ -187,8 +187,8 @@ namespace Sass {
     #endif
 
     // get last tails (on the right side)
-    Complex_Selector_Ptr l_last = this->mutable_last();
-    Complex_Selector_Ptr r_last = rhs->mutable_last();
+    Complex_Selector* l_last = this->mutable_last();
+    Complex_Selector* r_last = rhs->mutable_last();
 
     // check valid pointers (assertion)
     SASS_ASSERT(l_last, "lhs is null");
@@ -201,8 +201,8 @@ namespace Sass {
     if (r_last->combinator() != Combinator::ANCESTOR_OF) return nullptr;
 
     // get the headers for the last tails
-    Compound_Selector_Ptr l_last_head = l_last->head();
-    Compound_Selector_Ptr r_last_head = r_last->head();
+    Compound_Selector* l_last_head = l_last->head();
+    Compound_Selector* r_last_head = r_last->head();
 
     // check valid head pointers (assertion)
     SASS_ASSERT(l_last_head, "lhs head is null");
@@ -246,7 +246,7 @@ namespace Sass {
     return result->length() ? result.detach() : nullptr;
   }
 
-  Selector_List_Ptr Selector_List::unify_with(Selector_List_Ptr rhs) {
+  Selector_List* Selector_List::unify_with(Selector_List* rhs) {
     #ifdef DEBUG_UNIFY
     const std::string debug_call = "unify(List[" + this->to_string() + "], List[" + rhs->to_string() + "])";
     std::cerr << debug_call << std::endl;
@@ -267,7 +267,7 @@ namespace Sass {
     }
 
     // Creates the final Selector_List by combining all the complex selectors
-    Selector_List_Ptr final_result = SASS_MEMORY_NEW(Selector_List, pstate(), result.size());
+    Selector_List* final_result = SASS_MEMORY_NEW(Selector_List, pstate(), result.size());
     for (Complex_Selector_Obj& sel : result) {
       final_result->append(sel);
     }

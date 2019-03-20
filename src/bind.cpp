@@ -67,7 +67,7 @@ namespace Sass {
           // We should always get a list for rest arguments
           if (List_Obj rest = Cast<List>(a->value())) {
               // create a new list object for wrapped items
-              List_Ptr arglist = SASS_MEMORY_NEW(List,
+              List* arglist = SASS_MEMORY_NEW(List,
                                               p->pstate(),
                                               0,
                                               rest->separator(),
@@ -95,7 +95,7 @@ namespace Sass {
         } else if (a->is_keyword_argument()) {
 
           // expand keyword arguments into their parameters
-          List_Ptr arglist = SASS_MEMORY_NEW(List, p->pstate(), 0, SASS_COMMA, true);
+          List* arglist = SASS_MEMORY_NEW(List, p->pstate(), 0, SASS_COMMA, true);
           env->local_frame()[p->name()] = arglist;
           Map_Obj argmap = Cast<Map>(a->value());
           for (auto key : argmap->keys()) {
@@ -204,7 +204,7 @@ namespace Sass {
         // otherwise move one of the rest args into the param, converting to argument if necessary
         Expression_Obj obj = arglist->at(0);
         if (!(a = Cast<Argument>(obj))) {
-          Expression_Ptr a_to_convert = obj;
+          Expression* a_to_convert = obj;
           a = SASS_MEMORY_NEW(Argument,
                               a_to_convert->pstate(),
                               a_to_convert,
@@ -221,7 +221,7 @@ namespace Sass {
         Map_Obj argmap = Cast<Map>(a->value());
 
         for (auto key : argmap->keys()) {
-          String_Constant_Ptr val = Cast<String_Constant>(key);
+          String_Constant* val = Cast<String_Constant>(key);
           if (val == NULL) {
             traces.push_back(Backtrace(key->pstate()));
             throw Exception::InvalidVarKwdType(key->pstate(), traces, key->inspect(), a);
@@ -295,7 +295,7 @@ namespace Sass {
           env->local_frame()[leftover->name()] = varargs;
         }
         else if (leftover->default_value()) {
-          Expression_Ptr dv = leftover->default_value()->perform(eval);
+          Expression* dv = leftover->default_value()->perform(eval);
           env->local_frame()[leftover->name()] = dv;
         }
         else {

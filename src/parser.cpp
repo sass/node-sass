@@ -481,7 +481,7 @@ namespace Sass {
       bool is_arglist = false;
       bool is_keyword = false;
       Expression_Obj val = parse_space_list();
-      List_Ptr l = Cast<List>(val);
+      List* l = Cast<List>(val);
       if (lex_css< exactly< ellipsis > >()) {
         if (val->concrete_type() == Expression::MAP || (
            (l != NULL && l->separator() == SASS_HASH)
@@ -558,7 +558,7 @@ namespace Sass {
     lex< optional_spaces >();
     const char* i = position;
     // selector schema re-uses string schema implementation
-    String_Schema_Ptr schema = SASS_MEMORY_NEW(String_Schema, pstate);
+    String_Schema* schema = SASS_MEMORY_NEW(String_Schema, pstate);
     // the selector schema is pretty much just a wrapper for the string schema
     Selector_Schema_Obj selector_schema = SASS_MEMORY_NEW(Selector_Schema, pstate, schema);
     selector_schema->connect_parent(chroot == false);
@@ -787,7 +787,7 @@ namespace Sass {
     if (!sel->has_parent_ref() && !chroot) {
       // create the objects to wrap parent selector reference
       Compound_Selector_Obj head = SASS_MEMORY_NEW(Compound_Selector, pstate);
-      Parent_Selector_Ptr parent = SASS_MEMORY_NEW(Parent_Selector, pstate, false);
+      Parent_Selector* parent = SASS_MEMORY_NEW(Parent_Selector, pstate, false);
       parent->media_block(last_media_block);
       head->media_block(last_media_block);
       // add simple selector
@@ -904,7 +904,7 @@ namespace Sass {
       return parse_attribute_selector();
     }
     else if (lex< placeholder >()) {
-      Placeholder_Selector_Ptr sel = SASS_MEMORY_NEW(Placeholder_Selector, pstate, lexed);
+      Placeholder_Selector* sel = SASS_MEMORY_NEW(Placeholder_Selector, pstate, lexed);
       sel->media_block(last_media_block);
       return sel;
     }
@@ -1089,7 +1089,7 @@ namespace Sass {
       }
       else {
         value = parse_list(DELAYED);
-        if (List_Ptr list = Cast<List>(value)) {
+        if (List* list = Cast<List>(value)) {
           if (!list->is_bracketed() && list->length() == 0 && !peek< exactly <'{'> >()) {
             css_error("Invalid CSS", " after ", ": expected expression (e.g. 1px, bold), was ");
           }
@@ -1495,7 +1495,7 @@ namespace Sass {
     }
     else if (lex< identifier_schema >()) {
       String_Obj string = parse_identifier_schema();
-      if (String_Schema_Ptr schema = Cast<String_Schema>(string)) {
+      if (String_Schema* schema = Cast<String_Schema>(string)) {
         if (lex < exactly < '(' > >()) {
           schema->append(parse_list());
           lex < exactly < ')' > >();
@@ -1510,29 +1510,29 @@ namespace Sass {
       return parse_function_call();
     }
     else if (lex< exactly<'+'> >()) {
-      Unary_Expression_Ptr ex = SASS_MEMORY_NEW(Unary_Expression, pstate, Unary_Expression::PLUS, parse_factor());
+      Unary_Expression* ex = SASS_MEMORY_NEW(Unary_Expression, pstate, Unary_Expression::PLUS, parse_factor());
       if (ex && ex->operand()) ex->is_delayed(ex->operand()->is_delayed());
       return ex;
     }
     else if (lex< exactly<'-'> >()) {
-      Unary_Expression_Ptr ex = SASS_MEMORY_NEW(Unary_Expression, pstate, Unary_Expression::MINUS, parse_factor());
+      Unary_Expression* ex = SASS_MEMORY_NEW(Unary_Expression, pstate, Unary_Expression::MINUS, parse_factor());
       if (ex && ex->operand()) ex->is_delayed(ex->operand()->is_delayed());
       return ex;
     }
     else if (lex< exactly<'/'> >()) {
-      Unary_Expression_Ptr ex = SASS_MEMORY_NEW(Unary_Expression, pstate, Unary_Expression::SLASH, parse_factor());
+      Unary_Expression* ex = SASS_MEMORY_NEW(Unary_Expression, pstate, Unary_Expression::SLASH, parse_factor());
       if (ex && ex->operand()) ex->is_delayed(ex->operand()->is_delayed());
       return ex;
     }
     else if (lex< sequence< kwd_not > >()) {
-      Unary_Expression_Ptr ex = SASS_MEMORY_NEW(Unary_Expression, pstate, Unary_Expression::NOT, parse_factor());
+      Unary_Expression* ex = SASS_MEMORY_NEW(Unary_Expression, pstate, Unary_Expression::NOT, parse_factor());
       if (ex && ex->operand()) ex->is_delayed(ex->operand()->is_delayed());
       return ex;
     }
     // this whole branch is never hit via spec tests
     else if (peek < sequence < one_plus < alternatives < css_whitespace, exactly<'-'>, exactly<'+'> > >, number > >()) {
       if (parse_number_prefix()) return parse_value(); // prefix is positive
-      Unary_Expression_Ptr ex = SASS_MEMORY_NEW(Unary_Expression, pstate, Unary_Expression::MINUS, parse_value());
+      Unary_Expression* ex = SASS_MEMORY_NEW(Unary_Expression, pstate, Unary_Expression::MINUS, parse_value());
       if (ex->operand()) ex->is_delayed(ex->operand()->is_delayed());
       return ex;
     }
@@ -1550,9 +1550,9 @@ namespace Sass {
               (L > 2 && parsed.substr(0, 3) == "-0.") );
   }
 
-  Number_Ptr Parser::lexed_number(const ParserState& pstate, const std::string& parsed)
+  Number* Parser::lexed_number(const ParserState& pstate, const std::string& parsed)
   {
-    Number_Ptr nr = SASS_MEMORY_NEW(Number,
+    Number* nr = SASS_MEMORY_NEW(Number,
                                     pstate,
                                     sass_strtod(parsed.c_str()),
                                     "",
@@ -1562,9 +1562,9 @@ namespace Sass {
     return nr;
   }
 
-  Number_Ptr Parser::lexed_percentage(const ParserState& pstate, const std::string& parsed)
+  Number* Parser::lexed_percentage(const ParserState& pstate, const std::string& parsed)
   {
-    Number_Ptr nr = SASS_MEMORY_NEW(Number,
+    Number* nr = SASS_MEMORY_NEW(Number,
                                     pstate,
                                     sass_strtod(parsed.c_str()),
                                     "%",
@@ -1574,7 +1574,7 @@ namespace Sass {
     return nr;
   }
 
-  Number_Ptr Parser::lexed_dimension(const ParserState& pstate, const std::string& parsed)
+  Number* Parser::lexed_dimension(const ParserState& pstate, const std::string& parsed)
   {
     size_t L = parsed.length();
     size_t num_pos = parsed.find_first_not_of(" \n\r\t");
@@ -1585,7 +1585,7 @@ namespace Sass {
     }
     if (unit_pos == std::string::npos) unit_pos = L;
     const std::string& num = parsed.substr(num_pos, unit_pos - num_pos);
-    Number_Ptr nr = SASS_MEMORY_NEW(Number,
+    Number* nr = SASS_MEMORY_NEW(Number,
                                     pstate,
                                     sass_strtod(num.c_str()),
                                     Token(number(parsed.c_str())),
@@ -1595,9 +1595,9 @@ namespace Sass {
     return nr;
   }
 
-  Value_Ptr Parser::lexed_hex_color(const ParserState& pstate, const std::string& parsed)
+  Value* Parser::lexed_hex_color(const ParserState& pstate, const std::string& parsed)
   {
-    Color_RGBA_Ptr color = NULL;
+    Color_RGBA* color = NULL;
     if (parsed[0] != '#') {
       return SASS_MEMORY_NEW(String_Quoted, pstate, parsed);
     }
@@ -1658,7 +1658,7 @@ namespace Sass {
     return color;
   }
 
-  Value_Ptr Parser::color_or_string(const std::string& lexed) const
+  Value* Parser::color_or_string(const std::string& lexed) const
   {
     if (auto color = name_to_color(lexed)) {
       auto c = SASS_MEMORY_NEW(Color_RGBA, color);
@@ -1759,7 +1759,7 @@ namespace Sass {
                     find_first_in_interval< exactly<hash_lbrace>, block_comment >(i, chunk.end);
 
     if (!p) {
-      String_Quoted_Ptr str_quoted = SASS_MEMORY_NEW(String_Quoted, pstate, std::string(i, chunk.end), 0, false, false, true, css);
+      String_Quoted* str_quoted = SASS_MEMORY_NEW(String_Quoted, pstate, std::string(i, chunk.end), 0, false, false, true, css);
       if (!constant && str_quoted->quote_mark()) str_quoted->quote_mark('*');
       return str_quoted;
     }
@@ -1830,7 +1830,7 @@ namespace Sass {
       schema->append(SASS_MEMORY_NEW(String_Constant, pstate, str));
     }
     else if (Expression_Obj tok = lex_interpolation()) {
-      if (String_Schema_Ptr s = Cast<String_Schema>(tok)) {
+      if (String_Schema* s = Cast<String_Schema>(tok)) {
         schema->concat(s);
       } else {
         schema->append(tok);
@@ -1838,7 +1838,7 @@ namespace Sass {
     }
     else if (lex< quoted_string >()) {
       Expression_Obj tok = parse_string();
-      if (String_Schema_Ptr s = Cast<String_Schema>(tok)) {
+      if (String_Schema* s = Cast<String_Schema>(tok)) {
         schema->concat(s);
       } else {
         schema->append(tok);
@@ -1900,7 +1900,7 @@ namespace Sass {
       return SASS_MEMORY_NEW(String_Quoted, pstate, std::string(str.begin, str.end));
     }
 
-    String_Schema_Ptr schema = SASS_MEMORY_NEW(String_Schema, pstate);
+    String_Schema* schema = SASS_MEMORY_NEW(String_Schema, pstate);
     while (i < str.end) {
       p = find_first_in_interval< exactly<hash_lbrace>, block_comment >(i, str.end);
       if (p) {
@@ -2156,7 +2156,7 @@ namespace Sass {
       uri = url_string->to_string({ NESTED, 5 });
     }
 
-    if (String_Schema_Ptr schema = Cast<String_Schema>(url_string)) {
+    if (String_Schema* schema = Cast<String_Schema>(url_string)) {
       String_Schema_Obj res = SASS_MEMORY_NEW(String_Schema, pstate);
       res->append(SASS_MEMORY_NEW(String_Constant, pstate, prefix));
       res->append(schema);
@@ -2359,7 +2359,7 @@ namespace Sass {
     return queries.detach();
   }
 
-  // Expression_Ptr Parser::parse_media_query()
+  // Expression* Parser::parse_media_query()
   Media_Query_Obj Parser::parse_media_query()
   {
     advanceToNextToken();
@@ -2373,7 +2373,7 @@ namespace Sass {
 
     while (lex_css < kwd_and >()) media_query->append(parse_media_expression());
     if (lex < identifier_schema >()) {
-      String_Schema_Ptr schema = SASS_MEMORY_NEW(String_Schema, pstate);
+      String_Schema* schema = SASS_MEMORY_NEW(String_Schema, pstate);
       schema->append(media_query->media_type());
       schema->append(SASS_MEMORY_NEW(String_Constant, pstate, " "));
       schema->append(parse_identifier_schema());
@@ -2459,7 +2459,7 @@ namespace Sass {
       lex < css_whitespace >();
       Supports_Condition_Obj right = parse_supports_condition_in_parens();
 
-      // Supports_Condition_Ptr cc = SASS_MEMORY_NEW(Supports_Condition, *static_cast<Supports_Condition_Ptr>(cond));
+      // Supports_Condition* cc = SASS_MEMORY_NEW(Supports_Condition, *static_cast<Supports_Condition*>(cond));
       cond = SASS_MEMORY_NEW(Supports_Operator, pstate, cond, right, op);
     }
     return cond;
@@ -2479,7 +2479,7 @@ namespace Sass {
   // look like declarations their semantics differ significantly
   Supports_Condition_Obj Parser::parse_supports_declaration()
   {
-    Supports_Condition_Ptr cond;
+    Supports_Condition* cond;
     // parse something declaration like
     Expression_Obj feature = parse_expression();
     Expression_Obj expression;
@@ -2573,7 +2573,7 @@ namespace Sass {
 
     // this whole branch is never hit via spec tests
 
-    Directive_Ptr at_rule = SASS_MEMORY_NEW(Directive, pstate, kwd);
+    Directive* at_rule = SASS_MEMORY_NEW(Directive, pstate, kwd);
     Lookahead lookahead = lookahead_for_include(position);
     if (lookahead.found && !lookahead.has_interpolants) {
       at_rule->selector(parse_selector_list(false));
@@ -3017,7 +3017,7 @@ namespace Sass {
 
   Expression_Obj Parser::fold_operands(Expression_Obj base, std::vector<Expression_Obj>& operands, std::vector<Operand>& ops, size_t i)
   {
-    if (String_Schema_Ptr schema = Cast<String_Schema>(base)) {
+    if (String_Schema* schema = Cast<String_Schema>(base)) {
       // return schema;
       if (schema->has_interpolants()) {
         if (i + 1 < operands.size() && (
@@ -3040,7 +3040,7 @@ namespace Sass {
     }
 
     for (size_t S = operands.size(); i < S; ++i) {
-      if (String_Schema_Ptr schema = Cast<String_Schema>(operands[i])) {
+      if (String_Schema* schema = Cast<String_Schema>(operands[i])) {
         if (schema->has_interpolants()) {
           if (i + 1 < S) {
             // this whole branch is never hit via spec tests
@@ -3057,13 +3057,13 @@ namespace Sass {
       } else {
         base = SASS_MEMORY_NEW(Binary_Expression, base->pstate(), ops[i], base, operands[i]);
       }
-      Binary_Expression_Ptr b = Cast<Binary_Expression>(base.ptr());
+      Binary_Expression* b = Cast<Binary_Expression>(base.ptr());
       if (b && ops[i].operand == Sass_OP::DIV && b->left()->is_delayed() && b->right()->is_delayed()) {
         base->is_delayed(true);
       }
     }
     // nested binary expression are never to be delayed
-    if (Binary_Expression_Ptr b = Cast<Binary_Expression>(base)) {
+    if (Binary_Expression* b = Cast<Binary_Expression>(base)) {
       if (Cast<Binary_Expression>(b->left())) base->set_delayed(false);
       if (Cast<Binary_Expression>(b->right())) base->set_delayed(false);
     }

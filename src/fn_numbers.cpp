@@ -104,7 +104,7 @@ namespace Sass {
     Signature min_sig = "min($numbers...)";
     BUILT_IN(min)
     {
-      List_Ptr arglist = ARG("$numbers", List);
+      List* arglist = ARG("$numbers", List);
       Number_Obj least;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Expression_Obj val = arglist->value_at_index(i);
@@ -122,7 +122,7 @@ namespace Sass {
     Signature max_sig = "max($numbers...)";
     BUILT_IN(max)
     {
-      List_Ptr arglist = ARG("$numbers", List);
+      List* arglist = ARG("$numbers", List);
       Number_Obj greatest;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
         Expression_Obj val = arglist->value_at_index(i);
@@ -141,9 +141,9 @@ namespace Sass {
     BUILT_IN(random)
     {
       AST_Node_Obj arg = env["$limit"];
-      Value_Ptr v = Cast<Value>(arg);
-      Number_Ptr l = Cast<Number>(arg);
-      Boolean_Ptr b = Cast<Boolean>(arg);
+      Value* v = Cast<Value>(arg);
+      Number* l = Cast<Number>(arg);
+      Boolean* b = Cast<Boolean>(arg);
       if (l) {
         double lv = l->value();
         if (lv < 1) {

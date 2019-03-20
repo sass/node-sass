@@ -40,16 +40,16 @@ namespace Sass {
     BUILT_IN(sass_unquote)
     {
       AST_Node_Obj arg = env["$string"];
-      if (String_Quoted_Ptr string_quoted = Cast<String_Quoted>(arg)) {
-        String_Constant_Ptr result = SASS_MEMORY_NEW(String_Constant, pstate, string_quoted->value());
+      if (String_Quoted* string_quoted = Cast<String_Quoted>(arg)) {
+        String_Constant* result = SASS_MEMORY_NEW(String_Constant, pstate, string_quoted->value());
         // remember if the string was quoted (color tokens)
         result->is_delayed(true); // delay colors
         return result;
       }
-      else if (String_Constant_Ptr str = Cast<String_Constant>(arg)) {
+      else if (String_Constant* str = Cast<String_Constant>(arg)) {
         return str;
       }
-      else if (Value_Ptr ex = Cast<Value>(arg)) {
+      else if (Value* ex = Cast<Value>(arg)) {
         Sass_Output_Style oldstyle = ctx.c_options.output_style;
         ctx.c_options.output_style = SASS_STYLE_NESTED;
         std::string val(arg->to_string(ctx.c_options));
@@ -67,13 +67,13 @@ namespace Sass {
     {
       AST_Node_Obj arg = env["$string"];
       // only set quote mark to true if already a string
-      if (String_Quoted_Ptr qstr = Cast<String_Quoted>(arg)) {
+      if (String_Quoted* qstr = Cast<String_Quoted>(arg)) {
         qstr->quote_mark('*');
         return qstr;
       }
       // all other nodes must be converted to a string node
       std::string str(quote(arg->to_string(ctx.c_options), '"'));
-      String_Quoted_Ptr result = SASS_MEMORY_NEW(String_Quoted, pstate, str);
+      String_Quoted* result = SASS_MEMORY_NEW(String_Quoted, pstate, str);
       result->quote_mark('*');
       return result;
     }
@@ -84,7 +84,7 @@ namespace Sass {
     {
       size_t len = std::string::npos;
       try {
-        String_Constant_Ptr s = ARG("$string", String_Constant);
+        String_Constant* s = ARG("$string", String_Constant);
         len = UTF_8::code_point_count(s->value(), 0, s->value().size());
 
       }
@@ -100,10 +100,10 @@ namespace Sass {
     {
       std::string str;
       try {
-        String_Constant_Ptr s = ARG("$string", String_Constant);
+        String_Constant* s = ARG("$string", String_Constant);
         str = s->value();
         str = unquote(str);
-        String_Constant_Ptr i = ARG("$insert", String_Constant);
+        String_Constant* i = ARG("$insert", String_Constant);
         std::string ins = i->value();
         ins = unquote(ins);
         double index = ARGVAL("$index");
@@ -130,7 +130,7 @@ namespace Sass {
           str = ins + str;
         }
 
-        if (String_Quoted_Ptr ss = Cast<String_Quoted>(s)) {
+        if (String_Quoted* ss = Cast<String_Quoted>(s)) {
           if (ss->quote_mark()) str = quote(str);
         }
       }
@@ -145,8 +145,8 @@ namespace Sass {
     {
       size_t index = std::string::npos;
       try {
-        String_Constant_Ptr s = ARG("$string", String_Constant);
-        String_Constant_Ptr t = ARG("$substring", String_Constant);
+        String_Constant* s = ARG("$string", String_Constant);
+        String_Constant* t = ARG("$substring", String_Constant);
         std::string str = s->value();
         str = unquote(str);
         std::string substr = t->value();
@@ -170,10 +170,10 @@ namespace Sass {
     {
       std::string newstr;
       try {
-        String_Constant_Ptr s = ARG("$string", String_Constant);
+        String_Constant* s = ARG("$string", String_Constant);
         double start_at = ARGVAL("$start-at");
         double end_at = ARGVAL("$end-at");
-        String_Quoted_Ptr ss = Cast<String_Quoted>(s);
+        String_Quoted* ss = Cast<String_Quoted>(s);
 
         std::string str = unquote(s->value());
 
@@ -220,7 +220,7 @@ namespace Sass {
     Signature to_upper_case_sig = "to-upper-case($string)";
     BUILT_IN(to_upper_case)
     {
-      String_Constant_Ptr s = ARG("$string", String_Constant);
+      String_Constant* s = ARG("$string", String_Constant);
       std::string str = s->value();
 
       for (size_t i = 0, L = str.length(); i < L; ++i) {
@@ -229,8 +229,8 @@ namespace Sass {
         }
       }
 
-      if (String_Quoted_Ptr ss = Cast<String_Quoted>(s)) {
-        String_Quoted_Ptr cpy = SASS_MEMORY_COPY(ss);
+      if (String_Quoted* ss = Cast<String_Quoted>(s)) {
+        String_Quoted* cpy = SASS_MEMORY_COPY(ss);
         cpy->value(str);
         return cpy;
       } else {
@@ -241,7 +241,7 @@ namespace Sass {
     Signature to_lower_case_sig = "to-lower-case($string)";
     BUILT_IN(to_lower_case)
     {
-      String_Constant_Ptr s = ARG("$string", String_Constant);
+      String_Constant* s = ARG("$string", String_Constant);
       std::string str = s->value();
 
       for (size_t i = 0, L = str.length(); i < L; ++i) {
@@ -250,8 +250,8 @@ namespace Sass {
         }
       }
 
-      if (String_Quoted_Ptr ss = Cast<String_Quoted>(s)) {
-        String_Quoted_Ptr cpy = SASS_MEMORY_COPY(ss);
+      if (String_Quoted* ss = Cast<String_Quoted>(s)) {
+        String_Quoted* cpy = SASS_MEMORY_COPY(ss);
         cpy->value(str);
         return cpy;
       } else {

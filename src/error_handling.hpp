@@ -55,10 +55,10 @@ namespace Sass {
 
     class InvalidParent : public Base {
       protected:
-        Selector_Ptr parent;
-        Selector_Ptr selector;
+        Selector* parent;
+        Selector* selector;
       public:
-        InvalidParent(Selector_Ptr parent, Backtraces traces, Selector_Ptr selector);
+        InvalidParent(Selector* parent, Backtraces traces, Selector* selector);
         virtual ~InvalidParent() throw() {};
     };
 
@@ -77,18 +77,18 @@ namespace Sass {
         std::string fn;
         std::string arg;
         std::string type;
-        const Value_Ptr value;
+        const Value* value;
       public:
-        InvalidArgumentType(ParserState pstate, Backtraces traces, std::string fn, std::string arg, std::string type, const Value_Ptr value = 0);
+        InvalidArgumentType(ParserState pstate, Backtraces traces, std::string fn, std::string arg, std::string type, const Value* value = 0);
         virtual ~InvalidArgumentType() throw() {};
     };
 
     class InvalidVarKwdType : public Base {
       protected:
         std::string name;
-        const Argument_Ptr arg;
+        const Argument* arg;
       public:
-        InvalidVarKwdType(ParserState pstate, Backtraces traces, std::string name, const Argument_Ptr arg = 0);
+        InvalidVarKwdType(ParserState pstate, Backtraces traces, std::string name, const Argument* arg = 0);
         virtual ~InvalidVarKwdType() throw() {};
     };
 
@@ -178,28 +178,28 @@ namespace Sass {
 
     class UndefinedOperation : public OperationError {
       protected:
-        Expression_Ptr_Const lhs;
-        Expression_Ptr_Const rhs;
+        const Expression* lhs;
+        const Expression* rhs;
         const Sass_OP op;
       public:
-        UndefinedOperation(Expression_Ptr_Const lhs, Expression_Ptr_Const rhs, enum Sass_OP op);
+        UndefinedOperation(const Expression* lhs, const Expression* rhs, enum Sass_OP op);
         // virtual const char* errtype() const { return "Error"; }
         virtual ~UndefinedOperation() throw() {};
     };
 
     class InvalidNullOperation : public UndefinedOperation {
       public:
-        InvalidNullOperation(Expression_Ptr_Const lhs, Expression_Ptr_Const rhs, enum Sass_OP op);
+        InvalidNullOperation(const Expression* lhs, const Expression* rhs, enum Sass_OP op);
         virtual ~InvalidNullOperation() throw() {};
     };
 
     class AlphaChannelsNotEqual : public OperationError {
       protected:
-        Expression_Ptr_Const lhs;
-        Expression_Ptr_Const rhs;
+        const Expression* lhs;
+        const Expression* rhs;
         const Sass_OP op;
       public:
-        AlphaChannelsNotEqual(Expression_Ptr_Const lhs, Expression_Ptr_Const rhs, enum Sass_OP op);
+        AlphaChannelsNotEqual(const Expression* lhs, const Expression* rhs, enum Sass_OP op);
         // virtual const char* errtype() const { return "Error"; }
         virtual ~AlphaChannelsNotEqual() throw() {};
     };

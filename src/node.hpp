@@ -97,7 +97,7 @@ namespace Sass {
     // Private constructor; Use the static methods (like createCombinator and createSelector)
     // to instantiate this object. This is more expressive, and it allows us to break apart each
     // case into separate functions.
-    Node(const TYPE& type, Complex_Selector::Combinator combinator, Complex_Selector_Ptr pSelector, NodeDequePtr& pCollection);
+    Node(const TYPE& type, Complex_Selector::Combinator combinator, Complex_Selector* pSelector, NodeDequePtr& pCollection);
 
     TYPE mType;
 
@@ -110,8 +110,8 @@ namespace Sass {
 #ifdef DEBUG
   std::ostream& operator<<(std::ostream& os, const Node& node);
 #endif
-  Node complexSelectorToNode(Complex_Selector_Ptr pToConvert);
-  Complex_Selector_Ptr nodeToComplexSelector(const Node& toConvert);
+  Node complexSelectorToNode(Complex_Selector* pToConvert);
+  Complex_Selector* nodeToComplexSelector(const Node& toConvert);
 
 }
 

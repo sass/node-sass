@@ -168,8 +168,8 @@ namespace Sass {
     size_t L = std::min(length(), rhs.length());
     for (size_t i = 0; i < L; ++i)
     {
-      Simple_Selector_Ptr l = (*this)[i];
-      Simple_Selector_Ptr r = rhs[i];
+      Simple_Selector* l = (*this)[i];
+      Simple_Selector* r = rhs[i];
       if (!l && !r) return false;
       else if (!r) return false;
       else if (!l) return true;
@@ -199,10 +199,10 @@ namespace Sass {
   bool Complex_Selector::operator< (const Complex_Selector& rhs) const
   {
     // const iterators for tails
-    Complex_Selector_Ptr_Const l = this;
-    Complex_Selector_Ptr_Const r = &rhs;
-    Compound_Selector_Ptr l_h = NULL;
-    Compound_Selector_Ptr r_h = NULL;
+    const Complex_Selector* l = this;
+    const Complex_Selector* r = &rhs;
+    Compound_Selector* l_h = NULL;
+    Compound_Selector* r_h = NULL;
     if (l) l_h = l->head();
     if (r) r_h = r->head();
     // process all tails
@@ -268,10 +268,10 @@ namespace Sass {
   bool Complex_Selector::operator== (const Complex_Selector& rhs) const
   {
     // const iterators for tails
-    Complex_Selector_Ptr_Const l = this;
-    Complex_Selector_Ptr_Const r = &rhs;
-    Compound_Selector_Ptr l_h = NULL;
-    Compound_Selector_Ptr r_h = NULL;
+    const Complex_Selector* l = this;
+    const Complex_Selector* r = &rhs;
+    Compound_Selector* l_h = NULL;
+    Compound_Selector* r_h = NULL;
     if (l) l_h = l->head();
     if (r) r_h = r->head();
     // process all tails
