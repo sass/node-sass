@@ -158,7 +158,7 @@ namespace Sass {
           }
         }
       }
-      catch (utf8::invalid_utf8)
+      catch (utf8::invalid_utf8&)
       {
         // report the error to the console (should not happen)
         // implementors should make sure to provide valid utf8
