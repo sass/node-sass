@@ -88,27 +88,27 @@ var argv = Object.assign(Constants.DefaultOptions, yargs
     alias: 'd'
   }).argv);
 
-var BinaryPath = sass.getBinaryPath(argv);
-if (!argv.force && fs.existsSync(BinaryPath)) {
-  console.log('Binary found at', BinaryPath);
-  process.exit(0);
+var ModuleDetails = Constants.ModuleVersions[argv.modulesVersion];
+if (!ModuleDetails) {
+  console.error('Unknown Node Modules Version: ' + argv.modulesVersion);
+  process.exit(1);
 }
-
 var gypOptions = {
   arch: argv.arch,
   jobs: argv.jobs,
   target: argv.target,
   debug: argv.debug
 };
-var ModuleDetails = Constants.ModuleVersions[argv.modulesVersion];
-if (!ModuleDetails) {
-  console.error('Unknown Node Modules Version: ' + argv.modulesVersion);
-  process.exit(1);
-}
 if (ModuleDetails[0] === Constants.Runtimes.ELECTRON) {
   gypOptions['dist-url'] = 'https://atom.io/download/electron';
   argv.arch = gypOptions.arch = process.platform === 'win32' ? 'ia32' : process.arch;
 }
+var BinaryPath = sass.getBinaryPath(argv);
+if (!argv.force && fs.existsSync(BinaryPath)) {
+  console.log('Binary found at', BinaryPath);
+  process.exit(0);
+}
+
 
 build(gypOptions, function (errorCode) {
   if (errorCode) {
