@@ -3,6 +3,7 @@
 var assert = require('assert'),
   path = require('path'),
   etx = require('../lib/extensions'),
+  Constants = require('../lib/constants'),
   binding = process.env.NODESASS_COV
       ? require('../lib-cov/binding')
       : require('../lib/binding');
@@ -33,7 +34,7 @@ describe('binding', function() {
 
           if ((err instanceof Error)) {
             return err.message.indexOf(
-              etx.getHumanEnvironment(etx.getBinaryName())
+              etx.getHumanEnvironment(etx.getBinaryName(Constants.DefaultOptions))
             ) !== -1;
           }
         }
@@ -42,17 +43,15 @@ describe('binding', function() {
   });
 
   describe('on unsupported environment', function() {
+    var DefaultOptions = Constants.DefaultOptions;
     describe('with an unsupported architecture', function() {
+      var arch = DefaultOptions.arch;
       beforeEach(function() {
-        Object.defineProperty(process, 'arch', {
-          value: 'foo',
-        });
+        DefaultOptions.arch = 'foo';
       });
 
       afterEach(function() {
-        Object.defineProperty(process, 'arch', {
-          value: 'x64',
-        });
+        DefaultOptions.arch = arch;
       });
 
       it('should error', function() {

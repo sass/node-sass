@@ -6,60 +6,36 @@ var fs = require('fs'),
   mkdir = require('mkdirp'),
   path = require('path'),
   spawn = require('cross-spawn'),
-  sass = require('../lib/extensions');
-
-/**
- * After build
- *
- * @param {Object} options
- * @api private
- */
-
-function afterBuild(options) {
-  var install = sass.getBinaryPath();
-  var target = path.join(__dirname, '..', 'build',
-    options.debug ? 'Debug' :
-        process.config.target_defaults
-            ?  process.config.target_defaults.default_configuration
-            : 'Release',
-    'binding.node');
-
-  mkdir(path.dirname(install), function(err) {
-    if (err && err.code !== 'EEXIST') {
-      console.error(err.message);
-      return;
-    }
-
-    fs.stat(target, function(err) {
-      if (err) {
-        console.error('Build succeeded but target not found');
-        return;
-      }
-
-      fs.rename(target, install, function(err) {
-        if (err) {
-          console.error(err.message);
-          return;
-        }
-
-        console.log('Installed to', install);
-      });
-    });
-  });
-}
+  sass = require('../lib/extensions'),
+  Constants = require('../lib/constants'),
+  yargs = require('yargs');
 
 /**
  * Build
  *
- * @param {Object} options
+ * @param {Object} gypOptions
  * @api private
  */
 
-function build(options) {
-  var args = [require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js')), 'rebuild', '--verbose'].concat(
-    ['libsass_ext', 'libsass_cflags', 'libsass_ldflags', 'libsass_library'].map(function(subject) {
-      return ['--', subject, '=', process.env[subject.toUpperCase()] || ''].join('');
-    })).concat(options.args);
+function build(gypOptions, callback) {
+  [
+    'libsass_ext',
+    'libsass_cflags',
+    'libsass_ldflags',
+    'libsass_library'
+  ].forEach(function (sassflag) {
+    gypOptions[sassflag] = process.env[sassflag.toUpperCase()];
+  });
+
+  var args = [
+    require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js')),
+    'rebuild',
+    '--verbose'
+  ].concat(
+      Object.entries(gypOptions).filter(function(prop) { return prop[1]; }).map(function (prop) {
+        return '--' + prop[0] + (prop[1] === true ? '' : '=' + prop[1]);
+      })
+    );
 
   console.log('Building:', [process.execPath].concat(args).join(' '));
 
@@ -67,20 +43,8 @@ function build(options) {
     stdio: [0, 1, 2]
   });
 
-  proc.on('exit', function(errorCode) {
-    if (!errorCode) {
-      afterBuild(options);
-      return;
-    }
+  proc.on('exit', callback);
 
-    if (errorCode === 127 ) {
-      console.error('node-gyp not found!');
-    } else {
-      console.error('Build failed with error code:', errorCode);
-    }
-
-    process.exit(1);
-  });
 }
 
 /**
@@ -90,31 +54,6 @@ function build(options) {
  * @api private
  */
 
-function parseArgs(args) {
-  var options = {
-    arch: process.arch,
-    platform: process.platform,
-    force: process.env.npm_config_force === 'true',
-  };
-
-  options.args = args.filter(function(arg) {
-    if (arg === '-f' || arg === '--force') {
-      options.force = true;
-      return false;
-    } else if (arg.substring(0, 13) === '--target_arch') {
-      options.arch = arg.substring(14);
-    } else if (arg === '-d' || arg === '--debug') {
-      options.debug = true;
-    } else if (arg.substring(0, 13) === '--libsass_ext' && arg.substring(14) !== 'no') {
-      options.libsassExt = true;
-    }
-
-    return true;
-  });
-
-  return options;
-}
-
 /**
  * Test for pre-built library
  *
@@ -122,34 +61,91 @@ function parseArgs(args) {
  * @api private
  */
 
-function testBinary(options) {
-  if (options.force || process.env.SASS_FORCE_BUILD) {
-    return build(options);
-  }
-
-  if (!sass.hasBinary(sass.getBinaryPath())) {
-    return build(options);
-  }
-
-  console.log('Binary found at', sass.getBinaryPath());
-  console.log('Testing binary');
-
-  try {
-    require('../').renderSync({
-      data: 's { a: ss }'
-    });
-
-    console.log('Binary is fine');
-  } catch (e) {
-    console.log('Binary has a problem:', e);
-    console.log('Building the binary locally');
-
-    return build(options);
-  }
-}
-
 /**
  * Apply arguments and run
  */
 
-testBinary(parseArgs(process.argv.slice(2)));
+var argv = Object.assign(Constants.DefaultOptions, yargs
+  .option('jobs', {
+    alias: 'j',
+    describe: 'Run make in parallel'
+  })
+  .option('target', {
+    describe: 'Node.js version to build for (default is process.version)'
+  })
+  .option('force', {
+    alias: 'f',
+    describe: 'Rebuild even if file already exists'
+  })
+  .option('arch', {
+    alias: 'a'
+  })
+  .option('modules-version', {
+    alias: 'm',
+    describe: 'Node module version to build for (default is process.versions.modules)'
+  })
+  .option('debug', {
+    alias: 'd'
+  }).argv);
+
+var ModuleDetails = Constants.ModuleVersions[argv.modulesVersion];
+if (!ModuleDetails) {
+  console.error('Unknown Node Modules Version: ' + argv.modulesVersion);
+  process.exit(1);
+}
+var gypOptions = {
+  arch: argv.arch,
+  jobs: argv.jobs,
+  target: argv.target,
+  debug: argv.debug
+};
+if (ModuleDetails[0] === Constants.Runtimes.ELECTRON) {
+  gypOptions['dist-url'] = 'https://atom.io/download/electron';
+  argv.arch = gypOptions.arch = process.platform === 'win32' ? 'ia32' : process.arch;
+}
+var BinaryPath = sass.getBinaryPath(argv);
+if (!argv.force && fs.existsSync(BinaryPath)) {
+  console.log('Binary found at', BinaryPath);
+  process.exit(0);
+}
+
+
+build(gypOptions, function (errorCode) {
+  if (errorCode) {
+    if (errorCode === 127) {
+      console.error('node-gyp not found!');
+    } else {
+      console.error('Build failed with error code:', errorCode);
+    }
+  
+    process.exit(1);
+  }
+  var install = BinaryPath;
+  var target = path.join(
+      __dirname,
+      '..',
+      'build',
+      gypOptions.debug ? 'Debug' : 'Release',
+      'binding.node'
+    );
+  
+  mkdir(path.dirname(install), function (err) {
+    if (err && err.code !== 'EEXIST') {
+      return console.error(err.message);
+    }
+  
+    fs.stat(target, function (err) {
+      if (err) {
+        return console.error('Build succeeded but target not found');
+      }
+  
+      fs.rename(target, install, function (err) {
+        if (err) {
+          return console.error(err.message);
+        }
+  
+        console.log('Installed to', install);
+      });
+    });
+  });
+});

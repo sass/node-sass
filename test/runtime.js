@@ -1,4 +1,5 @@
 var assert = require('assert'),
+  Constants = require('../lib/constants'),
   sass = process.env.NODESASS_COV
       ? require('../lib-cov/extensions')
       : require('../lib/extensions');
@@ -26,25 +27,25 @@ describe('runtime parameters', function() {
       });
 
       it('command line argument', function() {
-        assert.equal(sass.getBinaryName(), 'aaa_binding.node');
+        assert.equal(sass.getBinaryName(Constants.DefaultOptions), 'aaa_binding.node');
       });
 
       it('environment variable', function() {
         process.argv = [];
-        assert.equal(sass.getBinaryName(), 'bbb_binding.node');
+        assert.equal(sass.getBinaryName(Constants.DefaultOptions), 'bbb_binding.node');
       });
 
       it('npm config variable', function() {
         process.argv = [];
         process.env.SASS_BINARY_NAME = null;
-        assert.equal(sass.getBinaryName(), 'ccc_binding.node');
+        assert.equal(sass.getBinaryName(Constants.DefaultOptions), 'ccc_binding.node');
       });
 
       it('package.json', function() {
         process.argv = [];
         process.env.SASS_BINARY_NAME = null;
         process.env.npm_config_sass_binary_name = null;
-        assert.equal(sass.getBinaryName(), 'ddd_binding.node');
+        assert.equal(sass.getBinaryName(Constants.DefaultOptions), 'ddd_binding.node');
       });
     });
 
