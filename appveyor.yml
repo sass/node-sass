@@ -166,7 +166,7 @@
       - nodejs_version: 11
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-        
+
   install:
     - ps: Install-Product node $env:nodejs_version $env:platform
     - node --version
