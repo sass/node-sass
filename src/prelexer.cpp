@@ -263,7 +263,7 @@ namespace Sass {
       >(src);
     }
 
-    // Match a line comment (/.*?(?=\n|\r\n?|\Z)/.
+    // Match a line comment (/.*?(?=\n|\r\n?|\f|\Z)/.
     const char* line_comment(const char* src)
     {
       return sequence<

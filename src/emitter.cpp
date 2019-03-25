@@ -3,6 +3,7 @@
 #include "context.hpp"
 #include "output.hpp"
 #include "emitter.hpp"
+#include "util_string.hpp"
 #include "utf8_string.hpp"
 
 namespace Sass {
@@ -134,13 +135,13 @@ namespace Sass {
     // write space/lf
     flush_schedules();
 
-    if (in_comment && output_style() == COMPACT) {
-      // unescape comment nodes
-      std::string out = comment_to_string(text);
-      // add to buffer
-      wbuf.buffer += out;
-      // account for data in source-maps
+    if (in_comment) {
+      std::string out = Util::normalize_newlines(text);
+      if (output_style() == COMPACT) {
+        out = comment_to_compact_string(out);
+      }
       wbuf.smap.append(Offset(out));
+      wbuf.buffer += std::move(out);
     } else {
       // add to buffer
       wbuf.buffer += text;

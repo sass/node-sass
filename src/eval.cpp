@@ -30,6 +30,7 @@
 #include "expand.hpp"
 #include "color_maps.hpp"
 #include "sass_functions.hpp"
+#include "util_string.hpp"
 
 namespace Sass {
 

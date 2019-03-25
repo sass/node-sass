@@ -153,11 +153,11 @@ namespace Sass {
     // Match word boundary (zero-width lookahead).
     const char* word_boundary(const char* src) { return is_character(*src) || *src == '#' ? 0 : src; }
 
-    // Match linefeed /(?:\n|\r\n?)/
+    // Match linefeed /(?:\n|\r\n?|\f)/
     const char* re_linebreak(const char* src)
     {
       // end of file or unix linefeed return here
-      if (*src == 0 || *src == '\n') return src + 1;
+      if (*src == 0 || *src == '\n' || *src == '\f') return src + 1;
       // a carriage return may optionally be followed by a linefeed
       if (*src == '\r') return *(src + 1) == '\n' ? src + 2 : src + 1;
       // no linefeed
@@ -169,7 +169,7 @@ namespace Sass {
     const char* end_of_line(const char* src)
     {
       // end of file or unix linefeed return here
-      return *src == 0 || *src == '\n' || *src == '\r' ? src : 0;
+      return *src == 0 || *src == '\n' || *src == '\r' || *src == '\f' ? src : 0;
     }
 
     // Assert end_of_file boundary (/\z/)

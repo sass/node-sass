@@ -2,6 +2,7 @@
 #include "expand.hpp"
 #include "fn_utils.hpp"
 #include "fn_miscs.hpp"
+#include "util_string.hpp"
 
 namespace Sass {
 

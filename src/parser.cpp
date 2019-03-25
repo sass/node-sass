@@ -11,6 +11,7 @@
 #include "color_maps.hpp"
 #include "sass/functions.h"
 #include "error_handling.hpp"
+#include "util_string.hpp"
 
 // Notes about delayed: some ast nodes can have delayed evaluation so
 // they can preserve their original semantics if needed. This is most

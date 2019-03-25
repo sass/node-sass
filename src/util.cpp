@@ -163,42 +163,64 @@ namespace Sass {
     std::replace(str.begin(), str.end(), '\n', ' ');
   }
 
-  // bell characters are replaced with spaces
-  // also eats spaces after line-feeds (ltrim)
+  // 1. Removes whitespace after newlines.
+  // 2. Replaces newlines with spaces.
+  //
+  // This method only considers LF and CRLF as newlines.
   std::string string_to_output(const std::string& str)
   {
-    std::string out("");
-    bool lf = false;
-    for (auto i : str) {
-      if (i == '\n') {
-        out += ' ';
-        lf = true;
-      } else if (!(lf && isspace(i))) {
-        out += i;
-        lf = false;
+    std::string result;
+    result.reserve(str.size());
+    std::size_t pos = 0;
+    while (true) {
+      const std::size_t newline = str.find_first_of("\n\r", pos);
+      if (newline == std::string::npos) break;
+      result.append(str, pos, newline - pos);
+      if (str[newline] == '\r') {
+        if (str[newline + 1] == '\n') {
+          pos = newline + 2;
+        } else {
+          // CR without LF: append as-is and continue.
+          result += '\r';
+          pos = newline + 1;
+          continue;
+        }
+      } else {
+        pos = newline + 1;
+      }
+      result += ' ';
+      const std::size_t non_space = str.find_first_not_of(" \f\n\r\t\v", pos);
+      if (non_space != std::string::npos) {
+        pos = non_space;
       }
     }
-    return out;
+    result.append(str, pos, std::string::npos);
+    return result;
   }
 
   std::string escape_string(const std::string& str)
   {
-    std::string out("");
-    for (auto i : str) {
-      if (i == '\n') {
-        out += "\\n";
-      } else if (i == '\r') {
-        out += "\\r";
-      } else if (i == '\t') {
-        out += "\\t";
-      } else {
-        out += i;
+    std::string out;
+    out.reserve(str.size());
+    for (char c : str) {
+      switch (c) {
+        case '\n':
+          out.append("\\n");
+          break;
+        case '\r':
+          out.append("\\r");
+          break;
+        case '\f':
+          out.append("\\f");
+          break;
+        default:
+          out += c;
       }
     }
     return out;
   }
 
-  std::string comment_to_string(const std::string& text)
+  std::string comment_to_compact_string(const std::string& text)
   {
     std::string str = "";
     size_t has = 0;
@@ -207,7 +229,6 @@ namespace Sass {
     for (auto i : text) {
       if (clean) {
         if (i == '\n') { has = 0; }
-        else if (i == '\r') { has = 0; }
         else if (i == '\t') { ++ has; }
         else if (i == ' ') { ++ has; }
         else if (i == '*') {}
@@ -218,8 +239,6 @@ namespace Sass {
           else str += i;
         }
       } else if (i == '\n') {
-        clean = true;
-      } else if (i == '\r') {
         clean = true;
       } else {
         str += i;
@@ -508,33 +527,6 @@ namespace Sass {
   }
 
   namespace Util {
-    using std::string;
-
-    std::string rtrim(const std::string &str) {
-      std::string trimmed = str;
-      size_t pos_ws = trimmed.find_last_not_of(" \t\n\v\f\r");
-      if (pos_ws != std::string::npos)
-      { trimmed.erase(pos_ws + 1); }
-      else { trimmed.clear(); }
-      return trimmed;
-    }
-
-    std::string normalize_underscores(const std::string& str) {
-      std::string normalized = str;
-      for(size_t i = 0, L = normalized.length(); i < L; ++i) {
-        if(normalized[i] == '_') {
-          normalized[i] = '-';
-        }
-      }
-      return normalized;
-    }
-
-    std::string normalize_decimals(const std::string& str) {
-      std::string prefix = "0";
-      std::string normalized = str;
-
-      return normalized[0] == '.' ? normalized.insert(0, prefix) : normalized;
-    }
 
     bool isPrintable(Ruleset* r, Sass_Output_Style style) {
       if (r == NULL) {

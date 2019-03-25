@@ -75,6 +75,7 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\utf8\unchecked.h" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\utf8_string.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\util.hpp" />
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\util_string.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\values.hpp" />
   </ItemGroup>
   <ItemGroup Label="LibSass Sources">
@@ -137,6 +138,7 @@
     <ClCompile Include="$(LIBSASS_SRC_DIR)\units.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\utf8_string.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\util.cpp" />
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\util_string.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\values.cpp" />
   </ItemGroup>
 </Project>

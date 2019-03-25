@@ -4,6 +4,7 @@
 
 #include "parser.hpp"
 #include "fn_utils.hpp"
+#include "util_string.hpp"
 
 namespace Sass {
 

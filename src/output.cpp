@@ -92,7 +92,6 @@ namespace Sass {
 
   void Output::operator()(Comment* c)
   {
-    std::string txt = c->text()->to_string(opt);
     // if (indentation && txt == "/**/") return;
     bool important = c->is_important();
     if (output_style() != COMPRESSED || important) {
