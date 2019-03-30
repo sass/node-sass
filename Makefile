@@ -28,14 +28,20 @@ CAT ?= $(if $(filter $(OS),Windows_NT),type,cat)
 
 ifneq (,$(findstring /cygdrive/,$(PATH)))
 	UNAME := Cygwin
-else ifneq (,$(findstring Windows_NT,$(OS)))
+else
+ifneq (,$(findstring Windows_NT,$(OS)))
 	UNAME := Windows
-else ifneq (,$(findstring mingw32,$(MAKE)))
+else
+ifneq (,$(findstring mingw32,$(MAKE)))
 	UNAME := Windows
-else ifneq (,$(findstring MINGW32,$(shell uname -s)))
+else
+ifneq (,$(findstring MINGW32,$(shell uname -s)))
 	UNAME := Windows
 else
 	UNAME := $(shell uname -s)
+endif
+endif
+endif
 endif
 
 ifndef LIBSASS_VERSION
@@ -153,10 +159,12 @@ ifeq (Windows,$(UNAME))
 		CXXFLAGS  += -D ADD_EXPORTS
 		LIB_SHARED  = $(SASS_LIBSASS_PATH)/lib/libsass.dll
 	endif
-else ifneq (Cygwin,$(UNAME))
+else
+ifneq (Cygwin,$(UNAME))
 	CFLAGS   += -fPIC
 	CXXFLAGS += -fPIC
 	LDFLAGS  += -fPIC
+endif
 endif
 
 include Makefile.conf
