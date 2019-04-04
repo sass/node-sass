@@ -277,6 +277,11 @@ sass.render({
           //file written on disk
         }
       });
+      fs.writeFile(yourPathTotheFile + ".map", result.map, function(err){
+        if(!err){
+          //map written on disk
+        }
+      });
     }
   });
 });
