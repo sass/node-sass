@@ -144,6 +144,7 @@ namespace Sass {
     if (length() < l) l = length();
     for (size_t i = 0; i < l; i ++) {
       if (*at(i) < *rhs.at(i)) return true;
+      if (*at(i) != *rhs.at(i)) return false;
     }
     return false;
   }
