@@ -80,9 +80,9 @@ test_script:
         echo "spec runner not found (compile error?)"
         exit 1
       }
-      Write-Host "Explicitly testing the case when cwd has Cyrillic characters: " -nonewline
+      Write-Host "Explicitly testing the case when cwd has Unicode characters: " -nonewline
       # See comments in gh-1774 for details.
-      cd sass-spec/spec/libsass/Sáss-UŢF8/
+      cd test/e2e/unicode-pwd/Sáss-UŢF8/
       &$env:TargetPath ./input.scss 2>&1>$null
       if(-not($?)) {
         echo "Failed!"

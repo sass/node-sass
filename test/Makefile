@@ -21,4 +21,4 @@ build/test_util_string: test_util_string.cpp ../src/util_string.cpp | build
 clean: | build
 	rm -rf build
 
-.PHONY: test test_shared_ptr clean
+.PHONY: test test_shared_ptr test_util_string clean
