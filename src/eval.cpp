@@ -1588,21 +1588,6 @@ namespace Sass {
     // a selector schema may or may not connect to parent?
     bool chroot = s->connect_parent() == false;
     Selector_List_Obj sl = p.parse_selector_list(chroot);
-    auto vec_str_rend = ctx.strings.rend();
-    auto vec_str_rbegin = ctx.strings.rbegin();
-    // remove the first item searching from the back
-    // we cannot assume our item is still the last one
-    // order is not important, so we can optimize this
-    auto it = std::find(vec_str_rbegin, vec_str_rend, temp_cstr);
-    // undefined behavior if not found!
-    if (it != vec_str_rend) {
-      // overwrite with last item
-      *it = ctx.strings.back();
-      // remove last one from vector
-      ctx.strings.pop_back();
-      // free temporary copy
-      free(temp_cstr);
-    }
     flag_is_in_selector_schema.reset();
     return operator()(sl);
   }
