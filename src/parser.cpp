@@ -2415,10 +2415,7 @@ namespace Sass {
   // these are very similar to media blocks
   Supports_Block_Obj Parser::parse_supports_directive()
   {
-    Supports_Condition_Obj cond = parse_supports_condition();
-    if (!cond) {
-      css_error("Invalid CSS", " after ", ": expected @supports condition (e.g. (display: flexbox)), was ", false);
-    }
+    Supports_Condition_Obj cond = parse_supports_condition(/*top_level=*/true);
     // create the ast node object for the support queries
     Supports_Block_Obj query = SASS_MEMORY_NEW(Supports_Block, pstate, cond);
     // additional block is mandatory
@@ -2430,12 +2427,12 @@ namespace Sass {
 
   // parse one query operation
   // may encounter nested queries
-  Supports_Condition_Obj Parser::parse_supports_condition()
+  Supports_Condition_Obj Parser::parse_supports_condition(bool top_level)
   {
     lex < css_whitespace >();
     Supports_Condition_Obj cond;
     if ((cond = parse_supports_negation())) return cond;
-    if ((cond = parse_supports_operator())) return cond;
+    if ((cond = parse_supports_operator(top_level))) return cond;
     if ((cond = parse_supports_interpolation())) return cond;
     return cond;
   }
@@ -2443,13 +2440,13 @@ namespace Sass {
   Supports_Condition_Obj Parser::parse_supports_negation()
   {
     if (!lex < kwd_not >()) return {};
-    Supports_Condition_Obj cond = parse_supports_condition_in_parens();
+    Supports_Condition_Obj cond = parse_supports_condition_in_parens(/*parens_required=*/true);
     return SASS_MEMORY_NEW(Supports_Negation, pstate, cond);
   }
 
-  Supports_Condition_Obj Parser::parse_supports_operator()
+  Supports_Condition_Obj Parser::parse_supports_operator(bool top_level)
   {
-    Supports_Condition_Obj cond = parse_supports_condition_in_parens();
+    Supports_Condition_Obj cond = parse_supports_condition_in_parens(/*parens_required=*/top_level);
     if (cond.isNull()) return {};
 
     while (true) {
@@ -2458,7 +2455,7 @@ namespace Sass {
       else if(!lex < kwd_or >()) { break; }
 
       lex < css_whitespace >();
-      Supports_Condition_Obj right = parse_supports_condition_in_parens();
+      Supports_Condition_Obj right = parse_supports_condition_in_parens(/*parens_required=*/true);
 
       // Supports_Condition* cc = SASS_MEMORY_NEW(Supports_Condition, *static_cast<Supports_Condition*>(cond));
       cond = SASS_MEMORY_NEW(Supports_Operator, pstate, cond, right, op);
@@ -2496,21 +2493,24 @@ namespace Sass {
     return cond;
   }
 
-  Supports_Condition_Obj Parser::parse_supports_condition_in_parens()
+  Supports_Condition_Obj Parser::parse_supports_condition_in_parens(bool parens_required)
   {
     Supports_Condition_Obj interp = parse_supports_interpolation();
     if (interp != 0) return interp;
 
-    if (!lex < exactly <'('> >()) return {};
+    if (!lex < exactly <'('> >()) {
+      if (parens_required) {
+        css_error("Invalid CSS", " after ", ": expected @supports condition (e.g. (display: flexbox)), was ", /*trim=*/false);
+      } else {
+        return {};
+      }
+    }
     lex < css_whitespace >();
 
-    Supports_Condition_Obj cond = parse_supports_condition();
-    if (cond != 0) {
-      if (!lex < exactly <')'> >()) error("unclosed parenthesis in @supports declaration");
-    } else {
-      cond = parse_supports_declaration();
-      if (!lex < exactly <')'> >()) error("unclosed parenthesis in @supports declaration");
-    }
+    Supports_Condition_Obj cond = parse_supports_condition(/*top_level=*/false);
+    if (cond.isNull()) cond = parse_supports_declaration();
+    if (!lex < exactly <')'> >()) error("unclosed parenthesis in @supports declaration");
+
     lex < css_whitespace >();
     return cond;
   }

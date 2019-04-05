@@ -312,12 +312,12 @@ namespace Sass {
     Media_Query_Obj parse_media_query();
     Media_Query_Expression_Obj parse_media_expression();
     Supports_Block_Obj parse_supports_directive();
-    Supports_Condition_Obj parse_supports_condition();
+    Supports_Condition_Obj parse_supports_condition(bool top_level);
     Supports_Condition_Obj parse_supports_negation();
-    Supports_Condition_Obj parse_supports_operator();
+    Supports_Condition_Obj parse_supports_operator(bool top_level);
     Supports_Condition_Obj parse_supports_interpolation();
     Supports_Condition_Obj parse_supports_declaration();
-    Supports_Condition_Obj parse_supports_condition_in_parens();
+    Supports_Condition_Obj parse_supports_condition_in_parens(bool parens_required);
     At_Root_Block_Obj parse_at_root_block();
     At_Root_Query_Obj parse_at_root_query();
     String_Schema_Obj parse_almost_any_value();
