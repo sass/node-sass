@@ -1400,7 +1400,7 @@ namespace Sass {
     }*/
 
     const char* H(const char* src) {
-      return std::isxdigit(*src) ? src+1 : 0;
+      return std::isxdigit(static_cast<unsigned char>(*src)) ? src+1 : 0;
     }
 
     const char* W(const char* src) {
