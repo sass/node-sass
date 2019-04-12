@@ -102,10 +102,8 @@ namespace Sass {
       try {
         String_Constant* s = ARG("$string", String_Constant);
         str = s->value();
-        str = unquote(str);
         String_Constant* i = ARG("$insert", String_Constant);
         std::string ins = i->value();
-        ins = unquote(ins);
         double index = ARGVAL("$index");
         size_t len = UTF_8::code_point_count(str, 0, str.size());
 
@@ -148,9 +146,7 @@ namespace Sass {
         String_Constant* s = ARG("$string", String_Constant);
         String_Constant* t = ARG("$substring", String_Constant);
         std::string str = s->value();
-        str = unquote(str);
         std::string substr = t->value();
-        substr = unquote(substr);
 
         size_t c_index = str.find(substr);
         if(c_index == std::string::npos) {
@@ -175,7 +171,7 @@ namespace Sass {
         double end_at = ARGVAL("$end-at");
         String_Quoted* ss = Cast<String_Quoted>(s);
 
-        std::string str = unquote(s->value());
+        std::string str(s->value());
 
         size_t size = utf8::distance(str.begin(), str.end());
 
