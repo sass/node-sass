@@ -46,7 +46,7 @@ TESTS = $(SASS_SPEC_PATH)/sass-spec.rb
 RB_LOG_COMPILER = ./script/tap-runner
 AM_RB_LOG_FLAGS = $(RUBY)
 
-SASS_TEST_FLAGS = -V 3.5 --impl libsass
+SASS_TEST_FLAGS = --impl libsass
 SASS_TEST_FLAGS += -r $(SASS_SPEC_PATH)
 SASS_TEST_FLAGS += -c $(top_srcdir)/tester$(EXEEXT)
 AM_TESTS_ENVIRONMENT = TEST_FLAGS='$(SASS_TEST_FLAGS)'
