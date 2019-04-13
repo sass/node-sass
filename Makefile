@@ -311,5 +311,6 @@ lib-opts-shared:
         debug debug-static debug-shared \
         install install-static install-shared \
         lib-opts lib-opts-shared lib-opts-static \
-        lib-file lib-file-shared lib-file-static
+        lib-file lib-file-shared lib-file-static \
+        test test_build test_full test_probe
 .DELETE_ON_ERROR:
