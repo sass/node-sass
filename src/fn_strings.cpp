@@ -65,19 +65,13 @@ namespace Sass {
     Signature quote_sig = "quote($string)";
     BUILT_IN(sass_quote)
     {
-      AST_Node_Obj arg = env["$string"];
-      // only set quote mark to true if already a string
-      if (String_Quoted* qstr = Cast<String_Quoted>(arg)) {
-        qstr->quote_mark('*');
-        return qstr;
-      }
-      // all other nodes must be converted to a string node
-      std::string str(quote(arg->to_string(ctx.c_options), '"'));
-      String_Quoted* result = SASS_MEMORY_NEW(String_Quoted, pstate, str);
+      const String_Constant* s = ARG("$string", String_Constant);
+      String_Quoted *result = SASS_MEMORY_NEW(
+          String_Quoted, pstate, s->value(),
+          /*q=*/'\0', /*keep_utf8_escapes=*/false, /*skip_unquoting=*/true);
       result->quote_mark('*');
       return result;
     }
-
 
     Signature str_length_sig = "str-length($string)";
     BUILT_IN(str_length)
