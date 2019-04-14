@@ -53,5 +53,23 @@ std::string normalize_decimals(const std::string& str) {
   return normalized;
 }
 
+char opening_bracket_for(char closing_bracket) {
+  switch (closing_bracket) {
+    case ')': return '(';
+    case ']': return '[';
+    case '}': return '{';
+    default: return '\0';
+  }
+}
+
+char closing_bracket_for(char opening_bracket) {
+  switch (opening_bracket) {
+    case '(': return ')';
+    case '[': return ']';
+    case '{': return '}';
+    default: return '\0';
+  }
+}
+
 }  // namespace Sass
 }  // namespace Util
