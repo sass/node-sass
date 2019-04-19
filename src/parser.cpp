@@ -1859,7 +1859,7 @@ namespace Sass {
       css_error("Invalid CSS", " after ", message);
     }
 
-    if (schema->empty()) return {};
+    if (schema->empty()) error("Custom property values may not be empty.");
     return schema.detach();
   }
 
