@@ -5,7 +5,7 @@
 
 char* create_string(Nan::MaybeLocal<v8::Value> maybevalue) {
   v8::Local<v8::Value> value;
-  
+
   if (maybevalue.ToLocal(&value)) {
     if (value->IsNull() || !value->IsString()) {
       return 0;
@@ -14,7 +14,7 @@ char* create_string(Nan::MaybeLocal<v8::Value> maybevalue) {
     return 0;
   }
 
-  v8::String::Utf8Value string(value);
+  Nan::Utf8String string(value);
   char *str = (char *)malloc(string.length() + 1);
   strcpy(str, *string);
   return str;

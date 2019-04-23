@@ -18,6 +18,12 @@ jobs:
       node_js: "node"
       os: osx
     - stage: platform-test
+      node_js: "11"
+      os: linux
+    - stage: platform-test
+      node_js: "11"
+      os: osx
+    - stage: platform-test
       node_js: "10"
       os: linux
     - stage: platform-test
