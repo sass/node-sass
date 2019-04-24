@@ -4,7 +4,7 @@ compiler: gcc
 sudo: false
 
 env:
-  global:
+  matrix:
     - SKIP_SASS_BINARY_DOWNLOAD_FOR_CI=true
 
 jobs:
@@ -56,9 +56,11 @@ jobs:
     - stage: platform-test
       node_js: "0.12"
       os: linux
+      env: SKIP_SASS_BINARY_DOWNLOAD_FOR_CI=
     - stage: platform-test
       node_js: "0.10"
       os: linux
+      env: SKIP_SASS_BINARY_DOWNLOAD_FOR_CI=
 
 addons:
   apt:
