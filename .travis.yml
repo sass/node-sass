@@ -36,28 +36,28 @@ jobs:
       node_js: "9"
       os: osx
     - stage: platform-test
+      node_js: "8"
+      os: linux
+    - stage: platform-test
+      node_js: "8"
+      os: osx
+    - stage: platform-test
       node_js: "7"
       os: linux
     - stage: platform-test
       node_js: "7"
       os: osx
     - stage: platform-test
-      node_js: "lts/carbon"
+      node_js: "6"
       os: linux
     - stage: platform-test
-      node_js: "lts/carbon"
+      node_js: "6"
       os: osx
     - stage: platform-test
-      node_js: "lts/boron"
+      node_js: "4"
       os: linux
     - stage: platform-test
-      node_js: "lts/boron"
-      os: osx
-    - stage: platform-test
-      node_js: "lts/argon"
-      os: linux
-    - stage: platform-test
-      node_js: "lts/argon"
+      node_js: "4"
       os: osx
     - stage: platform-test
       node_js: "0.12"
