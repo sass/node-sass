@@ -1,0 +1,20 @@
+---
+kind: pipeline
+name: node10-arm64
+
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+- name: test
+  image: arm64v8/node:10
+  volumes:
+  - name: vendor
+    path: /drone/src/vendor
+  commands:
+  - node -v
+  - npm -v
+  - npm install 
+  - npm run-script build
+  - npm test
