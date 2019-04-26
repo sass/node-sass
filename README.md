@@ -4,6 +4,7 @@
 
 NodeJS  | Minimum node-sass version | Node Module
 --------|--------------------------|------------
+Node 12 | 4.12+                    | 72
 Node 11 | 4.10+                    | 67
 Node 10 | 4.9+                     | 64
 Node 8  | 4.5.3+                   | 57

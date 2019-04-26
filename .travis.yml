@@ -18,6 +18,12 @@ jobs:
       node_js: "node"
       os: osx
     - stage: platform-test
+      node_js: "11"
+      os: linux
+    - stage: platform-test
+      node_js: "11"
+      os: osx
+    - stage: platform-test
       node_js: "10"
       os: linux
     - stage: platform-test
@@ -30,28 +36,28 @@ jobs:
       node_js: "9"
       os: osx
     - stage: platform-test
+      node_js: "8"
+      os: linux
+    - stage: platform-test
+      node_js: "8"
+      os: osx
+    - stage: platform-test
       node_js: "7"
       os: linux
     - stage: platform-test
       node_js: "7"
       os: osx
     - stage: platform-test
-      node_js: "lts/carbon"
+      node_js: "6"
       os: linux
     - stage: platform-test
-      node_js: "lts/carbon"
+      node_js: "6"
       os: osx
     - stage: platform-test
-      node_js: "lts/boron"
+      node_js: "4"
       os: linux
     - stage: platform-test
-      node_js: "lts/boron"
-      os: osx
-    - stage: platform-test
-      node_js: "lts/argon"
-      os: linux
-    - stage: platform-test
-      node_js: "lts/argon"
+      node_js: "4"
       os: osx
     - stage: platform-test
       node_js: "0.12"
@@ -74,7 +80,7 @@ before_install:
   - echo $TRAVIS_NODE_VERSION
   - npm config set python `which python`
   - if [ $TRAVIS_OS_NAME == "linux" ]; then
-      if [[ $(node -v) =~ v1[01] ]]; then
+      if [[ $(node -v) =~ v[1-9][0-9] ]]; then
         export CC="gcc-4.9";
         export CXX="g++-4.9";
         export LINK="gcc-4.9";

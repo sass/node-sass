@@ -68,14 +68,18 @@
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       - nodejs_version: 10
-        GYP_MSVS_VERSION: 2015
-        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+        GYP_MSVS_VERSION: 2017
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       - nodejs_version: 11
-        GYP_MSVS_VERSION: 2015
-        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+        GYP_MSVS_VERSION: 2017
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      - nodejs_version: 12
+        GYP_MSVS_VERSION: 2017
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 
   install:
-    - ps: Install-Product node $env:nodejs_version $env:platform
+    # https://www.appveyor.com/docs/lang/nodejs-iojs/#installing-any-version-of-nodejs-or-iojs
+    - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version) $env:platform
     - node --version
     - npm --version
     - npm install
@@ -161,14 +165,18 @@
         GYP_MSVS_VERSION: 2015
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       - nodejs_version: 10
-        GYP_MSVS_VERSION: 2015
-        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+        GYP_MSVS_VERSION: 2017
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       - nodejs_version: 11
-        GYP_MSVS_VERSION: 2015
-        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-        
+        GYP_MSVS_VERSION: 2017
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      - nodejs_version: 12
+        GYP_MSVS_VERSION: 2017
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+
   install:
-    - ps: Install-Product node $env:nodejs_version $env:platform
+    # https://www.appveyor.com/docs/lang/nodejs-iojs/#installing-any-version-of-nodejs-or-iojs
+    - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version) $env:platform
     - node --version
     - npm --version
     - npm install
