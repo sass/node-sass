@@ -1,21 +1,105 @@
 ---
 kind: pipeline
-name: node10-arm64
+name: node8-arm64v8
 
 platform:
   os: linux
   arch: arm64
 
 steps:
-- name: test
-  image: arm64v8/node:10
-  volumes:
+  - name: build
+    image: arm64v8/node:8
+    volumes:
+      - name: vendor
+        path: /drone/src/vendor
+    commands:
+      - export SKIP_SASS_BINARY_DOWNLOAD_FOR_CI="true"
+      - env
+      - node -v
+      - npm -v
+      - gcc --version
+      - g++ --version
+      - npm install --unsafe-perm
+      - npm test
+      - ls -lsa /drone/src/vendor
+volumes:
   - name: vendor
-    path: /drone/src/vendor
-  commands:
-  - node -v
-  - npm -v
-  - npm install 
-  - npm run-script build
-  - npm test
+    temp: {}
 ---
+kind: pipeline
+name: node10-arm64v8
+
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+  - name: build
+    image: arm64v8/node:10
+    volumes:
+      - name: vendor
+        path: /drone/src/vendor
+    commands:
+      - export SKIP_SASS_BINARY_DOWNLOAD_FOR_CI="true"
+      - node -v
+      - npm -v
+      - gcc --version
+      - g++ --version
+      - npm install --unsafe-perm
+      - npm test
+      - ls -lsa /drone/src/vendor
+volumes:
+  - name: vendor
+    temp: {}
+---
+kind: pipeline
+name: node11-arm64v8
+
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+  - name: build
+    image: arm64v8/node:11
+    volumes:
+      - name: vendor
+        path: /drone/src/vendor
+    commands:
+      - export SKIP_SASS_BINARY_DOWNLOAD_FOR_CI="true"
+      - node -v
+      - npm -v
+      - gcc --version
+      - g++ --version
+      - npm install --unsafe-perm
+      - npm test
+      - ls -lsa /drone/src/vendor
+volumes:
+  - name: vendor
+    temp: {}
+---
+kind: pipeline
+name: node12-arm64v8
+
+platform:
+  os: linux
+  arch: arm64
+
+steps:
+  - name: build
+    image: arm64v8/node:12
+    volumes:
+      - name: vendor
+        path: /drone/src/vendor
+    commands:
+      - export SKIP_SASS_BINARY_DOWNLOAD_FOR_CI="true"
+      - node -v
+      - npm -v
+      - gcc --version
+      - g++ --version
+      - npm install --unsafe-perm
+      - npm test
+      - ls -lsa /drone/src/vendor
+volumes:
+  - name: vendor
+    temp: {}
