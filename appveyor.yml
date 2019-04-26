@@ -78,7 +78,8 @@
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 
   install:
-    - ps: Install-Product node $env:nodejs_version $env:platform
+    # https://www.appveyor.com/docs/lang/nodejs-iojs/#installing-any-version-of-nodejs-or-iojs
+    - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version) $env:platform
     - node --version
     - npm --version
     - npm install
@@ -174,7 +175,8 @@
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 
   install:
-    - ps: Install-Product node $env:nodejs_version $env:platform
+    # https://www.appveyor.com/docs/lang/nodejs-iojs/#installing-any-version-of-nodejs-or-iojs
+    - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version) $env:platform
     - node --version
     - npm --version
     - npm install
