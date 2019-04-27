@@ -56,33 +56,6 @@ volumes:
     temp: {}
 ---
 kind: pipeline
-name: node10-arm32v7
-
-platform:
-  os: linux
-  arch: arm
-
-steps:
-  - name: build
-    image: arm32v7/node:10
-    volumes:
-      - name: vendor
-        path: /tmp/vendor
-    commands:
-      - export SKIP_SASS_BINARY_DOWNLOAD_FOR_CI="true"
-      - node -v
-      - npm -v
-      - gcc --version
-      - g++ --version
-      - npm install --unsafe-perm
-      - npm test
-      - cp -R /drone/src/vendor /tmp
-      - ls -lsa /tmp/vendor
-volumes:
-  - name: vendor
-    temp: {}
----
-kind: pipeline
 name: node8-arm32v6
 
 platform:
@@ -91,94 +64,14 @@ platform:
 
 steps:
   - name: build
-    image: arm32v6/node:8
+    image: arm32v6/node:8-alpine
     volumes:
       - name: vendor
         path: /tmp/vendor
     commands:
       - export SKIP_SASS_BINARY_DOWNLOAD_FOR_CI="true"
-      - env
-      - node -v
-      - npm -v
-      - gcc --version
-      - g++ --version
-      - npm install --unsafe-perm
-      - npm test
-      - cp -R /drone/src/vendor /tmp
-      - ls -lsa /tmp/vendor
-volumes:
-  - name: vendor
-    temp: {}
----
-kind: pipeline
-name: node10-arm32v6
-
-platform:
-  os: linux
-  arch: arm
-
-steps:
-  - name: build
-    image: arm32v6/node:10
-    volumes:
-      - name: vendor
-        path: /tmp/vendor
-    commands:
-      - export SKIP_SASS_BINARY_DOWNLOAD_FOR_CI="true"
-      - node -v
-      - npm -v
-      - gcc --version
-      - g++ --version
-      - npm install --unsafe-perm
-      - npm test
-      - cp -R /drone/src/vendor /tmp
-      - ls -lsa /tmp/vendor
-volumes:
-  - name: vendor
-    temp: {}
----
-kind: pipeline
-name: node11-arm32v6
-
-platform:
-  os: linux
-  arch: arm
-
-steps:
-  - name: build
-    image: arm32v6/node:11
-    volumes:
-      - name: vendor
-        path: /tmp/vendor
-    commands:
-      - export SKIP_SASS_BINARY_DOWNLOAD_FOR_CI="true"
-      - node -v
-      - npm -v
-      - gcc --version
-      - g++ --version
-      - npm install --unsafe-perm
-      - npm test
-      - cp -R /drone/src/vendor /tmp
-      - ls -lsa /tmp/vendor
-volumes:
-  - name: vendor
-    temp: {}
----
-kind: pipeline
-name: node12-arm32v6
-
-platform:
-  os: linux
-  arch: arm
-
-steps:
-  - name: build
-    image: arm32v6/node:12
-    volumes:
-      - name: vendor
-        path: /tmp/vendor
-    commands:
-      - export SKIP_SASS_BINARY_DOWNLOAD_FOR_CI="true"
+      - apk add --no-cache python=2.7.15-r3 git-perl bash make gcc g++
+      - rm /bin/sh && ln -s /bin/bash /bin/sh
       - node -v
       - npm -v
       - gcc --version
