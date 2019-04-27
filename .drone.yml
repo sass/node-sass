@@ -19,10 +19,15 @@ steps:
       - npm -v
       - gcc --version
       - g++ --version
-      - npm install --unsafe-perm
-      - npm test
-      - cp -R /drone/src/vendor /tmp
-      - ls -lsa /tmp/vendor
+      - node -p process.versions
+      - node -p process.arch
+      - node -p process.platform
+      - node -p process.config.variables
+      - uname -m
+      # - npm install --unsafe-perm
+      # - npm test
+      # - cp -R /drone/src/vendor /tmp
+      # - ls -lsa /tmp/vendor
 volumes:
   - name: vendor
     temp: {}
@@ -47,10 +52,15 @@ steps:
       - npm -v
       - gcc --version
       - g++ --version
-      - npm install --unsafe-perm
-      - npm test
-      - cp -R /drone/src/vendor /tmp
-      - ls -lsa /tmp/vendor
+      - node -p process.versions
+      - node -p process.arch
+      - node -p process.platform
+      - node -p process.config.variables
+      - uname -m
+      # - npm install --unsafe-perm
+      # - npm test
+      # - cp -R /drone/src/vendor /tmp
+      # - ls -lsa /tmp/vendor
 volumes:
   - name: vendor
     temp: {}
@@ -76,10 +86,15 @@ steps:
       - npm -v
       - gcc --version
       - g++ --version
-      - npm install --unsafe-perm
-      - npm test
-      - cp -R /drone/src/vendor /tmp
-      - ls -lsa /tmp/vendor
+      - node -p process.versions
+      - node -p process.arch
+      - node -p process.platform
+      - node -p process.config.variables
+      - uname -m
+      # - npm install --unsafe-perm
+      # - npm test
+      # - cp -R /drone/src/vendor /tmp
+      # - ls -lsa /tmp/vendor
 volumes:
   - name: vendor
     temp: {}
