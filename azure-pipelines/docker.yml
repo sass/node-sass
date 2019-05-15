@@ -14,9 +14,7 @@ steps:
      $(Build.BinariesDirectory):/src/vendor
     envVars: ${{ parameters.environmentVariables }}
     workDir: '/src'
-    containerCommand: 'apk add --no-cache --virtual .gyp python make g++ \
-                        && npm install \
-                        && apk del .gyp'
+    containerCommand: 'apk add --no-cache --virtual .gyp python make g++ && npm install && apk del .gyp'
     detached: false
 - task: docker@0
   displayName: Test
