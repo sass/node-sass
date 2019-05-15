@@ -3,6 +3,7 @@ name: Coverage
 on:
   push:
     paths:
+      - ".nycrc.json"
       - "**/*.js"
       - "test/**"
       - "package.json"
@@ -10,6 +11,7 @@ on:
       - ".github/workflows/coverage.yml"
   pull_request:
     paths:
+      - ".nycrc.json"
       - "**/*.js"
       - "test/**"
       - "package.json"

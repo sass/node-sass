@@ -1,0 +1,14 @@
+{
+  "all": true,
+  "include": [
+    "bin/*",
+    "lib/*.js",
+    "scripts/**/*.js"
+  ],
+  "extension": [
+    "node-sass"
+  ],
+  "reporter": [
+    "lcovonly"
+  ]
+}
