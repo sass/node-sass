@@ -9,6 +9,4 @@ jobs:
   container: 10-alpine
   steps:
   - script: apk add --no-cache --virtual .gyp python make g++ && npm install && apk del .gyp
-  - template: test.yml
-
- 
+  - template: azure-pipelines/test.yml
