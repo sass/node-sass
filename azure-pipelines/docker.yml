@@ -1,0 +1,37 @@
+# These are the steps used in a container-based build in VSTS.
+steps:
+- ${{ if eq(parameters.qemu, 'true') }}:
+  - script: docker run --rm --privileged multiarch/qemu-user-static:register --reset
+    displayName: 'Register Docker QEMU'
+
+- task: docker@0
+  displayName: Build
+  inputs:
+    action: 'Run an image'
+    imageName: ${{ parameters.imageName }}
+    volumes: |
+     $(Build.SourcesDirectory):/src
+     $(Build.BinariesDirectory):/src/vendor
+    envVars: ${{ parameters.environmentVariables }}
+    workDir: '/src'
+    containerCommand: 'npm install'
+    detached: false
+- task: docker@0
+  displayName: Test
+  inputs:
+    action: 'Run an image'
+    imageName: ${{ parameters.imageName }}
+    volumes: |
+     $(Build.SourcesDirectory):/src
+     $(Build.BinariesDirectory):/src/test
+    envVars: ${{ parameters.environmentVariables }}
+    workDir: '/src'
+    containerCommand: 'npm run test-junit'
+    detached: false
+- task: publishtestresults@2
+  displayName: Publish Test Results
+  condition: succeededOrFailed()
+  inputs:
+    testResultsFiles: '*-results.xml'
+    searchFolder: '$(Build.BinariesDirectory)'
+    mergeTestResults: true

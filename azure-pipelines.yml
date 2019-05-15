@@ -1,0 +1,17 @@
+resources:
+- repo: self
+
+trigger:
+- master
+
+jobs:
+- job: linux_amd64_trusty_gcc_openssl
+  displayName: 'Linux (amd64; Trusty; GCC; OpenSSL)'
+  pool:
+    vmImage: 'Ubuntu 16.04'
+  steps:
+  - template: azure-pipelines/docker.yml
+    parameters:
+      imageName: 'node:10-alpine'
+      environmentVariables: |
+       CC=gcc
