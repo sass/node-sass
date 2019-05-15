@@ -6,9 +6,9 @@ jobs:
   displayName: 'Linux (amd64; Trusty; GCC; OpenSSL)'
   pool:
     vmImage: 'Ubuntu 16.04'
+  container: 10-alpine
   steps:
-  - template: azure-pipelines/docker.yml
-    parameters:
-      imageName: 'node:10-alpine'
-      environmentVariables: |
-       CC=gcc
+  - script: apk add --no-cache --virtual .gyp python make g++ && npm install && apk del .gyp
+  - template: test.yml
+
+ 
