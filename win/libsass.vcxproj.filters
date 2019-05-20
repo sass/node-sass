@@ -63,9 +63,6 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_def_macros.hpp">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_factory.hpp">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_fwd_decl.hpp">
       <Filter>Headers</Filter>
     </ClInclude>

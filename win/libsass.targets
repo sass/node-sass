@@ -16,7 +16,6 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_supports.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_def_macros.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\memory\SharedPtr.hpp" />
-    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_factory.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast_fwd_decl.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\backtrace.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\base64vlq.hpp" />
