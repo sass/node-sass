@@ -91,7 +91,9 @@ LDFLAGS  += $(EXTRA_LDFLAGS)
 
 LDLIBS = -lm
 ifneq ($(BUILD),shared)
-	LDLIBS += -lstdc++
+	ifneq ($(STATIC_LIBSTDCPP),1)
+		LDLIBS += -lstdc++
+	endif
 endif
 
 # link statically into lib
