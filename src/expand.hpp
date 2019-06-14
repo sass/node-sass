@@ -19,7 +19,15 @@ namespace Sass {
   public:
 
     Env* environment();
-    Selector_List_Obj selector();
+    SelectorListObj& selector();
+    SelectorListObj& original();
+    SelectorListObj popFromSelectorStack();
+    SelectorStack getSelectorStack();
+    void pushToSelectorStack(SelectorListObj selector);
+
+    SelectorListObj popFromOriginalStack();
+
+    void pushToOriginalStack(SelectorListObj selector);
 
     Context&          ctx;
     Backtraces&       traces;
@@ -33,21 +41,30 @@ namespace Sass {
     EnvStack      env_stack;
     BlockStack    block_stack;
     CallStack     call_stack;
+  private:
     SelectorStack selector_stack;
-    MediaStack    media_stack;
+  public:
+    SelectorStack originalStack;
+    MediaStack    mediaStack;
 
     Boolean_Obj bool_true;
 
   private:
-    void expand_selector_list(Selector_Obj, Selector_List_Obj extender);
+
+    std::vector<CssMediaQuery_Obj> mergeMediaQueries(const std::vector<CssMediaQuery_Obj>& lhs, const std::vector<CssMediaQuery_Obj>& rhs);
 
   public:
-    Expand(Context&, Env*, SelectorStack* stack = NULL);
+    Expand(Context&, Env*, SelectorStack* stack = nullptr, SelectorStack* original = nullptr);
     ~Expand() { }
 
     Block* operator()(Block*);
     Statement* operator()(Ruleset*);
-    Statement* operator()(Media_Block*);
+
+    Statement* operator()(MediaRule*);
+
+    // Css Ruleset is already static
+    // Statement* operator()(CssMediaRule*);
+
     Statement* operator()(Supports_Block*);
     Statement* operator()(At_Root_Block*);
     Statement* operator()(Directive*);
@@ -64,7 +81,7 @@ namespace Sass {
     Statement* operator()(Each*);
     Statement* operator()(While*);
     Statement* operator()(Return*);
-    Statement* operator()(Extension*);
+    Statement* operator()(ExtendRule*);
     Statement* operator()(Definition*);
     Statement* operator()(Mixin_Call*);
     Statement* operator()(Content*);

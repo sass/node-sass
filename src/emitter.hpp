@@ -5,8 +5,6 @@
 // __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
 
-#include <string>
-
 #include "sass/base.h"
 #include "source_map.hpp"
 #include "ast_fwd_decl.hpp"

@@ -36,7 +36,7 @@ namespace Sass {
     Value* operator()(Function*);
 
     // convert to string via `To_String`
-    Value* operator()(Selector_List*);
+    Value* operator()(SelectorList*);
     Value* operator()(Binary_Expression*);
 
   };

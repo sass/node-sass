@@ -1,6 +1,8 @@
 #ifndef SASS_PARSER_H
 #define SASS_PARSER_H
 
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
 
 #include <string>
@@ -40,7 +42,6 @@ namespace Sass {
     Context& ctx;
     std::vector<Block_Obj> block_stack;
     std::vector<Scope> stack;
-    Media_Block* last_media_block;
     const char* source;
     const char* position;
     const char* end;
@@ -55,7 +56,7 @@ namespace Sass {
     Token lexed;
 
     Parser(Context& ctx, const ParserState& pstate, Backtraces traces, bool allow_parent = true)
-    : ParserState(pstate), ctx(ctx), block_stack(), stack(0), last_media_block(),
+    : ParserState(pstate), ctx(ctx), block_stack(), stack(0),
       source(0), position(0), end(0), before_token(pstate), after_token(pstate),
       pstate(pstate), traces(traces), indentation(0), nestings(0), allow_parent(allow_parent)
     {
@@ -67,7 +68,7 @@ namespace Sass {
     static Parser from_c_str(const char* beg, const char* end, Context& ctx, Backtraces, ParserState pstate = ParserState("[CSTRING]"), const char* source = nullptr, bool allow_parent = true);
     static Parser from_token(Token t, Context& ctx, Backtraces, ParserState pstate = ParserState("[TOKEN]"), const char* source = nullptr);
     // special static parsers to convert strings into certain selectors
-    static Selector_List_Obj parse_selector(const char* src, Context& ctx, Backtraces, ParserState pstate = ParserState("[SELECTOR]"), const char* source = nullptr, bool allow_parent = true);
+    static SelectorListObj parse_selector(const char* src, Context& ctx, Backtraces, ParserState pstate = ParserState("[SELECTOR]"), const char* source = nullptr, bool allow_parent = true);
 
 #ifdef __clang__
 
@@ -259,20 +260,20 @@ namespace Sass {
     Argument_Obj parse_argument();
     Assignment_Obj parse_assignment();
     Ruleset_Obj parse_ruleset(Lookahead lookahead);
-    Selector_List_Obj parse_selector_list(bool chroot);
-    Complex_Selector_Obj parse_complex_selector(bool chroot);
+    SelectorListObj parseSelectorList(bool chroot);
+    ComplexSelectorObj parseComplexSelector(bool chroot);
     Selector_Schema_Obj parse_selector_schema(const char* end_of_selector, bool chroot);
-    Compound_Selector_Obj parse_compound_selector();
-    Simple_Selector_Obj parse_simple_selector();
-    Wrapped_Selector_Obj parse_negated_selector();
-    Simple_Selector_Obj parse_pseudo_selector();
+    CompoundSelectorObj parseCompoundSelector();
+    SimpleSelectorObj parse_simple_selector();
+    Pseudo_Selector_Obj parse_negated_selector2();
+    Expression* parse_binominal();
+    SimpleSelectorObj parse_pseudo_selector();
     Attribute_Selector_Obj parse_attribute_selector();
     Block_Obj parse_block(bool is_root = false);
     Block_Obj parse_css_block(bool is_root = false);
     bool parse_block_nodes(bool is_root = false);
     bool parse_block_node(bool is_root = false);
 
-    bool parse_number_prefix();
     Declaration_Obj parse_declaration();
     Expression_Obj parse_map();
     Expression_Obj parse_bracket_list();
@@ -303,10 +304,13 @@ namespace Sass {
     For_Obj parse_for_directive();
     Each_Obj parse_each_directive();
     While_Obj parse_while_directive();
+    MediaRule_Obj parseMediaRule();
+    std::vector<CssMediaQuery_Obj> parseCssMediaQueries();
+    std::string parseIdentifier();
+    CssMediaQuery_Obj parseCssMediaQuery();
     Return_Obj parse_return_directive();
     Content_Obj parse_content_directive();
     void parse_charset_directive();
-    Media_Block_Obj parse_media_block();
     List_Obj parse_media_queries();
     Media_Query_Obj parse_media_query();
     Media_Query_Expression_Obj parse_media_expression();
@@ -320,8 +324,6 @@ namespace Sass {
     At_Root_Block_Obj parse_at_root_block();
     At_Root_Query_Obj parse_at_root_query();
     String_Schema_Obj parse_almost_any_value();
-    Directive_Obj parse_special_directive();
-    Directive_Obj parse_prefixed_directive();
     Directive_Obj parse_directive();
     Warning_Obj parse_warning();
     Error_Obj parse_error();
@@ -340,7 +342,7 @@ namespace Sass {
     Token lex_variable();
     Token lex_identifier();
 
-    void parse_block_comments();
+    void parse_block_comments(bool store = true);
 
     Lookahead lookahead_for_value(const char* start = 0);
     Lookahead lookahead_for_selector(const char* start = 0);

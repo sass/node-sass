@@ -65,6 +65,7 @@ namespace Sass {
   // only used internal to trigger ruby inspect behavior
   const static Sass_Output_Style INSPECT = SASS_STYLE_INSPECT;
   const static Sass_Output_Style TO_SASS = SASS_STYLE_TO_SASS;
+  const static Sass_Output_Style TO_CSS = SASS_STYLE_TO_CSS;
 
   // helper to aid dreaded MSVC debug mode
   // see implementation for more details

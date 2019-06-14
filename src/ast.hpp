@@ -5,46 +5,21 @@
 // __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
 
-#include <set>
-#include <deque>
-#include <vector>
-#include <string>
-#include <sstream>
-#include <iostream>
 #include <typeinfo>
-#include <algorithm>
-#include "sass/base.h"
-#include "ast_fwd_decl.hpp"
+#include <unordered_map>
 
-#include "util.hpp"
-#include "units.hpp"
-#include "context.hpp"
-#include "position.hpp"
-#include "constants.hpp"
-#include "operation.hpp"
-#include "position.hpp"
-#include "inspect.hpp"
-#include "source_map.hpp"
-#include "environment.hpp"
-#include "error_handling.hpp"
-#include "ast_def_macros.hpp"
+#include "sass/base.h"
+#include "ast_helpers.hpp"
 #include "ast_fwd_decl.hpp"
-#include "source_map.hpp"
+#include "ast_def_macros.hpp"
+
+#include "file.hpp"
+#include "position.hpp"
+#include "operation.hpp"
+#include "environment.hpp"
 #include "fn_utils.hpp"
 
-#include "sass.h"
-
 namespace Sass {
-
-  // easier to search with name
-  const bool DELAYED = true;
-
-  // ToDo: should this really be hardcoded
-  // Note: most methods follow precision option
-  const double NUMBER_EPSILON = 1e-12;
-
-  // macro to test if numbers are equal within a small error margin
-  #define NEAR_EQUAL(lhs, rhs) std::fabs(lhs - rhs) < NUMBER_EPSILON
 
   // ToDo: where does this fit best?
   // We don't share this with C-API?
@@ -101,8 +76,9 @@ namespace Sass {
     virtual size_t hash() const { return 0; }
     virtual std::string inspect() const { return to_string({ INSPECT, 5 }); }
     virtual std::string to_sass() const { return to_string({ TO_SASS, 5 }); }
-    virtual const std::string to_string(Sass_Inspect_Options opt) const;
-    virtual const std::string to_string() const;
+    virtual std::string to_string(Sass_Inspect_Options opt) const;
+    virtual std::string to_css(Sass_Inspect_Options opt) const;
+    virtual std::string to_string() const;
     virtual void cloneChildren() {};
     // generic find function (not fully implemented yet)
     // ToDo: add specific implementions to all children
@@ -110,6 +86,20 @@ namespace Sass {
     void update_pstate(const ParserState& pstate);
     Offset off() { return pstate(); }
     Position pos() { return pstate(); }
+
+    // Some obects are not meant to be compared
+    // ToDo: maybe fallback to pointer comparison?
+    virtual bool operator== (const AST_Node& rhs) const {
+      throw std::runtime_error("operator== not implemented");
+    }
+
+    // We can give some reasonable implementations by using
+    // inverst operators on the specialized implementations
+    virtual bool operator!= (const AST_Node& rhs) const {
+      // Unequal if not equal
+      return !(*this == rhs);
+    }
+
     ATTACH_ABSTRACT_AST_OPERATIONS(AST_Node);
     ATTACH_ABSTRACT_CRTP_PERFORM_METHODS()
   };
@@ -228,37 +218,112 @@ namespace Sass {
   public:
     Vectorized(size_t s = 0) : hash_(0)
     { elements_.reserve(s); }
+    Vectorized(std::vector<T> vec) :
+      elements_(std::move(vec)),
+      hash_(0)
+    {}
     virtual ~Vectorized() = 0;
     size_t length() const   { return elements_.size(); }
     bool empty() const      { return elements_.empty(); }
     void clear()            { return elements_.clear(); }
-    T last() const          { return elements_.back(); }
-    T first() const         { return elements_.front(); }
+    T& last()               { return elements_.back(); }
+    T& first()              { return elements_.front(); }
+    const T last() const    { return elements_.back(); }
+    const T first() const   { return elements_.front(); }
+
+    bool operator== (const Vectorized<T>& rhs) const {
+      // Abort early if sizes do not match
+      if (length() != rhs.length()) return false;
+      // Otherwise test each node for object equalicy in order
+      return std::equal(begin(), end(), rhs.begin(), ObjEqualityFn<T>);
+    }
+
+    bool operator!= (const Vectorized<T>& rhs) const {
+      return !(*this == rhs);
+    }
+
     T& operator[](size_t i) { return elements_[i]; }
     virtual const T& at(size_t i) const { return elements_.at(i); }
     virtual T& at(size_t i) { return elements_.at(i); }
     const T& get(size_t i) const { return elements_[i]; }
     const T& operator[](size_t i) const { return elements_[i]; }
-    virtual void append(T element)
-    {
-      if (element) {
-        reset_hash();
-        elements_.push_back(element);
-        adjust_after_pushing(element);
-      }
-    }
-    virtual void concat(Vectorized* v)
-    {
-      for (size_t i = 0, L = v->length(); i < L; ++i) this->append((*v)[i]);
-    }
-    Vectorized& unshift(T element)
-    {
-      elements_.insert(elements_.begin(), element);
-      return *this;
-    }
+
+    // Implicitly get the std::vector from our object
+    // Makes the Vector directly assignable to std::vector
+    // You are responsible to make a copy if needed
+    // Note: since this returns the real object, we can't
+    // Note: guarantee that the hash will not get out of sync
+    operator std::vector<T>&() { return elements_; }
+    operator const std::vector<T>&() const { return elements_; }
+
+    // Explicitly request all elements as a real std::vector
+    // You are responsible to make a copy if needed
+    // Note: since this returns the real object, we can't
+    // Note: guarantee that the hash will not get out of sync
     std::vector<T>& elements() { return elements_; }
     const std::vector<T>& elements() const { return elements_; }
-    std::vector<T>& elements(std::vector<T>& e) { elements_ = e; return elements_; }
+
+    // Insert all items from compatible vector
+    void concat(const std::vector<T>& v)
+    {
+      if (!v.empty()) reset_hash();
+      elements().insert(end(), v.begin(), v.end());
+    }
+
+    // Syntatic sugar for pointers
+    void concat(const Vectorized<T>* v)
+    {
+      if (v != nullptr) {
+        return concat(*v);
+      }
+    }
+
+    // Insert one item on the front
+    void unshift(T element)
+    {
+      reset_hash();
+      elements_.insert(begin(), element);
+    }
+
+    // Remove and return item on the front
+    // ToDo: handle empty vectors
+    T shift() {
+      reset_hash();
+      T first = get(0);
+      elements_.erase(begin());
+      return first;
+    }
+
+    // Insert one item on the back
+    // ToDo: rename this to push
+    void append(T element)
+    {
+      reset_hash();
+      elements_.insert(end(), element);
+      // ToDo: Mostly used by parameters and arguments
+      // ToDo: Find a more elegant way to support this
+      adjust_after_pushing(element);
+    }
+
+    // Check if an item already exists
+    // Uses underlying object `operator==`
+    // E.g. compares the actual objects
+    bool contains(const T& el) const {
+      for (const T& rhs : elements_) {
+        // Test the underlying objects for equality
+        // A std::find checks for pointer equality
+        if (ObjEqualityFn(el, rhs)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    // This might be better implemented as `operator=`?
+    void elements(std::vector<T> e) {
+      reset_hash();
+      elements_ = std::move(e);
+    }
 
     virtual size_t hash() const
     {
@@ -280,8 +345,8 @@ namespace Sass {
     typename std::vector<T>::iterator begin() { return elements_.begin(); }
     typename std::vector<T>::const_iterator end() const { return elements_.end(); }
     typename std::vector<T>::const_iterator begin() const { return elements_.begin(); }
-    typename std::vector<T>::iterator erase(typename std::vector<T>::iterator el) { return elements_.erase(el); }
-    typename std::vector<T>::const_iterator erase(typename std::vector<T>::const_iterator el) { return elements_.erase(el); }
+    typename std::vector<T>::iterator erase(typename std::vector<T>::iterator el) { reset_hash(); return elements_.erase(el); }
+    typename std::vector<T>::const_iterator erase(typename std::vector<T>::const_iterator el) { reset_hash(); return elements_.erase(el); }
 
   };
   template <typename T>
@@ -291,36 +356,61 @@ namespace Sass {
   // Mixin class for AST nodes that should behave like a hash table. Uses an
   // extra <std::vector> internally to maintain insertion order for interation.
   /////////////////////////////////////////////////////////////////////////////
+  template <typename K, typename T, typename U>
   class Hashed {
   private:
-    ExpressionMap elements_;
-    std::vector<Expression_Obj> list_;
+    std::unordered_map<
+      K, T, ObjHash, ObjEquality
+    > elements_;
+
+    std::vector<K> _keys;
+    std::vector<T> _values;
   protected:
     mutable size_t hash_;
-    Expression_Obj duplicate_key_;
+    K duplicate_key_;
     void reset_hash() { hash_ = 0; }
     void reset_duplicate_key() { duplicate_key_ = {}; }
-    virtual void adjust_after_pushing(std::pair<Expression_Obj, Expression_Obj> p) { }
+    virtual void adjust_after_pushing(std::pair<K, T> p) { }
   public:
     Hashed(size_t s = 0)
-    : elements_(ExpressionMap(s)),
-      list_(std::vector<Expression_Obj>()),
+    : elements_(),
+      _keys(),
+      _values(),
       hash_(0), duplicate_key_({})
-    { elements_.reserve(s); list_.reserve(s); }
+    {
+      _keys.reserve(s);
+      _values.reserve(s);
+      elements_.reserve(s);
+    }
     virtual ~Hashed();
-    size_t length() const                  { return list_.size(); }
-    bool empty() const                     { return list_.empty(); }
-    bool has(Expression_Obj k) const          { return elements_.count(k) == 1; }
-    Expression_Obj at(Expression_Obj k) const;
+    size_t length() const                  { return _keys.size(); }
+    bool empty() const                     { return _keys.empty(); }
+    bool has(K k) const          {
+      return elements_.find(k) != elements_.end();
+    }
+    T at(K k) const {
+      if (elements_.count(k))
+      {
+        return elements_.at(k);
+      }
+      else { return {}; }
+    }
     bool has_duplicate_key() const         { return duplicate_key_ != nullptr; }
-    Expression_Obj get_duplicate_key() const  { return duplicate_key_; }
-    const ExpressionMap elements() { return elements_; }
-    Hashed& operator<<(std::pair<Expression_Obj, Expression_Obj> p)
+    K get_duplicate_key() const  { return duplicate_key_; }
+    const std::unordered_map<
+      K, T, ObjHash, ObjEquality
+    >& elements() { return elements_; }
+    Hashed& operator<<(std::pair<K, T> p)
     {
       reset_hash();
 
-      if (!has(p.first)) list_.push_back(p.first);
-      else if (!duplicate_key_) duplicate_key_ = p.first;
+      if (!has(p.first)) {
+        _keys.push_back(p.first);
+        _values.push_back(p.second);
+      }
+      else if (!duplicate_key_) {
+        duplicate_key_ = p.first;
+      }
 
       elements_[p.first] = p.second;
 
@@ -331,7 +421,8 @@ namespace Sass {
     {
       if (length() == 0) {
         this->elements_ = h->elements_;
-        this->list_ = h->list_;
+        this->_values = h->_values;
+        this->_keys = h->_keys;
         return *this;
       }
 
@@ -342,8 +433,12 @@ namespace Sass {
       reset_duplicate_key();
       return *this;
     }
-    const ExpressionMap& pairs() const { return elements_; }
-    const std::vector<Expression_Obj>& keys() const { return list_; }
+    const std::unordered_map<
+      K, T, ObjHash, ObjEquality
+    >& pairs() const { return elements_; }
+
+    const std::vector<K>& keys() const { return _keys; }
+    const std::vector<T>& values() const { return _values; }
 
 //    std::unordered_map<Expression_Obj, Expression_Obj>::iterator end() { return elements_.end(); }
 //    std::unordered_map<Expression_Obj, Expression_Obj>::iterator begin() { return elements_.begin(); }
@@ -351,8 +446,8 @@ namespace Sass {
 //    std::unordered_map<Expression_Obj, Expression_Obj>::const_iterator begin() const { return elements_.begin(); }
 
   };
-  inline Hashed::~Hashed() { }
-
+  template <typename K, typename T, typename U>
+  inline Hashed<K, T, U>::~Hashed() { }
 
   /////////////////////////////////////////////////////////////////////////
   // Abstract base class for statements. This side of the AST hierarchy
@@ -411,6 +506,7 @@ namespace Sass {
     void adjust_after_pushing(Statement_Obj s) override {}
   public:
     Block(ParserState pstate, size_t s = 0, bool r = false);
+    bool isInvisible() const;
     bool has_content() override;
     ATTACH_AST_OPERATIONS(Block)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -434,10 +530,11 @@ namespace Sass {
   // of style declarations.
   /////////////////////////////////////////////////////////////////////////////
   class Ruleset final : public Has_Block {
-    ADD_PROPERTY(Selector_List_Obj, selector)
+    ADD_PROPERTY(SelectorListObj, selector)
+    ADD_PROPERTY(Selector_Schema_Obj, schema)
     ADD_PROPERTY(bool, is_root);
   public:
-    Ruleset(ParserState pstate, Selector_List_Obj s = {}, Block_Obj b = {});
+    Ruleset(ParserState pstate, SelectorListObj s = {}, Block_Obj b = {});
     bool is_invisible() const override;
     ATTACH_AST_OPERATIONS(Ruleset)
     ATTACH_CRTP_PERFORM_METHODS()
@@ -468,29 +565,16 @@ namespace Sass {
     ATTACH_CRTP_PERFORM_METHODS()
   };
 
-  /////////////////
-  // Media queries.
-  /////////////////
-  class Media_Block final : public Has_Block {
-    ADD_PROPERTY(List_Obj, media_queries)
-  public:
-    Media_Block(ParserState pstate, List_Obj mqs, Block_Obj b);
-    bool bubbles() override;
-    bool is_invisible() const override;
-    ATTACH_AST_OPERATIONS(Media_Block)
-    ATTACH_CRTP_PERFORM_METHODS()
-  };
-
   ///////////////////////////////////////////////////////////////////////
   // At-rules -- arbitrary directives beginning with "@" that may have an
   // optional statement block.
   ///////////////////////////////////////////////////////////////////////
   class Directive final : public Has_Block {
     ADD_CONSTREF(std::string, keyword)
-    ADD_PROPERTY(Selector_List_Obj, selector)
+    ADD_PROPERTY(SelectorListObj, selector)
     ADD_PROPERTY(Expression_Obj, value)
   public:
-    Directive(ParserState pstate, std::string kwd, Selector_List_Obj sel = {}, Block_Obj b = {}, Expression_Obj val = {});
+    Directive(ParserState pstate, std::string kwd, SelectorListObj sel = {}, Block_Obj b = {}, Expression_Obj val = {});
     bool bubbles() override;
     bool is_media();
     bool is_keyframes();
@@ -504,7 +588,7 @@ namespace Sass {
   class Keyframe_Rule final : public Has_Block {
     // according to css spec, this should be <keyframes-name>
     // <keyframes-name> = <custom-ident> | <string>
-    ADD_PROPERTY(Selector_List_Obj, name)
+    ADD_PROPERTY(SelectorListObj, name)
   public:
     Keyframe_Rule(ParserState pstate, Block_Obj b);
     ATTACH_AST_OPERATIONS(Keyframe_Rule)
@@ -677,17 +761,6 @@ namespace Sass {
     ATTACH_CRTP_PERFORM_METHODS()
   };
 
-  ////////////////////////////////
-  // The Sass `@extend` directive.
-  ////////////////////////////////
-  class Extension final : public Statement {
-    ADD_PROPERTY(Selector_List_Obj, selector)
-  public:
-    Extension(ParserState pstate, Selector_List_Obj s);
-    ATTACH_AST_OPERATIONS(Extension)
-    ATTACH_CRTP_PERFORM_METHODS()
-  };
-
   /////////////////////////////////////////////////////////////////////////////
   // Definitions for both mixins and functions. The two cases are distinguished
   // by a type tag.
@@ -806,9 +879,96 @@ namespace Sass {
     ATTACH_CRTP_PERFORM_METHODS()
   };
 
-  /////////////////
-  // Media queries.
-  /////////////////
+
+  // A Media Ruleset before it has been evaluated
+  // Could be already final or an interpolation
+  class MediaRule final : public Has_Block {
+    ADD_PROPERTY(List_Obj, schema)
+  public:
+    MediaRule(ParserState pstate, Block_Obj block = {});
+
+    bool bubbles() override { return true; };
+    bool is_invisible() const override { return false; };
+    ATTACH_AST_OPERATIONS(MediaRule)
+    ATTACH_CRTP_PERFORM_METHODS()
+  };
+
+  // A Media Ruleset after it has been evaluated
+  // Representing the static or resulting css
+  class CssMediaRule final : public Has_Block,
+    public Vectorized<CssMediaQuery_Obj> {
+  public:
+    CssMediaRule(ParserState pstate, Block_Obj b);
+    bool bubbles() override { return true; };
+    bool isInvisible() const { return empty(); }
+    bool is_invisible() const override { return false; };
+
+  public:
+    // Hash and equality implemtation from vector
+    size_t hash() const override { return Vectorized::hash(); }
+    // Check if two instances are considered equal
+    bool operator== (const CssMediaRule& rhs) const {
+      return Vectorized::operator== (rhs);
+    }
+    bool operator!=(const CssMediaRule& rhs) const {
+      // Invert from equality
+      return !(*this == rhs);
+    }
+
+    ATTACH_AST_OPERATIONS(CssMediaRule)
+    ATTACH_CRTP_PERFORM_METHODS()
+  };
+
+  // Media Queries after they have been evaluated
+  // Representing the static or resulting css
+  class CssMediaQuery final : public AST_Node {
+
+    // The modifier, probably either "not" or "only".
+    // This may be `null` if no modifier is in use.
+    ADD_PROPERTY(std::string, modifier);
+
+    // The media type, for example "screen" or "print".
+    // This may be `null`. If so, [features] will not be empty.
+    ADD_PROPERTY(std::string, type);
+
+    // Feature queries, including parentheses.
+    ADD_PROPERTY(std::vector<std::string>, features);
+
+  public:
+    CssMediaQuery(ParserState pstate);
+
+    // Check if two instances are considered equal
+    bool operator== (const CssMediaQuery& rhs) const;
+    bool operator!=(const CssMediaQuery& rhs) const {
+      // Invert from equality
+      return !(*this == rhs);
+    }
+
+    // Returns true if this query is empty
+    // Meaning it has no type and features
+    bool empty() const {
+      return type_.empty()
+        && modifier_.empty()
+        && features_.empty();
+    }
+
+    // Whether this media query matches all media types.
+    bool matchesAllTypes() const {
+      return type_.empty() || Util::equalsLiteral("all", type_);
+    }
+
+    // Merges this with [other] and adds a query that matches the intersection
+    // of both inputs to [result]. Returns false if the result is unrepresentable
+    CssMediaQuery_Obj merge(CssMediaQuery_Obj& other);
+
+    ATTACH_AST_OPERATIONS(CssMediaQuery)
+    ATTACH_CRTP_PERFORM_METHODS()
+  };
+
+  ////////////////////////////////////////////////////
+  // Media queries (replaced by MediaRule at al).
+  // ToDo: only used for interpolation case
+  ////////////////////////////////////////////////////
   class Media_Query final : public Expression,
                             public Vectorized<Media_Query_Expression_Obj> {
     ADD_PROPERTY(String_Obj, media_type)
@@ -822,6 +982,7 @@ namespace Sass {
 
   ////////////////////////////////////////////////////
   // Media expressions (for use inside media queries).
+  // ToDo: only used for interpolation case
   ////////////////////////////////////////////////////
   class Media_Query_Expression final : public Expression {
     ADD_PROPERTY(Expression_Obj, feature)

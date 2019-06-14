@@ -1,33 +1,36 @@
 #ifndef SASS_REMOVE_PLACEHOLDERS_H
 #define SASS_REMOVE_PLACEHOLDERS_H
 
-#pragma once
-
-#include "ast.hpp"
+#include "ast_fwd_decl.hpp"
 #include "operation.hpp"
 
 namespace Sass {
 
+  class Remove_Placeholders : public Operation_CRTP<void, Remove_Placeholders> {
 
-    class Remove_Placeholders : public Operation_CRTP<void, Remove_Placeholders> {
+  public:
 
-    public:
-      Selector_List* remove_placeholders(Selector_List*);
+    SelectorList* remove_placeholders(SelectorList*);
+    void remove_placeholders(SimpleSelector* simple);
+    void remove_placeholders(CompoundSelector* complex);
+    void remove_placeholders(ComplexSelector* complex);
 
-    public:
-        Remove_Placeholders();
-        ~Remove_Placeholders() { }
 
-        void operator()(Block*);
-        void operator()(Ruleset*);
-        void operator()(Media_Block*);
-        void operator()(Supports_Block*);
-        void operator()(Directive*);
+  public:
+    Remove_Placeholders();
+    ~Remove_Placeholders() { }
 
-      // ignore missed types
-        template <typename U>
-      void fallback(U x) {}
-    };
+    void operator()(Block*);
+    void operator()(Ruleset*);
+    void operator()(CssMediaRule*);
+    void operator()(Supports_Block*);
+    void operator()(Directive*);
+
+    // ignore missed types
+    template <typename U>
+    void fallback(U x) {}
+
+  };
 
 }
 

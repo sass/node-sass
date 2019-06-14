@@ -143,7 +143,8 @@ namespace Sass {
         }
       }
       Function_Call_Obj func = SASS_MEMORY_NEW(Function_Call, pstate, name, args);
-      Expand expand(ctx, &d_env, &selector_stack);
+
+      Expand expand(ctx, &d_env, &selector_stack, &original_stack);
       func->via_call(true); // calc invoke is allowed
       if (ff) func->func(ff);
       return Cast<PreValue>(func->perform(&expand.eval));
@@ -160,11 +161,9 @@ namespace Sass {
     }
 
     Signature if_sig = "if($condition, $if-true, $if-false)";
-    // BUILT_IN(sass_if)
-    // { return ARG("$condition", Expression)->is_false() ? ARG("$if-false", Expression) : ARG("$if-true", Expression); }
     BUILT_IN(sass_if)
     {
-      Expand expand(ctx, &d_env, &selector_stack);
+      Expand expand(ctx, &d_env, &selector_stack, &original_stack);
       Expression_Obj cond = ARG("$condition", Expression)->perform(&expand.eval);
       bool is_true = !cond->is_false();
       Expression_Obj res = ARG(is_true ? "$if-true" : "$if-false", Expression);
@@ -177,9 +176,6 @@ namespace Sass {
     //////////////////////////
     // MISCELLANEOUS FUNCTIONS
     //////////////////////////
-
-    // value.check_deprecated_interp if value.is_a?(Sass::Script::Value::String)
-    // unquoted_string(value.to_sass)
 
     Signature inspect_sig = "inspect($value)";
     BUILT_IN(inspect)
@@ -208,7 +204,6 @@ namespace Sass {
         ctx.c_options.output_style = old_style;
         return SASS_MEMORY_NEW(String_Quoted, pstate, i.get_buffer());
       }
-      // return v;
     }
 
     Signature content_exists_sig = "content-exists()";

@@ -72,27 +72,10 @@ namespace Sass {
     return exp.env_stack;
   }
 
-  Selector_List_Obj Eval::selector()
-  {
-    return exp.selector();
-  }
-
   std::vector<Sass_Callee>& Eval::callee_stack()
   {
     return ctx.callee_stack;
   }
-
-
-  SelectorStack& Eval::selector_stack()
-  {
-    return exp.selector_stack;
-  }
-
-  bool& Eval::old_at_root_without_rule()
-  {
-    return exp.old_at_root_without_rule;
-  }
-
 
   Expression* Eval::operator()(Block* b)
   {
@@ -251,9 +234,8 @@ namespace Sass {
     if (expr->concrete_type() == Expression::MAP) {
       map = Cast<Map>(expr);
     }
-    else if (Selector_List* ls = Cast<Selector_List>(expr)) {
-      Listize listize;
-      Expression_Obj rv = ls->perform(&listize);
+    else if (SelectorList * ls = Cast<SelectorList>(expr)) {
+      Expression_Obj rv = Listize::perform(ls);
       list = Cast<List>(rv);
     }
     else if (expr->concrete_type() != Expression::LIST) {
@@ -286,7 +268,7 @@ namespace Sass {
       }
     }
     else {
-      if (list->length() == 1 && Cast<Selector_List>(list)) {
+      if (list->length() == 1 && Cast<SelectorList>(list)) {
         list = Cast<List>(list);
       }
       for (size_t i = 0, L = list->length(); i < L; ++i) {
@@ -489,6 +471,7 @@ namespace Sass {
     std::cerr << std::endl;
     return 0;
   }
+
 
   Expression* Eval::operator()(List* l)
   {
@@ -995,7 +978,7 @@ namespace Sass {
                                              c->name(),
                                              args);
         if (args->has_named_arguments()) {
-          error("Function " + c->name() + " doesn't support keyword arguments", c->pstate(), traces);
+          error("Plain CSS function " + c->name() + " doesn't support keyword arguments", c->pstate(), traces);
         }
         String_Quoted* str = SASS_MEMORY_NEW(String_Quoted,
                                              c->pstate(),
@@ -1065,7 +1048,7 @@ namespace Sass {
         result = body->perform(this);
       }
       else if (func) {
-        result = func(fn_env, *env, ctx, def->signature(), c->pstate(), traces, exp.selector_stack);
+        result = func(fn_env, *env, ctx, def->signature(), c->pstate(), traces, exp.getSelectorStack(), exp.originalStack);
       }
       if (!result) {
         error(std::string("Function ") + c->name() + " finished without @return", c->pstate(), traces);
@@ -1215,11 +1198,6 @@ namespace Sass {
     if (Cast<Null>(ex)) { return; }
 
     // parent selector needs another go
-    if (Cast<Parent_Selector>(ex)) {
-      // XXX: this is never hit via spec tests
-      ex = ex->perform(this);
-    }
-    // parent selector needs another go
     if (Cast<Parent_Reference>(ex)) {
       // XXX: this is never hit via spec tests
       ex = ex->perform(this);
@@ -1254,7 +1232,6 @@ namespace Sass {
     // Selector_List
     // String_Quoted
     // String_Constant
-    // Parent_Selector
     // Binary_Expression
     else {
       // ex = ex->perform(this);
@@ -1512,69 +1489,7 @@ namespace Sass {
     return 0;
   }
 
-  Selector_List* Eval::operator()(Selector_List* s)
-  {
-    SelectorStack rv;
-    Selector_List_Obj sl = SASS_MEMORY_NEW(Selector_List, s->pstate());
-    sl->is_optional(s->is_optional());
-    sl->media_block(s->media_block());
-    sl->is_optional(s->is_optional());
-    for (size_t i = 0, iL = s->length(); i < iL; ++i) {
-      rv.push_back(operator()((*s)[i]));
-    }
-
-    // we should actually permutate parent first
-    // but here we have permutated the selector first
-    size_t round = 0;
-    while (round != std::string::npos) {
-      bool abort = true;
-      for (size_t i = 0, iL = rv.size(); i < iL; ++i) {
-        if (rv[i]->length() > round) {
-          sl->append((*rv[i])[round]);
-          abort = false;
-        }
-      }
-      if (abort) {
-        round = std::string::npos;
-      } else {
-        ++ round;
-      }
-
-    }
-    return sl.detach();
-  }
-
-
-  Selector_List* Eval::operator()(Complex_Selector* s)
-  {
-    bool implicit_parent = !exp.old_at_root_without_rule;
-    if (is_in_selector_schema) exp.selector_stack.push_back({});
-    Selector_List_Obj resolved = s->resolve_parent_refs(exp.selector_stack, traces, implicit_parent);
-    if (is_in_selector_schema) exp.selector_stack.pop_back();
-    for (size_t i = 0; i < resolved->length(); i++) {
-      Complex_Selector* is = resolved->at(i)->mutable_first();
-      while (is) {
-        if (is->head()) {
-          is->head(operator()(is->head()));
-        }
-        is = is->tail();
-      }
-    }
-    return resolved.detach();
-  }
-
-  Compound_Selector* Eval::operator()(Compound_Selector* s)
-  {
-    for (size_t i = 0; i < s->length(); i++) {
-      Simple_Selector* ss = s->at(i);
-      // skip parents here (called via resolve_parent_refs)
-      if (ss == NULL || Cast<Parent_Selector>(ss)) continue;
-      s->at(i) = Cast<Simple_Selector>(ss->perform(this));
-    }
-    return s;
-  }
-
-  Selector_List* Eval::operator()(Selector_Schema* s)
+  SelectorList* Eval::operator()(Selector_Schema* s)
   {
     LOCAL_FLAG(is_in_selector_schema, true);
     // the parser will look for a brace to end the selector
@@ -1584,74 +1499,32 @@ namespace Sass {
     char* temp_cstr = sass_copy_c_string(result_str.c_str());
     ctx.strings.push_back(temp_cstr); // attach to context
     Parser p = Parser::from_c_str(temp_cstr, ctx, traces, s->pstate());
-    p.last_media_block = s->media_block();
-    // a selector schema may or may not connect to parent?
-    bool chroot = s->connect_parent() == false;
-    Selector_List_Obj sl = p.parse_selector_list(chroot);
-    flag_is_in_selector_schema.reset();
-    return operator()(sl);
-  }
 
-  Expression* Eval::operator()(Parent_Selector* p)
-  {
-    if (Selector_List_Obj pr = selector()) {
-      exp.selector_stack.pop_back();
-      Selector_List_Obj rv = operator()(pr);
-      exp.selector_stack.push_back(rv);
-      return rv.detach();
-    } else {
-      return SASS_MEMORY_NEW(Null, p->pstate());
-    }
+    // If a schema contains a reference to parent it is already
+    // connected to it, so don't connect implicitly anymore
+    SelectorListObj parsed = p.parseSelectorList(true);
+    flag_is_in_selector_schema.reset();
+    return parsed.detach();
   }
 
   Expression* Eval::operator()(Parent_Reference* p)
   {
-    if (Selector_List_Obj pr = selector()) {
-      exp.selector_stack.pop_back();
-      Selector_List_Obj rv = operator()(pr);
-      exp.selector_stack.push_back(rv);
-      return rv.detach();
+    if (SelectorListObj pr = exp.original()) {
+      return operator()(pr);
     } else {
       return SASS_MEMORY_NEW(Null, p->pstate());
     }
   }
 
-  Simple_Selector* Eval::operator()(Simple_Selector* s)
+  SimpleSelector* Eval::operator()(SimpleSelector* s)
   {
     return s;
   }
 
-  // hotfix to avoid invalid nested `:not` selectors
-  // probably the wrong place, but this should ultimately
-  // be fixed by implement superselector correctly for `:not`
-  // first use of "find" (ATM only implemented for selectors)
-  bool hasNotSelector(AST_Node_Obj obj) {
-    if (Wrapped_Selector* w = Cast<Wrapped_Selector>(obj)) {
-      return w->name() == ":not";
-    }
-    return false;
-  }
-
-  Wrapped_Selector* Eval::operator()(Wrapped_Selector* s)
+  Pseudo_Selector* Eval::operator()(Pseudo_Selector* pseudo)
   {
-
-    if (s->name() == ":not") {
-      if (exp.selector_stack.back()) {
-        if (s->selector()->find(hasNotSelector)) {
-          s->selector()->clear();
-          s->name(" ");
-        } else {
-          for (size_t i = 0; i < s->selector()->length(); ++i) {
-            Complex_Selector* cs = s->selector()->at(i);
-            if (cs->tail()) {
-              s->selector()->clear();
-              s->name(" ");
-            }
-          }
-        }
-      }
-    }
-    return s;
+    // ToDo: should we eval selector?
+    return pseudo;
   };
 
 }

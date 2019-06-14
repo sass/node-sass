@@ -101,6 +101,14 @@ private:
 
 #endif
 
+#define ATTACH_VIRTUAL_CMP_OPERATIONS(klass) \
+  virtual bool operator==(const klass& rhs) const = 0; \
+  virtual bool operator!=(const klass& rhs) const { return !(*this == rhs); }; \
+
+#define ATTACH_CMP_OPERATIONS(klass) \
+  virtual bool operator==(const klass& rhs) const; \
+  virtual bool operator!=(const klass& rhs) const { return !(*this == rhs); }; \
+
 #ifdef DEBUG_SHARED_PTR
 
   #define IMPLEMENT_AST_OPERATORS(klass) \

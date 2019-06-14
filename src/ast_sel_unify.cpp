@@ -1,97 +1,216 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+
 #include "ast.hpp"
-#include "context.hpp"
-#include "node.hpp"
-#include "eval.hpp"
-#include "extend.hpp"
-#include "emitter.hpp"
-#include "color_maps.hpp"
-#include "ast_fwd_decl.hpp"
-#include <set>
-#include <iomanip>
-#include <iostream>
-#include <algorithm>
-#include <functional>
-#include <cctype>
-#include <locale>
-
-#include "ast_selectors.hpp"
-
-// #define DEBUG_UNIFY
 
 namespace Sass {
 
-  Compound_Selector* Compound_Selector::unify_with(Compound_Selector* rhs)
+  // ##########################################################################
+  // Returns the contents of a [SelectorList] that matches only 
+  // elements that are matched by both [complex1] and [complex2].
+  // If no such list can be produced, returns `null`.
+  // ##########################################################################
+  // ToDo: fine-tune API to avoid unecessary wrapper allocations
+  // ##########################################################################
+  std::vector<std::vector<SelectorComponentObj>> unifyComplex(
+    const std::vector<std::vector<SelectorComponentObj>>& complexes)
   {
-    #ifdef DEBUG_UNIFY
-    const std::string debug_call = "unify(Compound[" + this->to_string() + "], Compound[" + rhs->to_string() + "])";
-    std::cerr << debug_call << std::endl;
-    #endif
 
-    if (empty()) return rhs;
-    Compound_Selector_Obj unified = SASS_MEMORY_COPY(rhs);
-    for (const Simple_Selector_Obj& sel : elements()) {
-      unified = sel->unify_with(unified);
-      if (unified.isNull()) break;
+    SASS_ASSERT(!complexes.empty(), "Can't unify empty list");
+    if (complexes.size() == 1) return complexes;
+
+    CompoundSelectorObj unifiedBase = SASS_MEMORY_NEW(CompoundSelector, ParserState("[phony]"));
+    for (auto complex : complexes) {
+      SelectorComponentObj base = complex.back();
+      if (CompoundSelector * comp = base->getCompound()) {
+        if (unifiedBase->empty()) {
+          unifiedBase->concat(comp);
+        }
+        else {
+          for (SimpleSelectorObj simple : comp->elements()) {
+            unifiedBase = simple->unifyWith(unifiedBase);
+            if (unifiedBase.isNull()) return {};
+          }
+        }
+      }
+      else {
+        return {};
+      }
     }
 
-    #ifdef DEBUG_UNIFY
-    std::cerr << "> " << debug_call << " = Compound[" << unified->to_string() << "]" << std::endl;
-    #endif
+    std::vector<std::vector<SelectorComponentObj>> complexesWithoutBases;
+    for (size_t i = 0; i < complexes.size(); i += 1) {
+      std::vector<SelectorComponentObj> sel = complexes[i];
+      sel.pop_back(); // remove last item (base) from the list
+      complexesWithoutBases.push_back(std::move(sel));
+    }
+
+    complexesWithoutBases.back().push_back(unifiedBase);
+
+    return weave(complexesWithoutBases);
+
+  }
+  // EO unifyComplex
+
+  // ##########################################################################
+  // Returns a [CompoundSelector] that matches only elements
+  // that are matched by both [compound1] and [compound2].
+  // If no such selector can be produced, returns `null`.
+  // ##########################################################################
+  CompoundSelector* CompoundSelector::unifyWith(CompoundSelector* rhs)
+  {
+    if (empty()) return rhs;
+    CompoundSelectorObj unified = SASS_MEMORY_COPY(rhs);
+    for (const SimpleSelectorObj& sel : elements()) {
+      unified = sel->unifyWith(unified);
+      if (unified.isNull()) break;
+    }
     return unified.detach();
   }
+  // EO CompoundSelector::unifyWith(CompoundSelector*)
 
-  Compound_Selector* Simple_Selector::unify_with(Compound_Selector* rhs)
+  // ##########################################################################
+  // Returns the compoments of a [CompoundSelector] that matches only elements
+  // matched by both this and [compound]. By default, this just returns a copy
+  // of [compound] with this selector added to the end, or returns the original
+  // array if this selector already exists in it. Returns `null` if unification
+  // is impossible—for example, if there are multiple ID selectors.
+  // ##########################################################################
+  // This is implemented in `selector/simple.dart` as `SimpleSelector::unify`
+  // ##########################################################################
+  CompoundSelector* SimpleSelector::unifyWith(CompoundSelector* rhs)
   {
-    #ifdef DEBUG_UNIFY
-    const std::string debug_call = "unify(Simple[" + this->to_string() + "], Compound[" + rhs->to_string() + "])";
-    std::cerr << debug_call << std::endl;
-    #endif
 
     if (rhs->length() == 1) {
-      if (rhs->at(0)->is_universal()) {
-        Compound_Selector* this_compound = SASS_MEMORY_NEW(Compound_Selector, pstate(), 1);
+      if (rhs->get(0)->is_universal()) {
+        CompoundSelector* this_compound = SASS_MEMORY_NEW(CompoundSelector, pstate());
         this_compound->append(SASS_MEMORY_COPY(this));
-        Compound_Selector* unified = rhs->at(0)->unify_with(this_compound);
+        CompoundSelector* unified = rhs->get(0)->unifyWith(this_compound);
         if (unified == nullptr || unified != this_compound) delete this_compound;
-
-        #ifdef DEBUG_UNIFY
-        std::cerr << "> " << debug_call << " = " << "Compound[" << unified->to_string() << "]" << std::endl;
-        #endif
         return unified;
       }
     }
-    for (const Simple_Selector_Obj& sel : rhs->elements()) {
+    for (const SimpleSelectorObj& sel : rhs->elements()) {
       if (*this == *sel) {
-        #ifdef DEBUG_UNIFY
-        std::cerr << "> " << debug_call << " = " << "Compound[" << rhs->to_string() << "]" << std::endl;
-        #endif
         return rhs;
       }
     }
-    const int lhs_order = this->unification_order();
-    size_t i = rhs->length();
-    while (i > 0 && lhs_order < rhs->at(i - 1)->unification_order()) --i;
-    rhs->insert(rhs->begin() + i, this);
-    #ifdef DEBUG_UNIFY
-    std::cerr << "> " << debug_call << " = " << "Compound[" << rhs->to_string() << "]" << std::endl;
-    #endif
+
+    CompoundSelectorObj result = SASS_MEMORY_NEW(CompoundSelector, rhs->pstate());
+
+    bool addedThis = false;
+    for (auto simple : rhs->elements()) {
+      // Make sure pseudo selectors always come last.
+      if (!addedThis && simple->getPseudoSelector()) {
+        result->append(this);
+        addedThis = true;
+      }
+      result->append(simple);
+    }
+
+    if (!addedThis) {
+      result->append(this);
+    }
+    return result.detach();
+
+  }
+  // EO SimpleSelector::unifyWith(CompoundSelector*)
+
+  // ##########################################################################
+  // This is implemented in `selector/type.dart` as `PseudoSelector::unify`
+  // ##########################################################################
+  CompoundSelector* Type_Selector::unifyWith(CompoundSelector* rhs)
+  {
+    if (rhs->empty()) {
+      rhs->append(this);
+      return rhs;
+    }
+    Type_Selector* type = Cast<Type_Selector>(rhs->at(0));
+    if (type != nullptr) {
+      SimpleSelector* unified = unifyWith(type);
+      if (unified == nullptr) {
+        return nullptr;
+      }
+      rhs->elements()[0] = unified;
+    }
+    else if (!is_universal() || (has_ns_ && ns_ != "*")) {
+      rhs->insert(rhs->begin(), this);
+    }
     return rhs;
   }
 
-  Simple_Selector* Type_Selector::unify_with(Simple_Selector* rhs)
+  // ##########################################################################
+  // This is implemented in `selector/id.dart` as `PseudoSelector::unify`
+  // ##########################################################################
+  CompoundSelector* Id_Selector::unifyWith(CompoundSelector* rhs)
   {
-    #ifdef DEBUG_UNIFY
-    const std::string debug_call = "unify(Type[" + this->to_string() + "], Simple[" + rhs->to_string() + "])";
-    std::cerr << debug_call << std::endl;
-    #endif
+    for (const SimpleSelector* sel : rhs->elements()) {
+      if (const Id_Selector* id_sel = Cast<Id_Selector>(sel)) {
+        if (id_sel->name() != name()) return nullptr;
+      }
+    }
+    return SimpleSelector::unifyWith(rhs);
+  }
 
+  // ##########################################################################
+  // This is implemented in `selector/pseudo.dart` as `PseudoSelector::unify`
+  // ##########################################################################
+  CompoundSelector* Pseudo_Selector::unifyWith(CompoundSelector* compound)
+  {
+
+    if (compound->length() == 1 && compound->first()->is_universal()) {
+      // std::cerr << "implement universal pseudo\n";
+    }
+
+    for (const SimpleSelectorObj& sel : compound->elements()) {
+      if (*this == *sel) {
+        return compound;
+      }
+    }
+
+    CompoundSelectorObj result = SASS_MEMORY_NEW(CompoundSelector, compound->pstate());
+
+    bool addedThis = false;
+    for (auto simple : compound->elements()) {
+      // Make sure pseudo selectors always come last.
+      if (Pseudo_Selector_Obj pseudo = simple->getPseudoSelector()) {
+        if (pseudo->isElement()) {
+          // A given compound selector may only contain one pseudo element. If
+          // [compound] has a different one than [this], unification fails.
+          if (isElement()) {
+            return {};
+          }
+          // Otherwise, this is a pseudo selector and
+          // should come before pseduo elements.
+          result->append(this);
+          addedThis = true;
+        }
+      }
+      result->append(simple);
+    }
+
+    if (!addedThis) {
+      result->append(this);
+    }
+
+    return result.detach();
+
+  }
+  // EO Pseudo_Selector::unifyWith(CompoundSelector*
+
+  // ##########################################################################
+  // This is implemented in `extend/functions.dart` as `unifyUniversalAndElement`
+  // Returns a [SimpleSelector] that matches only elements that are matched by
+  // both [selector1] and [selector2], which must both be either [UniversalSelector]s
+  // or [TypeSelector]s. If no such selector can be produced, returns `null`.
+  // Note: libsass handles universal selector directly within the type selector
+  // ##########################################################################
+  SimpleSelector* Type_Selector::unifyWith(const SimpleSelector* rhs)
+  {
     bool rhs_ns = false;
     if (!(is_ns_eq(*rhs) || rhs->is_universal_ns())) {
       if (!is_universal_ns()) {
-        #ifdef DEBUG_UNIFY
-        std::cerr << "> " << debug_call << " = nullptr" << std::endl;
-        #endif
         return nullptr;
       }
       rhs_ns = true;
@@ -99,9 +218,6 @@ namespace Sass {
     bool rhs_name = false;
     if (!(name_ == rhs->name() || rhs->is_universal())) {
       if (!(is_universal())) {
-        #ifdef DEBUG_UNIFY
-        std::cerr << "> " << debug_call << " = nullptr" << std::endl;
-        #endif
         return nullptr;
       }
       rhs_name = true;
@@ -111,170 +227,49 @@ namespace Sass {
       has_ns(rhs->has_ns());
     }
     if (rhs_name) name(rhs->name());
-    #ifdef DEBUG_UNIFY
-    std::cerr << "> " << debug_call << " = Simple[" << this->to_string() << "]" << std::endl;
-    #endif
     return this;
   }
+  // EO Type_Selector::unifyWith(const SimpleSelector*)
 
-  Compound_Selector* Type_Selector::unify_with(Compound_Selector* rhs)
+  // ##########################################################################
+  // Unify two complex selectors. Internally calls `unifyComplex`
+  // and then wraps the result in newly create ComplexSelectors.
+  // ##########################################################################
+  SelectorList* ComplexSelector::unifyWith(ComplexSelector* rhs)
   {
-    #ifdef DEBUG_UNIFY
-    const std::string debug_call = "unify(Type[" + this->to_string() + "], Compound[" + rhs->to_string() + "])";
-    std::cerr << debug_call << std::endl;
-    #endif
-
-    if (rhs->empty()) {
-      rhs->append(this);
-      #ifdef DEBUG_UNIFY
-      std::cerr << "> " << debug_call << " = Compound[" << rhs->to_string() << "]" << std::endl;
-      #endif
-      return rhs;
+    SelectorListObj list = SASS_MEMORY_NEW(SelectorList, pstate());
+    std::vector<std::vector<SelectorComponentObj>> rv =
+       unifyComplex({ elements(), rhs->elements() });
+    for (std::vector<SelectorComponentObj> items : rv) {
+      ComplexSelectorObj sel = SASS_MEMORY_NEW(ComplexSelector, pstate());
+      sel->elements() = std::move(items);
+      list->append(sel);
     }
-    Type_Selector* rhs_0 = Cast<Type_Selector>(rhs->at(0));
-    if (rhs_0 != nullptr) {
-      Simple_Selector* unified = unify_with(rhs_0);
-      if (unified == nullptr) {
-        #ifdef DEBUG_UNIFY
-        std::cerr << "> " << debug_call << " = nullptr" << std::endl;
-        #endif
-        return nullptr;
-      }
-      rhs->elements()[0] = unified;
-    } else if (!is_universal() || (has_ns_ && ns_ != "*")) {
-      rhs->insert(rhs->begin(), this);
-    }
-    #ifdef DEBUG_UNIFY
-    std::cerr << "> " << debug_call << " = Compound[" << rhs->to_string() << "]" << std::endl;
-    #endif
-    return rhs;
+    return list.detach();
   }
+  // EO ComplexSelector::unifyWith(ComplexSelector*)
 
-  Compound_Selector* Class_Selector::unify_with(Compound_Selector* rhs)
+  // ##########################################################################
+  // only called from the sass function `selector-unify`
+  // ##########################################################################
+  SelectorList* SelectorList::unifyWith(SelectorList* rhs)
   {
-    rhs->has_line_break(has_line_break());
-    return Simple_Selector::unify_with(rhs);
-  }
-
-  Compound_Selector* Id_Selector::unify_with(Compound_Selector* rhs)
-  {
-    for (const Simple_Selector_Obj& sel : rhs->elements()) {
-      if (Id_Selector* id_sel = Cast<Id_Selector>(sel)) {
-        if (id_sel->name() != name()) return nullptr;
-      }
-    }
-    rhs->has_line_break(has_line_break());
-    return Simple_Selector::unify_with(rhs);
-  }
-
-  Compound_Selector* Pseudo_Selector::unify_with(Compound_Selector* rhs)
-  {
-    if (is_pseudo_element()) {
-      for (const Simple_Selector_Obj& sel : rhs->elements()) {
-        if (Pseudo_Selector* pseudo_sel = Cast<Pseudo_Selector>(sel)) {
-          if (pseudo_sel->is_pseudo_element() && pseudo_sel->name() != name()) return nullptr;
+    SelectorList* slist = SASS_MEMORY_NEW(SelectorList, pstate());
+    // Unify all of children with RHS's children,
+    // storing the results in `unified_complex_selectors`
+    for (ComplexSelectorObj& seq1 : elements()) {
+      for (ComplexSelectorObj& seq2 : rhs->elements()) {
+        if (SelectorListObj unified = seq1->unifyWith(seq2)) {
+          std::move(unified->begin(), unified->end(),
+            std::inserter(slist->elements(), slist->end()));
         }
       }
     }
-    return Simple_Selector::unify_with(rhs);
+    return slist;
   }
+  // EO SelectorList::unifyWith(SelectorList*)
 
-  Selector_List* Complex_Selector::unify_with(Complex_Selector* rhs)
-  {
-    #ifdef DEBUG_UNIFY
-    const std::string debug_call = "unify(Complex[" + this->to_string() + "], Complex[" + rhs->to_string() + "])";
-    std::cerr << debug_call << std::endl;
-    #endif
-
-    // get last tails (on the right side)
-    Complex_Selector* l_last = this->mutable_last();
-    Complex_Selector* r_last = rhs->mutable_last();
-
-    // check valid pointers (assertion)
-    SASS_ASSERT(l_last, "lhs is null");
-    SASS_ASSERT(r_last, "rhs is null");
-
-    // Not sure about this check, but closest way I could check
-    // was to see if this is a ruby 'SimpleSequence' equivalent.
-    // It seems to do the job correctly as some specs react to this
-    if (l_last->combinator() != Combinator::ANCESTOR_OF) return nullptr;
-    if (r_last->combinator() != Combinator::ANCESTOR_OF) return nullptr;
-
-    // get the headers for the last tails
-    Compound_Selector* l_last_head = l_last->head();
-    Compound_Selector* r_last_head = r_last->head();
-
-    // check valid head pointers (assertion)
-    SASS_ASSERT(l_last_head, "lhs head is null");
-    SASS_ASSERT(r_last_head, "rhs head is null");
-
-    // get the unification of the last compound selectors
-    Compound_Selector_Obj unified = r_last_head->unify_with(l_last_head);
-
-    // abort if we could not unify heads
-    if (unified == nullptr) return nullptr;
-
-    // move the head
-    if (l_last_head->is_universal()) l_last->head({});
-    r_last->head(unified);
-
-    #ifdef DEBUG_UNIFY
-    std::cerr << "> " << debug_call << " before weave: lhs=" << this->to_string() << " rhs=" << rhs->to_string() << std::endl;
-    #endif
-
-    // create nodes from both selectors
-    Node lhsNode = complexSelectorToNode(this);
-    Node rhsNode = complexSelectorToNode(rhs);
-
-    // Complex_Selector_Obj fake = unified->to_complex();
-    // Node unified_node = complexSelectorToNode(fake);
-    // // add to permutate the list?
-    // rhsNode.plus(unified_node);
-
-    // do some magic we inherit from node and extend
-    Node node = subweave(lhsNode, rhsNode);
-    Selector_List_Obj result = SASS_MEMORY_NEW(Selector_List, pstate(), node.collection()->size());
-    for (auto &item : *node.collection()) {
-      result->append(nodeToComplexSelector(Node::naiveTrim(item)));
-    }
-
-    #ifdef DEBUG_UNIFY
-    std::cerr << "> " << debug_call << " = " << result->to_string() << std::endl;
-    #endif
-
-    // only return if list has some entries
-    return result->length() ? result.detach() : nullptr;
-  }
-
-  Selector_List* Selector_List::unify_with(Selector_List* rhs) {
-    #ifdef DEBUG_UNIFY
-    const std::string debug_call = "unify(List[" + this->to_string() + "], List[" + rhs->to_string() + "])";
-    std::cerr << debug_call << std::endl;
-    #endif
-
-    std::vector<Complex_Selector_Obj> result;
-    // Unify all of children with RHS's children, storing the results in `unified_complex_selectors`
-    for (Complex_Selector_Obj& seq1 : elements()) {
-      for (Complex_Selector_Obj& seq2 : rhs->elements()) {
-        Complex_Selector_Obj seq1_copy = SASS_MEMORY_CLONE(seq1);
-        Complex_Selector_Obj seq2_copy = SASS_MEMORY_CLONE(seq2);
-        Selector_List_Obj unified = seq1_copy->unify_with(seq2_copy);
-        if (unified) {
-          result.reserve(result.size() + unified->length());
-          std::copy(unified->begin(), unified->end(), std::back_inserter(result));
-        }
-      }
-    }
-
-    // Creates the final Selector_List by combining all the complex selectors
-    Selector_List* final_result = SASS_MEMORY_NEW(Selector_List, pstate(), result.size());
-    for (Complex_Selector_Obj& sel : result) {
-      final_result->append(sel);
-    }
-    #ifdef DEBUG_UNIFY
-    std::cerr << "> " << debug_call << " = " << final_result->to_string() << std::endl;
-    #endif
-    return final_result;
-  }
+  // ##########################################################################
+  // ##########################################################################
 
 }

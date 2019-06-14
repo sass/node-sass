@@ -6,7 +6,6 @@
 #include <cstring>
 #include "util.hpp"
 #include "eval.hpp"
-#include "values.hpp"
 #include "operators.hpp"
 #include "sass/values.h"
 #include "sass_values.hpp"

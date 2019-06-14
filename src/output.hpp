@@ -29,7 +29,7 @@ namespace Sass {
     virtual void operator()(Map*);
     virtual void operator()(Ruleset*);
     virtual void operator()(Supports_Block*);
-    virtual void operator()(Media_Block*);
+    virtual void operator()(CssMediaRule*);
     virtual void operator()(Directive*);
     virtual void operator()(Keyframe_Rule*);
     virtual void operator()(Import*);

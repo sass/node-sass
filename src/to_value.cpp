@@ -95,8 +95,8 @@ namespace Sass {
     return arg->value()->perform(this);
   }
 
-  // Selector_List is converted to a string
-  Value* To_Value::operator()(Selector_List* s)
+  // SelectorList is converted to a string
+  Value* To_Value::operator()(SelectorList* s)
   {
     return SASS_MEMORY_NEW(String_Quoted,
                            s->pstate(),

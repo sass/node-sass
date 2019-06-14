@@ -132,6 +132,27 @@ namespace Sass {
       prefix = err.errtype();
     }
 
+    TopLevelParent::TopLevelParent(Backtraces traces, ParserState pstate)
+      : Base(pstate, "Top-level selectors may not contain the parent selector \"&\".", traces)
+    {
+
+    }
+
+    UnsatisfiedExtend::UnsatisfiedExtend(Backtraces traces, Extension extension)
+      : Base(extension.target->pstate(), "The target selector was not found.\n"
+        "Use \"@extend " + extension.target->to_string() + " !optional\" to avoid this error.", traces)
+    {
+
+    }
+
+    ExtendAcrossMedia::ExtendAcrossMedia(Backtraces traces, Extension extension)
+      : Base(extension.target->pstate(), "You may not @extend selectors across media queries.\n"
+        "Use \"@extend " + extension.target->to_string() + " !optional\" to avoid this error.", traces)
+    {
+
+    }
+    
+
   }
 
 

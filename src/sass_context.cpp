@@ -1,23 +1,10 @@
 // sass.hpp must go before all system headers to get the
 // __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
-
-#include <cstring>
-#include <stdexcept>
-#include <sstream>
-#include <string>
-#include <vector>
-
-#include "sass.h"
 #include "ast.hpp"
-#include "file.hpp"
-#include "json.hpp"
-#include "util.hpp"
-#include "context.hpp"
-#include "sass_context.hpp"
+
 #include "sass_functions.hpp"
-#include "ast_fwd_decl.hpp"
-#include "error_handling.hpp"
+#include "json.hpp"
 
 #define LFEED "\n"
 
@@ -29,6 +16,24 @@ namespace Sass {
     // hold on to string on stack!
     std::string str(stream.str());
     return json_mkstring(str.c_str());
+  }
+
+  static void handle_string_error(Sass_Context* c_ctx, const std::string& msg, int severety)
+  {
+    std::stringstream msg_stream;
+    JsonNode* json_err = json_mkobject();
+    msg_stream << "Internal Error: " << msg << std::endl;
+    json_append_member(json_err, "status", json_mknumber(severety));
+    json_append_member(json_err, "message", json_mkstring(msg.c_str()));
+    json_append_member(json_err, "formatted", json_mkstream(msg_stream));
+    try { c_ctx->error_json = json_stringify(json_err, "  "); }
+    catch (...) {}
+    c_ctx->error_message = sass_copy_string(msg_stream.str());
+    c_ctx->error_text = sass_copy_c_string(msg.c_str());
+    c_ctx->error_status = severety;
+    c_ctx->output_string = 0;
+    c_ctx->source_map_string = 0;
+    json_delete(json_err);
   }
 
   static int handle_error(Sass_Context* c_ctx) {
@@ -110,7 +115,7 @@ namespace Sass {
       json_append_member(json_err, "message", json_mkstring(e.what()));
       json_append_member(json_err, "formatted", json_mkstream(msg_stream));
       try { c_ctx->error_json = json_stringify(json_err, "  "); }
-      catch (...) {}
+      catch (...) {} // silently ignore this error?
       c_ctx->error_message = sass_copy_string(msg_stream.str());
       c_ctx->error_text = sass_copy_c_string(e.what());
       c_ctx->error_status = 1;
@@ -124,82 +129,20 @@ namespace Sass {
     }
     catch (std::bad_alloc& ba) {
       std::stringstream msg_stream;
-      JsonNode* json_err = json_mkobject();
-      msg_stream << "Unable to allocate memory: " << ba.what() << std::endl;
-      json_append_member(json_err, "status", json_mknumber(2));
-      json_append_member(json_err, "message", json_mkstring(ba.what()));
-      json_append_member(json_err, "formatted", json_mkstream(msg_stream));
-      try { c_ctx->error_json = json_stringify(json_err, "  "); }
-      catch (...) {}
-      c_ctx->error_message = sass_copy_string(msg_stream.str());
-      c_ctx->error_text = sass_copy_c_string(ba.what());
-      c_ctx->error_status = 2;
-      c_ctx->output_string = 0;
-      c_ctx->source_map_string = 0;
-      json_delete(json_err);
+      msg_stream << "Unable to allocate memory: " << ba.what();
+      handle_string_error(c_ctx, msg_stream.str(), 2);
     }
     catch (std::exception& e) {
-      std::stringstream msg_stream;
-      JsonNode* json_err = json_mkobject();
-      msg_stream << "Internal Error: " << e.what() << std::endl;
-      json_append_member(json_err, "status", json_mknumber(3));
-      json_append_member(json_err, "message", json_mkstring(e.what()));
-      json_append_member(json_err, "formatted", json_mkstream(msg_stream));
-      try { c_ctx->error_json = json_stringify(json_err, "  "); }
-      catch (...) {}
-      c_ctx->error_message = sass_copy_string(msg_stream.str());
-      c_ctx->error_text = sass_copy_c_string(e.what());
-      c_ctx->error_status = 3;
-      c_ctx->output_string = 0;
-      c_ctx->source_map_string = 0;
-      json_delete(json_err);
+      handle_string_error(c_ctx, e.what(), 3);
     }
     catch (std::string& e) {
-      std::stringstream msg_stream;
-      JsonNode* json_err = json_mkobject();
-      msg_stream << "Internal Error: " << e << std::endl;
-      json_append_member(json_err, "status", json_mknumber(4));
-      json_append_member(json_err, "message", json_mkstring(e.c_str()));
-      json_append_member(json_err, "formatted", json_mkstream(msg_stream));
-      try { c_ctx->error_json = json_stringify(json_err, "  "); }
-      catch (...) {}
-      c_ctx->error_message = sass_copy_string(msg_stream.str());
-      c_ctx->error_text = sass_copy_c_string(e.c_str());
-      c_ctx->error_status = 4;
-      c_ctx->output_string = 0;
-      c_ctx->source_map_string = 0;
-      json_delete(json_err);
+      handle_string_error(c_ctx, e, 4);
     }
     catch (const char* e) {
-      std::stringstream msg_stream;
-      JsonNode* json_err = json_mkobject();
-      msg_stream << "Internal Error: " << e << std::endl;
-      json_append_member(json_err, "status", json_mknumber(4));
-      json_append_member(json_err, "message", json_mkstring(e));
-      json_append_member(json_err, "formatted", json_mkstream(msg_stream));
-      try { c_ctx->error_json = json_stringify(json_err, "  "); }
-      catch (...) {}
-      c_ctx->error_message = sass_copy_string(msg_stream.str());
-      c_ctx->error_text = sass_copy_c_string(e);
-      c_ctx->error_status = 4;
-      c_ctx->output_string = 0;
-      c_ctx->source_map_string = 0;
-      json_delete(json_err);
+      handle_string_error(c_ctx, e, 4);
     }
     catch (...) {
-      std::stringstream msg_stream;
-      JsonNode* json_err = json_mkobject();
-      msg_stream << "Unknown error occurred" << std::endl;
-      json_append_member(json_err, "status", json_mknumber(5));
-      json_append_member(json_err, "message", json_mkstring("unknown"));
-      try { c_ctx->error_json = json_stringify(json_err, "  "); }
-      catch (...) {}
-      c_ctx->error_message = sass_copy_string(msg_stream.str());
-      c_ctx->error_text = sass_copy_c_string("unknown");
-      c_ctx->error_status = 5;
-      c_ctx->output_string = 0;
-      c_ctx->source_map_string = 0;
-      json_delete(json_err);
+      handle_string_error(c_ctx, "unknown", 5);
     }
     return c_ctx->error_status;
   }
@@ -399,7 +342,9 @@ extern "C" {
 
   Sass_File_Context* ADDCALL sass_make_file_context(const char* input_path)
   {
-    SharedObj::setTaint(true); // needed for static colors
+    #ifdef DEBUG_SHARED_PTR
+    SharedObj::setTaint(true);
+    #endif
     struct Sass_File_Context* ctx = (struct Sass_File_Context*) calloc(1, sizeof(struct Sass_File_Context));
     if (ctx == 0) { std::cerr << "Error allocating memory for file context" << std::endl; return 0; }
     ctx->type = SASS_CONTEXT_FILE;
@@ -416,6 +361,9 @@ extern "C" {
 
   Sass_Data_Context* ADDCALL sass_make_data_context(char* source_string)
   {
+    #ifdef DEBUG_SHARED_PTR
+    SharedObj::setTaint(true);
+    #endif
     struct Sass_Data_Context* ctx = (struct Sass_Data_Context*) calloc(1, sizeof(struct Sass_Data_Context));
     if (ctx == 0) { std::cerr << "Error allocating memory for data context" << std::endl; return 0; }
     ctx->type = SASS_CONTEXT_DATA;

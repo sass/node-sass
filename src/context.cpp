@@ -1,44 +1,22 @@
 // sass.hpp must go before all system headers to get the
 // __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
-
-#include <string>
-#include <cstdlib>
-#include <cstring>
-#include <iomanip>
-#include <sstream>
-#include <iostream>
-
 #include "ast.hpp"
-#include "util.hpp"
-#include "sass.h"
-#include "context.hpp"
-#include "plugins.hpp"
-#include "constants.hpp"
-#include "parser.hpp"
-#include "file.hpp"
-#include "inspect.hpp"
-#include "output.hpp"
-#include "expand.hpp"
-#include "eval.hpp"
-#include "check_nesting.hpp"
-#include "cssize.hpp"
-#include "listize.hpp"
-#include "extend.hpp"
+
 #include "remove_placeholders.hpp"
 #include "sass_functions.hpp"
-#include "backtrace.hpp"
-#include "sass2scss.h"
-#include "prelexer.hpp"
-#include "emitter.hpp"
-#include "fn_utils.hpp"
-#include "fn_miscs.hpp"
-#include "fn_maps.hpp"
-#include "fn_lists.hpp"
-#include "fn_colors.hpp"
-#include "fn_numbers.hpp"
-#include "fn_strings.hpp"
+#include "check_nesting.hpp"
 #include "fn_selectors.hpp"
+#include "fn_strings.hpp"
+#include "fn_numbers.hpp"
+#include "fn_colors.hpp"
+#include "fn_miscs.hpp"
+#include "fn_lists.hpp"
+#include "fn_maps.hpp"
+#include "context.hpp"
+#include "expand.hpp"
+#include "parser.hpp"
+#include "cssize.hpp"
 
 namespace Sass {
   using namespace Constants;
@@ -81,10 +59,10 @@ namespace Sass {
     strings(),
     resources(),
     sheets(),
-    subset_map(),
     import_stack(),
     callee_stack(),
     traces(),
+    extender(Extender::NORMAL, traces),
     c_compiler(NULL),
 
     c_headers               (std::vector<Sass_Importer_Entry>()),
@@ -160,7 +138,7 @@ namespace Sass {
     }
     // clear inner structures (vectors) and input source
     resources.clear(); import_stack.clear();
-    subset_map.clear(), sheets.clear();
+    sheets.clear();
   }
 
   Data_Context::~Data_Context()
@@ -649,8 +627,6 @@ namespace Sass {
     return compile();
   }
 
-
-
   // parse root block from includes
   Block_Obj Context::compile()
   {
@@ -678,23 +654,23 @@ namespace Sass {
     }
     // expand and eval the tree
     root = expand(root);
+
+    Extension unsatisfied;
+    // check that all extends were used
+    if (extender.checkForUnsatisfiedExtends(unsatisfied)) {
+      throw Exception::UnsatisfiedExtend(traces, unsatisfied);
+    }
+
     // check nesting
     check_nesting(root);
     // merge and bubble certain rules
     root = cssize(root);
-    // should we extend something?
-    if (!subset_map.empty()) {
-      // create crtp visitor object
-      Extend extend(subset_map);
-      extend.setEval(expand.eval);
-      // extend tree nodes
-      extend(root);
-    }
 
     // clean up by removing empty placeholders
     // ToDo: maybe we can do this somewhere else?
     Remove_Placeholders remove_placeholders;
     root->perform(&remove_placeholders);
+
     // return processed tree
     return root;
   }

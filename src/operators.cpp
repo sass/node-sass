@@ -2,6 +2,7 @@
 // __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
 
+#include <cmath>
 #include "operators.hpp"
 
 namespace Sass {

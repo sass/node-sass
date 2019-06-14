@@ -68,7 +68,8 @@ enum Sass_Output_Style {
   SASS_STYLE_COMPRESSED,
   // only used internaly
   SASS_STYLE_INSPECT,
-  SASS_STYLE_TO_SASS
+  SASS_STYLE_TO_SASS,
+  SASS_STYLE_TO_CSS
 };
 
 // to allocate buffer to be filled

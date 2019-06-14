@@ -5,13 +5,8 @@
 // __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
 
-#include <vector>
-#include <iostream>
-
-#include "ast.hpp"
-#include "context.hpp"
+#include "ast_fwd_decl.hpp"
 #include "operation.hpp"
-#include "environment.hpp"
 
 namespace Sass {
 
@@ -20,12 +15,16 @@ namespace Sass {
   class Listize : public Operation_CRTP<Expression*, Listize> {
 
   public:
+
+    static Expression* perform(AST_Node* node);
+
+  public:
     Listize();
     ~Listize() { }
 
-    Expression* operator()(Selector_List*);
-    Expression* operator()(Complex_Selector*);
-    Expression* operator()(Compound_Selector*);
+    Expression* operator()(SelectorList*);
+    Expression* operator()(ComplexSelector*);
+    Expression* operator()(CompoundSelector*);
 
     // generic fallback
     template <typename U>
