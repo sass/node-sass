@@ -627,9 +627,9 @@ namespace Sass {
 
     bool isPrintable(Media_Block* m, Sass_Output_Style style)
     {
-      if (m == 0) return false;
+      if (m == nullptr) return false;
       Block_Obj b = m->block();
-      if (b == 0) return false;
+      if (b == nullptr) return false;
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement_Obj stm = b->at(i);
         if (Cast<Directive>(stm)) return true;

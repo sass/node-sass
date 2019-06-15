@@ -184,7 +184,7 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////
 
   Bubble::Bubble(ParserState pstate, Statement_Obj n, Statement_Obj g, size_t t)
-  : Statement(pstate, Statement::BUBBLE, t), node_(n), group_end_(g == 0)
+  : Statement(pstate, Statement::BUBBLE, t), node_(n), group_end_(g == nullptr)
   { }
   Bubble::Bubble(const Bubble* ptr)
   : Statement(ptr),
@@ -834,7 +834,7 @@ namespace Sass {
   }
 
   bool At_Root_Block::exclude_node(Statement_Obj s) {
-    if (expression() == 0)
+    if (expression() == nullptr)
     {
       return s->statement_type() == Statement::RULESET;
     }

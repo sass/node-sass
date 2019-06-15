@@ -3,8 +3,10 @@
 
 #include "sass/base.h"
 
+#include <cstddef>
 #include <iostream>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 namespace Sass {
@@ -185,6 +187,100 @@ namespace Sass {
     T* detach() { return static_cast<T*>(SharedPtr::detach()); }
   };
 
-}
+  // Comparison operators, based on:
+  // https://en.cppreference.com/w/cpp/memory/unique_ptr/operator_cmp
+
+  template<class T1, class T2>
+  bool operator==(const SharedImpl<T1>& x, const SharedImpl<T2>& y) {
+    return x.ptr() == y.ptr();
+  }
+
+  template<class T1, class T2>
+  bool operator!=(const SharedImpl<T1>& x, const SharedImpl<T2>& y) {
+    return x.ptr() != y.ptr();
+  }
+
+  template<class T1, class T2>
+  bool operator<(const SharedImpl<T1>& x, const SharedImpl<T2>& y) {
+    using CT = typename std::common_type<T1*, T2*>::type;
+    return std::less<CT>()(x.get(), y.get());
+  }
+
+  template<class T1, class T2>
+  bool operator<=(const SharedImpl<T1>& x, const SharedImpl<T2>& y) {
+    return !(y < x);
+  }
+
+  template<class T1, class T2>
+  bool operator>(const SharedImpl<T1>& x, const SharedImpl<T2>& y) {
+    return y < x;
+  }
+
+  template<class T1, class T2>
+  bool operator>=(const SharedImpl<T1>& x, const SharedImpl<T2>& y) {
+    return !(x < y);
+  }
+
+  template <class T>
+  bool operator==(const SharedImpl<T>& x, std::nullptr_t) noexcept {
+    return x.isNull();
+  }
+
+  template <class T>
+  bool operator==(std::nullptr_t, const SharedImpl<T>& x) noexcept {
+    return x.isNull();
+  }
+
+  template <class T>
+  bool operator!=(const SharedImpl<T>& x, std::nullptr_t) noexcept {
+    return !x.isNull();
+  }
+
+  template <class T>
+  bool operator!=(std::nullptr_t, const SharedImpl<T>& x) noexcept {
+    return !x.isNull();
+  }
+
+  template <class T>
+  bool operator<(const SharedImpl<T>& x, std::nullptr_t) {
+    return std::less<T*>()(x.get(), nullptr);
+  }
+
+  template <class T>
+  bool operator<(std::nullptr_t, const SharedImpl<T>& y) {
+    return std::less<T*>()(nullptr, y.get());
+  }
+
+  template <class T>
+  bool operator<=(const SharedImpl<T>& x, std::nullptr_t) {
+    return !(nullptr < x);
+  }
+
+  template <class T>
+  bool operator<=(std::nullptr_t, const SharedImpl<T>& y) {
+    return !(y < nullptr);
+  }
+
+  template <class T>
+  bool operator>(const SharedImpl<T>& x, std::nullptr_t) {
+    return nullptr < x;
+  }
+
+  template <class T>
+  bool operator>(std::nullptr_t, const SharedImpl<T>& y) {
+    return y < nullptr;
+  }
+
+  template <class T>
+  bool operator>=(const SharedImpl<T>& x, std::nullptr_t) {
+    return !(x < nullptr);
+  }
+
+  template <class T>
+  bool operator>=(std::nullptr_t, const SharedImpl<T>& y) {
+    return !(nullptr < y);
+  }
+
+}  // namespace Sass
 
 #endif
