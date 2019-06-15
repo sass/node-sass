@@ -17,6 +17,12 @@
   #endif
 #endif
 
+// Work around lack of `noexcept` keyword support in VS2013
+#if defined(_MSC_VER) && (_MSC_VER <= 1800) && !defined(_ALLOW_KEYWORD_MACROS)
+#define _ALLOW_KEYWORD_MACROS 1
+#define noexcept throw( )
+#endif
+
 #include <stddef.h>
 #include <stdbool.h>
 
