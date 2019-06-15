@@ -669,38 +669,44 @@ namespace Sass {
     // evaluate the selector
     e->selector(eval(e->selector()));
 
+    if (e->selector()) {
 
+      for (auto complex : e->selector()->elements()) {
 
-    auto list = e->selector();
-    if (list) {
-    for (auto complex : list->elements()) {
-
-      if (complex->length() != 1) {
-        std::cerr << "complex selectors may not be extended." << "\n"; exit(1);
-      }
-
-      if (auto compound = complex->first()->getCompound()) {
-
-        if (compound->length() != 1) {
-          std::cerr <<
-            "compound selectors may no longer be extended.\n"
-            "Consider `@extend ${compound.components.join(', ')}` instead.\n"
-            "See http://bit.ly/ExtendCompound for details.\n";
+        if (complex->length() != 1) {
+          error("complex selectors may not be extended.", complex->pstate(), traces);
         }
 
-        // Pass every selector we ever see to extender (to make them findable for extend)
-        ctx.extender.addExtension(selector(), compound->first(), e, mediaStack.back());
+        if (auto compound = complex->first()->getCompound()) {
 
-      }
-      else {
-        std::cerr << "complex selectors may not be extended." << "\n"; exit(1);
+          if (compound->length() != 1) {
+
+            std::cerr <<
+              "compound selectors may no longer be extended.\n"
+              "Consider `@extend ${compound.components.join(', ')}` instead.\n"
+              "See http://bit.ly/ExtendCompound for details.\n";
+
+            // Make this an error once deprecation is over
+            for (SimpleSelectorObj simple : compound->elements()) {
+              // Pass every selector we ever see to extender (to make them findable for extend)
+              ctx.extender.addExtension(selector(), simple, e, mediaStack.back());
+            }
+
+          }
+          else {
+            // Pass every selector we ever see to extender (to make them findable for extend)
+            ctx.extender.addExtension(selector(), compound->first(), e, mediaStack.back());
+          }
+
+        }
+        else {
+          error("complex selectors may not be extended.", complex->pstate(), traces);
+        }
       }
     }
-    }
-    return nullptr;
-
 
     return nullptr;
+
   }
 
   Statement* Expand::operator()(Definition* d)
