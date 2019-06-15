@@ -312,7 +312,7 @@ namespace Sass {
     bool empty() const                     { return list_.empty(); }
     bool has(Expression_Obj k) const          { return elements_.count(k) == 1; }
     Expression_Obj at(Expression_Obj k) const;
-    bool has_duplicate_key() const         { return duplicate_key_ != 0; }
+    bool has_duplicate_key() const         { return duplicate_key_ != nullptr; }
     Expression_Obj get_duplicate_key() const  { return duplicate_key_; }
     const ExpressionMap elements() { return elements_; }
     Hashed& operator<<(std::pair<Expression_Obj, Expression_Obj> p)

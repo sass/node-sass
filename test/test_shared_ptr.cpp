@@ -135,6 +135,32 @@ bool TestDetachNull() {
   return true;
 }
 
+class EmptyTestObj : public Sass::SharedObj {
+  public:
+    const std::string to_string() const { return ""; }
+};
+
+bool TestComparisonWithSharedPtr() {
+  Sass::SharedImpl<EmptyTestObj> a = new EmptyTestObj();
+  ASSERT(a == a);
+  Sass::SharedImpl<EmptyTestObj> b = a;
+  ASSERT(a == b);
+  Sass::SharedImpl<EmptyTestObj> c = new EmptyTestObj();
+  ASSERT(a != c);
+  Sass::SharedImpl<EmptyTestObj> nullobj;
+  ASSERT(a != nullobj);
+  ASSERT(nullobj == nullobj);
+  return true;
+}
+
+bool TestComparisonWithNullptr() {
+  Sass::SharedImpl<EmptyTestObj> a = new EmptyTestObj();
+  ASSERT(a != nullptr);
+  Sass::SharedImpl<EmptyTestObj> nullobj;
+  ASSERT(nullobj == nullptr);
+  return true;
+}
+
 #define TEST(fn) \
   if (fn()) { \
     passed.push_back(#fn); \
@@ -155,6 +181,8 @@ int main(int argc, char **argv) {
   TEST(TestSelfAssignDetach);
   TEST(TestDetachedPtrIsNotDestroyedUntilAssignment);
   TEST(TestDetachNull);
+  TEST(TestComparisonWithSharedPtr);
+  TEST(TestComparisonWithNullptr);
   std::cerr << argv[0] << ": Passed: " << passed.size()
             << ", failed: " << failed.size()
             << "." << std::endl;

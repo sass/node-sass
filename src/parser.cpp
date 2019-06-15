@@ -2488,7 +2488,7 @@ namespace Sass {
   Supports_Condition_Obj Parser::parse_supports_condition_in_parens(bool parens_required)
   {
     Supports_Condition_Obj interp = parse_supports_interpolation();
-    if (interp != 0) return interp;
+    if (interp != nullptr) return interp;
 
     if (!lex < exactly <'('> >()) {
       if (parens_required) {

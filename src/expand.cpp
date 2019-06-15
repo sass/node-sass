@@ -104,7 +104,7 @@ namespace Sass {
     bool has_parent_selector = false;
     for (size_t i = 0, L = selector_stack.size(); i < L && !has_parent_selector; i++) {
       Selector_List_Obj ll = selector_stack.at(i);
-      has_parent_selector = ll != 0 && ll->length() > 0;
+      has_parent_selector = ll != nullptr && ll->length() > 0;
     }
 
     Selector_List_Obj sel = r->selector();
@@ -614,7 +614,7 @@ namespace Sass {
 
 
     Selector_List_Obj contextualized = Cast<Selector_List>(s->perform(&eval));
-    if (contextualized == false) return;
+    if (contextualized == nullptr) return;
     for (auto complex_sel : contextualized->elements()) {
       Complex_Selector_Obj c = complex_sel;
       if (!c->head() || c->tail()) {
