@@ -3,8 +3,6 @@
 #include "sass.hpp"
 
 #include "ast.hpp"
-#include <cctype>
-#include <locale>
 
 namespace Sass {
 

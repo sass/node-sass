@@ -2,10 +2,10 @@
 // __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
 
-#include <cctype>
 #include <iostream>
 #include <iomanip>
 #include "util.hpp"
+#include "util_string.hpp"
 #include "position.hpp"
 #include "prelexer.hpp"
 #include "constants.hpp"
@@ -1400,7 +1400,7 @@ namespace Sass {
     }*/
 
     const char* H(const char* src) {
-      return std::isxdigit(static_cast<unsigned char>(*src)) ? src+1 : 0;
+      return Util::ascii_isxdigit(static_cast<unsigned char>(*src)) ? src+1 : 0;
     }
 
     const char* W(const char* src) {

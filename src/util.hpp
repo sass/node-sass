@@ -100,7 +100,6 @@ namespace Sass {
     bool isPrintable(String_Constant* s, Sass_Output_Style style = NESTED);
     bool isPrintable(String_Quoted* s, Sass_Output_Style style = NESTED);
     bool isPrintable(Declaration* d, Sass_Output_Style style = NESTED);
-    bool isAscii(const char chr);
 
   }
 }

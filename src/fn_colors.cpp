@@ -2,12 +2,12 @@
 // __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
 
-#include <cctype>
 #include <iomanip>
 #include "ast.hpp"
 #include "fn_utils.hpp"
 #include "fn_colors.hpp"
 #include "util.hpp"
+#include "util_string.hpp"
 
 namespace Sass {
 
@@ -582,10 +582,8 @@ namespace Sass {
       ss << std::hex << std::setw(2) << static_cast<unsigned long>(Sass::round(g, ctx.c_options.precision));
       ss << std::hex << std::setw(2) << static_cast<unsigned long>(Sass::round(b, ctx.c_options.precision));
 
-      std::string result(ss.str());
-      for (size_t i = 0, L = result.length(); i < L; ++i) {
-        result[i] = std::toupper(result[i]);
-      }
+      std::string result = ss.str();
+      Util::ascii_str_toupper(&result);
       return SASS_MEMORY_NEW(String_Quoted, pstate, result);
     }
 

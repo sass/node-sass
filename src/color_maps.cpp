@@ -4,6 +4,7 @@
 
 #include "ast.hpp"
 #include "color_maps.hpp"
+#include "util_string.hpp"
 
 namespace Sass {
 
@@ -616,8 +617,8 @@ namespace Sass {
   const Color_RGBA* name_to_color(const std::string& key)
   {
     // case insensitive lookup.  See #2462
-    std::string lower{key};
-    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+    std::string lower = key;
+    Util::ascii_str_tolower(&lower);
 
     auto p = names_to_colors->find(lower);
     if (p != names_to_colors->end()) {

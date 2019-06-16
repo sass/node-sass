@@ -142,6 +142,45 @@ bool TestUnvendor() {
   return true;
 }
 
+bool Test_ascii_str_to_lower() {
+  std::string str = "A B";
+  Sass::Util::ascii_str_tolower(&str);
+  ASSERT_STR_EQ("a b", str);
+  return true;
+}
+
+bool Test_ascii_str_to_upper() {
+  std::string str = "a b";
+  Sass::Util::ascii_str_toupper(&str);
+  ASSERT_STR_EQ("A B", str);
+  return true;
+}
+
+bool Test_ascii_isalpha() {
+  ASSERT_TRUE(Sass::Util::ascii_isalpha('a'));
+  ASSERT_FALSE(Sass::Util::ascii_isalpha('3'));
+  return true;
+}
+
+bool Test_ascii_isxdigit() {
+  ASSERT_TRUE(Sass::Util::ascii_isxdigit('a'));
+  ASSERT_TRUE(Sass::Util::ascii_isxdigit('F'));
+  ASSERT_TRUE(Sass::Util::ascii_isxdigit('3'));
+  ASSERT_FALSE(Sass::Util::ascii_isxdigit('G'));
+  return true;
+}
+
+bool Test_ascii_isspace() {
+  ASSERT_TRUE(Sass::Util::ascii_isspace(' '));
+  ASSERT_TRUE(Sass::Util::ascii_isspace('\t'));
+  ASSERT_TRUE(Sass::Util::ascii_isspace('\v'));
+  ASSERT_TRUE(Sass::Util::ascii_isspace('\f'));
+  ASSERT_TRUE(Sass::Util::ascii_isspace('\r'));
+  ASSERT_TRUE(Sass::Util::ascii_isspace('\n'));
+  ASSERT_FALSE(Sass::Util::ascii_isspace('G'));
+  return true;
+}
+
 }  // namespace
 
 #define TEST(fn) \
@@ -166,6 +205,11 @@ int main(int argc, char **argv) {
   TEST(TestNormalizeDecimalsNoLeadingZero);
   TEST(testEqualsLiteral);
   TEST(TestUnvendor);
+  TEST(Test_ascii_str_to_lower);
+  TEST(Test_ascii_str_to_upper);
+  TEST(Test_ascii_isalpha);
+  TEST(Test_ascii_isxdigit);
+  TEST(Test_ascii_isspace);
   std::cerr << argv[0] << ": Passed: " << passed.size()
             << ", failed: " << failed.size()
             << "." << std::endl;

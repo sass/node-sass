@@ -652,15 +652,17 @@ namespace Sass {
   CssMediaQuery_Obj CssMediaQuery::merge(CssMediaQuery_Obj& other)
   {
 
-    std::string ourType(this->type());
-    std::string theirType(other->type());
-    std::string ourModifier(this->modifier());
-    std::string theirModifier(other->modifier());
+    std::string ourType = this->type();
+    Util::ascii_str_tolower(&ourType);
 
-    std::transform(ourType.begin(), ourType.end(), ourType.begin(), ::tolower);
-    std::transform(theirType.begin(), theirType.end(), theirType.begin(), ::tolower);
-    std::transform(ourModifier.begin(), ourModifier.end(), ourModifier.begin(), ::tolower);
-    std::transform(theirModifier.begin(), theirModifier.end(), theirModifier.begin(), ::tolower);
+    std::string theirType = other->type();
+    Util::ascii_str_tolower(&theirType);
+
+    std::string ourModifier = this->modifier();
+    Util::ascii_str_tolower(&ourModifier);
+
+    std::string theirModifier = other->modifier();
+    Util::ascii_str_tolower(&theirModifier);
 
     std::string type;
     std::string modifier;

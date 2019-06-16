@@ -2,11 +2,11 @@
 // __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
 
-#include <cctype>
 #include "utf8.h"
 #include "ast.hpp"
 #include "fn_utils.hpp"
 #include "fn_strings.hpp"
+#include "util_string.hpp"
 
 namespace Sass {
 
@@ -212,12 +212,7 @@ namespace Sass {
     {
       String_Constant* s = ARG("$string", String_Constant);
       std::string str = s->value();
-
-      for (size_t i = 0, L = str.length(); i < L; ++i) {
-        if (Sass::Util::isAscii(str[i])) {
-          str[i] = std::toupper(str[i]);
-        }
-      }
+      Util::ascii_str_toupper(&str);
 
       if (String_Quoted* ss = Cast<String_Quoted>(s)) {
         String_Quoted* cpy = SASS_MEMORY_COPY(ss);
@@ -233,12 +228,7 @@ namespace Sass {
     {
       String_Constant* s = ARG("$string", String_Constant);
       std::string str = s->value();
-
-      for (size_t i = 0, L = str.length(); i < L; ++i) {
-        if (Sass::Util::isAscii(str[i])) {
-          str[i] = std::tolower(str[i]);
-        }
-      }
+      Util::ascii_str_tolower(&str);
 
       if (String_Quoted* ss = Cast<String_Quoted>(s)) {
         String_Quoted* cpy = SASS_MEMORY_COPY(ss);

@@ -2,6 +2,7 @@
 #include "sass.h"
 #include "ast.hpp"
 #include "util.hpp"
+#include "util_string.hpp"
 #include "lexer.hpp"
 #include "prelexer.hpp"
 #include "constants.hpp"
@@ -289,7 +290,7 @@ namespace Sass {
 
         // parse as many sequence chars as possible
         // ToDo: Check if ruby aborts after possible max
-        while (i + len < L && s[i + len] && isxdigit(s[i + len])) ++ len;
+        while (i + len < L && s[i + len] && Util::ascii_isxdigit(static_cast<unsigned char>(s[i + len]))) ++ len;
 
         if (len > 1) {
 
@@ -375,7 +376,7 @@ namespace Sass {
 
         // parse as many sequence chars as possible
         // ToDo: Check if ruby aborts after possible max
-        while (i + len < L && s[i + len] && isxdigit(s[i + len])) ++ len;
+        while (i + len < L && s[i + len] && Util::ascii_isxdigit(static_cast<unsigned char>(s[i + len]))) ++ len;
 
         // hex string?
         if (keep_utf8_sequences) {
@@ -716,10 +717,6 @@ namespace Sass {
       }
 
       return false;
-    }
-
-    bool isAscii(const char chr) {
-      return unsigned(chr) < 128;
     }
 
   }

@@ -13,7 +13,6 @@
 #else
 # include <unistd.h>
 #endif
-#include <cctype>
 #include <cstdio>
 #include <vector>
 #include <algorithm>
@@ -25,6 +24,7 @@
 #include "sass_functions.hpp"
 #include "error_handling.hpp"
 #include "util.hpp"
+#include "util_string.hpp"
 #include "sass2scss.h"
 
 #ifdef _WIN32
@@ -106,13 +106,13 @@ namespace Sass {
     bool is_absolute_path(const std::string& path)
     {
       #ifdef _WIN32
-        if (path.length() >= 2 && isalpha(path[0]) && path[1] == ':') return true;
+        if (path.length() >= 2 && Util::ascii_isalpha(path[0]) && path[1] == ':') return true;
       #endif
       size_t i = 0;
       // check if we have a protocol
-      if (path[i] && Prelexer::is_alpha(path[i])) {
+      if (path[i] && Util::ascii_isalpha(static_cast<unsigned char>(path[i]))) {
         // skip over all alphanumeric characters
-        while (path[i] && Prelexer::is_alnum(path[i])) ++i;
+        while (path[i] && Util::ascii_isalnum(static_cast<unsigned char>(path[i]))) ++i;
         i = i && path[i] == ':' ? i + 1 : 0;
       }
       return path[i] == '/';
@@ -179,9 +179,9 @@ namespace Sass {
 
       size_t proto = 0;
       // check if we have a protocol
-      if (path[proto] && Prelexer::is_alpha(path[proto])) {
+      if (path[proto] && Util::ascii_isalpha(static_cast<unsigned char>(path[proto]))) {
         // skip over all alphanumeric characters
-        while (path[proto] && Prelexer::is_alnum(path[proto++])) {}
+        while (path[proto] && Util::ascii_isalnum(static_cast<unsigned char>(path[proto++]))) {}
         // then skip over the mandatory colon
         if (proto && path[proto] == ':') ++ proto;
       }
@@ -260,9 +260,9 @@ namespace Sass {
 
       size_t proto = 0;
       // check if we have a protocol
-      if (path[proto] && Prelexer::is_alpha(path[proto])) {
+      if (path[proto] && Util::ascii_isalpha(static_cast<unsigned char>(path[proto]))) {
         // skip over all alphanumeric characters
-        while (path[proto] && Prelexer::is_alnum(path[proto++])) {}
+        while (path[proto] && Util::ascii_isalnum(static_cast<unsigned char>(path[proto++]))) {}
         // then skip over the mandatory colon
         if (proto && path[proto] == ':') ++ proto;
       }
@@ -288,7 +288,8 @@ namespace Sass {
         #else
           // compare the charactes in a case insensitive manner
           // windows fs is only case insensitive in ascii ranges
-          if (tolower(abs_path[i]) != tolower(abs_base[i])) break;
+          if (Util::ascii_tolower(static_cast<unsigned char>(abs_path[i])) !=
+              Util::ascii_tolower(static_cast<unsigned char>(abs_base[i]))) break;
         #endif
         if (abs_path[i] == '/') index = i + 1;
       }
@@ -488,8 +489,7 @@ namespace Sass {
       if (path.length() > 5) {
         extension = path.substr(path.length() - 5, 5);
       }
-      for(size_t i=0; i<extension.size();++i)
-        extension[i] = tolower(extension[i]);
+      Util::ascii_str_tolower(&extension);
       if (extension == ".sass" && contents != 0) {
         char * converted = sass2scss(contents, SASS2SCSS_PRETTIFY_1 | SASS2SCSS_KEEP_COMMENT);
         free(contents); // free the indented contents

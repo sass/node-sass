@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cmath>
-#include <cctype>
 #include <random>
 #include <sstream>
 #include <iomanip>

@@ -26,7 +26,24 @@ namespace Sass {
       // If not test was too long
       return *lit == 0;
     }
-    // EO equalsLiteral
+
+    void ascii_str_tolower(std::string* s) {
+      for (auto& ch : *s) {
+        ch = ascii_tolower(static_cast<unsigned char>(ch));
+      }
+    }
+
+    void ascii_str_toupper(std::string* s) {
+      for (auto& ch : *s) {
+        ch = ascii_toupper(static_cast<unsigned char>(ch));
+      }
+    }
+
+    std::string rtrim(std::string str) {
+      auto it = std::find_if_not(str.rbegin(), str.rend(), ascii_isspace);
+      str.erase(str.rend() - it);
+      return str;
+    }
 
     // ###########################################################################
     // Returns [name] without a vendor prefix.

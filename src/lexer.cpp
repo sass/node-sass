@@ -2,7 +2,6 @@
 // __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
 
-#include <cctype>
 #include <iostream>
 #include <iomanip>
 #include "lexer.hpp"
