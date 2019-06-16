@@ -11,7 +11,7 @@ namespace Sass {
   // ##########################################################################
   // Static function to create a copy with a new extender
   // ##########################################################################
-  Extension Extension::withExtender(ComplexSelectorObj newExtender)
+  Extension Extension::withExtender(const ComplexSelectorObj& newExtender) const
   {
     Extension extension(newExtender);
     extension.specificity = specificity;

@@ -587,7 +587,7 @@ namespace Sass {
         groups1, groups2, {}, cmpChunkForEmptySequence);
 
     // Append chunks with inner arrays flattened
-    choices.emplace_back(std::move(flattenInner(chunks)));
+    choices.emplace_back(flattenInner(chunks));
 
     // append all trailing selectors to choices
     std::move(std::begin(trails), std::end(trails),

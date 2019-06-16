@@ -163,8 +163,8 @@ namespace Sass {
     // ##########################################################################
     static SelectorListObj extend(
       SelectorListObj& selector,
-      SelectorListObj& source,
-      SelectorListObj& target,
+      const SelectorListObj& source,
+      const SelectorListObj& target,
       Backtraces& traces);
 
     // ##########################################################################
@@ -172,8 +172,8 @@ namespace Sass {
     // ##########################################################################
     static SelectorListObj replace(
       SelectorListObj& selector,
-      SelectorListObj& source,
-      SelectorListObj& target,
+      const SelectorListObj& source,
+      const SelectorListObj& target,
       Backtraces& traces);
 
     // ##########################################################################
@@ -206,11 +206,10 @@ namespace Sass {
     // within the same context. A `null` context indicates no media queries.
     // ##########################################################################
     void addExtension(
-      SelectorListObj& extender,
-      SimpleSelectorObj& target,
-      // gets passed by pointer
-      ExtendRuleObj extend,
-      CssMediaRuleObj& mediaQueryContext);
+      const SelectorListObj& extender,
+      const SimpleSelectorObj& target,
+      const CssMediaRuleObj& mediaQueryContext,
+      bool is_optional = false);
 
     // ##########################################################################
     // The set of all simple selectors in style rules handled
@@ -235,9 +234,9 @@ namespace Sass {
     // ##########################################################################
     static SelectorListObj extendOrReplace(
       SelectorListObj& selector,
-      SelectorListObj& source,
-      SelectorListObj& target,
-      ExtendMode mode,
+      const SelectorListObj& source,
+      const SelectorListObj& target,
+      const ExtendMode mode,
       Backtraces& traces);
 
     // ##########################################################################
@@ -275,8 +274,8 @@ namespace Sass {
     // ##########################################################################
     ExtSelExtMap extendExistingExtensions(
       // Taking in a reference here makes MSVC debug stuck!?
-      const std::vector<Extension> extensions,
-      ExtSelExtMap& newExtensions);
+      const std::vector<Extension>& extensions,
+      const ExtSelExtMap& newExtensions);
 
     // ##########################################################################
     // Extends [list] using [extensions].
@@ -292,7 +291,7 @@ namespace Sass {
     // ##########################################################################
     std::vector<ComplexSelectorObj> extendComplex(
       // Taking in a reference here makes MSVC debug stuck!?
-      const ComplexSelectorObj list,
+      const ComplexSelectorObj& list,
       const ExtSelExtMap& extensions,
       const CssMediaRuleObj& mediaQueryContext);
 
@@ -309,7 +308,7 @@ namespace Sass {
     // ##########################################################################
     Extension extensionForCompound(
       // Taking in a reference here makes MSVC debug stuck!?
-      const std::vector<SimpleSelectorObj> simples) const;
+      const std::vector<SimpleSelectorObj>& simples) const;
 
     // ##########################################################################
     // Extends [compound] using [extensions], and returns the

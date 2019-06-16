@@ -228,8 +228,8 @@ namespace Sass {
     void clear()            { return elements_.clear(); }
     T& last()               { return elements_.back(); }
     T& first()              { return elements_.front(); }
-    const T last() const    { return elements_.back(); }
-    const T first() const   { return elements_.front(); }
+    const T& last() const   { return elements_.back(); }
+    const T& first() const  { return elements_.front(); }
 
     bool operator== (const Vectorized<T>& rhs) const {
       // Abort early if sizes do not match

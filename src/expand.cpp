@@ -677,7 +677,7 @@ namespace Sass {
           error("complex selectors may not be extended.", complex->pstate(), traces);
         }
 
-        if (auto compound = complex->first()->getCompound()) {
+        if (const CompoundSelector* compound = complex->first()->getCompound()) {
 
           if (compound->length() != 1) {
 
@@ -689,13 +689,13 @@ namespace Sass {
             // Make this an error once deprecation is over
             for (SimpleSelectorObj simple : compound->elements()) {
               // Pass every selector we ever see to extender (to make them findable for extend)
-              ctx.extender.addExtension(selector(), simple, e, mediaStack.back());
+              ctx.extender.addExtension(selector(), simple, mediaStack.back(), e->isOptional());
             }
 
           }
           else {
             // Pass every selector we ever see to extender (to make them findable for extend)
-            ctx.extender.addExtension(selector(), compound->first(), e, mediaStack.back());
+            ctx.extender.addExtension(selector(), compound->first(), mediaStack.back(), e->isOptional());
           }
 
         }

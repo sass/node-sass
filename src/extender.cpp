@@ -47,8 +47,8 @@ namespace Sass {
   // ##########################################################################
   SelectorListObj Extender::extend(
     SelectorListObj& selector,
-    SelectorListObj& source,
-    SelectorListObj& targets,
+    const SelectorListObj& source,
+    const SelectorListObj& targets,
     Backtraces& traces)
   {
     return extendOrReplace(selector, source, targets, ExtendMode::TARGETS, traces);
@@ -60,8 +60,8 @@ namespace Sass {
   // ##########################################################################
   SelectorListObj Extender::replace(
     SelectorListObj& selector,
-    SelectorListObj& source,
-    SelectorListObj& targets,
+    const SelectorListObj& source,
+    const SelectorListObj& targets,
     Backtraces& traces)
   {
     return extendOrReplace(selector, source, targets, ExtendMode::REPLACE, traces);
@@ -73,9 +73,9 @@ namespace Sass {
   // ##########################################################################
   SelectorListObj Extender::extendOrReplace(
     SelectorListObj& selector,
-    SelectorListObj& source,
-    SelectorListObj& targets,
-    ExtendMode mode,
+    const SelectorListObj& source,
+    const SelectorListObj& targets,
+    const ExtendMode mode,
     Backtraces& traces)
   {
     ExtSelExtMapEntry extenders;
@@ -87,15 +87,16 @@ namespace Sass {
 
     for (auto complex : targets->elements()) {
 
-      if (complex->length() != 1) {
-        // throw "can't extend complex selector $complex."
-      }
+      // This seems superfluous, check is done before!?
+      // if (complex->length() != 1) {
+      //   error("complex selectors may not be extended.", complex->pstate(), traces);
+      // }
 
-      if (auto compound = complex->first()->getCompound()) {
+      if (const CompoundSelector* compound = complex->first()->getCompound()) {
 
         ExtSelExtMap extensions;
 
-        for (auto simple : compound->elements()) {
+        for (const SimpleSelectorObj& simple : compound->elements()) {
           extensions.insert(std::make_pair(simple, extenders));
         }
 
@@ -287,11 +288,10 @@ namespace Sass {
   // Note: this function could need some logic cleanup
   // ##########################################################################
   void Extender::addExtension(
-    SelectorListObj& extender,
-    SimpleSelectorObj& target,
-    // get get passed a pointer
-    ExtendRuleObj extend,
-    CssMediaRuleObj& mediaQueryContext)
+    const SelectorListObj& extender,
+    const SimpleSelectorObj& target,
+    const CssMediaRuleObj& mediaQueryContext,
+    bool is_optional)
   {
 
     auto rules = selectors.find(target);
@@ -299,8 +299,8 @@ namespace Sass {
 
     ExtSelExtMapEntry newExtensions;
 
-    auto existingExtensions = extensionsByExtender.find(target);
-    bool hasExistingExtensions = existingExtensions != extensionsByExtender.end();
+    // ToDo: we check this here first and fetch the same? item again after the loop!?
+    bool hasExistingExtensions = extensionsByExtender.find(target) != extensionsByExtender.end();
 
     ExtSelExtMapEntry& sources = extensions[target];
 
@@ -309,7 +309,7 @@ namespace Sass {
       Extension state(complex);
       // ToDo: fine-tune public API
       state.target = target;
-      state.isOptional = extend->isOptional();
+      state.isOptional = is_optional;
       state.mediaContext = mediaQueryContext;
 
       if (sources.hasKey(complex)) {
@@ -349,12 +349,15 @@ namespace Sass {
 
     ExtSelExtMap newExtensionsByTarget;
     newExtensionsByTarget.insert(std::make_pair(target, newExtensions));
-    existingExtensions = extensionsByExtender.find(target);
-    if (hasExistingExtensions && !existingExtensions->second.empty()) {
-      auto additionalExtensions =
-        extendExistingExtensions(existingExtensions->second, newExtensionsByTarget);
-      if (!additionalExtensions.empty()) {
-        mapCopyExts(newExtensionsByTarget, additionalExtensions);
+    // ToDo: do we really need to fetch again (see top off fn) 
+    auto existingExtensions = extensionsByExtender.find(target);
+    if (existingExtensions != extensionsByExtender.end()) {
+      if (hasExistingExtensions && !existingExtensions->second.empty()) {
+        auto additionalExtensions =
+          extendExistingExtensions(existingExtensions->second, newExtensionsByTarget);
+        if (!additionalExtensions.empty()) {
+          mapCopyExts(newExtensionsByTarget, additionalExtensions);
+        }
       }
     }
 
@@ -410,21 +413,23 @@ namespace Sass {
   // ##########################################################################
   ExtSelExtMap Extender::extendExistingExtensions(
     // Taking in a reference here makes MSVC debug stuck!?
-    const std::vector<Extension> oldExtensions,
-    ExtSelExtMap& newExtensions)
+    const std::vector<Extension>& oldExtensions,
+    const ExtSelExtMap& newExtensions)
   {
 
     ExtSelExtMap additionalExtensions;
 
-    for (Extension extension : oldExtensions) {
+    // During the loop `oldExtensions` vector might be changed.
+    // Callers normally pass this from `extensionsByExtender` and
+    // that points back to the `sources` vector from `extensions`.
+    for (size_t i = 0, iL = oldExtensions.size(); i < iL; i += 1) {
+      const Extension& extension = oldExtensions[i];
       ExtSelExtMapEntry& sources = extensions[extension.target];
-      std::vector<ComplexSelectorObj> selectors;
-
-      selectors = extendComplex(
+      std::vector<ComplexSelectorObj> selectors(extendComplex(
         extension.extender,
         newExtensions,
         extension.mediaContext
-      );
+      ));
 
       if (selectors.empty()) {
         continue;
@@ -432,8 +437,8 @@ namespace Sass {
 
       // ToDo: "catch" error from extend
 
-      bool first = false;
-      bool containsExtension = ObjEqualityFn(selectors.front(), extension.extender);
+      bool first = false, containsExtension =
+        ObjEqualityFn(selectors.front(), extension.extender);
       for (const ComplexSelectorObj& complex : selectors) {
         // If the output contains the original complex 
         // selector, there's no need to recreate it.
@@ -442,11 +447,11 @@ namespace Sass {
           continue;
         }
 
-        Extension withExtender = extension.withExtender(complex);
+        const Extension withExtender =
+          extension.withExtender(complex);
         if (sources.hasKey(complex)) {
-          Extension source = sources.get(complex);
           sources.insert(complex, mergeExtension(
-            source, withExtender));
+            sources.get(complex), withExtender));
         }
         else {
           sources.insert(complex, withExtender);
@@ -527,7 +532,7 @@ namespace Sass {
   // ##########################################################################
   std::vector<ComplexSelectorObj> Extender::extendComplex(
     // Taking in a reference here makes MSVC debug stuck!?
-    const ComplexSelectorObj complex,
+    const ComplexSelectorObj& complex,
     const ExtSelExtMap& extensions,
     const CssMediaRuleObj& mediaQueryContext)
   {
@@ -656,7 +661,7 @@ namespace Sass {
   // ##########################################################################
   Extension Extender::extensionForCompound(
     // Taking in a reference here makes MSVC debug stuck!?
-    const std::vector<SimpleSelectorObj> simples) const
+    const std::vector<SimpleSelectorObj>& simples) const
   {
     CompoundSelectorObj compound = SASS_MEMORY_NEW(CompoundSelector, ParserState("[ext]"));
     compound->concat(simples);

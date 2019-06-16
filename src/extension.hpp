@@ -80,7 +80,7 @@ namespace Sass {
     // compatible with the query context for this extender.
     void assertCompatibleMediaContext(CssMediaRuleObj mediaContext, Backtraces& traces) const;
 
-    Extension withExtender(ComplexSelectorObj newExtender);
+    Extension withExtender(const ComplexSelectorObj& newExtender) const;
 
   };
 

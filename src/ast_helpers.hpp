@@ -5,6 +5,7 @@
 // __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
 #include <algorithm>
+#include <functional>
 #include "util_string.hpp"
 
 namespace Sass {
