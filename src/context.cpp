@@ -28,23 +28,17 @@ namespace Sass {
 
   static std::string safe_input(const char* in_path)
   {
-    // enforce some safe defaults
-    // used to create relative file links
-    std::string safe_path(in_path ? in_path : "");
-    return safe_path == "" ? "stdin" : safe_path;
+    if (in_path == nullptr || in_path[0] == '\0') return "stdin";
+    return in_path;
   }
 
-  static std::string safe_output(const char* out_path, const std::string& input_path = "")
+  static std::string safe_output(const char* out_path, std::string input_path)
   {
-    std::string safe_path(out_path ? out_path : "");
-    // maybe we can extract an output path from input path
-    if (safe_path == "" && input_path != "") {
-      int lastindex = static_cast<int>(input_path.find_last_of("."));
-      return (lastindex > -1 ? input_path.substr(0, lastindex) : input_path) + ".css";
+    if (out_path == nullptr || out_path[0] == '\0') {
+      if (input_path.empty()) return "stdout";
+      return input_path.substr(0, input_path.find_last_of(".")) + ".css";
     }
-    // enforce some safe defaults
-    // used to create relative file links
-    return safe_path == "" ? "stdout" : safe_path;
+    return out_path;
   }
 
   Context::Context(struct Sass_Context& c_ctx)

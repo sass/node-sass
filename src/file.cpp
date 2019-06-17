@@ -173,8 +173,8 @@ namespace Sass {
       while((pos = path.find("/./", pos)) != std::string::npos) path.erase(pos, 2);
 
       // remove all leading and trailing self references
-      while(path.length() > 1 && path.substr(0, 2) == "./") path.erase(0, 2);
-      while((pos = path.length()) > 1 && path.substr(pos - 2) == "/.") path.erase(pos - 2);
+      while(path.size() >= 2 && path[0] == '.' && path[1] == '/') path.erase(0, 2);
+      while((pos = path.length()) > 1 && path[pos - 2] == '/' && path[pos - 1] == '.') path.erase(pos - 2);
 
 
       size_t proto = 0;
@@ -474,6 +474,7 @@ namespace Sass {
         char* contents = static_cast<char*>(malloc(st.st_size + 2 * sizeof(char)));
         if (std::fread(static_cast<void*>(contents), 1, size, fd) != size) {
           free(contents);
+          std::fclose(fd);
           return nullptr;
         }
         if (std::fclose(fd) != 0) {

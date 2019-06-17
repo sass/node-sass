@@ -313,7 +313,7 @@ namespace Sass {
     const Color_RGBA transparent(color_table, 0, 0, 0, 0);
   }
 
-  const std::map<const int, const char*> colors_to_names {
+  static const auto* const colors_to_names = new std::unordered_map<int, const char*> {
     { 240 * 0x10000 + 248 * 0x100 + 255, ColorNames::aliceblue },
     { 250 * 0x10000 + 235 * 0x100 + 215, ColorNames::antiquewhite },
     {   0 * 0x10000 + 255 * 0x100 + 255, ColorNames::cyan },
@@ -455,7 +455,7 @@ namespace Sass {
     { 102 * 0x10000 +  51 * 0x100 + 153, ColorNames::rebeccapurple }
   };
 
-  const std::map<const char*, const Color_RGBA*, map_cmp_str> names_to_colors
+  static const auto *const names_to_colors = new std::unordered_map<std::string, const Color_RGBA*>
   {
     { ColorNames::aliceblue, &Colors::aliceblue },
     { ColorNames::antiquewhite, &Colors::antiquewhite },
@@ -619,20 +619,20 @@ namespace Sass {
     std::string lower{key};
     std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
 
-    auto p = names_to_colors.find(lower.c_str());
-    if (p != names_to_colors.end()) {
+    auto p = names_to_colors->find(lower);
+    if (p != names_to_colors->end()) {
       return p->second;
     }
-    return 0;
+    return nullptr;
   }
 
   const char* color_to_name(const int key)
   {
-    auto p = colors_to_names.find(key);
-    if (p != colors_to_names.end()) {
+    auto p = colors_to_names->find(key);
+    if (p != colors_to_names->end()) {
       return p->second;
     }
-    return 0;
+    return nullptr;
   }
 
   const char* color_to_name(const double key)

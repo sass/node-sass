@@ -8,15 +8,6 @@ namespace Sass {
 
   namespace Functions {
 
-    // features
-    static std::set<std::string> features {
-      "global-variable-shadowing",
-      "extend-selector-pseudoclass",
-      "at-error",
-      "units-level-3",
-      "custom-property"
-    };
-
     //////////////////////////
     // INTROSPECTION FUNCTIONS
     //////////////////////////
@@ -90,12 +81,14 @@ namespace Sass {
     {
       std::string s = unquote(ARG("$name", String_Constant)->value());
 
-      if(features.find(s) == features.end()) {
-        return SASS_MEMORY_NEW(Boolean, pstate, false);
-      }
-      else {
-        return SASS_MEMORY_NEW(Boolean, pstate, true);
-      }
+      static const auto *const features = new std::unordered_set<std::string> {
+        "global-variable-shadowing",
+        "extend-selector-pseudoclass",
+        "at-error",
+        "units-level-3",
+        "custom-property"
+      };
+      return SASS_MEMORY_NEW(Boolean, pstate, features->find(s) != features->end());
     }
 
     Signature call_sig = "call($name, $args...)";
