@@ -1,5 +1,7 @@
 #include "sass.hpp"
+#include <map>
 #include <stdexcept>
+#include <algorithm>
 #include "units.hpp"
 #include "error_handling.hpp"
 

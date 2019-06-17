@@ -1,7 +1,11 @@
 #ifndef SASS_EVAL_H
 #define SASS_EVAL_H
 
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
+#include "sass.hpp"
 #include "ast.hpp"
+
 #include "context.hpp"
 #include "listize.hpp"
 #include "operation.hpp"
@@ -31,12 +35,8 @@ namespace Sass {
     Env* environment();
     EnvStack& env_stack();
     const std::string cwd();
-    Selector_List_Obj selector();
     CalleeStack& callee_stack();
-    SelectorStack& selector_stack();
-    bool& old_at_root_without_rule();
     struct Sass_Inspect_Options& options();
-    struct Sass_Inspect_Options options2();
     struct Sass_Compiler* compiler();
 
     // for evaluating function bodies
@@ -64,7 +64,6 @@ namespace Sass {
     Expression* operator()(String_Schema*);
     Expression* operator()(String_Quoted*);
     Expression* operator()(String_Constant*);
-    // Expression* operator()(Selector_List*);
     Media_Query* operator()(Media_Query*);
     Expression* operator()(Media_Query_Expression*);
     Expression* operator()(At_Root_Query*);
@@ -78,23 +77,22 @@ namespace Sass {
     Expression* operator()(Comment*);
 
     // these will return selectors
-    Selector_List* operator()(Selector_List*);
-    Selector_List* operator()(Complex_Selector*);
-    Compound_Selector* operator()(Compound_Selector*);
-    Simple_Selector* operator()(Simple_Selector* s);
-    Wrapped_Selector* operator()(Wrapped_Selector* s);
+    SelectorList* operator()(SelectorList*);
+    SelectorList* operator()(ComplexSelector*);
+    CompoundSelector* operator()(CompoundSelector*);
+    SelectorComponent* operator()(SelectorComponent*);
+    SimpleSelector* operator()(SimpleSelector* s);
+    Pseudo_Selector* operator()(Pseudo_Selector* s);
 
     // they don't have any specific implementation (yet)
     Id_Selector* operator()(Id_Selector* s) { return s; };
     Class_Selector* operator()(Class_Selector* s) { return s; };
-    Pseudo_Selector* operator()(Pseudo_Selector* s) { return s; };
     Type_Selector* operator()(Type_Selector* s) { return s; };
     Attribute_Selector* operator()(Attribute_Selector* s) { return s; };
     Placeholder_Selector* operator()(Placeholder_Selector* s) { return s; };
 
     // actual evaluated selectors
-    Selector_List* operator()(Selector_Schema*);
-    Expression* operator()(Parent_Selector*);
+    SelectorList* operator()(Selector_Schema*);
     Expression* operator()(Parent_Reference*);
 
     // generic fallback

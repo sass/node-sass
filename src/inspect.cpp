@@ -67,15 +67,58 @@ namespace Sass {
     append_scope_closer();
   }
 
-  void Inspect::operator()(Media_Block* media_block)
+  void Inspect::operator()(MediaRule* rule)
   {
     append_indentation();
-    append_token("@media", media_block);
+    append_token("@media", rule);
     append_mandatory_space();
     in_media_block = true;
-    media_block->media_queries()->perform(this);
     in_media_block = false;
-    media_block->block()->perform(this);
+    if (rule->block()) {
+      rule->block()->perform(this);
+    }
+  }
+
+  void Inspect::operator()(CssMediaRule* rule)
+  {
+    append_indentation();
+    append_token("@media", rule);
+    append_mandatory_space();
+    in_media_block = true;
+    bool joinIt = false;
+    for (auto query : rule->elements()) {
+      if (joinIt) {
+        append_comma_separator();
+        append_optional_space();
+      }
+      operator()(query);
+      joinIt = true;
+    }
+    if (rule->block()) {
+      rule->block()->perform(this);
+    }
+  }
+
+  void Inspect::operator()(CssMediaQuery* query)
+  {
+    bool joinIt = false;
+    if (!query->modifier().empty()) {
+      append_string(query->modifier());
+      append_mandatory_space();
+    }
+    if (!query->type().empty()) {
+      append_string(query->type());
+      joinIt = true;
+    }
+    for (auto feature : query->features()) {
+      if (joinIt) {
+        append_mandatory_space();
+        append_string("and");
+        append_mandatory_space();
+      }
+      append_string(feature);
+      joinIt = true;
+    }
   }
 
   void Inspect::operator()(Supports_Block* feature_block)
@@ -134,8 +177,7 @@ namespace Sass {
     append_colon_separator();
 
     if (dec->value()->concrete_type() == Expression::SELECTOR) {
-      Listize listize;
-      Expression_Obj ls = dec->value()->perform(&listize);
+      Expression_Obj ls = Listize::perform(dec->value());
       ls->perform(this);
     } else {
       dec->value()->perform(this);
@@ -298,7 +340,7 @@ namespace Sass {
     append_delimiter();
   }
 
-  void Inspect::operator()(Extension* extend)
+  void Inspect::operator()(ExtendRule* extend)
   {
     append_indentation();
     append_token("@extend", extend);
@@ -399,7 +441,7 @@ namespace Sass {
         list->length() == 1 &&
         !list->from_selector() &&
         !Cast<List>(list->at(0)) &&
-        !Cast<Selector_List>(list->at(0))
+        !Cast<SelectorList>(list->at(0))
     ) {
       append_string(lbracket(list));
     }
@@ -449,7 +491,7 @@ namespace Sass {
         list->length() == 1 &&
         !list->from_selector() &&
         !Cast<List>(list->at(0)) &&
-        !Cast<Selector_List>(list->at(0))
+        !Cast<SelectorList>(list->at(0))
     ) {
       append_string(",");
       append_string(rbracket(list));
@@ -530,7 +572,7 @@ namespace Sass {
     ss << std::fixed << n->value();
 
     std::string res = ss.str();
-    int s = res.length();
+    size_t s = res.length();
 
     // delete trailing zeros
     for(s = s - 1; s > 0; --s)
@@ -561,6 +603,11 @@ namespace Sass {
 
     // add unit now
     res += n->unit();
+
+    if (opt.output_style == TO_CSS && !n->is_valid_css_unit()) {
+      // traces.push_back(Backtrace(nr->pstate()));
+      throw Exception::InvalidValue({}, *n);
+    }
 
     // output the final token
     append_token(res, n);
@@ -879,16 +926,14 @@ namespace Sass {
     s->contents()->perform(this);
   }
 
-  void Inspect::operator()(Parent_Selector* p)
+  void Inspect::operator()(Parent_Reference* p)
   {
-    if (p->real()) append_string("&");
+    append_string("&");
   }
 
   void Inspect::operator()(Placeholder_Selector* s)
   {
     append_token(s->name(), s);
-    if (s->has_line_break()) append_optional_linefeed();
-    if (s->has_line_break()) append_indentation();
 
   }
 
@@ -900,15 +945,11 @@ namespace Sass {
   void Inspect::operator()(Class_Selector* s)
   {
     append_token(s->ns_name(), s);
-    if (s->has_line_break()) append_optional_linefeed();
-    if (s->has_line_break()) append_indentation();
   }
 
   void Inspect::operator()(Id_Selector* s)
   {
     append_token(s->ns_name(), s);
-    if (s->has_line_break()) append_optional_linefeed();
-    if (s->has_line_break()) append_indentation();
   }
 
   void Inspect::operator()(Attribute_Selector* s)
@@ -932,109 +973,36 @@ namespace Sass {
 
   void Inspect::operator()(Pseudo_Selector* s)
   {
-    append_token(s->ns_name(), s);
-    if (s->expression()) {
-      append_string("(");
-      s->expression()->perform(this);
-      append_string(")");
-    }
-  }
 
-  void Inspect::operator()(Wrapped_Selector* s)
-  {
-    if (s->name() == " ") {
-      append_string("");
-    } else {
-      bool was = in_wrapped;
-      in_wrapped = true;
-      append_token(s->name(), s);
-      append_string("(");
-      bool was_comma_array = in_comma_array;
-      in_comma_array = false;
-      s->selector()->perform(this);
-      in_comma_array = was_comma_array;
-      append_string(")");
-      in_wrapped = was;
-    }
-  }
-
-  void Inspect::operator()(Compound_Selector* s)
-  {
-    for (size_t i = 0, L = s->length(); i < L; ++i) {
-      (*s)[i]->perform(this);
-    }
-    if (s->has_line_break()) {
-      if (output_style() != COMPACT) {
-        append_optional_linefeed();
+    if (s->name() != "") {
+      append_string(":");
+      if (s->isSyntacticElement()) {
+        append_string(":");
+      }
+      append_token(s->ns_name(), s);
+      if (s->selector() || s->argument()) {
+        bool was = in_wrapped;
+        in_wrapped = true;
+        append_string("(");
+        if (s->argument()) {
+          s->argument()->perform(this);
+        }
+        if (s->selector() && s->argument()) {
+          append_mandatory_space();
+        }
+        bool was_comma_array = in_comma_array;
+        in_comma_array = false;
+        if (s->selector()) {
+          s->selector()->perform(this);
+        }
+        in_comma_array = was_comma_array;
+        append_string(")");
+        in_wrapped = was;
       }
     }
   }
 
-  void Inspect::operator()(Complex_Selector* c)
-  {
-    Compound_Selector_Obj      head = c->head();
-    Complex_Selector_Obj            tail = c->tail();
-    Complex_Selector::Combinator comb = c->combinator();
-
-    if (comb == Complex_Selector::ANCESTOR_OF && (!head || head->empty())) {
-      if (tail) tail->perform(this);
-      return;
-    }
-
-    if (c->has_line_feed()) {
-      if (!(c->has_parent_ref())) {
-        append_optional_linefeed();
-        append_indentation();
-      }
-    }
-
-    if (head && head->length() != 0) head->perform(this);
-    bool is_empty = !head || head->length() == 0 || head->is_empty_reference();
-    bool is_tail = head && !head->is_empty_reference() && tail;
-    if (output_style() == COMPRESSED && comb != Complex_Selector::ANCESTOR_OF) scheduled_space = 0;
-
-    switch (comb) {
-      case Complex_Selector::ANCESTOR_OF:
-        if (is_tail) append_mandatory_space();
-      break;
-      case Complex_Selector::PARENT_OF:
-        append_optional_space();
-        append_string(">");
-        append_optional_space();
-      break;
-      case Complex_Selector::ADJACENT_TO:
-        append_optional_space();
-        append_string("+");
-        append_optional_space();
-      break;
-      case Complex_Selector::REFERENCE:
-        append_mandatory_space();
-        append_string("/");
-        if (c->reference()) c->reference()->perform(this);
-        append_string("/");
-        append_mandatory_space();
-      break;
-      case Complex_Selector::PRECEDES:
-        if (is_empty) append_optional_space();
-        else append_mandatory_space();
-        append_string("~");
-        if (tail) append_mandatory_space();
-        else append_optional_space();
-      break;
-      default: break;
-    }
-    if (tail && comb != Complex_Selector::ANCESTOR_OF) {
-      if (c->has_line_break()) append_optional_linefeed();
-    }
-    if (tail) tail->perform(this);
-    if (!tail && c->has_line_break()) {
-      if (output_style() == COMPACT) {
-        append_mandatory_space();
-      }
-    }
-  }
-
-  void Inspect::operator()(Selector_List* g)
+  void Inspect::operator()(SelectorList* g)
   {
 
     if (g->empty()) {
@@ -1049,7 +1017,7 @@ namespace Sass {
     // probably ruby sass eqivalent of element_needs_parens
     if (output_style() == TO_SASS && g->length() == 1 &&
       (!Cast<List>((*g)[0]) &&
-       !Cast<Selector_List>((*g)[0]))) {
+        !Cast<SelectorList>((*g)[0]))) {
       append_string("(");
     }
     else if (!in_declaration && in_comma_array) {
@@ -1059,6 +1027,7 @@ namespace Sass {
     if (in_declaration) in_comma_array = true;
 
     for (size_t i = 0, L = g->length(); i < L; ++i) {
+
       if (!in_wrapped && i == 0) append_indentation();
       if ((*g)[i] == nullptr) continue;
       schedule_mapping(g->at(i)->last());
@@ -1075,13 +1044,68 @@ namespace Sass {
     // probably ruby sass eqivalent of element_needs_parens
     if (output_style() == TO_SASS && g->length() == 1 &&
       (!Cast<List>((*g)[0]) &&
-       !Cast<Selector_List>((*g)[0]))) {
+        !Cast<SelectorList>((*g)[0]))) {
       append_string(",)");
     }
     else if (!in_declaration && in_comma_array) {
       append_string(")");
     }
 
+  }
+  void Inspect::operator()(ComplexSelector* sel)
+  {
+    bool many = false;
+    if (sel->hasPreLineFeed()) {
+      append_optional_linefeed();
+    }
+    for (auto& item : sel->elements()) {
+      if (many) append_optional_space();
+      item->perform(this);
+      many = true;
+    }
+  }
+
+  void Inspect::operator()(SelectorComponent* sel)
+  {
+    // You should probably never call this method directly
+    // But in case anyone does, we will do the upcasting
+    if (auto comp = Cast<CompoundSelector>(sel)) operator()(comp);
+    if (auto comb = Cast<SelectorCombinator>(sel)) operator()(comb);
+  }
+
+  void Inspect::operator()(CompoundSelector* sel)
+  {
+    if (sel->hasRealParent()) {
+      append_string("&");
+    }
+    for (auto& item : sel->elements()) {
+      item->perform(this);
+    }
+    // Add the post line break (from ruby sass)
+    // Dart sass uses another logic for newlines
+    if (sel->hasPostLineBreak()) {
+      if (output_style() != COMPACT) {
+        append_optional_linefeed();
+      }
+    }
+  }
+
+  void Inspect::operator()(SelectorCombinator* sel)
+  {
+    append_optional_space();
+    switch (sel->combinator()) {
+      case SelectorCombinator::Combinator::CHILD: append_string(">"); break;
+      case SelectorCombinator::Combinator::GENERAL: append_string("~"); break;
+      case SelectorCombinator::Combinator::ADJACENT: append_string("+"); break;
+    }
+    append_optional_space();
+    // Add the post line break (from ruby sass)
+    // Dart sass uses another logic for newlines
+    if (sel->hasPostLineBreak()) {
+      if (output_style() != COMPACT) {
+        // append_optional_linefeed();
+      }
+    }
   }
 
 }

@@ -1,10 +1,9 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
-#include "util.hpp"
-#include "context.hpp"
-#include "output.hpp"
 #include "emitter.hpp"
 #include "util_string.hpp"
-#include "utf8_string.hpp"
+#include "util.hpp"
 
 namespace Sass {
 

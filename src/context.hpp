@@ -1,27 +1,19 @@
 #ifndef SASS_CONTEXT_H
 #define SASS_CONTEXT_H
 
-#include <string>
-#include <vector>
-#include <map>
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
+#include "sass.hpp"
+#include "ast.hpp"
+
 
 #define BUFFERSIZE 255
 #include "b64/encode.h"
 
-#include "ast_fwd_decl.hpp"
-#include "kwd_arg_macros.hpp"
-#include "ast_fwd_decl.hpp"
 #include "sass_context.hpp"
-#include "environment.hpp"
-#include "source_map.hpp"
-#include "subset_map.hpp"
-#include "backtrace.hpp"
-#include "output.hpp"
+#include "stylesheet.hpp"
 #include "plugins.hpp"
-#include "file.hpp"
-
-
-struct Sass_Function;
+#include "output.hpp"
 
 namespace Sass {
 
@@ -52,10 +44,10 @@ namespace Sass {
     std::vector<char*> strings;
     std::vector<Resource> resources;
     std::map<const std::string, StyleSheet> sheets;
-    Subset_Map subset_map;
     ImporterStack import_stack;
     std::vector<Sass_Callee> callee_stack;
     std::vector<Backtrace> traces;
+    Extender extender;
 
     struct Sass_Compiler* c_compiler;
 
@@ -67,10 +59,6 @@ namespace Sass {
 
     std::vector<std::string> plugin_paths; // relative paths to load plugins
     std::vector<std::string> include_paths; // lookup paths for includes
-
-
-
-
 
     void apply_custom_headers(Block_Obj root, const char* path, ParserState pstate);
 

@@ -1,9 +1,14 @@
 #ifndef SASS_OPERATION_H
 #define SASS_OPERATION_H
 
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
+#include "sass.hpp"
+
 // base classes to implement curiously recurring template pattern (CRTP)
 // https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern
 
+#include <typeinfo>
 #include <stdexcept>
 
 #include "ast_fwd_decl.hpp"
@@ -47,7 +52,9 @@ namespace Sass {
     virtual T operator()(Bubble* x)                 = 0;
     virtual T operator()(Trace* x)                  = 0;
     virtual T operator()(Supports_Block* x)         = 0;
-    virtual T operator()(Media_Block* x)            = 0;
+    virtual T operator()(MediaRule* x) = 0;
+    virtual T operator()(CssMediaRule* x) = 0;
+    virtual T operator()(CssMediaQuery* x) = 0;
     virtual T operator()(At_Root_Block* x)          = 0;
     virtual T operator()(Directive* x)              = 0;
     virtual T operator()(Keyframe_Rule* x)          = 0;
@@ -65,7 +72,7 @@ namespace Sass {
     virtual T operator()(While* x)                  = 0;
     virtual T operator()(Return* x)                 = 0;
     virtual T operator()(Content* x)                = 0;
-    virtual T operator()(Extension* x)              = 0;
+    virtual T operator()(ExtendRule* x)              = 0;
     virtual T operator()(Definition* x)             = 0;
     virtual T operator()(Mixin_Call* x)             = 0;
     // expressions
@@ -92,10 +99,9 @@ namespace Sass {
     virtual T operator()(Supports_Negation* x)      = 0;
     virtual T operator()(Supports_Declaration* x)   = 0;
     virtual T operator()(Supports_Interpolation* x) = 0;
-    virtual T operator()(Media_Query* x)            = 0;
+    virtual T operator()(Media_Query* x) = 0;
     virtual T operator()(Media_Query_Expression* x) = 0;
     virtual T operator()(At_Root_Query* x)          = 0;
-    virtual T operator()(Parent_Selector* x)        = 0;
     virtual T operator()(Parent_Reference* x)        = 0;
     // parameters and arguments
     virtual T operator()(Parameter* x)              = 0;
@@ -110,10 +116,12 @@ namespace Sass {
     virtual T operator()(Id_Selector* x)            = 0;
     virtual T operator()(Attribute_Selector* x)     = 0;
     virtual T operator()(Pseudo_Selector* x)        = 0;
-    virtual T operator()(Wrapped_Selector* x)       = 0;
-    virtual T operator()(Compound_Selector* x)= 0;
-    virtual T operator()(Complex_Selector* x)      = 0;
-    virtual T operator()(Selector_List* x) = 0;
+    virtual T operator()(SelectorComponent* x) = 0;
+    virtual T operator()(SelectorCombinator* x) = 0;
+    virtual T operator()(CompoundSelector* x) = 0;
+    virtual T operator()(ComplexSelector* x) = 0;
+    virtual T operator()(SelectorList* x) = 0;
+
   };
 
   // example: Operation_CRTP<Expression*, Eval>
@@ -130,7 +138,9 @@ namespace Sass {
     T operator()(Bubble* x)                 { return static_cast<D*>(this)->fallback(x); }
     T operator()(Trace* x)                  { return static_cast<D*>(this)->fallback(x); }
     T operator()(Supports_Block* x)         { return static_cast<D*>(this)->fallback(x); }
-    T operator()(Media_Block* x)            { return static_cast<D*>(this)->fallback(x); }
+    T operator()(MediaRule* x) { return static_cast<D*>(this)->fallback(x); }
+    T operator()(CssMediaRule* x) { return static_cast<D*>(this)->fallback(x); }
+    T operator()(CssMediaQuery* x) { return static_cast<D*>(this)->fallback(x); }
     T operator()(At_Root_Block* x)          { return static_cast<D*>(this)->fallback(x); }
     T operator()(Directive* x)              { return static_cast<D*>(this)->fallback(x); }
     T operator()(Keyframe_Rule* x)          { return static_cast<D*>(this)->fallback(x); }
@@ -148,7 +158,7 @@ namespace Sass {
     T operator()(While* x)                  { return static_cast<D*>(this)->fallback(x); }
     T operator()(Return* x)                 { return static_cast<D*>(this)->fallback(x); }
     T operator()(Content* x)                { return static_cast<D*>(this)->fallback(x); }
-    T operator()(Extension* x)              { return static_cast<D*>(this)->fallback(x); }
+    T operator()(ExtendRule* x)              { return static_cast<D*>(this)->fallback(x); }
     T operator()(Definition* x)             { return static_cast<D*>(this)->fallback(x); }
     T operator()(Mixin_Call* x)             { return static_cast<D*>(this)->fallback(x); }
     // expressions
@@ -178,7 +188,6 @@ namespace Sass {
     T operator()(Media_Query* x)            { return static_cast<D*>(this)->fallback(x); }
     T operator()(Media_Query_Expression* x) { return static_cast<D*>(this)->fallback(x); }
     T operator()(At_Root_Query* x)          { return static_cast<D*>(this)->fallback(x); }
-    T operator()(Parent_Selector* x)        { return static_cast<D*>(this)->fallback(x); }
     T operator()(Parent_Reference* x)        { return static_cast<D*>(this)->fallback(x); }
     // parameters and arguments
     T operator()(Parameter* x)              { return static_cast<D*>(this)->fallback(x); }
@@ -193,14 +202,15 @@ namespace Sass {
     T operator()(Id_Selector* x)            { return static_cast<D*>(this)->fallback(x); }
     T operator()(Attribute_Selector* x)     { return static_cast<D*>(this)->fallback(x); }
     T operator()(Pseudo_Selector* x)        { return static_cast<D*>(this)->fallback(x); }
-    T operator()(Wrapped_Selector* x)       { return static_cast<D*>(this)->fallback(x); }
-    T operator()(Compound_Selector* x){ return static_cast<D*>(this)->fallback(x); }
-    T operator()(Complex_Selector* x)      { return static_cast<D*>(this)->fallback(x); }
-    T operator()(Selector_List* x) { return static_cast<D*>(this)->fallback(x); }
+    T operator()(SelectorComponent* x) { return static_cast<D*>(this)->fallback(x); }
+    T operator()(SelectorCombinator* x) { return static_cast<D*>(this)->fallback(x); }
+    T operator()(CompoundSelector* x) { return static_cast<D*>(this)->fallback(x); }
+    T operator()(ComplexSelector* x) { return static_cast<D*>(this)->fallback(x); }
+    T operator()(SelectorList* x) { return static_cast<D*>(this)->fallback(x); }
 
     // fallback with specific type U
     // will be called if not overloaded
-    template <typename U> T fallback(U x)
+    template <typename U> inline T fallback(U x)
     {
       throw std::runtime_error(
         std::string(typeid(*this).name()) + ": CRTP not implemented for " + typeid(x).name());

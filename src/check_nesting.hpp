@@ -1,8 +1,12 @@
 #ifndef SASS_CHECK_NESTING_H
 #define SASS_CHECK_NESTING_H
 
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
+#include "sass.hpp"
 #include "ast.hpp"
 #include "operation.hpp"
+#include <vector>
 
 namespace Sass {
 

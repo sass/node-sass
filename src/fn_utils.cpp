@@ -118,7 +118,7 @@ namespace Sass {
       }
     }
 
-    Selector_List_Obj get_arg_sels(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, Context& ctx) {
+    SelectorListObj get_arg_sels(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, Context& ctx) {
       Expression_Obj exp = ARG(argname, Expression);
       if (exp->concrete_type() == Expression::NULL_VAL) {
         std::stringstream msg;
@@ -133,7 +133,7 @@ namespace Sass {
       return Parser::parse_selector(exp_src.c_str(), ctx, traces, exp->pstate(), pstate.src, /*allow_parent=*/false);
     }
 
-    Compound_Selector_Obj get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, Context& ctx) {
+    CompoundSelectorObj get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, Context& ctx) {
       Expression_Obj exp = ARG(argname, Expression);
       if (exp->concrete_type() == Expression::NULL_VAL) {
         std::stringstream msg;
@@ -144,12 +144,11 @@ namespace Sass {
         str->quote_mark(0);
       }
       std::string exp_src = exp->to_string(ctx.c_options);
-      Selector_List_Obj sel_list = Parser::parse_selector(exp_src.c_str(), ctx, traces, exp->pstate(), pstate.src, /*allow_parent=*/false);
+      SelectorListObj sel_list = Parser::parse_selector(exp_src.c_str(), ctx, traces, exp->pstate(), pstate.src, /*allow_parent=*/false);
       if (sel_list->length() == 0) return {};
-      Complex_Selector_Obj first = sel_list->first();
-      if (!first->tail()) return first->head();
-      return first->tail()->head();
+      return sel_list->first()->first();
     }
+
 
   }
 

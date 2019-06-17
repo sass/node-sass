@@ -1,5 +1,10 @@
 #ifndef SASS_FN_UTILS_H
 #define SASS_FN_UTILS_H
+
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
+#include "sass.hpp"
+
 #include "units.hpp"
 #include "backtrace.hpp"
 #include "environment.hpp"
@@ -15,7 +20,8 @@ namespace Sass {
     Signature sig, \
     ParserState pstate, \
     Backtraces& traces, \
-    SelectorStack& selector_stack
+    SelectorStack selector_stack, \
+    SelectorStack original_stack \
 
   typedef const char* Signature;
   typedef PreValue* (*Native_Function)(FN_PROTOTYPE);
@@ -46,8 +52,8 @@ namespace Sass {
     double color_num(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces); // colors only
     double get_arg_r(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, double lo, double hi); // colors only
     double get_arg_val(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces); // shared
-    Selector_List_Obj get_arg_sels(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, Context& ctx); // selectors only
-    Compound_Selector_Obj get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, Context& ctx); // selectors only
+    SelectorListObj get_arg_sels(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, Context& ctx); // selectors only
+    CompoundSelectorObj get_arg_sel(const std::string& argname, Env& env, Signature sig, ParserState pstate, Backtraces traces, Context& ctx); // selectors only
 
   }
 

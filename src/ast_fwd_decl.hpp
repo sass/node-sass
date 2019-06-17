@@ -1,17 +1,12 @@
 #ifndef SASS_AST_FWD_DECL_H
 #define SASS_AST_FWD_DECL_H
 
-#include <map>
-#include <set>
-#include <deque>
-#include <vector>
-#include <typeinfo>
-#include <iostream>
-#include <algorithm>
-#include <unordered_map>
-#include <unordered_set>
-#include "memory/SharedPtr.hpp"
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
+#include "sass.hpp"
+
 #include "sass/functions.h"
+#include "memory/SharedPtr.hpp"
 
 /////////////////////////////////////////////
 // Forward declarations for the AST visitors.
@@ -22,7 +17,7 @@ namespace Sass {
 
   class Has_Block;
 
-  class Simple_Selector;
+  class SimpleSelector;
 
   class Parent_Reference;
 
@@ -36,10 +31,12 @@ namespace Sass {
   class Bubble;
   class Trace;
 
-  class Media_Block;
+  class MediaRule;
+  class CssMediaRule;
+  class CssMediaQuery;
+
   class Supports_Block;
   class Directive;
-
 
   class Keyframe_Rule;
   class At_Root_Block;
@@ -59,7 +56,7 @@ namespace Sass {
   class While;
   class Return;
   class Content;
-  class Extension;
+  class ExtendRule;
   class Definition;
 
   class List;
@@ -80,6 +77,7 @@ namespace Sass {
   class Color_HSLA;
   class Boolean;
   class String;
+  class Null;
 
   class String_Schema;
   class String_Constant;
@@ -92,12 +90,8 @@ namespace Sass {
   class Supports_Negation;
   class Supports_Declaration;
   class Supports_Interpolation;
-
-
-  class Null;
-
+  
   class At_Root_Query;
-  class Parent_Selector;
   class Parameter;
   class Parameters;
   class Argument;
@@ -113,20 +107,26 @@ namespace Sass {
   class Attribute_Selector;
 
   class Pseudo_Selector;
-  class Wrapped_Selector;
-  class Compound_Selector;
-  class Complex_Selector;
-  class Selector_List;
-
+  
+  class SelectorComponent;
+  class SelectorCombinator;
+  class CompoundSelector;
+  class ComplexSelector;
+  class SelectorList;
 
   // common classes
   class Context;
   class Expand;
   class Eval;
 
+  class Extension;
+
   // declare classes that are instances of memory nodes
-  // #define IMPL_MEM_OBJ(type) using type##_Obj = SharedImpl<type>
-  #define IMPL_MEM_OBJ(type) typedef SharedImpl<type> type##_Obj
+  // Note: also add a mapping without underscore
+  // ToDo: move to camelCase vars in the future
+  #define IMPL_MEM_OBJ(type) \
+    typedef SharedImpl<type> type##Obj; \
+    typedef SharedImpl<type> type##_Obj; \
 
   IMPL_MEM_OBJ(AST_Node);
   IMPL_MEM_OBJ(Statement);
@@ -134,7 +134,9 @@ namespace Sass {
   IMPL_MEM_OBJ(Ruleset);
   IMPL_MEM_OBJ(Bubble);
   IMPL_MEM_OBJ(Trace);
-  IMPL_MEM_OBJ(Media_Block);
+  IMPL_MEM_OBJ(MediaRule);
+  IMPL_MEM_OBJ(CssMediaRule);
+  IMPL_MEM_OBJ(CssMediaQuery);
   IMPL_MEM_OBJ(Supports_Block);
   IMPL_MEM_OBJ(Directive);
   IMPL_MEM_OBJ(Keyframe_Rule);
@@ -155,7 +157,7 @@ namespace Sass {
   IMPL_MEM_OBJ(While);
   IMPL_MEM_OBJ(Return);
   IMPL_MEM_OBJ(Content);
-  IMPL_MEM_OBJ(Extension);
+  IMPL_MEM_OBJ(ExtendRule);
   IMPL_MEM_OBJ(Definition);
   IMPL_MEM_OBJ(Mixin_Call);
   IMPL_MEM_OBJ(Value);
@@ -187,7 +189,6 @@ namespace Sass {
   IMPL_MEM_OBJ(Supports_Interpolation);
   IMPL_MEM_OBJ(At_Root_Query);
   IMPL_MEM_OBJ(Null);
-  IMPL_MEM_OBJ(Parent_Selector);
   IMPL_MEM_OBJ(Parent_Reference);
   IMPL_MEM_OBJ(Parameter);
   IMPL_MEM_OBJ(Parameters);
@@ -195,107 +196,29 @@ namespace Sass {
   IMPL_MEM_OBJ(Arguments);
   IMPL_MEM_OBJ(Selector);
   IMPL_MEM_OBJ(Selector_Schema);
-  IMPL_MEM_OBJ(Simple_Selector);
+  IMPL_MEM_OBJ(SimpleSelector);
   IMPL_MEM_OBJ(Placeholder_Selector);
   IMPL_MEM_OBJ(Type_Selector);
   IMPL_MEM_OBJ(Class_Selector);
   IMPL_MEM_OBJ(Id_Selector);
   IMPL_MEM_OBJ(Attribute_Selector);
   IMPL_MEM_OBJ(Pseudo_Selector);
-  IMPL_MEM_OBJ(Wrapped_Selector);
-  IMPL_MEM_OBJ(Compound_Selector);
-  IMPL_MEM_OBJ(Complex_Selector);
-  IMPL_MEM_OBJ(Selector_List);
 
-  // ###########################################################################
-  // Implement compare, order and hashing operations for AST Nodes
-  // ###########################################################################
-
-  struct HashNodes {
-    template <class T>
-    size_t operator() (const T& ex) const {
-      return ex.isNull() ? 0 : ex->hash();
-    }
-  };
-  template <class T>
-  bool OrderFunction(const T& lhs, const T& rhs) {
-      return !lhs.isNull() && !rhs.isNull() && *lhs < *rhs;
-  };
-  struct OrderNodes {
-    template <class T>
-    bool operator() (const T& lhs, const T& rhs) const {
-      return OrderFunction<T>(lhs, rhs);
-    }
-  };
-  template <class T>
-  bool CompareFunction(const T& lhs, const T& rhs) {
-      // code around sass logic issue. 1px == 1 is true
-      // but both items are still different keys in maps
-      if (dynamic_cast<Number*>(lhs.ptr()))
-        if (dynamic_cast<Number*>(rhs.ptr()))
-          return lhs->hash() == rhs->hash();
-      return !lhs.isNull() && !rhs.isNull() && *lhs == *rhs;
-  }
-  struct CompareNodes {
-    template <class T>
-    bool operator() (const T& lhs, const T& rhs) const {
-      return CompareFunction<T>(lhs, rhs);
-    }
-  };
-
-  struct HashPtr {
-    template <class T>
-    size_t operator() (const T *ref) const {
-      return ref->hash();
-    }
-  };
-  struct ComparePtrs {
-    template <class T>
-    bool operator() (const T *lhs, const T *rhs) const {
-      return *lhs == *rhs;
-    }
-  };
+  IMPL_MEM_OBJ(SelectorComponent);
+  IMPL_MEM_OBJ(SelectorCombinator);
+  IMPL_MEM_OBJ(CompoundSelector);
+  IMPL_MEM_OBJ(ComplexSelector);
+  IMPL_MEM_OBJ(SelectorList);
 
   // ###########################################################################
   // some often used typedefs
   // ###########################################################################
 
-  typedef std::unordered_map<
-    Expression_Obj, // key
-    Expression_Obj, // value
-    HashNodes, // hasher
-    CompareNodes // compare
-  > ExpressionMap;
-  typedef std::unordered_set<
-    Expression_Obj, // value
-    HashNodes, // hasher
-    CompareNodes // compare
-  > ExpressionSet;
-
-  typedef std::string SubSetMapKey;
-  typedef std::vector<std::string> SubSetMapKeys;
-
-  typedef std::pair<Complex_Selector_Obj, Compound_Selector_Obj> SubSetMapPair;
-  typedef std::pair<Compound_Selector_Obj, Complex_Selector_Obj> SubSetMapLookup;
-  typedef std::vector<SubSetMapPair> SubSetMapPairs;
-  typedef std::vector<SubSetMapLookup> SubSetMapLookups;
-
-  typedef std::pair<Complex_Selector_Obj, SubSetMapPairs> SubSetMapResult;
-  typedef std::vector<SubSetMapResult> SubSetMapResults;
-
-  typedef std::set<Selector_Obj, OrderNodes> SelectorSet;
-
-  typedef std::deque<Complex_Selector_Obj> ComplexSelectorDeque;
-  typedef std::set<Simple_Selector_Obj, OrderNodes> SimpleSelectorSet;
-  typedef std::set<Complex_Selector_Obj, OrderNodes> ComplexSelectorSet;
-  typedef std::set<Compound_Selector_Obj, OrderNodes> CompoundSelectorSet;
-  typedef std::unordered_set<Simple_Selector_Obj, HashNodes, CompareNodes> SimpleSelectorDict;
-
   typedef std::vector<Block*> BlockStack;
   typedef std::vector<Sass_Callee> CalleeStack;
   typedef std::vector<AST_Node_Obj> CallStack;
-  typedef std::vector<Media_Block*> MediaStack;
-  typedef std::vector<Selector_List_Obj> SelectorStack;
+  typedef std::vector<CssMediaRuleObj> MediaStack;
+  typedef std::vector<SelectorListObj> SelectorStack;
   typedef std::vector<Sass_Import_Entry> ImporterStack;
 
   // only to switch implementations for testing
@@ -334,7 +257,8 @@ namespace Sass {
   DECLARE_BASE_CAST(String_Constant)
   DECLARE_BASE_CAST(Supports_Condition)
   DECLARE_BASE_CAST(Selector)
-  DECLARE_BASE_CAST(Simple_Selector)
+  DECLARE_BASE_CAST(SimpleSelector)
+  DECLARE_BASE_CAST(SelectorComponent)
 
 }
 

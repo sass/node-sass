@@ -1,17 +1,8 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+
 #include "ast.hpp"
-#include "context.hpp"
-#include "node.hpp"
-#include "eval.hpp"
-#include "extend.hpp"
-#include "emitter.hpp"
-#include "color_maps.hpp"
-#include "ast_fwd_decl.hpp"
-#include <set>
-#include <iomanip>
-#include <iostream>
-#include <algorithm>
-#include <functional>
 #include <cctype>
 #include <locale>
 
@@ -69,7 +60,7 @@ namespace Sass {
     pstate_.offset += pstate - pstate_ + pstate.offset;
   }
 
-  const std::string AST_Node::to_string(Sass_Inspect_Options opt) const
+  std::string AST_Node::to_string(Sass_Inspect_Options opt) const
   {
     Sass_Output_Options out(opt);
     Emitter emitter(out);
@@ -80,19 +71,21 @@ namespace Sass {
     return i.get_buffer();
   }
 
-  const std::string AST_Node::to_string() const
+  std::string AST_Node::to_css(Sass_Inspect_Options opt) const
   {
-    return to_string({ NESTED, 5 });
+    opt.output_style = TO_CSS;
+    Sass_Output_Options out(opt);
+    Emitter emitter(out);
+    Inspect i(emitter);
+    i.in_declaration = true;
+    // ToDo: inspect should be const
+    const_cast<AST_Node*>(this)->perform(&i);
+    return i.get_buffer();
   }
 
-  /////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////
-
-  Expression_Obj Hashed::at(Expression_Obj k) const
+  std::string AST_Node::to_string() const
   {
-    if (elements_.count(k))
-    { return elements_.at(k); }
-    else { return {}; }
+    return to_string({ NESTED, 5 });
   }
 
   /////////////////////////////////////////////////////////////////////////
@@ -137,6 +130,14 @@ namespace Sass {
     is_root_(ptr->is_root_)
   { }
 
+  bool Block::isInvisible() const
+  {
+    for (auto& item : elements()) {
+      if (!item->is_invisible()) return false;
+    }
+    return true;
+  }
+
   bool Block::has_content()
   {
     for (size_t i = 0, L = elements().size(); i < L; ++i) {
@@ -163,19 +164,20 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////
 
-  Ruleset::Ruleset(ParserState pstate, Selector_List_Obj s, Block_Obj b)
-  : Has_Block(pstate, b), selector_(s), is_root_(false)
+  Ruleset::Ruleset(ParserState pstate, SelectorListObj s, Block_Obj b)
+  : Has_Block(pstate, b), selector_(s), schema_(), is_root_(false)
   { statement_type(RULESET); }
   Ruleset::Ruleset(const Ruleset* ptr)
   : Has_Block(ptr),
     selector_(ptr->selector_),
+    schema_(ptr->schema_),
     is_root_(ptr->is_root_)
   { statement_type(RULESET); }
 
   bool Ruleset::is_invisible() const {
-    if (Selector_List* sl = Cast<Selector_List>(selector())) {
-      for (size_t i = 0, L = sl->length(); i < L; ++i)
-        if (!(*sl)[i]->has_placeholder()) return false;
+    if (const SelectorList * sl = Cast<SelectorList>(selector())) {
+      for (size_t i = 0, L = sl->length(); i < L; i += 1)
+        if (!(*sl)[i]->isInvisible()) return false;
     }
     return true;
   }
@@ -212,30 +214,7 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////
 
-  Media_Block::Media_Block(ParserState pstate, List_Obj mqs, Block_Obj b)
-  : Has_Block(pstate, b), media_queries_(mqs)
-  { statement_type(MEDIA); }
-  Media_Block::Media_Block(const Media_Block* ptr)
-  : Has_Block(ptr), media_queries_(ptr->media_queries_)
-  { statement_type(MEDIA); }
-
-  bool Media_Block::is_invisible() const {
-    for (size_t i = 0, L = block()->length(); i < L; ++i) {
-      Statement_Obj stm = block()->at(i);
-      if (!stm->is_invisible()) return false;
-    }
-    return true;
-  }
-
-  bool Media_Block::bubbles()
-  {
-    return true;
-  }
-
-  /////////////////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////////////////
-
-  Directive::Directive(ParserState pstate, std::string kwd, Selector_List_Obj sel, Block_Obj b, Expression_Obj val)
+  Directive::Directive(ParserState pstate, std::string kwd, SelectorListObj sel, Block_Obj b, Expression_Obj val)
   : Has_Block(pstate, b), keyword_(kwd), selector_(sel), value_(val) // set value manually if needed
   { statement_type(DIRECTIVE); }
   Directive::Directive(const Directive* ptr)
@@ -450,11 +429,19 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////
 
-  Extension::Extension(ParserState pstate, Selector_List_Obj s)
-  : Statement(pstate), selector_(s)
+    ExtendRule::ExtendRule(ParserState pstate, SelectorListObj s)
+  : Statement(pstate), isOptional_(false), selector_(s), schema_()
   { statement_type(EXTEND); }
-  Extension::Extension(const Extension* ptr)
-  : Statement(ptr), selector_(ptr->selector_)
+  ExtendRule::ExtendRule(ParserState pstate, Selector_Schema_Obj s)
+    : Statement(pstate), isOptional_(false), selector_(), schema_(s)
+  {
+    statement_type(EXTEND);
+  }
+  ExtendRule::ExtendRule(const ExtendRule* ptr)
+  : Statement(ptr),
+    isOptional_(ptr->isOptional_),
+    selector_(ptr->selector_),
+    schema_(ptr->schema_)
   { statement_type(EXTEND); }
 
   /////////////////////////////////////////////////////////////////////////
@@ -923,8 +910,13 @@ namespace Sass {
   /////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////
 
+  // If you forget to add a class here you will get
+  // undefined reference to `vtable for Sass::Class'
+
   IMPLEMENT_AST_OPERATORS(Ruleset);
-  IMPLEMENT_AST_OPERATORS(Media_Block);
+  IMPLEMENT_AST_OPERATORS(MediaRule);
+  IMPLEMENT_AST_OPERATORS(CssMediaRule);
+  IMPLEMENT_AST_OPERATORS(CssMediaQuery);
   IMPLEMENT_AST_OPERATORS(Import);
   IMPLEMENT_AST_OPERATORS(Import_Stub);
   IMPLEMENT_AST_OPERATORS(Directive);
@@ -934,7 +926,7 @@ namespace Sass {
   IMPLEMENT_AST_OPERATORS(For);
   IMPLEMENT_AST_OPERATORS(If);
   IMPLEMENT_AST_OPERATORS(Mixin_Call);
-  IMPLEMENT_AST_OPERATORS(Extension);
+  IMPLEMENT_AST_OPERATORS(ExtendRule);
   IMPLEMENT_AST_OPERATORS(Media_Query);
   IMPLEMENT_AST_OPERATORS(Media_Query_Expression);
   IMPLEMENT_AST_OPERATORS(Debug);

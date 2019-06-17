@@ -32,7 +32,8 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\error_handling.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\eval.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\expand.hpp" />
-    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\extend.hpp" />
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\extender.hpp" />
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\extension.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\file.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\fn_utils.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\fn_miscs.hpp" />
@@ -48,7 +49,6 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\lexer.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\listize.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\mapping.hpp" />
-    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\node.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\operation.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\output.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\parser.hpp" />
@@ -60,10 +60,9 @@
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\sass.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\sass_context.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\sass_functions.hpp" />
-    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\sass_util.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\sass_values.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\source_map.hpp" />
-    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\subset_map.hpp" />
+    <ClInclude Include="$(LIBSASS_HEADERS_DIR)\stylesheet.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\ast2c.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\c2ast.hpp" />
     <ClInclude Include="$(LIBSASS_HEADERS_DIR)\to_value.hpp" />
@@ -82,7 +81,9 @@
     <ClCompile Include="$(LIBSASS_SRC_DIR)\ast_values.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\ast_supports.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\ast_sel_cmp.cpp" />
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\ast_sel_super.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\ast_sel_unify.cpp" />
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\ast_sel_weave.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\ast_selectors.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\memory\SharedPtr.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\ast_fwd_decl.cpp" />
@@ -99,8 +100,10 @@
     <ClCompile Include="$(LIBSASS_SRC_DIR)\environment.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\error_handling.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\eval.cpp" />
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\eval_selectors.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\expand.cpp" />
-    <ClCompile Include="$(LIBSASS_SRC_DIR)\extend.cpp" />
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\extender.cpp" />
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\extension.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\file.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\fn_utils.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\fn_miscs.cpp" />
@@ -114,9 +117,9 @@
     <ClCompile Include="$(LIBSASS_SRC_DIR)\json.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\lexer.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\listize.cpp" />
-    <ClCompile Include="$(LIBSASS_SRC_DIR)\node.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\output.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\parser.cpp" />
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\parser_selectors.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\plugins.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\position.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\prelexer.cpp" />
@@ -126,11 +129,10 @@
     <ClCompile Include="$(LIBSASS_SRC_DIR)\sass.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\sass_context.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\sass_functions.cpp" />
-    <ClCompile Include="$(LIBSASS_SRC_DIR)\sass_util.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\sass_values.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\sass2scss.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\source_map.cpp" />
-    <ClCompile Include="$(LIBSASS_SRC_DIR)\subset_map.cpp" />
+    <ClCompile Include="$(LIBSASS_SRC_DIR)\stylesheet.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\ast2c.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\c2ast.cpp" />
     <ClCompile Include="$(LIBSASS_SRC_DIR)\to_value.cpp" />

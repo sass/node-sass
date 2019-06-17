@@ -1,9 +1,7 @@
 // sass.hpp must go before all system headers to get the
 // __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
-
-#include <vector>
-
+#include "ast.hpp"
 #include "check_nesting.hpp"
 
 namespace Sass {
@@ -145,7 +143,7 @@ namespace Sass {
     if (is_charset(node))
     { this->invalid_charset_parent(this->parent, node); }
 
-    if (Cast<Extension>(node))
+    if (Cast<ExtendRule>(node))
     { this->invalid_extend_parent(this->parent, node); }
 
     // if (Cast<Import>(node))
@@ -388,7 +386,8 @@ namespace Sass {
   {
     return Cast<Directive>(n) ||
            Cast<Import>(n) ||
-           Cast<Media_Block>(n) ||
-           Cast<Supports_Block>(n);
+      Cast<MediaRule>(n) ||
+      Cast<CssMediaRule>(n) ||
+      Cast<Supports_Block>(n);
   }
 }

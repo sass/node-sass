@@ -19,7 +19,7 @@ namespace Sass {
   // simple endless recursion protection
   const size_t maxRecursion = 500;
 
-  Expand::Expand(Context& ctx, Env* env, SelectorStack* stack)
+  Expand::Expand(Context& ctx, Env* env, SelectorStack* stack, SelectorStack* originals)
   : ctx(ctx),
     traces(ctx.traces),
     eval(Eval(*this)),
@@ -27,19 +27,32 @@ namespace Sass {
     in_keyframes(false),
     at_root_without_rule(false),
     old_at_root_without_rule(false),
-    env_stack(EnvStack()),
-    block_stack(BlockStack()),
-    call_stack(CallStack()),
-    selector_stack(SelectorStack()),
-    media_stack(MediaStack())
+    env_stack(),
+    block_stack(),
+    call_stack(),
+    selector_stack(),
+    originalStack(),
+    mediaStack()
   {
     env_stack.push_back(nullptr);
     env_stack.push_back(env);
     block_stack.push_back(nullptr);
     call_stack.push_back({});
-    if (stack == NULL) { selector_stack.push_back({}); }
-    else { selector_stack.insert(selector_stack.end(), stack->begin(), stack->end()); }
-    media_stack.push_back(nullptr);
+    if (stack == NULL) { pushToSelectorStack({}); }
+    else {
+      for (auto item : *stack) {
+        if (item.isNull()) pushToSelectorStack({});
+        else pushToSelectorStack(item);
+      }
+    }
+    if (originals == NULL) { pushToOriginalStack({}); }
+    else {
+      for (auto item : *stack) {
+        if (item.isNull()) pushToOriginalStack({});
+        else pushToOriginalStack(item);
+      }
+    }
+    mediaStack.push_back({});
   }
 
   Env* Expand::environment()
@@ -49,11 +62,63 @@ namespace Sass {
     return 0;
   }
 
-  Selector_List_Obj Expand::selector()
+  SelectorStack Expand::getSelectorStack()
   {
-    if (selector_stack.size() > 0)
-      return selector_stack.back();
-    return {};
+    return selector_stack;
+  }
+
+  SelectorListObj& Expand::selector()
+  {
+    if (selector_stack.size() > 0) {
+      auto& sel = selector_stack.back();
+      if (sel.isNull()) return sel;
+      return sel;
+    }
+    // Avoid the need to return copies
+    // We always want an empty first item
+    selector_stack.push_back({});
+    return selector_stack.back();;
+  }
+
+  SelectorListObj& Expand::original()
+  {
+    if (originalStack.size() > 0) {
+      auto& sel = originalStack.back();
+      if (sel.isNull()) return sel;
+      return sel;
+    }
+    // Avoid the need to return copies
+    // We always want an empty first item
+    originalStack.push_back({});
+    return originalStack.back();
+  }
+
+  SelectorListObj Expand::popFromSelectorStack()
+  {
+    SelectorListObj last = selector_stack.back();
+    if (selector_stack.size() > 0)    
+      selector_stack.pop_back();
+    if (last.isNull()) return {};
+    return last;
+  }
+
+  void Expand::pushToSelectorStack(SelectorListObj selector)
+  {
+    selector_stack.push_back(selector);
+  }
+
+  SelectorListObj Expand::popFromOriginalStack()
+  {
+    SelectorListObj last = originalStack.back();
+    if (originalStack.size() > 0)
+      originalStack.pop_back();
+    if (last.isNull()) return {};
+    return last;
+  }
+
+  void Expand::pushToOriginalStack(SelectorListObj selector)
+  {
+    originalStack.push_back(selector);
   }
 
   // blocks create new variable scopes
@@ -87,69 +152,55 @@ namespace Sass {
     if (in_keyframes) {
       Block* bb = operator()(r->block());
       Keyframe_Rule_Obj k = SASS_MEMORY_NEW(Keyframe_Rule, r->pstate(), bb);
-      if (r->selector()) {
-        if (Selector_List* s = r->selector()) {
-          selector_stack.push_back({});
-          k->name(s->eval(eval));
-          selector_stack.pop_back();
+      if (r->schema()) {
+        pushToSelectorStack({});
+        k->name(eval(r->schema()));
+        popFromSelectorStack();
+      }
+      else if (r->selector()) {
+        if (SelectorListObj s = r->selector()) {
+          pushToSelectorStack({});
+          k->name(eval(s));
+          popFromSelectorStack();
         }
       }
+
       return k.detach();
+    }
+
+    if (r->schema()) {
+      SelectorListObj sel = eval(r->schema());
+      r->selector(sel);
+      bool chroot = sel->has_real_parent_ref();
+      for (auto complex : sel->elements()) {
+        complex->chroots(chroot);
+      }
+
     }
 
     // reset when leaving scope
     LOCAL_FLAG(at_root_without_rule, false);
 
-    // `&` is allowed in `@at-root`!
-    bool has_parent_selector = false;
-    for (size_t i = 0, L = selector_stack.size(); i < L && !has_parent_selector; i++) {
-      Selector_List_Obj ll = selector_stack.at(i);
-      has_parent_selector = ll != nullptr && ll->length() > 0;
-    }
-
-    Selector_List_Obj sel = r->selector();
-    if (sel) sel = sel->eval(eval);
-
-    // check for parent selectors in base level rules
-    if (r->is_root() || (block_stack.back() && block_stack.back()->is_root())) {
-      if (Selector_List* selector_list = Cast<Selector_List>(r->selector())) {
-        for (Complex_Selector_Obj complex_selector : selector_list->elements()) {
-          Complex_Selector* tail = complex_selector;
-          while (tail) {
-            if (tail->head()) for (Simple_Selector_Obj header : tail->head()->elements()) {
-              Parent_Selector* ptr = Cast<Parent_Selector>(header);
-              if (ptr == NULL || (!ptr->real() || has_parent_selector)) continue;
-              std::string sel_str(complex_selector->to_string(ctx.c_options));
-              error("Base-level rules cannot contain the parent-selector-referencing character '&'.", header->pstate(), traces);
-            }
-            tail = tail->tail();
-          }
-        }
-      }
-    }
-    else {
-      if (sel->length() == 0 || sel->has_parent_ref()) {
-        if (sel->has_real_parent_ref() && !has_parent_selector) {
-          error("Base-level rules cannot contain the parent-selector-referencing character '&'.", sel->pstate(), traces);
-        }
-      }
-    }
-
+    SelectorListObj evaled = eval(r->selector());
     // do not connect parent again
-    sel->remove_parent_selectors();
-    selector_stack.push_back(sel);
     Env env(environment());
     if (block_stack.back()->is_root()) {
       env_stack.push_back(&env);
     }
-    sel->set_media_block(media_stack.back());
     Block_Obj blk;
+    pushToSelectorStack(evaled);
+    // The copy is needed for parent reference evaluation
+    // dart-sass stores it as `originalSelector` member
+    pushToOriginalStack(SASS_MEMORY_COPY(evaled));
+    ctx.extender.addSelector(evaled, mediaStack.back());
     if (r->block()) blk = operator()(r->block());
+    popFromOriginalStack();
+    popFromSelectorStack();
     Ruleset* rr = SASS_MEMORY_NEW(Ruleset,
                                   r->pstate(),
-                                  sel,
+                                  evaled,
                                   blk);
-    selector_stack.pop_back();
+
     if (block_stack.back()->is_root()) {
       env_stack.pop_back();
     }
@@ -170,31 +221,44 @@ namespace Sass {
     return ff.detach();
   }
 
-  Statement* Expand::operator()(Media_Block* m)
+  std::vector<CssMediaQuery_Obj> Expand::mergeMediaQueries(
+    const std::vector<CssMediaQuery_Obj>& lhs,
+    const std::vector<CssMediaQuery_Obj>& rhs)
   {
-    Media_Block_Obj cpy = SASS_MEMORY_COPY(m);
-    // Media_Blocks are prone to have circular references
-    // Copy could leak memory if it does not get picked up
-    // Looks like we are able to reset block reference for copy
-    // Good as it will ensure a low memory overhead for this fix
-    // So this is a cheap solution with a minimal price
-    ctx.ast_gc.push_back(cpy); cpy->block({});
-    Expression_Obj mq = eval(m->media_queries());
-    std::string str_mq(mq->to_string(ctx.c_options));
+    std::vector<CssMediaQuery_Obj> queries;
+    for (CssMediaQuery_Obj query1 : lhs) {
+      for (CssMediaQuery_Obj query2 : rhs) {
+        CssMediaQuery_Obj result = query1->merge(query2);
+        if (result && !result->empty()) {
+          queries.push_back(result);
+        }
+      }
+    }
+    return queries;
+  }
+
+  Statement* Expand::operator()(MediaRule* m)
+  {
+    Expression_Obj mq = eval(m->schema());
+    std::string str_mq(mq->to_css(ctx.c_options));
     char* str = sass_copy_c_string(str_mq.c_str());
     ctx.strings.push_back(str);
-    Parser p(Parser::from_c_str(str, ctx, traces, mq->pstate()));
-    mq = p.parse_media_queries(); // re-assign now
-    cpy->media_queries(mq);
-    media_stack.push_back(cpy);
-    Block_Obj blk = operator()(m->block());
-    Media_Block* mm = SASS_MEMORY_NEW(Media_Block,
-                                      m->pstate(),
-                                      mq,
-                                      blk);
-    media_stack.pop_back();
-    mm->tabs(m->tabs());
-    return mm;
+    Parser parser(Parser::from_c_str(str, ctx, traces, mq->pstate()));
+    // Create a new CSS only representation of the media rule
+    CssMediaRuleObj css = SASS_MEMORY_NEW(CssMediaRule, m->pstate(), m->block());
+    std::vector<CssMediaQuery_Obj> parsed = parser.parseCssMediaQueries();
+    if (mediaStack.size() && mediaStack.back()) {
+      auto& parent = mediaStack.back()->elements();
+      css->concat(mergeMediaQueries(parent, parsed));
+    }
+    else {
+      css->concat(parsed);
+    }
+    mediaStack.push_back(css);
+    css->block(operator()(m->block()));
+    mediaStack.pop_back();
+    return css.detach();
+
   }
 
   Statement* Expand::operator()(At_Root_Block* a)
@@ -222,12 +286,12 @@ namespace Sass {
   {
     LOCAL_FLAG(in_keyframes, a->is_keyframes());
     Block* ab = a->block();
-    Selector_List* as = a->selector();
+    SelectorList* as = a->selector();
     Expression* av = a->value();
-    selector_stack.push_back({});
+    pushToSelectorStack({});
     if (av) av = av->perform(&eval);
     if (as) as = eval(as);
-    selector_stack.pop_back();
+    popFromSelectorStack();
     Block* bb = ab ? operator()(ab) : NULL;
     Directive* aa = SASS_MEMORY_NEW(Directive,
                                   a->pstate(),
@@ -497,9 +561,8 @@ namespace Sass {
     if (expr->concrete_type() == Expression::MAP) {
       map = Cast<Map>(expr);
     }
-    else if (Selector_List* ls = Cast<Selector_List>(expr)) {
-      Listize listize;
-      Expression_Obj rv = ls->perform(&listize);
+    else if (SelectorList * ls = Cast<SelectorList>(expr)) {
+      Expression_Obj rv = Listize::perform(ls);
       list = Cast<List>(rv);
     }
     else if (expr->concrete_type() != Expression::LIST) {
@@ -534,7 +597,7 @@ namespace Sass {
     }
     else {
       // bool arglist = list->is_arglist();
-      if (list->length() == 1 && Cast<Selector_List>(list)) {
+      if (list->length() == 1 && Cast<SelectorList>(list)) {
         list = Cast<List>(list);
       }
       for (size_t i = 0, L = list->length(); i < L; ++i) {
@@ -595,87 +658,55 @@ namespace Sass {
     return 0;
   }
 
-
-  void Expand::expand_selector_list(Selector_Obj s, Selector_List_Obj extender) {
-
-    if (Selector_List_Obj sl = Cast<Selector_List>(s)) {
-      for (Complex_Selector_Obj complex_selector : sl->elements()) {
-        Complex_Selector_Obj tail = complex_selector;
-        while (tail) {
-          if (tail->head()) for (Simple_Selector_Obj header : tail->head()->elements()) {
-            if (Cast<Parent_Selector>(header) == NULL) continue; // skip all others
-            std::string sel_str(complex_selector->to_string(ctx.c_options));
-            error("Can't extend " + sel_str + ": can't extend parent selectors", header->pstate(), traces);
-          }
-          tail = tail->tail();
-        }
-      }
-    }
-
-
-    Selector_List_Obj contextualized = Cast<Selector_List>(s->perform(&eval));
-    if (contextualized == nullptr) return;
-    for (auto complex_sel : contextualized->elements()) {
-      Complex_Selector_Obj c = complex_sel;
-      if (!c->head() || c->tail()) {
-        std::string sel_str(contextualized->to_string(ctx.c_options));
-        error("Can't extend " + sel_str + ": can't extend nested selectors", c->pstate(), traces);
-      }
-      Compound_Selector_Obj target = c->head();
-      if (contextualized->is_optional()) target->is_optional(true);
-      for (size_t i = 0, L = extender->length(); i < L; ++i) {
-        Complex_Selector_Obj sel = (*extender)[i];
-        if (!(sel->head() && sel->head()->length() > 0 &&
-            Cast<Parent_Selector>((*sel->head())[0])))
-        {
-          Compound_Selector_Obj hh = SASS_MEMORY_NEW(Compound_Selector, (*extender)[i]->pstate());
-          hh->media_block((*extender)[i]->media_block());
-          Complex_Selector_Obj ssel = SASS_MEMORY_NEW(Complex_Selector, (*extender)[i]->pstate());
-          ssel->media_block((*extender)[i]->media_block());
-          if (sel->has_line_feed()) ssel->has_line_feed(true);
-          Parent_Selector_Obj ps = SASS_MEMORY_NEW(Parent_Selector, (*extender)[i]->pstate());
-          ps->media_block((*extender)[i]->media_block());
-          hh->append(ps);
-          ssel->tail(sel);
-          ssel->head(hh);
-          sel = ssel;
-        }
-        // if (c->has_line_feed()) sel->has_line_feed(true);
-        ctx.subset_map.put(target, std::make_pair(sel, target));
-      }
-    }
-
-  }
-
-  Statement* Expand::operator()(Extension* e)
+  Statement* Expand::operator()(ExtendRule* e)
   {
-    if (Selector_List_Obj extender = selector()) {
-      Selector_List* sl = e->selector();
-      // abort on invalid selector
-      if (sl == NULL) return NULL;
-      if (Selector_Schema* schema = sl->schema()) {
-        if (schema->has_real_parent_ref()) {
-          // put root block on stack again (ignore parents)
-          // selector schema must not connect in eval!
-          block_stack.push_back(block_stack.at(1));
-          sl = eval(sl->schema());
-          block_stack.pop_back();
-        } else {
-          selector_stack.push_back({});
-          sl = eval(sl->schema());
-          selector_stack.pop_back();
-        }
-      }
-      for (Complex_Selector_Obj cs : sl->elements()) {
-        if (!cs.isNull() && !cs->head().isNull()) {
-          cs->head()->media_block(media_stack.back());
-        }
-      }
-      selector_stack.push_back({});
-      expand_selector_list(sl, extender);
-      selector_stack.pop_back();
+
+    // evaluate schema first
+    if (e->schema()) {
+      e->selector(eval(e->schema()));
+      e->isOptional(e->selector()->is_optional());
     }
-    return 0;
+    // evaluate the selector
+    e->selector(eval(e->selector()));
+
+    if (e->selector()) {
+
+      for (auto complex : e->selector()->elements()) {
+
+        if (complex->length() != 1) {
+          error("complex selectors may not be extended.", complex->pstate(), traces);
+        }
+
+        if (const CompoundSelector* compound = complex->first()->getCompound()) {
+
+          if (compound->length() != 1) {
+
+            std::cerr <<
+              "compound selectors may no longer be extended.\n"
+              "Consider `@extend ${compound.components.join(', ')}` instead.\n"
+              "See http://bit.ly/ExtendCompound for details.\n";
+
+            // Make this an error once deprecation is over
+            for (SimpleSelectorObj simple : compound->elements()) {
+              // Pass every selector we ever see to extender (to make them findable for extend)
+              ctx.extender.addExtension(selector(), simple, mediaStack.back(), e->isOptional());
+            }
+
+          }
+          else {
+            // Pass every selector we ever see to extender (to make them findable for extend)
+            ctx.extender.addExtension(selector(), compound->first(), mediaStack.back(), e->isOptional());
+          }
+
+        }
+        else {
+          error("complex selectors may not be extended.", complex->pstate(), traces);
+        }
+      }
+    }
+
+    return nullptr;
+
   }
 
   Statement* Expand::operator()(Definition* d)
@@ -705,6 +736,7 @@ namespace Sass {
 
   Statement* Expand::operator()(Mixin_Call* c)
   {
+
     if (recursions > maxRecursion) {
       throw Exception::StackError(traces, *c);
     }
@@ -785,11 +817,6 @@ namespace Sass {
     Env* env = environment();
     // convert @content directives into mixin calls to the underlying thunk
     if (!env->has("@content[m]")) return 0;
-
-    if (block_stack.back()->is_root()) {
-      selector_stack.push_back({});
-    }
-
     Arguments_Obj args = c->arguments();
     if (!args) args = SASS_MEMORY_NEW(Arguments, c->pstate());
 
@@ -799,11 +826,6 @@ namespace Sass {
                                        args);
 
     Trace_Obj trace = Cast<Trace>(call->perform(this));
-
-    if (block_stack.back()->is_root()) {
-      selector_stack.pop_back();
-    }
-
     return trace.detach();
   }
 

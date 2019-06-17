@@ -45,6 +45,7 @@ namespace Sass {
     extern const char for_kwd[]           = "@for";
     extern const char from_kwd[]          = "from";
     extern const char to_kwd[]            = "to";
+    extern const char of_kwd[]            = "of";
     extern const char through_kwd[]       = "through";
     extern const char each_kwd[]          = "@each";
     extern const char in_kwd[]            = "in";
@@ -160,6 +161,10 @@ namespace Sass {
     // constants for uri parsing (RFC 3986 Appendix A.)
     extern const char uri_chars[]  = ":;/?!%&#@|[]{}'`^\"*+-.,_=~";
     extern const char real_uri_chars[]  = "#%&";
+
+    extern const char selector_combinator_child[] = ">";
+    extern const char selector_combinator_general[] = "~";
+    extern const char selector_combinator_adjacent[] = "+";
 
     // some specific constant character classes
     // they must be static to be useable by lexer
