@@ -251,7 +251,9 @@ namespace Sass {
   // ##########################################################################
   // Helper function to copy extension between maps
   // ##########################################################################
-  void Extender::mapCopyExts(
+  // Seems only relevant for sass 4.0 modules
+  // ##########################################################################
+  /* void mapCopyExts(
     ExtSelExtMap& dest,
     const ExtSelExtMap& source)
   {
@@ -271,7 +273,7 @@ namespace Sass {
         }
       }
     }
-  }
+  } */
   // EO mapCopyExts
 
   // ##########################################################################
@@ -353,11 +355,13 @@ namespace Sass {
     auto existingExtensions = extensionsByExtender.find(target);
     if (existingExtensions != extensionsByExtender.end()) {
       if (hasExistingExtensions && !existingExtensions->second.empty()) {
-        auto additionalExtensions =
+        // Seems only relevant for sass 4.0 modules
+        // auto additionalExtensions =
           extendExistingExtensions(existingExtensions->second, newExtensionsByTarget);
-        if (!additionalExtensions.empty()) {
+        // Seems only relevant for sass 4.0 modules
+        /* if (!additionalExtensions.empty()) {
           mapCopyExts(newExtensionsByTarget, additionalExtensions);
-        }
+        } */
       }
     }
 
@@ -455,6 +459,8 @@ namespace Sass {
         }
         else {
           sources.insert(complex, withExtender);
+          /*
+          // Seems only relevant for sass 4.0 modules
           for (auto& component : complex->elements()) {
             if (auto compound = component->getCompound()) {
               for (auto& simple : compound->elements()) {
@@ -465,15 +471,19 @@ namespace Sass {
           if (newExtensions.find(extension.target) != newExtensions.end()) {
             additionalExtensions[extension.target].insert(complex, withExtender);
           }
+          */
         }
       }
 
       // If [selectors] doesn't contain [extension.extender],
       // for example if it was replaced due to :not() expansion,
       // we must get rid of the old version.
+      /*
+      // Seems only relevant for sass 4.0 modules
       if (!containsExtension) {
         sources.erase(extension.extender);
       }
+      */
 
     }
 

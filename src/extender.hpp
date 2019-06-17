@@ -250,13 +250,6 @@ namespace Sass {
       const Extension& rhs);
 
     // ##########################################################################
-    // Helper function to copy extension between maps
-    // ##########################################################################
-    static void mapCopyExts(
-      ExtSelExtMap& dest,
-      const ExtSelExtMap& source);
-
-    // ##########################################################################
     // Extend [extensions] using [newExtensions].
     // ##########################################################################
     // Note: dart-sass throws an error in here
