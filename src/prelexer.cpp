@@ -336,7 +336,7 @@ namespace Sass {
       return alternatives<
                unicode_seq,
                alpha,
-               unicode,
+               nonascii,
                exactly<'-'>,
                exactly<'_'>,
                NONASCII,
@@ -351,7 +351,7 @@ namespace Sass {
       return alternatives<
                unicode_seq,
                alnum,
-               unicode,
+               nonascii,
                exactly<'-'>,
                exactly<'_'>,
                NONASCII,
@@ -385,7 +385,7 @@ namespace Sass {
     {
       return alternatives <
                alpha,
-               unicode,
+               nonascii,
                escape_seq,
                exactly<'_'>
              >(src);
@@ -395,7 +395,7 @@ namespace Sass {
     {
       return alternatives <
                alnum,
-               unicode,
+               nonascii,
                escape_seq,
                exactly<'_'>
              >(src);

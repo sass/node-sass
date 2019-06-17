@@ -672,7 +672,7 @@ namespace Sass {
   }
   // EO parse_include_directive
 
-  
+
   SimpleSelectorObj Parser::parse_simple_selector()
   {
     lex < css_comments >(false);
@@ -2171,7 +2171,7 @@ namespace Sass {
         }
 
       }
-      
+
     }
 
     std::vector<std::string> queries;
@@ -2907,7 +2907,7 @@ namespace Sass {
     }
     // backup position to last significant char
     while (trim && last_pos > source && last_pos < end) {
-      if (!Prelexer::is_space(*last_pos)) break;
+      if (!Util::ascii_isspace(static_cast<unsigned char>(*last_pos))) break;
       utf8::prior(last_pos, source);
     }
 

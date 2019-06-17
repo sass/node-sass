@@ -6,6 +6,7 @@
 #include <iomanip>
 #include "lexer.hpp"
 #include "constants.hpp"
+#include "util_string.hpp"
 
 
 namespace Sass {
@@ -27,77 +28,14 @@ namespace Sass {
     const char* kwd_minus(const char* src) { return exactly<'-'>(src); };
     const char* kwd_slash(const char* src) { return exactly<'/'>(src); };
 
-    //####################################
-    // implement some function that do exist in the standard
-    // but those are locale aware which brought some trouble
-    // this even seems to improve performance by quite a bit
-    //####################################
-
-    bool is_alpha(const char& chr)
-    {
-      return unsigned(chr - 'A') <= 'Z' - 'A' ||
-             unsigned(chr - 'a') <= 'z' - 'a';
-    }
-
-    bool is_space(const char& chr)
-    {
-      // adapted the technique from is_alpha
-      return chr == ' ' || unsigned(chr - '\t') <= '\r' - '\t';
-    }
-
-    bool is_digit(const char& chr)
-    {
-      // adapted the technique from is_alpha
-      return unsigned(chr - '0') <= '9' - '0';
-    }
-
-    bool is_number(const char& chr)
-    {
-      // adapted the technique from is_alpha
-      return is_digit(chr) || chr == '-' || chr == '+';
-    }
-
-    bool is_xdigit(const char& chr)
-    {
-      // adapted the technique from is_alpha
-      return unsigned(chr - '0') <= '9' - '0' ||
-             unsigned(chr - 'a') <= 'f' - 'a' ||
-             unsigned(chr - 'A') <= 'F' - 'A';
-    }
-
-    bool is_punct(const char& chr)
-    {
-      // locale independent
-      return chr == '.';
-    }
-
-    bool is_alnum(const char& chr)
-    {
-      return is_alpha(chr) || is_digit(chr);
-    }
-
-    // check if char is outside ascii range
-    bool is_unicode(const char& chr)
-    {
-      // check for unicode range
-      return unsigned(chr) > 127;
-    }
-
-    // check if char is outside ascii range
-    // but with specific ranges (copied from Ruby Sass)
-    bool is_nonascii(const char& chr)
-    {
-      unsigned int cmp = unsigned(chr);
-      return (
-        (cmp >= 128 && cmp <= 15572911) ||
-        (cmp >= 15630464 && cmp <= 15712189) ||
-        (cmp >= 4036001920)
-      );
+    bool is_number(char chr) {
+      return Util::ascii_isdigit(static_cast<unsigned char>(chr)) ||
+        chr == '-' || chr == '+';
     }
 
     // check if char is within a reduced ascii range
     // valid in a uri (copied from Ruby Sass)
-    bool is_uri_character(const char& chr)
+    bool is_uri_character(char chr)
     {
       unsigned int cmp = unsigned(chr);
       return (cmp > 41 && cmp < 127) ||
@@ -106,17 +44,19 @@ namespace Sass {
 
     // check if char is within a reduced ascii range
     // valid for escaping (copied from Ruby Sass)
-    bool is_escapable_character(const char& chr)
+    bool is_escapable_character(char chr)
     {
       unsigned int cmp = unsigned(chr);
       return cmp > 31 && cmp < 127;
     }
 
     // Match word character (look ahead)
-    bool is_character(const char& chr)
+    bool is_character(char chr)
     {
       // valid alpha, numeric or unicode char (plus hyphen)
-      return is_alnum(chr) || is_unicode(chr) || chr == '-';
+      return Util::ascii_isalnum(static_cast<unsigned char>(chr)) ||
+        !Util::ascii_isascii(static_cast<unsigned char>(chr)) ||
+        chr == '-';
     }
 
     //####################################
@@ -124,16 +64,13 @@ namespace Sass {
     //####################################
 
     // create matchers that advance the position
-    const char* space(const char* src) { return is_space(*src) ? src + 1 : 0; }
-    const char* alpha(const char* src) { return is_alpha(*src) ? src + 1 : 0; }
-    const char* unicode(const char* src) { return is_unicode(*src) ? src + 1 : 0; }
-    const char* nonascii(const char* src) { return is_nonascii(*src) ? src + 1 : 0; }
-    const char* digit(const char* src) { return is_digit(*src) ? src + 1 : 0; }
-    const char* xdigit(const char* src) { return is_xdigit(*src) ? src + 1 : 0; }
-    const char* alnum(const char* src) { return is_alnum(*src) ? src + 1 : 0; }
-    const char* punct(const char* src) { return is_punct(*src) ? src + 1 : 0; }
-    const char* hyphen(const char* src) { return *src && *src == '-' ? src + 1 : 0; }
-    const char* character(const char* src) { return is_character(*src) ? src + 1 : 0; }
+    const char* space(const char* src) { return Util::ascii_isspace(static_cast<unsigned char>(*src)) ? src + 1 : nullptr; }
+    const char* alpha(const char* src) { return Util::ascii_isalpha(static_cast<unsigned char>(*src)) ? src + 1 : nullptr; }
+    const char* nonascii(const char* src) { return Util::ascii_isascii(static_cast<unsigned char>(*src)) ? nullptr : src + 1; }
+    const char* digit(const char* src) { return Util::ascii_isdigit(static_cast<unsigned char>(*src)) ? src + 1 : nullptr; }
+    const char* xdigit(const char* src) { return Util::ascii_isxdigit(static_cast<unsigned char>(*src)) ? src + 1 : nullptr; }
+    const char* alnum(const char* src) { return Util::ascii_isalnum(static_cast<unsigned char>(*src)) ? src + 1 : nullptr; }
+    const char* hyphen(const char* src) { return *src == '-' ? src + 1 : 0; }
     const char* uri_character(const char* src) { return is_uri_character(*src) ? src + 1 : 0; }
     const char* escapable_character(const char* src) { return is_escapable_character(*src) ? src + 1 : 0; }
 
