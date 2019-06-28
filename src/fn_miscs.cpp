@@ -76,10 +76,10 @@ namespace Sass {
       }
     }
 
-    Signature feature_exists_sig = "feature-exists($name)";
+    Signature feature_exists_sig = "feature-exists($feature)";
     BUILT_IN(feature_exists)
     {
-      std::string s = unquote(ARG("$name", String_Constant)->value());
+      std::string s = unquote(ARG("$feature", String_Constant)->value());
 
       static const auto *const features = new std::unordered_set<std::string> {
         "global-variable-shadowing",
