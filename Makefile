@@ -287,6 +287,9 @@ test_full: $(SASSC_BIN)
 test_probe: $(SASSC_BIN)
 	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) --impl libsass --probe-todo $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
 
+test_interactive: $(SASSC_BIN)
+	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) --impl libsass --interactive $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
+
 clean-objects: | lib
 	-$(RM) lib/*.a lib/*.so lib/*.dll lib/*.la
 	-$(RMDIR) lib

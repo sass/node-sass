@@ -65,6 +65,9 @@ test_full:
 test_probe:
 	$(SASS_TESTER) --probe-todo $(SASS_TEST_FLAGS)
 
+test_interactive:
+	$(SASS_TESTER) --interactive $(SASS_TEST_FLAGS)
+
 .PHONY: test test_build test_full test_probe
 
 endif
