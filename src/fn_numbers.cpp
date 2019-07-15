@@ -105,7 +105,11 @@ namespace Sass {
     {
       List* arglist = ARG("$numbers", List);
       Number_Obj least;
-      for (size_t i = 0, L = arglist->length(); i < L; ++i) {
+      size_t L = arglist->length();
+      if (L == 0) {
+        error("At least one argument must be passed.", pstate, traces);
+      }
+      for (size_t i = 0; i < L; ++i) {
         Expression_Obj val = arglist->value_at_index(i);
         Number_Obj xi = Cast<Number>(val);
         if (!xi) {
@@ -123,7 +127,11 @@ namespace Sass {
     {
       List* arglist = ARG("$numbers", List);
       Number_Obj greatest;
-      for (size_t i = 0, L = arglist->length(); i < L; ++i) {
+      size_t L = arglist->length();
+      if (L == 0) {
+        error("At least one argument must be passed.", pstate, traces);
+      }
+      for (size_t i = 0; i < L; ++i) {
         Expression_Obj val = arglist->value_at_index(i);
         Number_Obj xi = Cast<Number>(val);
         if (!xi) {
