@@ -163,11 +163,11 @@ namespace Sass {
                              c1->a()*p + c2->a()*(1-p));
     }
 
-    Signature mix_sig = "mix($color-1, $color-2, $weight: 50%)";
+    Signature mix_sig = "mix($color1, $color2, $weight: 50%)";
     BUILT_IN(mix)
     {
-      Color_Obj  color1 = ARG("$color-1", Color);
-      Color_Obj  color2 = ARG("$color-2", Color);
+      Color_Obj  color1 = ARG("$color1", Color);
+      Color_Obj  color2 = ARG("$color2", Color);
       double weight = DARG_U_PRCT("$weight");
       return colormix(ctx, pstate, color1, color2, weight);
 
