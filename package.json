@@ -41,7 +41,6 @@
     "lib",
     "scripts",
     "src",
-    "test",
     "vendor"
   ],
   "keywords": [
