@@ -207,11 +207,11 @@ namespace Sass {
       return SASS_MEMORY_NEW(Boolean, pstate, unitless);
     }
 
-    Signature comparable_sig = "comparable($number-1, $number-2)";
+    Signature comparable_sig = "comparable($number1, $number2)";
     BUILT_IN(comparable)
     {
-      Number_Obj n1 = ARGN("$number-1");
-      Number_Obj n2 = ARGN("$number-2");
+      Number_Obj n1 = ARGN("$number1");
+      Number_Obj n2 = ARGN("$number2");
       if (n1->is_unitless() || n2->is_unitless()) {
         return SASS_MEMORY_NEW(Boolean, pstate, true);
       }
