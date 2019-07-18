@@ -99,6 +99,9 @@ namespace Sass {
         String_Constant* i = ARG("$insert", String_Constant);
         std::string ins = i->value();
         double index = ARGVAL("$index");
+        if (index != (int)index) {
+          error("$index: " + std::to_string(index) + " is not an int", pstate, traces);
+        }
         size_t len = UTF_8::code_point_count(str, 0, str.size());
 
         if (index > 0 && index <= len) {
