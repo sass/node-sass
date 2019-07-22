@@ -85,9 +85,6 @@ if [ "x$AUTOTOOLS" == "xyes" ]; then
 
   make $MAKE_OPTS clean
 
-  # install to prefix directory
-  PREFIX="$PREFIX" make $MAKE_OPTS install
-
 else
 
   make $MAKE_OPTS clean
@@ -95,6 +92,7 @@ else
   # Run C++ unit tests
   make -C test clean
   make -C test test
+
 fi
 
 # install to prefix directory
@@ -128,10 +126,10 @@ then
     echo "Fetching Sass Spec PR $SPEC_PR"
     git -C sass-spec fetch -u origin pull/$SPEC_PR/head:ci-spec-pr-$SPEC_PR
     git -C sass-spec checkout --force ci-spec-pr-$SPEC_PR
-    make LD_LIBRARY_PATH="$PREFIX/lib/" DYLD_LIBRARY_PATH="$PREFIX/lib/" $MAKE_OPTS test_probe
+    make $MAKE_OPTS test_probe
   else
-    make LD_LIBRARY_PATH="$PREFIX/lib/" DYLD_LIBRARY_PATH="$PREFIX/lib/" $MAKE_OPTS test_probe
+    make $MAKE_OPTS test_probe
   fi
 else
-  make LD_LIBRARY_PATH="$PREFIX/lib/" DYLD_LIBRARY_PATH="$PREFIX/lib/" $MAKE_OPTS test_probe
+  make $MAKE_OPTS test_probe
 fi
