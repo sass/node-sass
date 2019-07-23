@@ -504,7 +504,7 @@ namespace Sass {
         double lscale = (l ? DARG_R_PRCT("$lightness") : 0.0) / 100.0;
         double ascale = (a ? DARG_R_PRCT("$alpha") : 0.0) / 100.0;
         if (hscale) c->h(c->h() + hscale * (hscale > 0.0 ? 360.0 - c->h() : c->h()));
-        if (sscale) c->s(c->s() + sscale * (sscale > 0.0 ? 100.0 - c->l() : c->s()));
+        if (sscale) c->s(c->s() + sscale * (sscale > 0.0 ? 100.0 - c->s() : c->s()));
         if (lscale) c->l(c->l() + lscale * (lscale > 0.0 ? 100.0 - c->l() : c->l()));
         if (ascale) c->a(c->a() + ascale * (ascale > 0.0 ? 1.0 - c->a() : c->a()));
         return c.detach();
