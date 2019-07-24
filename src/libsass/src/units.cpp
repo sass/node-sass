@@ -1,5 +1,7 @@
 #include "sass.hpp"
+#include <map>
 #include <stdexcept>
+#include <algorithm>
 #include "units.hpp"
 #include "error_handling.hpp"
 
@@ -265,6 +267,10 @@ namespace Sass {
   {
     return (numerators == rhs.numerators) &&
            (denominators == rhs.denominators);
+  }
+  bool Units::operator!= (const Units& rhs) const
+  {
+    return ! (*this == rhs);
   }
 
   double Units::normalize()

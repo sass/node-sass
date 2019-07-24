@@ -1,4 +1,7 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+
 #include "constants.hpp"
 
 namespace Sass {
@@ -18,6 +21,15 @@ namespace Sass {
     extern const unsigned long Specificity_Pseudo = 1000;
     extern const unsigned long Specificity_ID = 1000000;
 
+    extern const int UnificationOrder_Element = 1;
+    extern const int UnificationOrder_Id = 2;
+    extern const int UnificationOrder_Class = 2;
+    extern const int UnificationOrder_Attribute = 3;
+    extern const int UnificationOrder_PseudoClass = 4;
+    extern const int UnificationOrder_Wrapped = 5;
+    extern const int UnificationOrder_PseudoElement = 6;
+    extern const int UnificationOrder_Placeholder = 7;
+
     // sass keywords
     extern const char at_root_kwd[]       = "@at-root";
     extern const char import_kwd[]        = "@import";
@@ -33,6 +45,7 @@ namespace Sass {
     extern const char for_kwd[]           = "@for";
     extern const char from_kwd[]          = "from";
     extern const char to_kwd[]            = "to";
+    extern const char of_kwd[]            = "of";
     extern const char through_kwd[]       = "through";
     extern const char each_kwd[]          = "@each";
     extern const char in_kwd[]            = "in";
@@ -116,6 +129,9 @@ namespace Sass {
     extern const char true_kwd[]  = "true";
     extern const char false_kwd[] = "false";
 
+    // definition keywords
+    extern const char using_kwd[]   = "using";
+
     // miscellaneous punctuation and delimiters
     extern const char percent_str[]     = "%";
     extern const char empty_str[]       = "";
@@ -145,6 +161,10 @@ namespace Sass {
     // constants for uri parsing (RFC 3986 Appendix A.)
     extern const char uri_chars[]  = ":;/?!%&#@|[]{}'`^\"*+-.,_=~";
     extern const char real_uri_chars[]  = "#%&";
+
+    extern const char selector_combinator_child[] = ">";
+    extern const char selector_combinator_general[] = "~";
+    extern const char selector_combinator_adjacent[] = "+";
 
     // some specific constant character classes
     // they must be static to be useable by lexer

@@ -1,6 +1,7 @@
 #ifndef SASS_BASE_H
 #define SASS_BASE_H
 
+// #define DEBUG
 // #define DEBUG_SHARED_PTR
 
 #ifdef _MSC_VER
@@ -14,6 +15,12 @@
   #ifndef _CRT_NONSTDC_NO_DEPRECATE
     #define _CRT_NONSTDC_NO_DEPRECATE
   #endif
+#endif
+
+// Work around lack of `noexcept` keyword support in VS2013
+#if defined(_MSC_VER) && (_MSC_VER <= 1800) && !defined(_ALLOW_KEYWORD_MACROS)
+#define _ALLOW_KEYWORD_MACROS 1
+#define noexcept throw( )
 #endif
 
 #include <stddef.h>
@@ -61,7 +68,8 @@ enum Sass_Output_Style {
   SASS_STYLE_COMPRESSED,
   // only used internaly
   SASS_STYLE_INSPECT,
-  SASS_STYLE_TO_SASS
+  SASS_STYLE_TO_SASS,
+  SASS_STYLE_TO_CSS
 };
 
 // to allocate buffer to be filled
