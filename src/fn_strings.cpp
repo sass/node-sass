@@ -188,7 +188,7 @@ namespace Sass {
         if (end_at > size) { end_at = (double)size; }
         if (start_at < 0) {
           start_at += size + 1;
-          if (start_at < 0)  start_at = 0;
+          if (start_at <= 0) start_at = 1;
         }
         else if (start_at == 0) { ++ start_at; }
 
