@@ -361,12 +361,16 @@ namespace Sass {
     {
       // CSS3 filter function overload: pass literal through directly
       Number* amount = Cast<Number>(env["$color"]);
+      double weight = DARG_U_PRCT("$weight");
       if (amount) {
+        // TODO: does not throw on 100% manually passed as value
+        if (weight < 100.0) {
+          error("Only one argument may be passed to the plain-CSS invert() function.", pstate, traces);
+        }
         return SASS_MEMORY_NEW(String_Quoted, pstate, "invert(" + amount->to_string(ctx.c_options) + ")");
       }
 
       Color* col = ARG("$color", Color);
-      double weight = DARG_U_PRCT("$weight");
       Color_RGBA_Obj inv = col->copyAsRGBA();
       inv->r(clip(255.0 - inv->r(), 0.0, 255.0));
       inv->g(clip(255.0 - inv->g(), 0.0, 255.0));
