@@ -51,6 +51,10 @@ process. The compiler has two different modes: direct input as a string with
 `Sass_File_Context`. See the code for a list of options available
 [Sass_Options](https://github.com/sass/libsass/blob/36feef0/include/sass/interface.h#L18)
 
+The general rule is if the API takes const char* it will make a copy, 
+but where the API is char* it will take over memory ownership, so make sure to pass 
+in memory that is allocated via sass_copy_c_string or sass_alloc_memory.
+
 **Building a file compiler**
 
     context = sass_make_file_context("file.scss")
@@ -73,7 +77,11 @@ process. The compiler has two different modes: direct input as a string with
 
 **Building a data compiler**
 
-    context = sass_make_data_context("div { a { color: blue; } }")
+    // LibSass takes over memory owenership, make sure to allocate
+    // a buffer via `sass_alloc_memory` or `sass_copy_c_string`.
+    buffer = sass_copy_c_string("div { a { color: blue; } }")
+
+    context = sass_make_data_context(buffer)
     options = sass_data_context_get_options(context)
     sass_option_set_precision(options, 1)
     sass_option_set_source_comments(options, true)
