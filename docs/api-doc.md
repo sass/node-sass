@@ -129,6 +129,7 @@ is not destroyed (`sass_delete_context`). LibSass will create copies of most
 inputs/options beside the main sass code. You need to allocate and fill that
 buffer before passing it to LibSass. You may also overtake memory management
 from libsass for certain return values (i.e. `sass_context_take_output_string`).
+Make sure to free it via `sass_free_memory`.
 
 ```C
 // to allocate buffer to be filled
