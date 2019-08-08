@@ -51,9 +51,9 @@ process. The compiler has two different modes: direct input as a string with
 `Sass_File_Context`. See the code for a list of options available
 [Sass_Options](https://github.com/sass/libsass/blob/36feef0/include/sass/interface.h#L18)
 
-The general rule is if the API takes const char* it will make a copy, 
-but where the API is char* it will take over memory ownership, so make sure to pass 
-in memory that is allocated via sass_copy_c_string or sass_alloc_memory.
+The general rule is if the API takes `const char*` it will make a copy, 
+but where the API is `char*` it will take over memory ownership, so make sure to pass 
+in memory that is allocated via `sass_copy_c_string` or `sass_alloc_memory`.
 
 **Building a file compiler**
 
