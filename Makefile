@@ -19,7 +19,6 @@ ifndef COVERAGE
   CFLAGS   += -O2
   CXXFLAGS += -O2
   LDFLAGS  += -O2
-  MAKEFLAGS += "-j 0"
 else
   CFLAGS   += -O1 -fno-omit-frame-pointer
   CXXFLAGS += -O1 -fno-omit-frame-pointer
