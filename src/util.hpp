@@ -13,7 +13,6 @@
 #include <vector>
 #include <string>
 #include <assert.h>
-#include <math.h>
 
 #define SASS_ASSERT(cond, msg) assert(cond && msg)
 
