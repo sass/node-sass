@@ -1,6 +1,6 @@
 # node-sass
 
-#### Supported Node.js versions vary by release, please consult the [releases page](https://github.com/sass/node-sass/releases). Below is a quick guide for minimium support:
+#### Supported Node.js versions vary by release, please consult the [releases page](https://github.com/sass/node-sass/releases). Below is a quick guide for minimum support:
 
 NodeJS  | Minimum node-sass version | Node Module
 --------|--------------------------|------------
