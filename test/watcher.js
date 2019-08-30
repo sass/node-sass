@@ -35,7 +35,7 @@ describe('watcher', function() {
             ]);
           });
 
-          it('should record its decendants as added', function() {
+          it('should record its descendants as added', function() {
             var file = path.join(main, 'partials', '_one.scss');
             var files = watcher.changed(file);
             assert.deepEqual(files.added, [
@@ -59,7 +59,7 @@ describe('watcher', function() {
             ]);
           });
 
-          it('should record its decendants as added', function() {
+          it('should record its descendants as added', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.changed(file);
             assert.deepEqual(files.added, [
@@ -112,7 +112,7 @@ describe('watcher', function() {
             assert.deepEqual(files.added, []);
           });
 
-          it('should record its decendants as added', function() {
+          it('should record its descendants as added', function() {
             var file = path.join(main, 'partials', '_one.scss');
             var files = watcher.added(file);
             assert.deepEqual(files.added, [
@@ -140,7 +140,7 @@ describe('watcher', function() {
             assert.deepEqual(files.added, []);
           });
 
-          it('should record its decendants as added', function() {
+          it('should record its descendants as added', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.added(file);
             assert.deepEqual(files.added, [
@@ -248,7 +248,7 @@ describe('watcher', function() {
     describe('when a file is changed', function() {
       describe('and it is in the graph', function() {
         describe('if it is a partial', function() {
-          it('should record its decendents as added', function() {
+          it('should record its descendants as added', function() {
             var file = path.join(main, 'partials', '_one.scss');
             var files = watcher.changed(file);
             assert.deepEqual(files.added, [
@@ -272,7 +272,7 @@ describe('watcher', function() {
         });
 
         describe('if it is not a partial', function() {
-          it('should record its decendents as added', function() {
+          it('should record its descendants as added', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.changed(file);
             assert.deepEqual(files.added, [
@@ -338,7 +338,7 @@ describe('watcher', function() {
           assert.deepEqual(files.added, []);
         });
 
-        it('should record its decendants as added', function() {
+        it('should record its descendants as added', function() {
           var file = path.join(main, 'partials', '_one.scss');
           var files = watcher.added(file);
           assert.deepEqual(files.added, [
@@ -376,7 +376,7 @@ describe('watcher', function() {
             ]);
           });
 
-          it('should not record its decendants as added', function() {
+          it('should not record its descendants as added', function() {
             var file = path.join(main, 'partials', '_one.scss');
             var files = watcher.added(file);
             assert.deepEqual(files.added, [
