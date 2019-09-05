@@ -10,11 +10,13 @@ env:
   global:
     - SKIP_SASS_BINARY_DOWNLOAD_FOR_CI=true
   matrix:
+    - export NODE_VERSION="12"
+    - export NODE_VERSION="11"
+    - export NODE_VERSION="10"
+    - export NODE_VERSION="9"
     - export NODE_VERSION="8"
     - export NODE_VERSION="7"
     - export NODE_VERSION="6"
-    - export NODE_VERSION="5"
-    - export NODE_VERSION="4"
 
 matrix:
   fast_finish: true
