@@ -53,7 +53,7 @@ script:
   - npm test
 
 after_success:
-  - if [ $TRAVIS_OS_NAME == "linux" ] && [ $NODE_VERSION == "4" ]; then
+  - if [ $TRAVIS_OS_NAME == "linux" ] && [ $NODE_VERSION == "6" ]; then
       npm run-script coverage;
     fi
 

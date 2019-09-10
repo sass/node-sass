@@ -3,6 +3,8 @@
 
   branches:
     only:
+      - /v\d\.\d\.\d/
+    except:
       - master
 
   configuration: release
@@ -22,34 +24,61 @@
   environment:
     SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
     matrix:
-      - nodejs_version: 11
-      - nodejs_version: 10
-      - nodejs_version: 9
-      - nodejs_version: 8
-      - nodejs_version: 7
       - nodejs_version: 6
+        GYP_MSVS_VERSION: 2015
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      - nodejs_version: 7
+        GYP_MSVS_VERSION: 2015
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      - nodejs_version: 8
+        GYP_MSVS_VERSION: 2015
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      - nodejs_version: 9
+        GYP_MSVS_VERSION: 2015
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      - nodejs_version: 10
+        GYP_MSVS_VERSION: 2015
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      - nodejs_version: 11
+        GYP_MSVS_VERSION: 2015
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      - nodejs_version: 10
+        GYP_MSVS_VERSION: 2017
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      - nodejs_version: 11
+        GYP_MSVS_VERSION: 2017
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 
   install:
-    - ps: Install-Product node $env:nodejs_version $env:platform
+    # https://www.appveyor.com/docs/lang/nodejs-iojs/#installing-any-version-of-nodejs-or-iojs
+    - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version) $env:platform
     - node --version
     - npm --version
     - git submodule update --init --recursive
-    - npm install --msvs_version=2015
+    - npm install
 
   test_script: npm test
 
   before_deploy:
     # Save artifact with full qualified names of binding.node
     # (which we use in node-sass-binaries repo)
-    - ps: Get-ChildItem .\vendor\**\*.node | % { Push-AppveyorArtifact $_.FullName -FileName (($_.FullName.Split('\\') | Select-Object -Last 2) -join '_') }
-
+    - ps: >-
+        Get-ChildItem .\vendor\**\*.node | % {
+            ( $BindingName = $_.FullName ).Split('\\') |
+              Select-Object -Last 2 | Select-Object -First 1 } |
+                .{ process { (
+                  @( $BindingName,
+                        ( ( $_, "binding.node" ) -join '_' ) ),
+                  @( ".\build\Release\binding.pdb",
+                        ( ( $_, "binding.pdb" ) -join '_' ) )
+                ) } } | % { Push-AppveyorArtifact $_[0] -FileName $_[1] }
 
   deploy:
     - provider: GitHub
-      description: $(APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED)
-      artifact: /.*binding\.node/           # upload all NuGet packages to release assets
       auth_token:
         secure: 2bD/oOwdfpSAmjd7n3m6Rpq9F+nLYd0q54pGJ1ckH+oI5Ex10SXNsF5mQobA+TfG
+      artifact: /.*binding\.node/
+      description: $(APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED)
       on:
-        branch: master                # release from master branch only
-        appveyor_repo_tag: true       # deploy on tag push only
+        APPVEYOR_REPO_TAG: true        # deploy on tag push only
+
