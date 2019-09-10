@@ -16,6 +16,7 @@
   version: "{build}"
 
   build: off
+  test: off
 
   cache:
     - '%userprofile%\.node-gyp'
@@ -57,8 +58,6 @@
     - git submodule update --init --recursive
     - npm install
 
-  test_script: npm test
-
   before_deploy:
     # Save artifact with full qualified names of binding.node
     # (which we use in node-sass-binaries repo)
@@ -76,7 +75,7 @@
   deploy:
     - provider: GitHub
       auth_token:
-        secure: 2bD/oOwdfpSAmjd7n3m6Rpq9F+nLYd0q54pGJ1ckH+oI5Ex10SXNsF5mQobA+TfG
+        secure: iErPM04bm05BGmeWt9UN/RnFSJzia+PPpKMFPfSDQF0gUigYM+2A1gpM5E/vfGVK
       artifact: /.*binding\.node/
       description: $(APPVEYOR_REPO_COMMIT_MESSAGE_EXTENDED)
       on:
