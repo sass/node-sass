@@ -62,8 +62,8 @@ Note that the scripts in the `./script` folder are mainly intended for our CI ne
 Building
 --------
 
-To build LibSass you need GCC 4.6+ or Clang/LLVM. If your OS is older, you may need to upgrade
-them first (or install clang as an alternative). On Windows, you need MinGW with GCC 4.6+ or VS 2013
+To build LibSass you need GCC 4.7+ or Clang/LLVM. If your OS is older, you may need to upgrade
+them first (or install clang as an alternative). On Windows, you need MinGW with GCC 4.7+ or VS 2013
 Update 4+. It is also possible to build LibSass with Clang/LLVM on Windows with various build chains
 and/or command line interpreters.
 
