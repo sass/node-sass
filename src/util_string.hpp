@@ -22,7 +22,7 @@ namespace Sass {
     // ###########################################################################
     std::string unvendor(const std::string& name);
 
-    std::string rtrim(const std::string& str);
+    std::string rtrim(std::string str);
     std::string normalize_newlines(const std::string& str);
     std::string normalize_underscores(const std::string& str);
     std::string normalize_decimals(const std::string& str);
