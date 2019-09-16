@@ -1054,14 +1054,21 @@ namespace Sass {
   }
   void Inspect::operator()(ComplexSelector* sel)
   {
-    bool many = false;
     if (sel->hasPreLineFeed()) {
       append_optional_linefeed();
     }
+    const SelectorComponent* prev = nullptr;
     for (auto& item : sel->elements()) {
-      if (many) append_optional_space();
+      if (prev != nullptr) {
+        if (typeid(*item) == typeid(SelectorCombinator) ||
+            typeid(*prev) == typeid(SelectorCombinator)) {
+          append_optional_space();
+        } else {
+          append_mandatory_space();
+        }
+      }
       item->perform(this);
-      many = true;
+      prev = item.ptr();
     }
   }
 
