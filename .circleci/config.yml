@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  win: circleci/windows@1.0.0
+
 commands:
   build:
     description: "Checkout, build, and test the package"
@@ -128,7 +131,17 @@ jobs:
           version: 11
       - build
       - release
-  
+
+  build-win-vs19-node-6:
+    executor:
+      name: win/vs2019
+    steps: 
+      - install-node:
+          version: 6
+      - run:
+          name: node
+          command: node -v
+          
   publish-github-release:
     docker:
       - image: cibuilds/github:0.10
@@ -187,7 +200,10 @@ workflows:
           filters:
             tags:
               only: /v\d+\.\d+\.\d+$/
-
+      - build-win-vs19-node-6:
+          filters:
+            tags:
+              only: /v\d+\.\d+\.\d+$/
       - publish-github-release:
           requires:
             - build-linux-node-6
