@@ -1,0 +1,208 @@
+version: 2.1
+
+commands:
+  build:
+    description: "Checkout, build, and test the package"
+    steps:
+      - checkout
+      - run:
+          name: submodule
+          command: git submodule update --init --recursive
+      - run:
+          name: install
+          command: npm install
+      - run:
+          name: test
+          command: npm test
+
+  release:
+    description: "Generate release artifact"
+    steps:
+      - run:
+          name: release
+          command: node scripts/circle-release.js
+      - persist_to_workspace:
+          root: .
+          paths:
+            - release/*
+
+  install-node:
+    description: "Install NVM and Node"
+    parameters:
+      version:
+        type: integer
+        default: 10
+    steps:
+      - run:
+          name: install
+          command: |
+            set +e             
+            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash
+
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+            [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+            nvm install << parameters.version >>
+            nvm alias default << parameters.version >>
+
+            echo 'export NVM_DIR="$HOME/.nvm"' >> $BASH_ENV
+            echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV
+jobs: 
+  build-linux-node-6:
+    docker: 
+      - image: circleci/node:6 
+    steps:
+      - build
+      - release
+
+  build-linux-node-8:
+    docker: 
+      - image: circleci/node:8 
+    steps: 
+      - build
+      - release
+
+  build-linux-node-9:
+    docker: 
+      - image: circleci/node:9
+    steps: 
+      - build
+      - release
+
+  build-linux-node-10:
+    docker:
+      - image: circleci/node:10 
+    steps: 
+      - build
+      - release
+
+  build-linux-node-11:
+    docker:
+      - image: circleci/node:11
+    steps: 
+      - build
+      - release
+
+  build-darwin-node-6:
+    macos:
+      xcode: "9.0.1"
+    steps: 
+      - install-node:
+          version: 6
+      - build
+      - release
+
+  build-darwin-node-8:
+    macos:
+      xcode: "10.0.0"
+    steps: 
+      - install-node:
+          version: 8
+      - build
+      - release
+
+  build-darwin-node-9:
+    macos:
+      xcode: "10.0.0"
+    steps: 
+      - install-node:
+          version: 9
+      - build
+      - release
+
+  build-darwin-node-10:
+    macos:
+      xcode: "10.0.0"
+    steps: 
+      - install-node:
+          version: 10
+      - build
+      - release
+
+  build-darwin-node-11:
+    macos:
+      xcode: "10.0.0"
+    steps: 
+      - install-node:
+          version: 11
+      - build
+      - release
+  
+  publish-github-release:
+    docker:
+      - image: cibuilds/github:0.10
+    steps:
+      - attach_workspace:
+          at: ./artifacts
+      - run:
+          name: "Publish Release on GitHub"
+          command: "ls ./artifacts/release"
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            ghr -t ${CIRCLE_CI_GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} ./artifacts/release/
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build-linux-node-6:
+          filters:
+            tags:
+              only: /v\d+\.\d+\.\d+$/
+      - build-linux-node-8:
+          filters:
+            tags:
+              only: /v\d+\.\d+\.\d+$/
+      - build-linux-node-9:
+          filters:
+            tags:
+              only: /v\d+\.\d+\.\d+$/
+      - build-linux-node-10:
+          filters:
+            tags:
+              only: /v\d+\.\d+\.\d+$/
+      - build-linux-node-11:
+          filters:
+            tags:
+              only: /v\d+\.\d+\.\d+$/
+      - build-darwin-node-6:
+          filters:
+            tags:
+              only: /v\d+\.\d+\.\d+$/
+      - build-darwin-node-8:
+          filters:
+            tags:
+              only: /v\d+\.\d+\.\d+$/
+      - build-darwin-node-9:
+          filters:
+            tags:
+              only: /v\d+\.\d+\.\d+$/
+      - build-darwin-node-10:
+          filters:
+            tags:
+              only: /v\d+\.\d+\.\d+$/
+      - build-darwin-node-11:
+          filters:
+            tags:
+              only: /v\d+\.\d+\.\d+$/
+
+      - publish-github-release:
+          requires:
+            - build-linux-node-6
+            - build-linux-node-8
+            - build-linux-node-9
+            - build-linux-node-10
+            - build-linux-node-11
+            - build-darwin-node-6
+            - build-darwin-node-8
+            - build-darwin-node-9
+            - build-darwin-node-10
+            - build-darwin-node-11
+
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v\d+\.\d+\.\d+$/
