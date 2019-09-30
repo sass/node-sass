@@ -80,3 +80,56 @@
       on:
         APPVEYOR_REPO_TAG: true        # deploy on tag push only
 
+-
+  os: Visual Studio 2015
+
+  configuration: release
+
+  platform:
+    - x64
+    - x86
+
+  version: "{build}"
+
+  build: off
+  test: off
+
+  cache:
+    - '%userprofile%\.node-gyp'
+    - '%AppData%\npm-cache'
+
+  environment:
+    SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
+    matrix:
+      - nodejs_version: 6
+        GYP_MSVS_VERSION: 2015
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      - nodejs_version: 7
+        GYP_MSVS_VERSION: 2015
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      - nodejs_version: 8
+        GYP_MSVS_VERSION: 2015
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      - nodejs_version: 9
+        GYP_MSVS_VERSION: 2015
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      - nodejs_version: 10
+        GYP_MSVS_VERSION: 2015
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      - nodejs_version: 11
+        GYP_MSVS_VERSION: 2015
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      - nodejs_version: 10
+        GYP_MSVS_VERSION: 2017
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      - nodejs_version: 11
+        GYP_MSVS_VERSION: 2017
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+
+  install:
+    # https://www.appveyor.com/docs/lang/nodejs-iojs/#installing-any-version-of-nodejs-or-iojs
+    - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version) $env:platform
+    - node --version
+    - npm --version
+    - git submodule update --init --recursive
+    - npm install

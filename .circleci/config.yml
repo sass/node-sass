@@ -48,55 +48,71 @@ commands:
 
             echo 'export NVM_DIR="$HOME/.nvm"' >> $BASH_ENV
             echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV
-jobs: 
+jobs:
   build-linux-node-6:
-    docker: 
-      - image: circleci/node:6 
+    docker:
+      - image: circleci/node:6
+    steps:
+      - build
+      - release
+
+  build-linux-node-7:
+    docker:
+      - image: circleci/node:7
     steps:
       - build
       - release
 
   build-linux-node-8:
-    docker: 
-      - image: circleci/node:8 
-    steps: 
+    docker:
+      - image: circleci/node:8
+    steps:
       - build
       - release
 
   build-linux-node-9:
-    docker: 
+    docker:
       - image: circleci/node:9
-    steps: 
+    steps:
       - build
       - release
 
   build-linux-node-10:
     docker:
-      - image: circleci/node:10 
-    steps: 
+      - image: circleci/node:10
+    steps:
       - build
       - release
 
   build-linux-node-11:
     docker:
       - image: circleci/node:11
-    steps: 
+    steps:
       - build
       - release
 
   build-darwin-node-6:
     macos:
       xcode: "9.0.1"
-    steps: 
+    steps:
       - install-node:
           version: 6
+      - build
+      - release
+
+  build-darwin-node-7:
+    macos:
+      xcode: "10.0.0"
+    steps:
+      - install-node:
+          version: 7
       - build
       - release
 
   build-darwin-node-8:
     macos:
       xcode: "10.0.0"
-    steps: 
+    steps:
       - install-node:
           version: 8
       - build
@@ -105,7 +121,7 @@ jobs:
   build-darwin-node-9:
     macos:
       xcode: "10.0.0"
-    steps: 
+    steps:
       - install-node:
           version: 9
       - build
@@ -114,7 +130,7 @@ jobs:
   build-darwin-node-10:
     macos:
       xcode: "10.0.0"
-    steps: 
+    steps:
       - install-node:
           version: 10
       - build
@@ -123,12 +139,12 @@ jobs:
   build-darwin-node-11:
     macos:
       xcode: "10.0.0"
-    steps: 
+    steps:
       - install-node:
           version: 11
       - build
       - release
-  
+
   publish-github-release:
     docker:
       - image: cibuilds/github:0.10
@@ -136,66 +152,40 @@ jobs:
       - attach_workspace:
           at: ./artifacts
       - run:
-          name: "Publish Release on GitHub"
+          name: "List Artifacts"
           command: "ls ./artifacts/release"
       - run:
           name: "Publish Release on GitHub"
           command: |
-            ghr -t ${CIRCLE_CI_GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ./artifacts/release/
+            ghr -t ${CIRCLE_CI_GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/release
 
 workflows:
   version: 2
   build:
     jobs:
-      - build-linux-node-6:
-          filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
-      - build-linux-node-8:
-          filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
-      - build-linux-node-9:
-          filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
-      - build-linux-node-10:
-          filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
-      - build-linux-node-11:
-          filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
-      - build-darwin-node-6:
-          filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
-      - build-darwin-node-8:
-          filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
-      - build-darwin-node-9:
-          filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
-      - build-darwin-node-10:
-          filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
-      - build-darwin-node-11:
-          filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
+      - build-linux-node-6
+      - build-linux-node-7
+      - build-linux-node-8
+      - build-linux-node-9
+      - build-linux-node-10
+      - build-linux-node-11
+      - build-darwin-node-6
+      - build-darwin-node-7
+      - build-darwin-node-8
+      - build-darwin-node-9
+      - build-darwin-node-10
+      - build-darwin-node-11
 
       - publish-github-release:
           requires:
             - build-linux-node-6
+            - build-linux-node-7
             - build-linux-node-8
             - build-linux-node-9
             - build-linux-node-10
             - build-linux-node-11
             - build-darwin-node-6
+            - build-darwin-node-7
             - build-darwin-node-8
             - build-darwin-node-9
             - build-darwin-node-10
