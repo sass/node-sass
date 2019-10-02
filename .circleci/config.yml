@@ -25,6 +25,8 @@ commands:
           root: .
           paths:
             - release/*
+      - store_artifacts:
+          path: ./release
 
   install-node:
     description: "Install NVM and Node"
