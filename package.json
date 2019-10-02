@@ -1,6 +1,6 @@
 {
   "name": "@bigcommerce/node-sass",
-  "version": "3.4.5",
+  "version": "3.5.0",
   "libsass": "3.3.2",
   "description": "Wrapper around libsass",
   "license": "MIT",
@@ -15,7 +15,7 @@
     "url": "http://andrew.github.com"
   },
   "engines": {
-    "node": ">= 6.0.0 <12.0.0"
+    "node": ">= 6.0.0 <13.0.0"
   },
   "main": "lib/index.js",
   "nodeSassConfig": {

@@ -93,6 +93,13 @@ jobs:
       - build
       - release
 
+  build-linux-node-12:
+    docker:
+      - image: circleci/node:12
+    steps:
+      - build
+      - release
+
   build-darwin-node-6:
     macos:
       xcode: "9.0.1"
@@ -147,6 +154,15 @@ jobs:
       - build
       - release
 
+  build-darwin-node-12:
+    macos:
+      xcode: "10.0.0"
+    steps:
+      - install-node:
+          version: 12
+      - build
+      - release
+
   publish-github-release:
     docker:
       - image: cibuilds/github:0.13
@@ -189,6 +205,10 @@ workflows:
           filters:
             tags:
               only: /v\d+\.\d+\.\d+$/
+      - build-linux-node-12:
+          filters:
+            tags:
+              only: /v\d+\.\d+\.\d+$/
       - build-darwin-node-6:
           filters:
             tags:
@@ -213,6 +233,10 @@ workflows:
           filters:
             tags:
               only: /v\d+\.\d+\.\d+$/
+      - build-darwin-node-12:
+          filters:
+            tags:
+              only: /v\d+\.\d+\.\d+$/
 
       - publish-github-release:
           requires:
@@ -222,12 +246,14 @@ workflows:
             - build-linux-node-9
             - build-linux-node-10
             - build-linux-node-11
+            - build-linux-node-12
             - build-darwin-node-6
             - build-darwin-node-7
             - build-darwin-node-8
             - build-darwin-node-9
             - build-darwin-node-10
             - build-darwin-node-11
+            - build-darwin-node-12
 
           filters:
             branches:
