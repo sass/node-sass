@@ -157,7 +157,7 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
-            ghr -t ${CIRCLE_CI_GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/release
+            ghr -t ${CIRCLE_CI_GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/release/
 
 workflows:
   version: 2

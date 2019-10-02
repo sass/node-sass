@@ -4,6 +4,7 @@
   branches:
     only:
       - /v\d\.\d\.\d/
+    except:
       - master
 
   configuration: release
