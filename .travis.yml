@@ -14,7 +14,7 @@ sudo: required
 # this will still catch all coding errors!
 # - AUTOTOOLS=yes COVERAGE=no BUILD=static
 
-# currenty there are various issues when
+# currently there are various issues when
 # built with coverage, clang and autotools
 # - AUTOTOOLS=yes COVERAGE=yes BUILD=shared
 

@@ -148,7 +148,7 @@ namespace Sass {
     // this can return a string schema
     // string schema is not a statement!
     // r->block() is already a string schema
-    // and that is comming from propset expand
+    // and that is coming from propset expand
     Block* bb = operator()(r->block());
     // this should protect us (at least a bit) from our mess
     // fixing this properly is harder that it should be ...

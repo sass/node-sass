@@ -11,7 +11,7 @@ namespace Sass {
   // elements that are matched by both [complex1] and [complex2].
   // If no such list can be produced, returns `null`.
   // ##########################################################################
-  // ToDo: fine-tune API to avoid unecessary wrapper allocations
+  // ToDo: fine-tune API to avoid unnecessary wrapper allocations
   // ##########################################################################
   std::vector<std::vector<SelectorComponentObj>> unifyComplex(
     const std::vector<std::vector<SelectorComponentObj>>& complexes)

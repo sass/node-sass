@@ -536,7 +536,7 @@ namespace Sass {
     l.normalize(); r.normalize();
     Units &lhs_unit = l, &rhs_unit = r;
     if (!(lhs_unit == rhs_unit)) {
-      /* ToDo: do we always get usefull backtraces? */
+      /* ToDo: do we always get useful backtraces? */
       throw Exception::IncompatibleUnits(rhs, *this);
     }
     if (lhs_unit == rhs_unit) {

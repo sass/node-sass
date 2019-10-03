@@ -23,7 +23,7 @@ cache:
   - C:\Ruby%ruby_version%\lib\ruby\gems
   - C:\mingw64
 
-# Uncomment to debug hanging builds via RDP, password can ve found/set under Environment-Variables in appveyor settings!
+# Uncomment to debug hanging builds via RDP, password can be found/set under Environment-Variables in appveyor settings!
 #
 # init:
 #   - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))

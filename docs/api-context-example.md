@@ -12,7 +12,7 @@ int main( int argc, const char* argv[] )
   char* text = sass_copy_c_string("a{b:c;}");
   // Normally you'll load data into a buffer from i.e. the disk.
   // Use `sass_alloc_memory` to get a buffer to pass to LibSass
-  // then fill it with data you load from disk or somwhere else.
+  // then fill it with data you load from disk or somewhere else.
 
   // create the data context and get all related structs
   struct Sass_Data_Context* data_ctx = sass_make_data_context(text);

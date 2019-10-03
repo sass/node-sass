@@ -399,7 +399,7 @@ extern "C" {
       return data_ctx->error_status;
     try {
       if (data_ctx->source_string == 0) { throw(std::runtime_error("Data context has no source string")); }
-      // empty source string is a valid case, even if not really usefull (different than with file context)
+      // empty source string is a valid case, even if not really useful (different than with file context)
       // if (*data_ctx->source_string == 0) { throw(std::runtime_error("Data context has empty source string")); }
     }
     catch (...) { return handle_errors(data_ctx) | 1; }
@@ -481,7 +481,7 @@ extern "C" {
   static void sass_clear_options (struct Sass_Options* options)
   {
     if (options == 0) return;
-    // Deallocate custom functions, headers and importes
+    // Deallocate custom functions, headers and imports
     sass_delete_function_list(options->c_functions);
     sass_delete_importer_list(options->c_importers);
     sass_delete_importer_list(options->c_headers);
@@ -604,7 +604,7 @@ extern "C" {
   void ADDCALL sass_file_context_set_options (struct Sass_File_Context* ctx, struct Sass_Options* opt) { copy_options(ctx, opt); }
   void ADDCALL sass_data_context_set_options (struct Sass_Data_Context* ctx, struct Sass_Options* opt) { copy_options(ctx, opt); }
 
-  // Getters for Sass_Compiler options (get conected sass context)
+  // Getters for Sass_Compiler options (get connected sass context)
   enum Sass_Compiler_State ADDCALL sass_compiler_get_state(struct Sass_Compiler* compiler) { return compiler->state; }
   struct Sass_Context* ADDCALL sass_compiler_get_context(struct Sass_Compiler* compiler) { return compiler->c_ctx; }
   struct Sass_Options* ADDCALL sass_compiler_get_options(struct Sass_Compiler* compiler) { return compiler->c_ctx; }

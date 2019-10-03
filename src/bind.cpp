@@ -168,7 +168,7 @@ namespace Sass {
         }
         // consumed parameter
         ++ip;
-        // no more paramaters
+        // no more parameters
         break;
       }
 

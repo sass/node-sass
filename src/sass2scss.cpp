@@ -467,7 +467,7 @@ namespace Sass
 		// right trim input
 		sass = rtrim(sass);
 
-		// get postion of first meaningfull character in string
+		// get position of first meaningfull character in string
 		size_t pos_left = sass.find_first_not_of(SASS2SCSS_FIND_WHITESPACE);
 
 		// special case for final run
@@ -557,7 +557,7 @@ namespace Sass
 				// default to a selector
 				// change back if property found
 				converter.selector = true;
-				// get postion of first whitespace char
+				// get position of first whitespace char
 				size_t pos_wspace = sass.find_first_of(SASS2SCSS_FIND_WHITESPACE, pos_left);
 				// assertion check for valid result
 				if (pos_wspace != std::string::npos)
@@ -580,7 +580,7 @@ namespace Sass
 							// assertion for valid result
 							if (pos_colon != std::string::npos)
 							{
-								// ... after the first word (skip begining colons)
+								// ... after the first word (skip beginning colons)
 								pos_colon = sass.find_first_of(":", pos_colon);
 								// it is a selector if there was no colon found
 								converter.selector = pos_colon == std::string::npos;
@@ -758,7 +758,7 @@ namespace Sass
 				scss += flush(sass, converter);
 			}
 
-			// get postion of last meaningfull char
+			// get position of last meaningfull char
 			size_t pos_right = sass.find_last_not_of(SASS2SCSS_FIND_WHITESPACE);
 
 			// check for invalid result

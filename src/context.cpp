@@ -377,7 +377,7 @@ namespace Sass {
       // if (protocol.compare("file") && true) { }
     }
 
-    // add urls (protocol other than file) and urls without procotol to `urls` member
+    // add urls (protocol other than file) and urls without protocol to `urls` member
     // ToDo: if ctx_path is already a file resource, we should not add it here?
     if (imp->import_queries() || protocol != "file" || imp_path.substr(0, 2) == "//") {
       imp->urls().push_back(SASS_MEMORY_NEW(String_Quoted, imp->pstate(), load_path));
@@ -501,7 +501,7 @@ namespace Sass {
     OutputBuffer emitted = emitter.get_buffer();
     // should we append a source map url?
     if (!c_options.omit_source_map_url) {
-      // generate an embeded source map
+      // generate an embedded source map
       if (c_options.source_map_embed) {
         emitted.buffer += linefeed;
         emitted.buffer += format_embedded_source_map();

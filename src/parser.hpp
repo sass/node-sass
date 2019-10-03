@@ -188,7 +188,7 @@ namespace Sass {
       // update after_token position for current token
       after_token.add(it_before_token, it_after_token);
 
-      // ToDo: could probably do this incremetal on original object (API wants offset?)
+      // ToDo: could probably do this incremental on original object (API wants offset?)
       pstate = ParserState(path, source, lexed, before_token, after_token - before_token);
 
       // advance internal char iterator

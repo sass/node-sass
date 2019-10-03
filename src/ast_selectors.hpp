@@ -273,7 +273,7 @@ namespace Sass {
 
     // Returns true if the first components
     // is a compound selector and fullfills
-    // a few other criterias.
+    // a few other criteria.
     bool isInvisible() const;
 
     size_t hash() const override;
@@ -410,7 +410,7 @@ namespace Sass {
     CompoundSelector(ParserState pstate, bool postLineBreak = false);
 
     // Returns true if this compound selector
-    // fullfills various criterias.
+    // fullfills various criteria.
     bool isInvisible() const;
 
     bool empty() const override {

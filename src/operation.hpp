@@ -127,7 +127,7 @@ namespace Sass {
   // example: Operation_CRTP<Expression*, Eval>
   // T is the base return type of all visitors
   // D is the class derived visitor class
-  // normaly you want to implement all operators
+  // normally you want to implement all operators
   template <typename T, typename D>
   class Operation_CRTP : public Operation<T> {
   public:

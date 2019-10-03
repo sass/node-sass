@@ -55,7 +55,7 @@ namespace Sass {
   // allocate additional control blocks and/or the need to dereference two
   // pointers on each operation. This can be optimized in `std::shared_ptr`
   // too by using `std::make_shared` (where the control block and the actual
-  // object are allocated in one continous memory block via one single call).
+  // object are allocated in one continuous memory block via one single call).
   class SharedObj {
    public:
     SharedObj() : refcount(0), detached(false) {

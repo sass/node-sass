@@ -330,7 +330,7 @@ namespace Sass {
     // has the advantage that they will be pre-sorted
     std::map<std::string, int> exponents;
 
-    // initialize by summing up occurences in unit vectors
+    // initialize by summing up occurrences in unit vectors
     // this will already cancel out equivalent units (e.q. px/px)
     for (size_t i = 0; i < iL; i ++) exponents[numerators[i]] += 1;
     for (size_t n = 0; n < nL; n ++) exponents[denominators[n]] -= 1;
@@ -396,7 +396,7 @@ namespace Sass {
            denominators.size() == 0;
   }
 
-  // this does not cover all cases (multiple prefered units)
+  // this does not cover all cases (multiple preferred units)
   double Units::convert_factor(const Units& r) const
   {
 
@@ -467,7 +467,7 @@ namespace Sass {
       {
         // get and increment afterwards
         const std::string r_den = *(r_den_it);
-        // get possible converstion factor for units
+        // get possible conversion factor for units
         double conversion = conversion_factor(l_den, r_den);
         // skip incompatible denominator
         if (conversion == 0) {

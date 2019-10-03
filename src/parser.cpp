@@ -565,7 +565,7 @@ namespace Sass {
 
     // process until end
     while (i < end_of_selector) {
-      // try to parse mutliple interpolants
+      // try to parse multiple interpolants
       if (const char* p = find_first_in_interval< exactly<hash_lbrace>, block_comment >(i, end_of_selector)) {
         // accumulate the preceding segment if the position has advanced
         if (i < p) {
@@ -1187,7 +1187,7 @@ namespace Sass {
     Expression_Obj lhs = parse_operators();
     // if it's a singleton, return it (don't wrap it)
     if (!(peek_css< exactly<'+'> >(position) ||
-          // condition is a bit misterious, but some combinations should not be counted as operations
+          // condition is a bit mysterious, but some combinations should not be counted as operations
           (peek< no_spaces >(position) && peek< sequence< negate< unsigned_number >, exactly<'-'>, negate< space > > >(position)) ||
           (peek< sequence< negate< unsigned_number >, exactly<'-'>, negate< unsigned_number > > >(position))) ||
           peek< sequence < zero_plus < exactly <'-' > >, identifier > >(position))
@@ -2639,7 +2639,7 @@ namespace Sass {
       rv.error = q;
       rv.position = q;
       // check expected opening bracket
-      // only after successfull matching
+      // only after successful matching
       if (peek < exactly<'{'> >(q)) rv.found = q;
       // else if (peek < end_of_file >(q)) rv.found = q;
       else if (peek < exactly<'('> >(q)) rv.found = q;

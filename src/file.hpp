@@ -104,7 +104,7 @@ namespace Sass {
     public:
       // the file contents
       char* contents;
-      // conected sourcemap
+      // connected sourcemap
       char* srcmap;
     public:
       Resource(char* contents, char* srcmap)

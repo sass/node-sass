@@ -916,7 +916,7 @@ namespace Sass {
       return nr.detach();
     }
     else {
-      // Special cases: +/- variables which evaluate to null ouput just +/-,
+      // Special cases: +/- variables which evaluate to null output just +/-,
       // but +/- null itself outputs the string
       if (operand->concrete_type() == Expression::NULL_VAL && Cast<Variable>(u->operand())) {
         u->operand(SASS_MEMORY_NEW(String_Quoted, u->pstate(), ""));

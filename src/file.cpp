@@ -118,7 +118,7 @@ namespace Sass {
       return path[i] == '/';
     }
 
-    // helper function to find the last directory seperator
+    // helper function to find the last directory separator
     inline size_t find_last_folder_separator(const std::string& path, size_t limit = std::string::npos)
     {
       size_t pos;

@@ -82,7 +82,7 @@ namespace Sass {
 
     // ##########################################################################
     // Shared backtraces with context and expander. Needed the throw
-    // errors when e.g. extending accross media query boundaries.
+    // errors when e.g. extending across media query boundaries.
     // ##########################################################################
     Backtraces& traces;
 

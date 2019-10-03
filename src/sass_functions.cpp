@@ -101,7 +101,7 @@ extern "C" {
   }
 
   // Creator for a single import entry returned by the custom importer inside the list
-  // We take ownership of the memory for source and srcmap (freed when context is destroyd)
+  // We take ownership of the memory for source and srcmap (freed when context is destroyed)
   Sass_Import_Entry ADDCALL sass_make_import(const char* imp_path, const char* abs_path, char* source, char* srcmap)
   {
     Sass_Import* v = (Sass_Import*) calloc(1, sizeof(Sass_Import));
