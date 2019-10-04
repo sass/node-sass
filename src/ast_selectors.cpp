@@ -381,10 +381,11 @@ namespace Sass {
 
   bool SelectorList::isInvisible() const
   {
+    if (length() == 0) return true;
     for (size_t i = 0; i < length(); i += 1) {
-      if (!get(i)->isInvisible()) return false;
+      if (get(i)->isInvisible()) return true;
     }
-    return true;
+    return false;
   }
 
   /////////////////////////////////////////////////////////////////////////
