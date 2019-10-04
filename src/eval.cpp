@@ -925,12 +925,19 @@ namespace Sass {
       else if (Color* color = Cast<Color>(operand)) {
         // Use the color name if this was eval with one
         if (color->disp().length() > 0) {
-          operand = SASS_MEMORY_NEW(String_Constant, operand->pstate(), color->disp());
-          u->operand(operand);
+          Unary_Expression_Obj cpy = SASS_MEMORY_COPY(u);
+          cpy->operand(SASS_MEMORY_NEW(String_Constant, operand->pstate(), color->disp()));
+          return SASS_MEMORY_NEW(String_Quoted,
+                                 cpy->pstate(),
+                                 cpy->inspect());
         }
       }
       else {
-        u->operand(operand);
+        Unary_Expression_Obj cpy = SASS_MEMORY_COPY(u);
+        cpy->operand(operand);
+        return SASS_MEMORY_NEW(String_Quoted,
+                               cpy->pstate(),
+                               cpy->inspect());
       }
 
       return SASS_MEMORY_NEW(String_Quoted,
