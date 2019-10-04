@@ -367,6 +367,7 @@ namespace Sass {
     if (is_ns_eq(rhs)) {
       if (name() != rhs.name()) return false;
       if (matcher() != rhs.matcher()) return false;
+      if (modifier() != rhs.modifier()) return false;
       const String* lhs_val = value();
       const String* rhs_val = rhs.value();
       return PtrObjEquality()(lhs_val, rhs_val);
