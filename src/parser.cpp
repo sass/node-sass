@@ -766,10 +766,23 @@ namespace Sass {
           if (peek_css< exactly<')'>>()  && Util::equalsLiteral("nth-", name.substr(0, 4))) {
             css_error("Invalid CSS", " after ", ": expected An+B expression, was ");
           }
-          if (SelectorListObj wrapped = parseSelectorList(true)) {
-            if (wrapped && lex_css< exactly<')'> >()) {
-              Pseudo_Selector* pseudo = SASS_MEMORY_NEW(Pseudo_Selector, p, name, element);
-              pseudo->selector(wrapped);
+
+          std::string unvendored = Util::unvendor(name);
+
+          if (unvendored == "not" || unvendored == "matches" || unvendored == "current"  || unvendored == "any" || unvendored == "has" || unvendored == "host" || unvendored == "host-context" || unvendored == "slotted") {
+             if (SelectorListObj wrapped = parseSelectorList(true)) {
+                if (wrapped && lex_css< exactly<')'> >()) {
+                  Pseudo_Selector* pseudo = SASS_MEMORY_NEW(Pseudo_Selector, p, name, element);
+                  pseudo->selector(wrapped);
+                  return pseudo;
+                }
+              }
+          } else {
+            String_Schema_Obj arg = parse_css_variable_value();
+            Pseudo_Selector* pseudo = SASS_MEMORY_NEW(Pseudo_Selector, p, name, element);
+            pseudo->argument(arg);
+
+            if (lex_css< exactly<')'> >()) {
               return pseudo;
             }
           }
