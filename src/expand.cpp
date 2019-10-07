@@ -681,10 +681,18 @@ namespace Sass {
 
           if (compound->length() != 1) {
 
-            std::cerr <<
-              "compound selectors may no longer be extended.\n"
-              "Consider `@extend ${compound.components.join(', ')}` instead.\n"
-              "See http://bit.ly/ExtendCompound for details.\n";
+            std::stringstream sels; bool addComma = false;
+            sels << "Compound selectors may no longer be extended.\n";
+            sels << "Consider `@extend ";
+            for (auto sel : compound->elements()) {
+              if (addComma) sels << ", ";
+              sels << sel->to_sass();
+              addComma = true;
+            }
+            sels << "` instead.\n";
+            sels << "See http://bit.ly/ExtendCompound for details.";
+
+            warning(sels.str(), compound->pstate());
 
             // Make this an error once deprecation is over
             for (SimpleSelectorObj simple : compound->elements()) {
