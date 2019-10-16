@@ -45,7 +45,7 @@ Follow @nodesass on twitter for release updates: <https://twitter.com/nodesass>
 npm install node-sass
 ```
 
-Some users have reported issues installing on Ubuntu due to `node` being registered to another package. [Follow the official NodeJS docs](https://github.com/nodejs/node-v0.x-archive/wiki/Installing-Node.js-via-package-manager) to install NodeJS so that `#!/usr/bin/env node` correctly resolves.
+Some users have reported issues installing on Ubuntu due to `node` being registered to another package. [Follow the official NodeJS docs](https://github.com/nodesource/distributions/blob/master/README.md#debinstall) to install NodeJS so that `#!/usr/bin/env node` correctly resolves.
 
 Compiling on Windows machines requires the [node-gyp prerequisites](https://github.com/nodejs/node-gyp#on-windows).
 
