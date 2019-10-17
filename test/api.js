@@ -63,6 +63,26 @@ describe('api', function() {
       });
     });
 
+    it('should not generate source map when not requested', function(done) {
+      sass.render({
+        file: fixture('simple/index.scss'),
+        sourceMap: false
+      }, function(error, result) {
+        assert.strictEqual(result.hasOwnProperty('map'), false, 'result has a map property');
+        done();
+      });
+    });
+
+    it('should not generate source map without outFile and no explicit path given', function(done) {
+      sass.render({
+        file: fixture('simple/index.scss'),
+        sourceMap: true
+      }, function(error, result) {
+        assert.strictEqual(result.hasOwnProperty('map'), false, 'result has a map property');
+        done();
+      });
+    });
+
     it('should compile generate map with sourceMapRoot pass-through option', function(done) {
       sass.render({
         file: fixture('simple/index.scss'),
@@ -1345,6 +1365,26 @@ describe('api', function() {
       });
 
       assert.equal(JSON.parse(result.map).file, '../../index-test.css');
+      done();
+    });
+
+    it('should not generate source map when not requested', function(done) {
+      var result =  sass.renderSync({
+        file: fixture('simple/index.scss'),
+        sourceMap: false
+      });
+
+      assert.strictEqual(result.hasOwnProperty('map'), false, 'result has a map property');
+      done();
+    });
+
+    it('should not generate source map without outFile and no explicit path given', function(done) {
+      var result =  sass.renderSync({
+        file: fixture('simple/index.scss'),
+        sourceMap: true
+      });
+
+      assert.strictEqual(result.hasOwnProperty('map'), false, 'result has a map property');
       done();
     });
 
