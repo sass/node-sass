@@ -1,3 +1,7 @@
+## v4.13.0
+
+https://github.com/sass/node-sass/releases/tag/v4.13.0
+
 ## v4.12.0
 
 https://github.com/sass/node-sass/releases/tag/v4.12.0
