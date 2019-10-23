@@ -17,6 +17,12 @@ jobs:
       node_js: "node"
       os: osx
     - stage: platform-test
+      node_js: "12"
+      os: linux
+    - stage: platform-test
+      node_js: "12"
+      os: osx
+    - stage: platform-test
       node_js: "11"
       os: linux
     - stage: platform-test
@@ -74,12 +80,19 @@ addons:
       - g++-4.7
       - gcc-4.9
       - g++-4.9
+      - gcc-6
+      - g++-6
 
 before_install:
   - echo $TRAVIS_NODE_VERSION
   - npm config set python `which python`
   - if [ $TRAVIS_OS_NAME == "linux" ]; then
-      if [[ $(node -v) =~ v[1-9][0-9] ]]; then
+      if [[ $(node -v) =~ v13 ]]; then
+        export CC="gcc-6";
+        export CXX="g++-6";
+        export LINK="gcc-6";
+        export LINKXX="g++-6";
+      elif [[ $(node -v) =~ v[1-9][0-9] ]]; then
         export CC="gcc-4.9";
         export CXX="g++-4.9";
         export LINK="gcc-4.9";
@@ -94,8 +107,8 @@ before_install:
   - nvm --version
   - node --version
   - npm --version
-  - gcc --version
-  - g++ --version
+  - ${CC:-gcc} --version
+  - ${CXX:-g++} --version
 
 install:
   - npm install
