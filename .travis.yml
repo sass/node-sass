@@ -87,12 +87,12 @@ before_install:
   - echo $TRAVIS_NODE_VERSION
   - npm config set python `which python`
   - if [ $TRAVIS_OS_NAME == "linux" ]; then
-      if [[ $(node -v) =~ v13 ]]; then
+      if [[ $(node -v) =~ v1[23] ]]; then
         export CC="gcc-6";
         export CXX="g++-6";
         export LINK="gcc-6";
         export LINKXX="g++-6";
-      elif [[ $(node -v) =~ v[1-9][0-9] ]]; then
+      elif [[ $(node -v) =~ v1[01] ]]; then
         export CC="gcc-4.9";
         export CXX="g++-4.9";
         export LINK="gcc-4.9";
