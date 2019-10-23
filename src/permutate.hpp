@@ -22,14 +22,18 @@ namespace Sass {
     const std::vector<std::vector<T>>& in)
   {
 
-    size_t L = in.size();
-    size_t n = 0;
+    size_t L = in.size(), n = 0;
+
+    // Exit early if any entry is empty
+    for (size_t i = 0; i < L; i += 1) {
+      if (in[i].size() == 0) return {};
+    }
+
     size_t* state = new size_t[L + 1];
     std::vector<std::vector<T>> out;
 
     // First initialize all states for every permutation group
     for (size_t i = 0; i < L; i += 1) {
-      if (in[i].size() == 0) return {};
       state[i] = in[i].size() - 1;
     }
     while (true) {
