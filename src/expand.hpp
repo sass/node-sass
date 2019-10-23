@@ -22,7 +22,10 @@ namespace Sass {
     SelectorListObj& selector();
     SelectorListObj& original();
     SelectorListObj popFromSelectorStack();
+    SelectorStack getOriginalStack();
     SelectorStack getSelectorStack();
+    void pushNullSelector();
+    void popNullSelector();
     void pushToSelectorStack(SelectorListObj selector);
 
     SelectorListObj popFromOriginalStack();

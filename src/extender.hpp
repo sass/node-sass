@@ -126,8 +126,8 @@ namespace Sass {
     std::unordered_map<
       SimpleSelectorObj,
       size_t,
-      ObjHash,
-      ObjEquality
+      ObjPtrHash,
+      ObjPtrEquality
     > sourceSpecificity;
 
     // ##########################################################################

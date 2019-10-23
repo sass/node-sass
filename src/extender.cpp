@@ -1070,10 +1070,10 @@ namespace Sass {
     // the result so that, if two selectors are identical, we keep the first one.
     std::vector<ComplexSelectorObj> result; size_t numOriginals = 0;
 
-    // Use label to quit outer loop
-  redo:
+    size_t i = selectors.size();
+  outer: // Use label to continue loop
+    while (--i != std::string::npos) {
 
-    for (size_t i = selectors.size() - 1; i != std::string::npos; i--) {
       const ComplexSelectorObj& complex1 = selectors[i];
       // Check if selector in known in existing "originals"
       // For custom behavior dart-sass had `isOriginal(complex1)`
@@ -1083,7 +1083,7 @@ namespace Sass {
         for (size_t j = 0; j < numOriginals; j++) {
           if (ObjEqualityFn(result[j], complex1)) {
             rotateSlice(result, 0, j + 1);
-            goto redo;
+            goto outer;
           }
         }
         result.insert(result.begin(), complex1);

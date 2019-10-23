@@ -62,6 +62,23 @@ namespace Sass {
     return 0;
   }
 
+  void Expand::pushNullSelector()
+  {
+    pushToSelectorStack({});
+    pushToOriginalStack({});
+  }
+
+  void Expand::popNullSelector()
+  {
+    popFromOriginalStack();
+    popFromSelectorStack();
+  }
+
+  SelectorStack Expand::getOriginalStack()
+  {
+    return originalStack;
+  }
+
   SelectorStack Expand::getSelectorStack()
   {
     return selector_stack;
@@ -153,15 +170,15 @@ namespace Sass {
       Block* bb = operator()(r->block());
       Keyframe_Rule_Obj k = SASS_MEMORY_NEW(Keyframe_Rule, r->pstate(), bb);
       if (r->schema()) {
-        pushToSelectorStack({});
+        pushNullSelector();
         k->name(eval(r->schema()));
-        popFromSelectorStack();
+        popNullSelector();
       }
       else if (r->selector()) {
         if (SelectorListObj s = r->selector()) {
-          pushToSelectorStack({});
+          pushNullSelector();
           k->name(eval(s));
-          popFromSelectorStack();
+          popNullSelector();
         }
       }
 
@@ -288,10 +305,10 @@ namespace Sass {
     Block* ab = a->block();
     SelectorList* as = a->selector();
     Expression* av = a->value();
-    pushToSelectorStack({});
+    pushNullSelector();
     if (av) av = av->perform(&eval);
     if (as) as = eval(as);
-    popFromSelectorStack();
+    popNullSelector();
     Block* bb = ab ? operator()(ab) : NULL;
     Directive* aa = SASS_MEMORY_NEW(Directive,
                                   a->pstate(),

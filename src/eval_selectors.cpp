@@ -46,10 +46,10 @@ namespace Sass {
   SelectorList* Eval::operator()(ComplexSelector* s)
   {
     bool implicit_parent = !exp.old_at_root_without_rule;
-    if (is_in_selector_schema) exp.pushToSelectorStack({});
+    if (is_in_selector_schema) exp.pushNullSelector();
     SelectorListObj other = s->resolve_parent_refs(
-      exp.getSelectorStack(), traces, implicit_parent);
-    if (is_in_selector_schema) exp.popFromSelectorStack();
+      exp.getOriginalStack(), traces, implicit_parent);
+    if (is_in_selector_schema) exp.popNullSelector();
 
     for (size_t i = 0; i < other->length(); i++) {
       ComplexSelectorObj sel = other->at(i);
