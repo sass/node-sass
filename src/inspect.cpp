@@ -1056,6 +1056,9 @@ namespace Sass {
   {
     if (sel->hasPreLineFeed()) {
       append_optional_linefeed();
+      if (output_style() == NESTED) {
+        append_indentation();
+      }
     }
     const SelectorComponent* prev = nullptr;
     for (auto& item : sel->elements()) {
