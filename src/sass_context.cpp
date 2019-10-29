@@ -122,7 +122,7 @@ namespace Sass {
       c_ctx->error_file = sass_copy_c_string(e.pstate.path);
       c_ctx->error_line = e.pstate.line + 1;
       c_ctx->error_column = e.pstate.column + 1;
-      c_ctx->error_src = e.pstate.src;
+      c_ctx->error_src = sass_copy_c_string(e.pstate.src);
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
       json_delete(json_err);
@@ -277,8 +277,8 @@ extern "C" {
       c_ctx->error_message = 0;
       c_ctx->error_status = 0;
       // reset error position
-      c_ctx->error_src = 0;
       c_ctx->error_file = 0;
+      c_ctx->error_src = 0;
       c_ctx->error_line = std::string::npos;
       c_ctx->error_column = std::string::npos;
 
@@ -542,6 +542,7 @@ extern "C" {
     if (ctx->error_text)        free(ctx->error_text);
     if (ctx->error_json)        free(ctx->error_json);
     if (ctx->error_file)        free(ctx->error_file);
+    if (ctx->error_src)         free(ctx->error_src);
     free_string_array(ctx->included_files);
     // play safe and reset properties
     ctx->output_string = 0;
@@ -550,6 +551,7 @@ extern "C" {
     ctx->error_text = 0;
     ctx->error_json = 0;
     ctx->error_file = 0;
+    ctx->error_src = 0;
     ctx->included_files = 0;
     // debug leaked memory
     #ifdef DEBUG_SHARED_PTR
@@ -648,9 +650,9 @@ extern "C" {
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, error_message);
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, error_text);
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, error_file);
+  IMPLEMENT_SASS_CONTEXT_GETTER(const char*, error_src);
   IMPLEMENT_SASS_CONTEXT_GETTER(size_t, error_line);
   IMPLEMENT_SASS_CONTEXT_GETTER(size_t, error_column);
-  IMPLEMENT_SASS_CONTEXT_GETTER(const char*, error_src);
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, output_string);
   IMPLEMENT_SASS_CONTEXT_GETTER(const char*, source_map_string);
   IMPLEMENT_SASS_CONTEXT_GETTER(char**, included_files);
@@ -660,6 +662,7 @@ extern "C" {
   IMPLEMENT_SASS_CONTEXT_TAKER(char*, error_message);
   IMPLEMENT_SASS_CONTEXT_TAKER(char*, error_text);
   IMPLEMENT_SASS_CONTEXT_TAKER(char*, error_file);
+  IMPLEMENT_SASS_CONTEXT_TAKER(char*, error_src);
   IMPLEMENT_SASS_CONTEXT_TAKER(char*, output_string);
   IMPLEMENT_SASS_CONTEXT_TAKER(char*, source_map_string);
   IMPLEMENT_SASS_CONTEXT_TAKER(char**, included_files);

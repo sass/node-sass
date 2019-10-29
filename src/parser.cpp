@@ -2894,6 +2894,10 @@ namespace Sass {
     Position p(pos.line ? pos : before_token);
     ParserState pstate(path, source, p, Offset(0, 0));
     // `pstate.src` may not outlive stack unwind so we must copy it.
+    // This is needed since we often parse dynamically generated code,
+    // e.g. for interpolations, and we normally don't want to keep this
+    // memory around after we parsed the AST tree successfully. Only on
+    // errors we want to preserve them for better error reporting.
     char *src_copy = sass_copy_c_string(pstate.src);
     pstate.src = src_copy;
     traces.push_back(Backtrace(pstate));

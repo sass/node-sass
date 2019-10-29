@@ -90,7 +90,7 @@ struct Sass_Context : Sass_Options
   char* error_file;
   size_t error_line;
   size_t error_column;
-  const char* error_src;
+  char* error_src;
 
   // report imported files
   char** included_files;
