@@ -140,10 +140,12 @@ namespace Sass {
         // parent selector only allowed at start
         // upcoming Sass may allow also trailing
         ParserState state(pstate);
-        SimpleSelectorObj prev = (*seq)[seq->length()-1];
-        std::string sel(prev->to_string({ NESTED, 5 }));
         std::string found("&");
-        if (lex < identifier >()) { found += std::string(lexed); }
+        if (lex < identifier >()) {
+          found += std::string(lexed);
+        }
+        std::string sel(seq->hasRealParent() ? "&" : "");
+        if (!seq->empty()) { sel = seq->last()->to_string({ NESTED, 5 }); }
         // ToDo: parser should throw parser exceptions
         error("Invalid CSS after \"" + sel + "\": expected \"{\", was \"" + found + "\"\n\n"
           "\"" + found + "\" may only be used at the beginning of a compound selector.", state);
