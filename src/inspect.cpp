@@ -72,8 +72,6 @@ namespace Sass {
     append_indentation();
     append_token("@media", rule);
     append_mandatory_space();
-    in_media_block = true;
-    in_media_block = false;
     if (rule->block()) {
       rule->block()->perform(this);
     }
@@ -81,6 +79,8 @@ namespace Sass {
 
   void Inspect::operator()(CssMediaRule* rule)
   {
+    if (output_style() == NESTED)
+      indentation += rule->tabs();
     append_indentation();
     append_token("@media", rule);
     append_mandatory_space();
@@ -97,6 +97,9 @@ namespace Sass {
     if (rule->block()) {
       rule->block()->perform(this);
     }
+    in_media_block = false;
+    if (output_style() == NESTED)
+      indentation -= rule->tabs();
   }
 
   void Inspect::operator()(CssMediaQuery* query)
@@ -1056,6 +1059,9 @@ namespace Sass {
   {
     if (sel->hasPreLineFeed()) {
       append_optional_linefeed();
+      if (!in_wrapped && output_style() == NESTED) {
+        append_indentation();
+      }
     }
     const SelectorComponent* prev = nullptr;
     for (auto& item : sel->elements()) {
