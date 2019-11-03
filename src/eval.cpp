@@ -690,9 +690,9 @@ namespace Sass {
                                                     b->op(), s_l->last(), b->right());
         bin_ex->is_delayed(b->left()->is_delayed() || b->right()->is_delayed()); // unverified
         for (size_t i = 0; i < s_l->length() - 1; ++i) {
-          ret_schema->append(Cast<PreValue>(s_l->at(i)->perform(this)));
+          ret_schema->append(s_l->at(i)->perform(this));
         }
-        ret_schema->append(Cast<PreValue>(bin_ex->perform(this)));
+        ret_schema->append(bin_ex->perform(this));
         return ret_schema->perform(this);
       }
     }
@@ -703,9 +703,9 @@ namespace Sass {
         Binary_Expression_Obj bin_ex = SASS_MEMORY_NEW(Binary_Expression, b->pstate(),
                                                     b->op(), b->left(), s_r->first());
         bin_ex->is_delayed(b->left()->is_delayed() || b->right()->is_delayed()); // verified
-        ret_schema->append(Cast<PreValue>(bin_ex->perform(this)));
+        ret_schema->append(bin_ex->perform(this));
         for (size_t i = 1; i < s_r->length(); ++i) {
-          ret_schema->append(Cast<PreValue>(s_r->at(i)->perform(this)));
+          ret_schema->append(s_r->at(i)->perform(this));
         }
         return ret_schema->perform(this);
       }

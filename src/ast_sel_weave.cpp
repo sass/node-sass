@@ -576,8 +576,12 @@ namespace Sass {
       // Prepare data structures
       choices.push_back(expanded);
       choices.push_back({ group });
-      groups1.erase(groups1.begin());
-      groups2.erase(groups2.begin());
+      if (!groups1.empty()) {
+        groups1.erase(groups1.begin());
+      }
+      if (!groups2.empty()) {
+        groups2.erase(groups2.begin());
+      }
 
     }
 
