@@ -1,33 +1,25 @@
 #ifndef SASS_TYPES_COLOR_H
 #define SASS_TYPES_COLOR_H
 
-#include <nan.h>
 #include "sass_value_wrapper.h"
-
-#if defined(__GNUC__) && __GNUC__ >= 7
-#define NODE_SASS_FALLTHROUGH __attribute__ ((fallthrough))
-#else
-#define NODE_SASS_FALLTHROUGH
-#endif
 
 namespace SassTypes
 {
   class Color : public SassValueWrapper<Color> {
     public:
-      Color(Sass_Value*);
+      Color(napi_env, Sass_Value*);
       static char const* get_constructor_name() { return "SassColor"; }
-      static Sass_Value* construct(const std::vector<v8::Local<v8::Value>>, Sass_Value **);
+      static Sass_Value* construct(napi_env, const std::vector<napi_value>, Sass_Value **);
+      static napi_value getConstructor(napi_env, napi_callback);
 
-      static void initPrototype(v8::Local<v8::FunctionTemplate>);
-
-      static NAN_METHOD(GetR);
-      static NAN_METHOD(GetG);
-      static NAN_METHOD(GetB);
-      static NAN_METHOD(GetA);
-      static NAN_METHOD(SetR);
-      static NAN_METHOD(SetG);
-      static NAN_METHOD(SetB);
-      static NAN_METHOD(SetA);
+      static napi_value GetR(napi_env env, napi_callback_info info);
+      static napi_value GetG(napi_env env, napi_callback_info info);
+      static napi_value GetB(napi_env env, napi_callback_info info);
+      static napi_value GetA(napi_env env, napi_callback_info info);
+      static napi_value SetR(napi_env env, napi_callback_info info);
+      static napi_value SetG(napi_env env, napi_callback_info info);
+      static napi_value SetB(napi_env env, napi_callback_info info);
+      static napi_value SetA(napi_env env, napi_callback_info info);
   };
 }
 

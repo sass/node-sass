@@ -1,30 +1,33 @@
 #ifndef SASS_TYPES_BOOLEAN_H
 #define SASS_TYPES_BOOLEAN_H
 
-#include <nan.h>
 #include "value.h"
 #include "sass_value_wrapper.h"
+#include <napi.h>
 
 namespace SassTypes
 {
   class Boolean : public SassTypes::Value {
     public:
       static Boolean& get_singleton(bool);
-      static v8::Local<v8::Function> get_constructor();
+      static napi_value get_constructor(napi_env env);
 
-      v8::Local<v8::Object> get_js_object();
+      Sass_Value* get_sass_value();
+      napi_value get_js_object(napi_env env);
 
-      static NAN_METHOD(New);
-      static NAN_METHOD(GetValue);
+      static napi_value New(napi_env env, napi_callback_info info);
+      static napi_value GetValue(napi_env env, napi_callback_info info);
 
     private:
       Boolean(bool);
 
-      Nan::Persistent<v8::Object> js_object;
+      static napi_value construct_and_wrap_instance(napi_env env, napi_value ctor, Boolean* b);
 
-      static Nan::Persistent<v8::Function> constructor;
+      bool value;
+      napi_ref js_object;
+
+      static napi_ref constructor;
       static bool constructor_locked;
-      v8::Local<v8::Boolean> get_js_boolean();
   };
 }
 

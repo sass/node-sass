@@ -1,8 +1,10 @@
 #ifndef CREATE_STRING_H
 #define CREATE_STRING_H
 
-#include <nan.h>
+#define NAPI_DISABLE_CPP_EXCEPTIONS 1
 
-char* create_string(Nan::MaybeLocal<v8::Value>);
+#include <napi.h>
+
+char* create_string(napi_env e, napi_value v);
 
 #endif

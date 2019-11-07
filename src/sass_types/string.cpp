@@ -1,48 +1,43 @@
-#include <nan.h>
 #include "string.h"
 #include "../create_string.h"
 
 namespace SassTypes
 {
-  String::String(Sass_Value* v) : SassValueWrapper(v) {}
+  String::String(napi_env env, Sass_Value* v) : SassValueWrapper(env, v) {}
 
-  Sass_Value* String::construct(const std::vector<v8::Local<v8::Value>> raw_val, Sass_Value **out) {
+  Sass_Value* String::construct(napi_env env, const std::vector<napi_value> raw_val, Sass_Value **out) {
     char const* value = "";
 
     if (raw_val.size() >= 1) {
-      if (!raw_val[0]->IsString()) {
+      napi_valuetype t;
+      CHECK_NAPI_RESULT(napi_typeof(env, raw_val[0], &t));
+
+      if (t != napi_string) {
         return fail("Argument should be a string.", out);
       }
 
-      value = create_string(raw_val[0]);
-         *out = sass_make_string(value);
-        delete value;
-        return *out;
-
-    } else {
-        return *out = sass_make_string(value);
+      value = create_string(env, raw_val[0]);
     }
 
+    return *out = sass_make_string(value);
   }
 
-  void String::initPrototype(v8::Local<v8::FunctionTemplate> proto) {
-    Nan::SetPrototypeMethod(proto, "getValue", GetValue);
-    Nan::SetPrototypeMethod(proto, "setValue", SetValue);
+  napi_value String::getConstructor(napi_env env, napi_callback cb) {
+    napi_value ctor;
+    napi_property_descriptor descriptors[] = {
+      { "getValue", nullptr, GetValue },
+      { "setValue", nullptr, SetValue },
+    };
+
+    CHECK_NAPI_RESULT(napi_define_class(env, get_constructor_name(), NAPI_AUTO_LENGTH, cb, nullptr, 2, descriptors, &ctor));
+    return ctor;
   }
 
-  NAN_METHOD(String::GetValue) {
-    info.GetReturnValue().Set(Nan::New<v8::String>(sass_string_get_value(String::Unwrap<String>(info.This())->value)).ToLocalChecked());
+  napi_value String::GetValue(napi_env env, napi_callback_info info) {
+    return CommonGetString(env, info, sass_string_get_value);
   }
 
-  NAN_METHOD(String::SetValue) {
-    if (info.Length() != 1) {
-      return Nan::ThrowTypeError("Expected just one argument");
-    }
-
-    if (!info[0]->IsString()) {
-      return Nan::ThrowTypeError("Supplied value should be a string");
-    }
-
-    sass_string_set_value(String::Unwrap<String>(info.This())->value, create_string(info[0]));
+  napi_value String::SetValue(napi_env env, napi_callback_info info) {
+    return CommonSetString(env, info, sass_string_set_value);
   }
 }

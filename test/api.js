@@ -1132,7 +1132,7 @@ describe('api', function() {
           }
         }
       }, function(error) {
-        assert.ok(/A SassValue is expected as the list item/.test(error.message));
+        assert.ok(/A SassValue is expected/.test(error.message));
         done();
       });
     });
@@ -1149,7 +1149,7 @@ describe('api', function() {
           }
         }
       }, function(error) {
-        assert.ok(/A SassValue is expected as a map key/.test(error.message));
+        assert.ok(/A SassValue is expected/.test(error.message));
         done();
       });
     });
@@ -1166,7 +1166,7 @@ describe('api', function() {
           }
         }
       }, function(error) {
-        assert.ok(/A SassValue is expected as a map value/.test(error.message));
+        assert.ok(/A SassValue is expected/.test(error.message));
         done();
       });
     });
