@@ -58,7 +58,7 @@
     "chokidar": "^3.3.0",
     "cross-spawn": "^7.0.1",
     "get-stdin": "^7.0.0",
-    "glob": "^7.0.3",
+    "glob": "^7.1.6",
     "in-publish": "^2.0.0",
     "lodash": "^4.17.15",
     "meow": "^5.0.0",
