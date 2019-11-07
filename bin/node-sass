@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 var Emitter = require('events').EventEmitter,
-  forEach = require('async-foreach').forEach,
+  promisify = require('util').promisify,
   chokidar = require('chokidar'),
   meow = require('meow'),
   util = require('util'),
@@ -410,19 +410,19 @@ function renderDir(options, emitter, done) {
       return emitter.emit('error', 'No input file was found.');
     }
 
-    forEach(files, function(subject) {
-      renderFile(subject, options, emitter, this.async());
-    }, function(successful, arr) {
-      var outputDir = path.join(process.cwd(), options.output);
-      if (!options.quiet) {
-        emitter.emit('info', util.format('Wrote %s CSS files to %s', arr.length, outputDir));
-      }
-      if (successful) {
-        done();
-      } else {
+    Promise.all(files.map(function(subject) {
+      return promisify(renderFile)(subject, options, emitter);
+    }))
+      .then(function(res) {
+        var outputDir = path.join(process.cwd(), options.output);
+        if (!options.quiet) {
+          emitter.emit('info', util.format('Wrote %s CSS files to %s', res.length, outputDir));
+        }
+      })
+      .then(done)
+      .catch(function() {
         done(new Error('Some files failed to compile'));
-      }
-    });
+      });
   });
 }
 
