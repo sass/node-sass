@@ -71,7 +71,7 @@
     "true-case-path": "^1.0.2"
   },
   "devDependencies": {
-    "coveralls": "^3.0.2",
+    "coveralls": "^3.0.7",
     "eslint": "^6.6.0",
     "fs-extra": "^8.1.0",
     "istanbul": "^0.4.2",
