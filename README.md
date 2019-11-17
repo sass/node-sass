@@ -424,7 +424,7 @@ var result = sass.renderSync({
     var result = someSyncFunction(url, prev);
     return {file: result.path, contents: result.data};
   }
-}));
+});
 
 console.log(result.css);
 console.log(result.map);
