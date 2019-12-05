@@ -1,0 +1,3 @@
+[submodule "src/libsass"]
+	path = src/libsass
+	url = https://github.com/sass/libsass.git
