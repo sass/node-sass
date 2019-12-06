@@ -1,14 +1,14 @@
 {
   "name": "node-sass",
-  "version": "4.13.0",
+  "version": "4.13.1",
   "libsass": "3.6.3-38-gb108",
-  "description": "Wrapper around libsass",
+  "description": "Fork of https://github.com/sass/node-sass",
   "license": "MIT",
-  "bugs": "https://github.com/sass/node-sass/issues",
-  "homepage": "https://github.com/sass/node-sass",
+  "bugs": "https://github.com/sass/Raitnao/issues",
+  "homepage": "https://github.com/RaitNao/node-sass",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sass/node-sass"
+    "url": "https://github.com/RaitNao/node-sass"
   },
   "author": {
     "name": "Andrew Nesbitt",
@@ -20,7 +20,7 @@
   },
   "main": "lib/index.js",
   "nodeSassConfig": {
-    "binarySite": "https://github.com/sass/node-sass/releases/download"
+    "binarySite": "https://github.com/RaitNao/node-sass/releases/download"
   },
   "bin": {
     "node-sass": "bin/node-sass"
