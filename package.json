@@ -69,7 +69,8 @@
     "request": "^2.88.0",
     "sass-graph": "^2.2.4",
     "stdout-stream": "^1.4.0",
-    "true-case-path": "^1.0.2"
+    "true-case-path": "^1.0.2",
+    "universalify": "^0.1.2"
   },
   "devDependencies": {
     "coveralls": "^3.0.2",
