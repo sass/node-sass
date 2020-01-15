@@ -13,11 +13,12 @@ SassImportList CustomImporterBridge::post_process_return_value(v8::Local<v8::Val
     imports = sass_make_import_list(array->Length());
 
     for (size_t i = 0; i < array->Length(); ++i) {
-      v8::Local<v8::Value> value = Nan::Get(array, static_cast<uint32_t>(i)).ToLocalChecked();
+      v8::Local<v8::Value> value;
+      Nan::MaybeLocal<v8::Value> checked = Nan::Get(array, static_cast<uint32_t>(i));
 
-      if (!value->IsObject()) {
-        auto entry = sass_make_import_entry(0, 0, 0);
-        sass_import_set_error(entry, "returned array must only contain object literals", -1, -1);
+      if (!checked.ToLocal(&value) || !value->IsObject()) {
+        imports[i] = sass_make_import_entry(0, 0, 0);
+        sass_import_set_error(imports[i], "returned array must only contain object literals", -1, -1);
         continue;
       }
 
@@ -72,7 +73,7 @@ err:
 
 Sass_Import* CustomImporterBridge::get_importer_entry(const v8::Local<v8::Object>& object) const {
   auto returned_file = Nan::Get(object, Nan::New<v8::String>("file").ToLocalChecked());
-  auto returned_contents = Nan::Get(object, Nan::New<v8::String>("contents").ToLocalChecked()).ToLocalChecked();
+  auto returned_contents = Nan::Get(object, Nan::New<v8::String>("contents").ToLocalChecked());
   auto returned_map = Nan::Get(object, Nan::New<v8::String>("map").ToLocalChecked());
   Sass_Import *err;
 
