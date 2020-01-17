@@ -1,0 +1,49 @@
+name: Build bindings for Alpine releases
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: node:${{ matrix.node }}-alpine${{ matrix.alpine }}
+      env:
+        SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
+    strategy:
+      matrix:
+        node:
+          - 6
+          - 8.16.2
+          - 10
+          - 12
+          - 13
+          - 14
+        include:
+          - node: 6
+            alpine: ""
+          - node: 8.16.2
+            alpine: "3.9"
+          - node: 10
+            alpine: "3.9"
+          - node: 12
+            alpine: "3.9"
+          - node: 13
+            alpine: "3.10"
+          - node: 14
+            alpine: "3.10"
+    steps:
+      - name: Install Alpine build tools
+        run: apk add --no-cache python make git gcc g++
+
+      - uses: actions/checkout@v2
+
+      - name: Install packages
+        run: npm install --unsafe-perm
+
+      - name: Run tests
+        run: npm test
+
+      - uses: actions/upload-artifact@v1
+        with:
+          name: ${{ matrix.node }}
+          path: vendor/
