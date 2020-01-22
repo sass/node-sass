@@ -58,18 +58,6 @@ jobs:
     - stage: platform-test
       node_js: "6"
       os: osx
-    - stage: platform-test
-      node_js: "4"
-      os: linux
-    - stage: platform-test
-      node_js: "4"
-      os: osx
-    - stage: platform-test
-      node_js: "0.12"
-      os: linux
-    - stage: platform-test
-      node_js: "0.10"
-      os: linux
 
 addons:
   apt:
