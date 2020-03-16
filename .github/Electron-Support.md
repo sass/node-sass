@@ -4,7 +4,7 @@ In order to bring Electron support to all platforms (not just Windows), we need 
 
 ### Steps
 
-1) Create a project and run `` and 
+1) Create a project and run 
     ```console
     npm install node-sass
     npm install --save-dev electron-rebuild
