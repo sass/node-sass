@@ -1,4 +1,4 @@
-name: Electron Rebuild CI - Windows (x32 & x64)
+name: Electron Rebuild CI - Linux (x32 & x64)
 
 on: [push, pull_request]
 
