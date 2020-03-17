@@ -31,6 +31,8 @@ jobs:
       uses: actions/setup-node@v1
       with:
         os: ${{ matrix.os }}
+    - name: Install packages
+      run: npm install --unsafe-perm
     - name: Install electron-rebuild
       run: npm install --save-dev electron-rebuild@latest
     - name: Run on ${{ matrix.os }} - Electron v${{ matrix.electron }} (Node ${{ matrix.nodeVersion }})
