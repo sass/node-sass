@@ -1,0 +1,33 @@
+name: Electron Rebuild CI - Windows (x32 & x64)
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        electron:
+          - 5
+          - 6
+          - 7
+          - 8.0.1
+        arch:
+          - ia32
+          - x64
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+      with:
+        os: ${{ matrix.os }}
+    - run: node -v
+    - run: npm run build --if-present
+    - name: Run on ${{ matrix.os }} - Electron v${{ matrix.electron }}
+      run: node ".\node_modules\node-gyp\bin\node-gyp.js" rebuild --target=${{ matrix.electron }} --arch=${{ matrix.arch }} --dist-url=https://electronjs.org/headers
+    - run: npm test
+      env:
+        CI: true
