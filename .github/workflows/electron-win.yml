@@ -10,10 +10,10 @@ jobs:
     strategy:
       matrix:
         electron:
-          - 5
-          - 6
-          - 7
-          - 8.0.1
+          - 5.0.0
+          - 6.0.0
+          - 7.0.0
+          - 8.0.0
         arch:
           - ia32
           - x64
@@ -24,10 +24,20 @@ jobs:
       uses: actions/setup-node@v1
       with:
         os: ${{ matrix.os }}
-    - run: node -v
-    - run: npm run build --if-present
+    - name: Node Ver (For debugging)
+      run: node -v
+    - name: Install packages
+      run: npm install --unsafe-perm
     - name: Run on ${{ matrix.os }} - Electron v${{ matrix.electron }}
       run: node ".\node_modules\node-gyp\bin\node-gyp.js" rebuild --target=${{ matrix.electron }} --arch=${{ matrix.arch }} --dist-url=https://electronjs.org/headers
+    - uses: actions/upload-artifact@v1
+      with:
+        name: ${{ matrix.electron }}_${{ matrix.arch }} .node
+        path: build/release/binding.node
+    - uses: actions/upload-artifact@v1
+      with:
+        name: ${{ matrix.electron }}_${{ matrix.arch }} .pdb
+        path: build/release/binding.pdb
     - run: npm test
       env:
         CI: true
