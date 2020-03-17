@@ -46,7 +46,7 @@ jobs:
         path: build/release/binding.node
     - uses: actions/upload-artifact@v1
       with:
-        name: win32_${{ matrix.arch }}_${{ matrix.nodeVersion }}_binding.node
+        name: win32_${{ matrix.arch }}_${{ matrix.nodeVersion }}_binding.pdb
         path: build/release/binding.pdb
     # npm test failing on pre-existing master issues, commenting out
     #- run: npm test
