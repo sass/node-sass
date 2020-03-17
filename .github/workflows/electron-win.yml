@@ -10,10 +10,10 @@ jobs:
     strategy:
       matrix:
         electron:
-          - 5.0.0
-          - 6.0.0
-          - 7.0.0
-          - 8.0.0
+          - 5.0.0 #70
+          - 6.0.0 #73
+          - 7.0.0 #75
+          - 8.0.0 #76
         arch:
           - ia32
           - x64
@@ -32,11 +32,11 @@ jobs:
       run: node ".\node_modules\node-gyp\bin\node-gyp.js" rebuild --target=${{ matrix.electron }} --arch=${{ matrix.arch }} --dist-url=https://electronjs.org/headers
     - uses: actions/upload-artifact@v1
       with:
-        name: ${{ matrix.electron }}_${{ matrix.arch }} .node
+        name: win32_${{ matrix.arch }}_${{ matrix.electron }}.node
         path: build/release/binding.node
     - uses: actions/upload-artifact@v1
       with:
-        name: ${{ matrix.electron }}_${{ matrix.arch }} .pdb
+        name: win32_${{ matrix.arch }}_${{ matrix.electron }}.pdb
         path: build/release/binding.pdb
     - run: npm test
       env:
