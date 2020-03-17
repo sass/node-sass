@@ -73,7 +73,6 @@
   },
   "devDependencies": {
     "coveralls": "^3.0.2",
-    "electron-rebuild": "^1.10.1",
     "eslint": "^3.4.0",
     "fs-extra": "^0.30.0",
     "istanbul": "^0.4.2",
