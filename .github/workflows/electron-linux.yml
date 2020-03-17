@@ -31,16 +31,14 @@ jobs:
       uses: actions/setup-node@v1
       with:
         os: ${{ matrix.os }}
-    - name: Node Ver (For debugging)
-      run: node -v
-    - name: Install packages
-      run: npm install --unsafe-perm
+    - name: Install electron-rebuild
+      run: npm install --save-dev electron-rebuild@latest
     - name: Run on ${{ matrix.os }} - Electron v${{ matrix.electron }} (Node ${{ matrix.nodeVersion }})
-      run: node "./node_modules/node-gyp/bin/node-gyp.js" rebuild --target=${{ matrix.electron }}.0.0 --arch=x64 --dist-url=https://electronjs.org/headers
+      run: ./node_modules/.bin/electron-rebuild -v=${{ matrix.electron }} -w node-sass
     - uses: actions/upload-artifact@v1
       with:
         name: linux_x64_${{ matrix.nodeVersion }}_binding.node
-        path: build/release/binding.node
+        path: bin/*/*.node
     # npm test failing on pre-existing master issues, commenting out
     #- run: npm test
     #  env:

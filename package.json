@@ -64,7 +64,7 @@
     "meow": "^3.7.0",
     "mkdirp": "^0.5.1",
     "nan": "^2.13.2",
-    "node-gyp": "^6.1.0",
+    "node-gyp": "^3.8.0",
     "npmlog": "^4.0.0",
     "request": "^2.88.0",
     "sass-graph": "^2.2.4",
@@ -73,6 +73,7 @@
   },
   "devDependencies": {
     "coveralls": "^3.0.2",
+    "electron-rebuild": "^1.10.1",
     "eslint": "^3.4.0",
     "fs-extra": "^0.30.0",
     "istanbul": "^0.4.2",
