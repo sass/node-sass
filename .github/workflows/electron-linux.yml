@@ -39,10 +39,6 @@ jobs:
       run: ./node_modules/.bin/electron-rebuild -v=${{ matrix.electron }} -w node-sass
     - uses: actions/upload-artifact@v1
       with:
-        name: linux_all_items.zip
-        path: ./
-    - uses: actions/upload-artifact@v1
-      with:
         name: linux_build.zip
         path: build/
     - uses: actions/upload-artifact@v1
