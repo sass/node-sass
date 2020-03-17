@@ -43,7 +43,11 @@ jobs:
     - uses: actions/upload-artifact@v1
       with:
         name: win32_${{ matrix.arch }}_${{ matrix.nodeVersion }}_binding.node
-        path: bin/win32-${{ matrix.arch }}-${{ matrix.nodeVersion }}/node-sass.node
+        path: build/release/binding.node
+    - uses: actions/upload-artifact@v1
+      with:
+        name: win32_${{ matrix.arch }}_${{ matrix.nodeVersion }}_binding.node
+        path: build/release/binding.pdb
     # npm test failing on pre-existing master issues, commenting out
     #- run: npm test
     #  env:
