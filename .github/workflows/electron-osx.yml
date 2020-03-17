@@ -36,7 +36,7 @@ jobs:
     - name: Install packages
       run: npm install --unsafe-perm
     - name: Run on ${{ matrix.os }} - Electron v${{ matrix.electron }} (Node ${{ matrix.nodeVersion }})
-      run: node "./node_modules/node-gyp/bin/node-gyp.js" rebuild --target=${{ matrix.electron }}.0.0.0 --arch=x64 --dist-url=https://electronjs.org/headers
+      run: node "./node_modules/node-gyp/bin/node-gyp.js" rebuild --target=${{ matrix.electron }}.0.0 --arch=x64 --dist-url=https://electronjs.org/headers
     - uses: actions/upload-artifact@v1
       with:
         name: darwin_x64_${{ matrix.nodeVersion }}.node
