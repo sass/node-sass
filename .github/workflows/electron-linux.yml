@@ -40,7 +40,7 @@ jobs:
     - uses: actions/upload-artifact@v1
       with:
         name: linux_x64_${{ matrix.nodeVersion }}_binding.node
-        path: bin/*/*.node
+        path: bin/linux-x64-${{ matrix.nodeVersion }}/node-sass.node
     # npm test failing on pre-existing master issues, commenting out
     #- run: npm test
     #  env:

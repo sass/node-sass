@@ -40,7 +40,7 @@ jobs:
     - uses: actions/upload-artifact@v1
       with:
         name: darwin_x64_${{ matrix.nodeVersion }}_binding.node
-        path: build/release/binding.node
+        path: bin/darwin-x64-${{ matrix.nodeVersion }}/node-sass.node
     # npm test failing on pre-existing master issues, commenting out
     #- run: npm test
     #  env:
