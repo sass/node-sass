@@ -24,9 +24,6 @@ jobs:
             nodeVersion: 75
           - electron: 8
             nodeVersion: 76
-        arch:
-          - ia32
-          - x64
 
     steps:
     - uses: actions/checkout@v2
@@ -38,14 +35,11 @@ jobs:
       run: node -v
     - name: Install packages
       run: npm install --unsafe-perm
-    - name: Run extra command on ia32
-      if: matrix.arch == "ia32"
-      run: sudo apt-get install gcc-multilib g++-multilib
     - name: Run on ${{ matrix.os }} - Electron v${{ matrix.electron }} (Node ${{ matrix.nodeVersion }})
-      run: node "./node_modules/node-gyp/bin/node-gyp.js" rebuild --target=${{ matrix.electron }}.0.0 --arch=${{ matrix.arch }} --dist-url=https://electronjs.org/headers
+      run: node "./node_modules/node-gyp/bin/node-gyp.js" rebuild --target=${{ matrix.electron }}.0.0 --arch=x64 --dist-url=https://electronjs.org/headers
     - uses: actions/upload-artifact@v1
       with:
-        name: linux_${{ matrix.arch }}_${{ matrix.nodeVersion }}_binding.node
+        name: linux_x64_${{ matrix.nodeVersion }}_binding.node
         path: build/release/binding.node
     # npm test failing on pre-existing master issues, commenting out
     #- run: npm test
