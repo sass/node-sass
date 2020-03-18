@@ -36,19 +36,13 @@ jobs:
         os: ${{ matrix.os }}
     - name: Install packages
       run: npm install --unsafe-perm
-    - name: Install electron-rebuild
-      run: npm install --save-dev electron-rebuild@latest
-    - name: Run on ${{ matrix.os }} - Electron v${{ matrix.electron }} (Node ${{ matrix.nodeVersion }})
-      run: ./node_modules/.bin/electron-rebuild -v=${{ matrix.electron }} --arch=${{ matrix.arch }} -w node-sass
+    - name: Run electron-rebuild - Electron v${{ matrix.electron }} (Node ${{ matrix.nodeVersion }})
+      run: npx electron-rebuild -v=${{ matrix.electron }} --arch=${{ matrix.arch }} -w node-sass
     - uses: actions/upload-artifact@v1
       with:
-        name: win32_${{ matrix.arch }}_${{ matrix.nodeVersion }}_binding.node
+        name: win32-${{ matrix.arch }}-${{ matrix.nodeVersion }}_binding.node
         path: build/release/binding.node
     - uses: actions/upload-artifact@v1
       with:
-        name: win32_${{ matrix.arch }}_${{ matrix.nodeVersion }}_binding.pdb
+        name: win32-${{ matrix.arch }}-${{ matrix.nodeVersion }}_binding.pdb
         path: build/release/binding.pdb
-    # npm test failing on pre-existing master issues, commenting out
-    #- run: npm test
-    #  env:
-    #    CI: true
