@@ -39,7 +39,7 @@ jobs:
     - name: Install electron-rebuild
       run: npm install --save-dev electron-rebuild@latest
     - name: Run on ${{ matrix.os }} - Electron v${{ matrix.electron }} (Node ${{ matrix.nodeVersion }})
-      run: ./node_modules/.bin/electron-rebuild -v=${{ matrix.electron }} -arch=${{ matrix.arch }} -w node-sass
+      run: ./node_modules/.bin/electron-rebuild -v=${{ matrix.electron }} --arch=${{ matrix.arch }} -w node-sass
     - uses: actions/upload-artifact@v1
       with:
         name: win32_${{ matrix.arch }}_${{ matrix.nodeVersion }}_binding.node
