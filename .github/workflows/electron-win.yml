@@ -36,6 +36,8 @@ jobs:
         os: ${{ matrix.os }}
     - name: Install packages
       run: npm install --unsafe-perm
+    - name: Prepare windows environment (preventing errors)
+      run: npm config set msbuild_path "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\MSBuild.exe" 
     - name: Run node-gyp rebuild - Electron v${{ matrix.electron }} (Node ${{ matrix.nodeVersion }})
       run: node ./node_modules/node-gyp/bin/node-gyp.js rebuild --target=${{ matrix.electron }}.0.0 --arch=${{ matrix.arch }} --dist-url=https://electronjs.org/headers
     - uses: actions/upload-artifact@v1
