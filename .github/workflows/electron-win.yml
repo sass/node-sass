@@ -35,7 +35,7 @@ jobs:
       with:
         os: ${{ matrix.os }}
     - name: Prepare windows environment (preventing errors)
-      run: set path=%path%;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin
+      run: setx PATH "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin;%PATH%"
     - name: Install packages
       run: npm install --unsafe-perm
     - name: Run node-gyp rebuild - Electron v${{ matrix.electron }} (Node ${{ matrix.nodeVersion }})
