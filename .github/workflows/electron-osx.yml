@@ -33,9 +33,9 @@ jobs:
         os: ${{ matrix.os }}
     - name: Install packages
       run: npm install --unsafe-perm
-    - name: Run electron-rebuild - Electron v${{ matrix.electron }} (Node ${{ matrix.nodeVersion }})
-      run: npx electron-rebuild -v=${{ matrix.electron }} -w node-sass
+    - name: Run node-gyp rebuild - Electron v${{ matrix.electron }} (Node ${{ matrix.nodeVersion }})
+      run: node ./node_modules/node-gyp/bin/node-gyp.js rebuild --target=${{ matrix.electron }}.0.0 --arch=x64 --dist-url=https://electronjs.org/headers
     - uses: actions/upload-artifact@v1
       with:
         name: darwin-x64-${{ matrix.nodeVersion }}_binding.node
-        path: build/release/binding.node
+        path: build/Release/binding.node

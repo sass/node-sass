@@ -36,13 +36,13 @@ jobs:
         os: ${{ matrix.os }}
     - name: Install packages
       run: npm install --unsafe-perm
-    - name: Run electron-rebuild - Electron v${{ matrix.electron }} (Node ${{ matrix.nodeVersion }})
-      run: npx electron-rebuild -v=${{ matrix.electron }} --arch=${{ matrix.arch }} -w node-sass
+    - name: Run node-gyp rebuild - Electron v${{ matrix.electron }} (Node ${{ matrix.nodeVersion }})
+      run: node ./node_modules/node-gyp/bin/node-gyp.js rebuild --target=${{ matrix.electron }}.0.0 --arch=${{ matrix.arch }} --dist-url=https://electronjs.org/headers
     - uses: actions/upload-artifact@v1
       with:
         name: win32-${{ matrix.arch }}-${{ matrix.nodeVersion }}_binding.node
-        path: build/release/binding.node
+        path: build/Release/binding.node
     - uses: actions/upload-artifact@v1
       with:
         name: win32-${{ matrix.arch }}-${{ matrix.nodeVersion }}_binding.pdb
-        path: build/release/binding.pdb
+        path: build/Release/binding.pdb
