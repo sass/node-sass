@@ -57,16 +57,19 @@ function afterBuild(options) {
 
 function build(options) {
   if (process.versions.electron && process.platform === 'win32') {
-    new Error("FAIL")
+    //let child = spawn(`"${process.execPath}" `);
+    
+    //console.log("child", (child).toString());
+    console.log("triggered");
   }
-  else {
+  
+  //else {
     var args = [require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js')), 'rebuild', '--verbose'].concat(
       ['libsass_ext', 'libsass_cflags', 'libsass_ldflags', 'libsass_library'].map(function (subject) {
         return ['--', subject, '=', process.env[subject.toUpperCase()] || ''].join('');
       })).concat(options.args);
 
     if (process.versions.electron) {
-      args.unshift("HOME=~/.electron-gyp");
       args.push("--target=" + process.versions.electron, "--dist-url=https://electronjs.org/headers")
     }
 
@@ -91,7 +94,7 @@ function build(options) {
 
       process.exit(1);
     });
-  }
+  //}
 }
 
 /**
