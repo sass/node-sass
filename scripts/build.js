@@ -19,24 +19,24 @@ function afterBuild(options) {
   var install = sass.getBinaryPath();
   var target = path.join(__dirname, '..', 'build',
     options.debug ? 'Debug' :
-        process.config.target_defaults
-            ?  process.config.target_defaults.default_configuration
-            : 'Release',
+      process.config.target_defaults
+        ? process.config.target_defaults.default_configuration
+        : 'Release',
     'binding.node');
 
-  mkdir(path.dirname(install), function(err) {
+  mkdir(path.dirname(install), function (err) {
     if (err && err.code !== 'EEXIST') {
       console.error(err.message);
       return;
     }
 
-    fs.stat(target, function(err) {
+    fs.stat(target, function (err) {
       if (err) {
         console.error('Build succeeded but target not found');
         return;
       }
 
-      fs.rename(target, install, function(err) {
+      fs.rename(target, install, function (err) {
         if (err) {
           console.error(err.message);
           return;
@@ -56,31 +56,37 @@ function afterBuild(options) {
  */
 
 function build(options) {
-  var args = [require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js')), 'rebuild', '--verbose'].concat(
-    ['libsass_ext', 'libsass_cflags', 'libsass_ldflags', 'libsass_library'].map(function(subject) {
-      return ['--', subject, '=', process.env[subject.toUpperCase()] || ''].join('');
-    })).concat(options.args);
+  //if (process.versions.electron) {
+    console.log("Electron:", process.versions.electron);
+  /*}
+  else {*/
+    var args = [require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js')), 'rebuild', '--verbose'].concat(
+      ['libsass_ext', 'libsass_cflags', 'libsass_ldflags', 'libsass_library'].map(function (subject) {
+        return ['--', subject, '=', process.env[subject.toUpperCase()] || ''].join('');
+      })).concat(options.args);
 
-  console.log('Building:', [process.execPath].concat(args).join(' '));
+    console.log('Building:', [process.execPath].concat(args).join(' '));
 
-  var proc = spawn(process.execPath, args, {
-    stdio: [0, 1, 2]
-  });
 
-  proc.on('exit', function(errorCode) {
-    if (!errorCode) {
-      afterBuild(options);
-      return;
-    }
+    var proc = spawn(process.execPath, args, {
+      stdio: [0, 1, 2]
+    });
 
-    if (errorCode === 127 ) {
-      console.error('node-gyp not found!');
-    } else {
-      console.error('Build failed with error code:', errorCode);
-    }
+    proc.on('exit', function (errorCode) {
+      if (!errorCode) {
+        afterBuild(options);
+        return;
+      }
 
-    process.exit(1);
-  });
+      if (errorCode === 127) {
+        console.error('node-gyp not found!');
+      } else {
+        console.error('Build failed with error code:', errorCode);
+      }
+
+      process.exit(1);
+    });
+  //}
 }
 
 /**
@@ -97,7 +103,7 @@ function parseArgs(args) {
     force: process.env.npm_config_force === 'true',
   };
 
-  options.args = args.filter(function(arg) {
+  options.args = args.filter(function (arg) {
     if (arg === '-f' || arg === '--force') {
       options.force = true;
       return false;
