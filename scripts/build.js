@@ -57,48 +57,41 @@ function afterBuild(options) {
 
 function build(options) {
   let executablePath = process.execPath;
-    console.log("triggered");
-    if (process.versions.electron && process.platform === 'win32') {
-    //let child = spawn(`"${process.execPath}" `);
-    
-    //console.log("child", (child).toString());
-    console.log("triggered");
 
+  if (process.versions.electron && process.platform === 'win32') {
     executablePath = "C:/Program Files/nodejs/node.exe"
   }
-  
-  //else {
-    var args = [require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js')), 'rebuild', '--verbose'].concat(
-      ['libsass_ext', 'libsass_cflags', 'libsass_ldflags', 'libsass_library'].map(function (subject) {
-        return ['--', subject, '=', process.env[subject.toUpperCase()] || ''].join('');
-      })).concat(options.args);
 
-    if (process.versions.electron) {
-      args.push("--target=v" + process.versions.electron, "--dist-url=https://electronjs.org/headers")
+  var args = [require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js')), 'rebuild', '--verbose'].concat(
+    ['libsass_ext', 'libsass_cflags', 'libsass_ldflags', 'libsass_library'].map(function (subject) {
+      return ['--', subject, '=', process.env[subject.toUpperCase()] || ''].join('');
+    })).concat(options.args);
+
+  if (process.versions.electron) {
+    args.push("--target=v" + process.versions.electron, "--dist-url=https://electronjs.org/headers")
+  }
+
+  console.log('Building:', [executablePath].concat(args).join(' '));
+
+
+  var proc = spawn(executablePath, args, {
+    stdio: 'inherit'
+  });
+
+  proc.on('exit', function (errorCode) {
+    if (!errorCode) {
+      afterBuild(options);
+      return;
     }
 
-    console.log('Building:', [executablePath].concat(args).join(' '));
+    if (errorCode === 127) {
+      console.error('node-gyp not found!');
+    } else {
+      console.error('Build failed with error code:', errorCode);
+    }
 
-
-    var proc = spawn(executablePath, args, {
-      stdio: 'inherit'
-    });
-
-    proc.on('exit', function (errorCode) {
-      if (!errorCode) {
-        afterBuild(options);
-        return;
-      }
-
-      if (errorCode === 127) {
-        console.error('node-gyp not found!');
-      } else {
-        console.error('Build failed with error code:', errorCode);
-      }
-
-      process.exit(1);
-    });
-  //}
+    process.exit(1);
+  });
 }
 
 /**
