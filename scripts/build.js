@@ -66,7 +66,7 @@ function build(options) {
       })).concat(options.args);
 
     if (process.versions.electron) {
-      args = ["HOME=~/.electron-gyp"].push(args);
+      args.unshift("HOME=~/.electron-gyp");
       args.push("--target=" + process.versions.electron, "--dist-url=https://electronjs.org/headers")
     }
 
