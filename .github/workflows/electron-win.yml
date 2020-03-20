@@ -30,18 +30,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Prepare windows environment (preventing errors)
-      run: |
-        setx PATH "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin;%PATH%"
-        set path="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin;%PATH%"
     - name: Use Node.js
       uses: actions/setup-node@v1
       with:
         os: ${{ matrix.os }}
     - name: Install packages
       run: npm install --unsafe-perm
-    - name: Run node-gyp rebuild - Electron v${{ matrix.electron }} (Node ${{ matrix.nodeVersion }})
-      run: node ./node_modules/node-gyp/bin/node-gyp.js rebuild --target=${{ matrix.electron }}.0.0 --arch=${{ matrix.arch }} --dist-url=https://electronjs.org/headers
+    - name: Run electron-rebuild - Electron v${{ matrix.electron }} (Node ${{ matrix.nodeVersion }})
+      run: npx electron-rebuild -v=${{ matrix.electron }} --arch=${{ matrix.arch }} -w node-sass
     - uses: actions/upload-artifact@v1
       with:
         name: win32-${{ matrix.arch }}-${{ matrix.nodeVersion }}_binding.node
