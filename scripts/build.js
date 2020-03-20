@@ -56,11 +56,15 @@ function afterBuild(options) {
  */
 
 function build(options) {
-  if (process.versions.electron && process.platform === 'win32') {
+  let executablePath = process.execPath;
+    console.log("triggered");
+    if (process.versions.electron && process.platform === 'win32') {
     //let child = spawn(`"${process.execPath}" `);
     
     //console.log("child", (child).toString());
     console.log("triggered");
+
+    executablePath = "C:\\Program Files\\nodejs\\node.exe"
   }
   
   //else {
@@ -70,14 +74,14 @@ function build(options) {
       })).concat(options.args);
 
     if (process.versions.electron) {
-      args.push("--target=" + process.versions.electron, "--dist-url=https://electronjs.org/headers")
+      args.push("--target=v" + process.versions.electron, "--dist-url=https://electronjs.org/headers")
     }
 
-    console.log('Building:', [process.execPath].concat(args).join(' '));
+    console.log('Building:', [executablePath].concat(args).join(' '));
 
 
-    var proc = spawn(process.execPath, args, {
-      stdio: [0, 1, 2]
+    var proc = spawn(executablePath, args, {
+      stdio: 'inherit'
     });
 
     proc.on('exit', function (errorCode) {
