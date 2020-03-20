@@ -64,7 +64,7 @@ function build(options) {
     //console.log("child", (child).toString());
     console.log("triggered");
 
-    executablePath = "C:\\Program Files\\nodejs\\node.exe"
+    executablePath = "C:/Program Files/nodejs/node.exe"
   }
   
   //else {
