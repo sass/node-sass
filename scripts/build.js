@@ -56,14 +56,19 @@ function afterBuild(options) {
  */
 
 function build(options) {
-  //if (process.versions.electron) {
-    console.log("Electron:", process.versions.electron);
-  /*}
-  else {*/
+  if (process.versions.electron && process.platform === 'win32') {
+    new Error("FAIL")
+  }
+  else {
     var args = [require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js')), 'rebuild', '--verbose'].concat(
       ['libsass_ext', 'libsass_cflags', 'libsass_ldflags', 'libsass_library'].map(function (subject) {
         return ['--', subject, '=', process.env[subject.toUpperCase()] || ''].join('');
       })).concat(options.args);
+
+    if (process.versions.electron) {
+      args = ["HOME=~/.electron-gyp"].push(args);
+      args.push("--target=" + process.versions.electron, "--dist-url=https://electronjs.org/headers")
+    }
 
     console.log('Building:', [process.execPath].concat(args).join(' '));
 
@@ -86,7 +91,7 @@ function build(options) {
 
       process.exit(1);
     });
-  //}
+  }
 }
 
 /**
