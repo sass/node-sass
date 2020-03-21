@@ -59,7 +59,7 @@ function build(options) {
   let executablePath = process.execPath;
 
   if (process.versions.electron && process.platform === 'win32') {
-    executablePath = "C:/Program Files/nodejs/node.exe"
+    //executablePath = "C:/Program Files/nodejs/node.exe"
   }
 
   var args = [require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js')), 'rebuild', '--verbose'].concat(
