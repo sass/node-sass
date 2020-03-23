@@ -62,7 +62,7 @@ function build(options) {
     })).concat(options.args);
 
   if (process.versions.electron || options.electronVersion) {
-    args.push("--target=" + (process.versions.electron || options.electronVersion), "--arch=" + process.arch, "--dist-url=https://electronjs.org/headers")
+    args.push("--target=" + (process.versions.electron || options.electronVersion), "--dist-url=https://electronjs.org/headers")
   }
 
   console.log('Building:', [process.execPath].concat(args).join(' '));
