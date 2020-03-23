@@ -7,6 +7,10 @@ jobs:
 
     runs-on: windows-latest
 
+    container:
+      env:
+        SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
+
     strategy:
       matrix:
         electron:
@@ -36,13 +40,10 @@ jobs:
         os: ${{ matrix.os }}
     - name: Install packages
       run: npm install --unsafe-perm
-    - name: Run electron-rebuild - Electron v${{ matrix.electron }} (Node ${{ matrix.nodeVersion }})
-      run: npx electron-rebuild -v=${{ matrix.electron }} --arch=${{ matrix.arch }} -w node-sass
-    - uses: actions/upload-artifact@v1
-      with:
-        name: win32-${{ matrix.arch }}-${{ matrix.nodeVersion }}_binding.node
-        path: build/Release/binding.node
-    - uses: actions/upload-artifact@v1
+    - name: Run build (electron force)
+      run: node ./scripts/build --electron-version=${{ matrix.electron }}.0.0
+    - name: Check success by getting binary
+      uses: actions/upload-artifact@v1
       with:
         name: win32-${{ matrix.arch }}-${{ matrix.nodeVersion }}_binding.pdb
         path: build/Release/binding.pdb
