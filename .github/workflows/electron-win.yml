@@ -7,10 +7,6 @@ jobs:
 
     runs-on: windows-latest
 
-    container:
-      env:
-        SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
-
     strategy:
       matrix:
         electron:
@@ -40,6 +36,8 @@ jobs:
         os: ${{ matrix.os }}
     - name: Install packages
       run: npm install --unsafe-perm
+      env:
+        SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
     - name: Run build (electron force)
       run: node ./scripts/build --electron-version=${{ matrix.electron }}.0.0
     - name: Check success by getting binary
