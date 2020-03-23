@@ -16,7 +16,7 @@ var fs = require('fs'),
  */
 
 function afterBuild(options) {
-  var install = sass.getBinaryPath();
+  var install = sass.getBinaryPath(options.arch);
   var target = path.join(__dirname, '..', 'build',
     options.debug ? 'Debug' :
       process.config.target_defaults
