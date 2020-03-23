@@ -4,11 +4,10 @@ var assert = require('assert'),
   join = require('path').join,
   read = fs.readFileSync,
   sass = process.env.NODESASS_COV
-      ? require('../lib-cov')
-      : require('../lib'),
+    ? require('../lib-cov')
+    : require('../lib'),
   readYaml = require('read-yaml'),
   mergeWith = require('lodash/mergeWith'),
-  assign = require('lodash/assign'),
   glob = require('glob'),
   specPath = require('sass-spec').dirname.replace(/\\/g, '/'),
   impl = 'libsass',
@@ -33,7 +32,7 @@ var initialize = function(inputCss, options) {
   testCase.statusPath = join(folder, 'status');
   testCase.optionsPath = join(folder, 'options.yml');
   if (exists(testCase.optionsPath)) {
-    options = mergeWith(assign({}, options), readYaml.sync(testCase.optionsPath), customizer);
+    options = mergeWith(Object.assign({}, options), readYaml.sync(testCase.optionsPath), customizer);
   }
   testCase.includePaths = [
     folder,
@@ -124,7 +123,7 @@ var executeSuite = function(suite, tests) {
   var suiteFolderLength = suite.folder.split('/').length;
   var optionsFile = join(suite.folder, 'options.yml');
   if (exists(optionsFile)) {
-    suite.options = mergeWith(assign({}, suite.options), readYaml.sync(optionsFile), customizer);
+    suite.options = mergeWith(Object.assign({}, suite.options), readYaml.sync(optionsFile), customizer);
   }
 
   // Push tests in the current suite
@@ -154,7 +153,7 @@ var executeSuite = function(suite, tests) {
               folder: suite.folder + '/' + prevSuite,
               tests: [],
               suites: [],
-              options: assign({}, suite.options),
+              options: Object.assign({}, suite.options),
             },
             tests.slice(prevSuiteStart, i)
           )
@@ -170,7 +169,7 @@ var executeSuite = function(suite, tests) {
           folder: suite.folder + '/' + suiteName,
           tests: [],
           suites: [],
-          options: assign({}, suite.options),
+          options: Object.assign({}, suite.options),
         },
         tests.slice(prevSuiteStart, tests.length)
       )
