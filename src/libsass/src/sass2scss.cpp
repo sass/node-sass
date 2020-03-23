@@ -154,6 +154,21 @@ namespace Sass
 
 	}
 
+	static size_t findFirstCharacter (std::string& sass, size_t pos)
+	{
+		return sass.find_first_not_of(SASS2SCSS_FIND_WHITESPACE, pos);
+	}
+
+	static size_t findLastCharacter (std::string& sass, size_t pos)
+	{
+		return sass.find_last_not_of(SASS2SCSS_FIND_WHITESPACE, pos);
+	}
+
+	static bool isUrl (std::string& sass, size_t pos)
+	{
+		return sass[pos] == 'u' && sass[pos+1] == 'r' && sass[pos+2] == 'l' && sass[pos+3] == '(';
+	}
+
 	// check if there is some char data
 	// will ignore everything in comments
 	static bool hasCharData (std::string& sass)
@@ -452,7 +467,7 @@ namespace Sass
 		// right trim input
 		sass = rtrim(sass);
 
-		// get postion of first meaningfull character in string
+		// get position of first meaningfull character in string
 		size_t pos_left = sass.find_first_not_of(SASS2SCSS_FIND_WHITESPACE);
 
 		// special case for final run
@@ -542,7 +557,7 @@ namespace Sass
 				// default to a selector
 				// change back if property found
 				converter.selector = true;
-				// get postion of first whitespace char
+				// get position of first whitespace char
 				size_t pos_wspace = sass.find_first_of(SASS2SCSS_FIND_WHITESPACE, pos_left);
 				// assertion check for valid result
 				if (pos_wspace != std::string::npos)
@@ -565,7 +580,7 @@ namespace Sass
 							// assertion for valid result
 							if (pos_colon != std::string::npos)
 							{
-								// ... after the first word (skip begining colons)
+								// ... after the first word (skip beginning colons)
 								pos_colon = sass.find_first_of(":", pos_colon);
 								// it is a selector if there was no colon found
 								converter.selector = pos_colon == std::string::npos;
@@ -587,6 +602,7 @@ namespace Sass
 				sass.substr(pos_left, 5) == "@warn" ||
 				sass.substr(pos_left, 6) == "@debug" ||
 				sass.substr(pos_left, 6) == "@error" ||
+				sass.substr(pos_left, 6) == "@value" ||
 				sass.substr(pos_left, 8) == "@charset" ||
 				sass.substr(pos_left, 10) == "@namespace"
 			) { sass = indent + sass.substr(pos_left); }
@@ -606,23 +622,38 @@ namespace Sass
 			{
 				// get positions for the actual import url
 				size_t pos_import = sass.find_first_of(SASS2SCSS_FIND_WHITESPACE, pos_left + 7);
-				size_t pos_quote = sass.find_first_not_of(SASS2SCSS_FIND_WHITESPACE, pos_import);
-				// leave proper urls untouched
-				if (sass.substr(pos_quote, 4) != "url(")
-				{
-					// check if the url appears to be already quoted
-					if (sass.substr(pos_quote, 1) != "\"" && sass.substr(pos_quote, 1) != "\'")
-					{
-						// get position of the last char on the line
-						size_t pos_end = sass.find_last_not_of(SASS2SCSS_FIND_WHITESPACE);
-						// assertion check for valid result
-						if (pos_end != std::string::npos)
-						{
-							// add quotes around the full line after the import statement
-							sass = sass.substr(0, pos_quote) + "\"" + sass.substr(pos_quote, pos_end - pos_quote + 1) + "\"";
+				size_t pos = sass.find_first_not_of(SASS2SCSS_FIND_WHITESPACE, pos_import);
+				size_t start = pos;
+				bool in_dqstr = false;
+				bool in_sqstr = false;
+				bool is_escaped = false;
+				do {
+					if (is_escaped) {
+						is_escaped = false;
+					}
+					else if (sass[pos] == '\\') {
+						is_escaped = true;
+					}
+					else if (sass[pos] == '"') {
+						if (!in_sqstr) in_dqstr = ! in_dqstr;
+					}
+					else if (sass[pos] == '\'') {
+						if (!in_dqstr) in_sqstr = ! in_sqstr;
+					}
+					else if (in_dqstr || in_sqstr) {
+						// skip over quoted stuff
+					}
+					else if (sass[pos] == ',' || sass[pos] == 0) {
+						if (sass[start] != '"' && sass[start] != '\'' && !isUrl(sass, start)) {
+							size_t end = findLastCharacter(sass, pos - 1) + 1;
+							sass = sass.replace(end, 0, "\"");
+							sass = sass.replace(start, 0, "\"");
+							pos += 2;
 						}
+						start = findFirstCharacter(sass, pos + 1);
 					}
 				}
+				while (sass[pos++] != 0);
 
 			}
 			else if (
@@ -727,7 +758,7 @@ namespace Sass
 				scss += flush(sass, converter);
 			}
 
-			// get postion of last meaningfull char
+			// get position of last meaningfull char
 			size_t pos_right = sass.find_last_not_of(SASS2SCSS_FIND_WHITESPACE);
 
 			// check for invalid result

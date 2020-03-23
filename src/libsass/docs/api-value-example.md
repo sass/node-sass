@@ -31,7 +31,7 @@ int main( int argc, const char* argv[] )
   sass_delete_value(total);
 
   // print the result - you may want to make
-  // sure result is indeed a string, altough
+  // sure result is indeed a string, although
   // stringify guarantees to return a string
   // if (sass_value_is_string(result)) {}
   // really depends on your level of paranoia

@@ -83,6 +83,7 @@ namespace Sass {
     // compare operations
     bool operator< (const Units& rhs) const;
     bool operator== (const Units& rhs) const;
+    bool operator!= (const Units& rhs) const;
     // factor to convert into given units
     double convert_factor(const Units&) const;
   };

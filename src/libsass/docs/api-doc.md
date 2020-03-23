@@ -51,6 +51,10 @@ process. The compiler has two different modes: direct input as a string with
 `Sass_File_Context`. See the code for a list of options available
 [Sass_Options](https://github.com/sass/libsass/blob/36feef0/include/sass/interface.h#L18)
 
+The general rule is if the API takes `const char*` it will make a copy, 
+but where the API is `char*` it will take over memory ownership, so make sure to pass 
+in memory that is allocated via `sass_copy_c_string` or `sass_alloc_memory`.
+
 **Building a file compiler**
 
     context = sass_make_file_context("file.scss")
@@ -73,7 +77,11 @@ process. The compiler has two different modes: direct input as a string with
 
 **Building a data compiler**
 
-    context = sass_make_data_context("div { a { color: blue; } }")
+    // LibSass takes over memory owenership, make sure to allocate
+    // a buffer via `sass_alloc_memory` or `sass_copy_c_string`.
+    buffer = sass_copy_c_string("div { a { color: blue; } }")
+
+    context = sass_make_data_context(buffer)
     options = sass_data_context_get_options(context)
     sass_option_set_precision(options, 1)
     sass_option_set_source_comments(options, true)
@@ -121,6 +129,7 @@ is not destroyed (`sass_delete_context`). LibSass will create copies of most
 inputs/options beside the main sass code. You need to allocate and fill that
 buffer before passing it to LibSass. You may also overtake memory management
 from libsass for certain return values (i.e. `sass_context_take_output_string`).
+Make sure to free it via `sass_free_memory`.
 
 ```C
 // to allocate buffer to be filled
@@ -152,7 +161,7 @@ const char* libsass_language_version(void);
 
 The `input_path` is part of `Sass_Options`, but it also is the main option for
 `Sass_File_Context`. It is also used to generate relative file links in source-
-maps. Therefore it is pretty usefull to pass this information if you have a
+maps. Therefore it is pretty useful to pass this information if you have a
 `Sass_Data_Context` and know the original path.
 
 **output_path**
@@ -186,7 +195,7 @@ The proof is in the pudding, so we have highlighted a few implementations that
 should be on par with the latest LibSass interface version. Some of them may not
 have all features implemented!
 
-1. [Perl Example](https://github.com/sass/perl-libsass/blob/master/lib/CSS/Sass.xs)
+1. [Perl Example](https://github.com/sass/perl-libsass/blob/master/Sass.xs)
 2. [Go Example](https://godoc.org/github.com/wellington/go-libsass#example-Compiler--Stdin)
 3. [Node Example](https://github.com/sass/node-sass/blob/master/src/binding.cpp)
 

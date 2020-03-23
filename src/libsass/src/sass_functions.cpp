@@ -1,4 +1,7 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+
 #include <cstring>
 #include "util.hpp"
 #include "context.hpp"
@@ -98,7 +101,7 @@ extern "C" {
   }
 
   // Creator for a single import entry returned by the custom importer inside the list
-  // We take ownership of the memory for source and srcmap (freed when context is destroyd)
+  // We take ownership of the memory for source and srcmap (freed when context is destroyed)
   Sass_Import_Entry ADDCALL sass_make_import(const char* imp_path, const char* abs_path, char* source, char* srcmap)
   {
     Sass_Import* v = (Sass_Import*) calloc(1, sizeof(Sass_Import));
@@ -167,21 +170,21 @@ extern "C" {
 
   // Getters and Setters for environments (lexical, local and global)
   union Sass_Value* ADDCALL sass_env_get_lexical (Sass_Env_Frame env, const char* name) {
-    Expression_Ptr ex = Cast<Expression>((*env->frame)[name]);
+    Expression* ex = Cast<Expression>((*env->frame)[name]);
     return ex != NULL ? ast_node_to_sass_value(ex) : NULL;
   }
   void ADDCALL sass_env_set_lexical (Sass_Env_Frame env, const char* name, union Sass_Value* val) {
     (*env->frame)[name] = sass_value_to_ast_node(val);
   }
   union Sass_Value* ADDCALL sass_env_get_local (Sass_Env_Frame env, const char* name) {
-    Expression_Ptr ex = Cast<Expression>(env->frame->get_local(name));
+    Expression* ex = Cast<Expression>(env->frame->get_local(name));
     return ex != NULL ? ast_node_to_sass_value(ex) : NULL;
   }
   void ADDCALL sass_env_set_local (Sass_Env_Frame env, const char* name, union Sass_Value* val) {
     env->frame->set_local(name, sass_value_to_ast_node(val));
   }
   union Sass_Value* ADDCALL sass_env_get_global (Sass_Env_Frame env, const char* name) {
-    Expression_Ptr ex = Cast<Expression>(env->frame->get_global(name));
+    Expression* ex = Cast<Expression>(env->frame->get_global(name));
     return ex != NULL ? ast_node_to_sass_value(ex) : NULL;
   }
   void ADDCALL sass_env_set_global (Sass_Env_Frame env, const char* name, union Sass_Value* val) {

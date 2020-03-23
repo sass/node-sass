@@ -13,11 +13,7 @@ AM_CFLAGS   = $(AM_COPT)
 AM_CXXFLAGS = $(AM_COPT)
 AM_LDFLAGS  = $(AM_COPT) $(AM_COVLDFLAGS)
 
-if COMPILER_IS_MINGW32
-  AM_CXXFLAGS += -std=gnu++0x
-else
-  AM_CXXFLAGS += -std=c++0x
-endif
+AM_CXXFLAGS += -std=c++11
 
 EXTRA_DIST = \
 	COPYING \
