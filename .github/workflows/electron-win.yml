@@ -44,4 +44,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: win32-${{ matrix.arch }}-${{ matrix.nodeVersion }}_binding.pdb
-        path: build/Release/binding.pdb
+        path: vendor/win32-${{ matrix.arch }}-${{ matrix.nodeVersion }}/binding.node

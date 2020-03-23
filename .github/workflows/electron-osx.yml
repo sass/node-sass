@@ -41,4 +41,4 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: darwin-x64-${{ matrix.nodeVersion }}_binding.node
-        path: build/Release/binding.node
+        path: vendor/darwin-x64-${{ matrix.nodeVersion }}/binding.node
