@@ -1,9 +1,9 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
-#include "util.hpp"
-#include "context.hpp"
-#include "output.hpp"
 #include "emitter.hpp"
-#include "utf8_string.hpp"
+#include "util_string.hpp"
+#include "util.hpp"
 
 namespace Sass {
 
@@ -47,11 +47,11 @@ namespace Sass {
   void Emitter::set_filename(const std::string& str)
   { wbuf.smap.file = str; }
 
-  void Emitter::schedule_mapping(const AST_Node_Ptr node)
+  void Emitter::schedule_mapping(const AST_Node* node)
   { scheduled_mapping = node; }
-  void Emitter::add_open_mapping(const AST_Node_Ptr node)
+  void Emitter::add_open_mapping(const AST_Node* node)
   { wbuf.smap.add_open_mapping(node); }
-  void Emitter::add_close_mapping(const AST_Node_Ptr node)
+  void Emitter::add_close_mapping(const AST_Node* node)
   { wbuf.smap.add_close_mapping(node); }
   ParserState Emitter::remap(const ParserState& pstate)
   { return wbuf.smap.remap(pstate); }
@@ -134,13 +134,13 @@ namespace Sass {
     // write space/lf
     flush_schedules();
 
-    if (in_comment && output_style() == COMPACT) {
-      // unescape comment nodes
-      std::string out = comment_to_string(text);
-      // add to buffer
-      wbuf.buffer += out;
-      // account for data in source-maps
+    if (in_comment) {
+      std::string out = Util::normalize_newlines(text);
+      if (output_style() == COMPACT) {
+        out = comment_to_compact_string(out);
+      }
       wbuf.smap.append(Offset(out));
+      wbuf.buffer += std::move(out);
     } else {
       // add to buffer
       wbuf.buffer += text;
@@ -161,7 +161,7 @@ namespace Sass {
 
   // append some text or token to the buffer
   // this adds source-mappings for node start and end
-  void Emitter::append_token(const std::string& text, const AST_Node_Ptr node)
+  void Emitter::append_token(const std::string& text, const AST_Node* node)
   {
     flush_schedules();
     add_open_mapping(node);
@@ -263,7 +263,7 @@ namespace Sass {
     }
   }
 
-  void Emitter::append_scope_opener(AST_Node_Ptr node)
+  void Emitter::append_scope_opener(AST_Node* node)
   {
     scheduled_linefeed = 0;
     append_optional_space();
@@ -274,7 +274,7 @@ namespace Sass {
     // append_optional_space();
     ++ indentation;
   }
-  void Emitter::append_scope_closer(AST_Node_Ptr node)
+  void Emitter::append_scope_closer(AST_Node* node)
   {
     -- indentation;
     scheduled_linefeed = 0;

@@ -124,6 +124,7 @@ char* error_message;
 char* error_file;
 size_t error_line;
 size_t error_column;
+char* error_src;
 ```
 ```C
 // report imported files
@@ -171,7 +172,7 @@ struct Sass_Compiler* sass_make_file_compiler (struct Sass_File_Context* file_ct
 struct Sass_Compiler* sass_make_data_compiler (struct Sass_Data_Context* data_ctx);
 
 // Execute the different compilation steps individually
-// Usefull if you only want to query the included files
+// Useful if you only want to query the included files
 int sass_compiler_parse (struct Sass_Compiler* compiler);
 int sass_compiler_execute (struct Sass_Compiler* compiler);
 
@@ -202,6 +203,7 @@ const char* sass_context_get_error_json (struct Sass_Context* ctx);
 const char* sass_context_get_error_text (struct Sass_Context* ctx);
 const char* sass_context_get_error_message (struct Sass_Context* ctx);
 const char* sass_context_get_error_file (struct Sass_Context* ctx);
+const char* sass_context_get_error_src (struct Sass_Context* ctx);
 size_t sass_context_get_error_line (struct Sass_Context* ctx);
 size_t sass_context_get_error_column (struct Sass_Context* ctx);
 const char* sass_context_get_source_map_string (struct Sass_Context* ctx);
@@ -221,6 +223,7 @@ char* sass_context_take_error_json (struct Sass_Context* ctx);
 char* sass_context_take_error_text (struct Sass_Context* ctx);
 char* sass_context_take_error_message (struct Sass_Context* ctx);
 char* sass_context_take_error_file (struct Sass_Context* ctx);
+char* sass_context_take_error_src (struct Sass_Context* ctx);
 char* sass_context_take_output_string (struct Sass_Context* ctx);
 char* sass_context_take_source_map_string (struct Sass_Context* ctx);
 ```

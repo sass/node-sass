@@ -18,6 +18,16 @@ namespace Sass {
     extern const unsigned long Specificity_Pseudo;
     extern const unsigned long Specificity_ID;
 
+    // Selector unification order;
+    extern const int UnificationOrder_Element;
+    extern const int UnificationOrder_Id;
+    extern const int UnificationOrder_Class;
+    extern const int UnificationOrder_Attribute;
+    extern const int UnificationOrder_PseudoClass;
+    extern const int UnificationOrder_Wrapped;
+    extern const int UnificationOrder_PseudoElement;
+    extern const int UnificationOrder_Placeholder;
+
     // sass keywords
     extern const char at_root_kwd[];
     extern const char import_kwd[];
@@ -33,6 +43,7 @@ namespace Sass {
     extern const char for_kwd[];
     extern const char from_kwd[];
     extern const char to_kwd[];
+    extern const char of_kwd[];
     extern const char through_kwd[];
     extern const char each_kwd[];
     extern const char in_kwd[];
@@ -117,6 +128,9 @@ namespace Sass {
     extern const char true_kwd[];
     extern const char false_kwd[];
 
+    // definition keywords
+    extern const char using_kwd[];
+
     // miscellaneous punctuation and delimiters
     extern const char percent_str[];
     extern const char empty_str[];
@@ -147,6 +161,11 @@ namespace Sass {
     // constants for uri parsing (RFC 3986 Appendix A.)
     extern const char uri_chars[];
     extern const char real_uri_chars[];
+
+    // constants for selector combinators
+    extern const char selector_combinator_child[];
+    extern const char selector_combinator_general[];
+    extern const char selector_combinator_adjacent[];
 
     // some specific constant character classes
     // they must be static to be useable by lexer
