@@ -39,7 +39,7 @@ jobs:
       env:
         SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
     - name: Run build (electron force)
-      run: node ./scripts/build --electron-version=${{ matrix.electron }}.0.0
+      run: node ./scripts/build --electron-version=${{ matrix.electron }}.0.0 --arch=${{ matrix.arch }}
     - name: Check success by getting binary
       uses: actions/upload-artifact@v1
       with:
