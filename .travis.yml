@@ -9,24 +9,12 @@ env:
 jobs:
   include:
     - stage: test
-      node_js: "node"
+      node_js: "12"
       os: linux
       before_script: npm run lint || exit 1;
       after_success: npm run-script coverage;
     - stage: platform-test
-      node_js: "node"
-      os: osx
-    - stage: platform-test
       node_js: "12"
-      os: linux
-    - stage: platform-test
-      node_js: "12"
-      os: osx
-    - stage: platform-test
-      node_js: "11"
-      os: linux
-    - stage: platform-test
-      node_js: "11"
       os: osx
     - stage: platform-test
       node_js: "10"
@@ -35,49 +23,17 @@ jobs:
       node_js: "10"
       os: osx
     - stage: platform-test
-      node_js: "9"
+      node_js: "13"
       os: linux
     - stage: platform-test
-      node_js: "9"
+      node_js: "13"
       os: osx
-    - stage: platform-test
-      node_js: "8"
-      os: linux
-    - stage: platform-test
-      node_js: "8"
-      os: osx
-    - stage: platform-test
-      node_js: "7"
-      os: linux
-    - stage: platform-test
-      node_js: "7"
-      os: osx
-    - stage: platform-test
-      node_js: "6"
-      os: linux
-    - stage: platform-test
-      node_js: "6"
-      os: osx
-    - stage: platform-test
-      node_js: "4"
-      os: linux
-    - stage: platform-test
-      node_js: "4"
-      os: osx
-    - stage: platform-test
-      node_js: "0.12"
-      os: linux
-    - stage: platform-test
-      node_js: "0.10"
-      os: linux
 
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
     packages:
-      - gcc-4.7
-      - g++-4.7
       - gcc-4.9
       - g++-4.9
       - gcc-6
@@ -92,16 +48,11 @@ before_install:
         export CXX="g++-6";
         export LINK="gcc-6";
         export LINKXX="g++-6";
-      elif [[ $(node -v) =~ v1[01] ]]; then
+      else
         export CC="gcc-4.9";
         export CXX="g++-4.9";
         export LINK="gcc-4.9";
         export LINKXX="g++-4.9";
-      else
-        export CC="gcc-4.7";
-        export CXX="g++-4.7";
-        export LINK="gcc-4.7";
-        export LINKXX="g++-4.7";
       fi
     fi
   - nvm --version
