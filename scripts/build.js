@@ -61,8 +61,8 @@ function build(options) {
       return ['--', subject, '=', process.env[subject.toUpperCase()] || ''].join('');
     })).concat(options.args);
 
-  if (process.versions.electron) {
-    args.push("--target=" + process.versions.electron, "--arch=" + process.arch, "--dist-url=https://electronjs.org/headers")
+  if (process.versions.electron || options.electronVersion) {
+    args.push("--target=" + (process.versions.electron || options.electronVersion), "--arch=" + process.arch, "--dist-url=https://electronjs.org/headers")
   }
 
   console.log('Building:', [process.execPath].concat(args).join(' '));
@@ -111,6 +111,9 @@ function parseArgs(args) {
       options.debug = true;
     } else if (arg.substring(0, 13) === '--libsass_ext' && arg.substring(14) !== 'no') {
       options.libsassExt = true;
+    } else if (arg.substring(0, 18) === "--electron-version") {
+      options.electronVersion = arg.substring(19);
+      return false;
     }
 
     return true;
