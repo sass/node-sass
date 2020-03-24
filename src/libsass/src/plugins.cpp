@@ -1,7 +1,11 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+
 #include <iostream>
 #include "output.hpp"
 #include "plugins.hpp"
+#include "util.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -154,7 +158,7 @@ namespace Sass {
           }
         }
       }
-      catch (utf8::invalid_utf8)
+      catch (utf8::invalid_utf8&)
       {
         // report the error to the console (should not happen)
         // implementors should make sure to provide valid utf8

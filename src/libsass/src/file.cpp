@@ -1,4 +1,7 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+
 #ifdef _WIN32
 # ifdef __MINGW32__
 #  ifndef off64_t
@@ -10,9 +13,7 @@
 #else
 # include <unistd.h>
 #endif
-#include <iostream>
-#include <fstream>
-#include <cctype>
+#include <cstdio>
 #include <vector>
 #include <algorithm>
 #include <sys/stat.h>
@@ -21,6 +22,9 @@
 #include "prelexer.hpp"
 #include "utf8_string.hpp"
 #include "sass_functions.hpp"
+#include "error_handling.hpp"
+#include "util.hpp"
+#include "util_string.hpp"
 #include "sass2scss.h"
 
 #ifdef _WIN32
@@ -79,7 +83,10 @@ namespace Sass {
         wchar_t resolved[32768];
         // windows unicode filepaths are encoded in utf16
         std::string abspath(join_paths(get_cwd(), path));
-        std::wstring wpath(UTF_8::convert_to_utf16("\\\\?\\" + abspath));
+        if (!(abspath[0] == '/' && abspath[1] == '/')) {
+          abspath = "//?/" + abspath;
+        }
+        std::wstring wpath(UTF_8::convert_to_utf16(abspath));
         std::replace(wpath.begin(), wpath.end(), '/', '\\');
         DWORD rv = GetFullPathNameW(wpath.c_str(), 32767, resolved, NULL);
         if (rv > 32767) throw Exception::OperationError("Path is too long");
@@ -99,19 +106,19 @@ namespace Sass {
     bool is_absolute_path(const std::string& path)
     {
       #ifdef _WIN32
-        if (path.length() >= 2 && isalpha(path[0]) && path[1] == ':') return true;
+        if (path.length() >= 2 && Util::ascii_isalpha(path[0]) && path[1] == ':') return true;
       #endif
       size_t i = 0;
       // check if we have a protocol
-      if (path[i] && Prelexer::is_alpha(path[i])) {
+      if (path[i] && Util::ascii_isalpha(static_cast<unsigned char>(path[i]))) {
         // skip over all alphanumeric characters
-        while (path[i] && Prelexer::is_alnum(path[i])) ++i;
+        while (path[i] && Util::ascii_isalnum(static_cast<unsigned char>(path[i]))) ++i;
         i = i && path[i] == ':' ? i + 1 : 0;
       }
       return path[i] == '/';
     }
 
-    // helper function to find the last directory seperator
+    // helper function to find the last directory separator
     inline size_t find_last_folder_separator(const std::string& path, size_t limit = std::string::npos)
     {
       size_t pos;
@@ -166,15 +173,15 @@ namespace Sass {
       while((pos = path.find("/./", pos)) != std::string::npos) path.erase(pos, 2);
 
       // remove all leading and trailing self references
-      while(path.length() > 1 && path.substr(0, 2) == "./") path.erase(0, 2);
-      while((pos = path.length()) > 1 && path.substr(pos - 2) == "/.") path.erase(pos - 2);
+      while(path.size() >= 2 && path[0] == '.' && path[1] == '/') path.erase(0, 2);
+      while((pos = path.length()) > 1 && path[pos - 2] == '/' && path[pos - 1] == '.') path.erase(pos - 2);
 
 
       size_t proto = 0;
       // check if we have a protocol
-      if (path[proto] && Prelexer::is_alpha(path[proto])) {
+      if (path[proto] && Util::ascii_isalpha(static_cast<unsigned char>(path[proto]))) {
         // skip over all alphanumeric characters
-        while (path[proto] && Prelexer::is_alnum(path[proto++])) {}
+        while (path[proto] && Util::ascii_isalnum(static_cast<unsigned char>(path[proto++]))) {}
         // then skip over the mandatory colon
         if (proto && path[proto] == ':') ++ proto;
       }
@@ -253,9 +260,9 @@ namespace Sass {
 
       size_t proto = 0;
       // check if we have a protocol
-      if (path[proto] && Prelexer::is_alpha(path[proto])) {
+      if (path[proto] && Util::ascii_isalpha(static_cast<unsigned char>(path[proto]))) {
         // skip over all alphanumeric characters
-        while (path[proto] && Prelexer::is_alnum(path[proto++])) {}
+        while (path[proto] && Util::ascii_isalnum(static_cast<unsigned char>(path[proto++]))) {}
         // then skip over the mandatory colon
         if (proto && path[proto] == ':') ++ proto;
       }
@@ -281,7 +288,8 @@ namespace Sass {
         #else
           // compare the charactes in a case insensitive manner
           // windows fs is only case insensitive in ascii ranges
-          if (tolower(abs_path[i]) != tolower(abs_base[i])) break;
+          if (Util::ascii_tolower(static_cast<unsigned char>(abs_path[i])) !=
+              Util::ascii_tolower(static_cast<unsigned char>(abs_base[i]))) break;
         #endif
         if (abs_path[i] == '/') index = i + 1;
       }
@@ -323,6 +331,8 @@ namespace Sass {
     // (2) underscore + given
     // (3) underscore + given + extension
     // (4) given + extension
+    // (5) given + _index.scss
+    // (6) given + _index.sass
     std::vector<Include> resolve_includes(const std::string& root, const std::string& file, const std::vector<std::string>& exts)
     {
       std::string filename = join_paths(root, file);
@@ -349,6 +359,25 @@ namespace Sass {
         rel_path = join_paths(base, name + ext);
         abs_path = join_paths(root, rel_path);
         if (file_exists(abs_path)) includes.push_back({{ rel_path, root }, abs_path });
+      }
+      // index files
+      if (includes.size() == 0) {
+        // ignore directories that look like @import'able filename
+        for(auto ext : exts) {
+          if (ends_with(name, ext)) return includes;
+        }
+        // next test underscore index exts
+        for(auto ext : exts) {
+          rel_path = join_paths(base, join_paths(name, "_index" + ext));
+          abs_path = join_paths(root, rel_path);
+          if (file_exists(abs_path)) includes.push_back({{ rel_path, root }, abs_path });
+        }
+        // next test plain index exts
+        for(auto ext : exts) {
+          rel_path = join_paths(base, join_paths(name, "index" + ext));
+          abs_path = join_paths(root, rel_path);
+          if (file_exists(abs_path)) includes.push_back({{ rel_path, root }, abs_path });
+        }
       }
       // nothing found
       return includes;
@@ -411,7 +440,10 @@ namespace Sass {
         wchar_t resolved[32768];
         // windows unicode filepaths are encoded in utf16
         std::string abspath(join_paths(get_cwd(), path));
-        std::wstring wpath(UTF_8::convert_to_utf16("\\\\?\\" + abspath));
+        if (!(abspath[0] == '/' && abspath[1] == '/')) {
+          abspath = "//?/" + abspath;
+        }
+        std::wstring wpath(UTF_8::convert_to_utf16(abspath));
         std::replace(wpath.begin(), wpath.end(), '/', '\\');
         DWORD rv = GetFullPathNameW(wpath.c_str(), 32767, resolved, NULL);
         if (rv > 32767) throw Exception::OperationError("Path is too long");
@@ -430,28 +462,34 @@ namespace Sass {
         // just convert from unsigned char*
         char* contents = (char*) pBuffer;
       #else
+        // Read the file using `<cstdio>` instead of `<fstream>` for better portability.
+        // The `<fstream>` header initializes `<locale>` and this buggy in GCC4/5 with static linking.
+        // See:
+        // https://www.spinics.net/lists/gcchelp/msg46851.html
+        // https://github.com/sass/sassc-ruby/issues/128
         struct stat st;
         if (stat(path.c_str(), &st) == -1 || S_ISDIR(st.st_mode)) return 0;
-        std::ifstream file(path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
-        char* contents = 0;
-        if (file.is_open()) {
-          size_t size = file.tellg();
-          // allocate an extra byte for the null char
-          // and another one for edge-cases in lexer
-          contents = (char*) malloc((size+2)*sizeof(char));
-          file.seekg(0, std::ios::beg);
-          file.read(contents, size);
-          contents[size+0] = '\0';
-          contents[size+1] = '\0';
-          file.close();
+        FILE* fd = std::fopen(path.c_str(), "rb");
+        if (fd == nullptr) return nullptr;
+        const std::size_t size = st.st_size;
+        char* contents = static_cast<char*>(malloc(st.st_size + 2 * sizeof(char)));
+        if (std::fread(static_cast<void*>(contents), 1, size, fd) != size) {
+          free(contents);
+          std::fclose(fd);
+          return nullptr;
         }
+        if (std::fclose(fd) != 0) {
+          free(contents);
+          return nullptr;
+        }
+        contents[size] = '\0';
+        contents[size + 1] = '\0';
       #endif
       std::string extension;
       if (path.length() > 5) {
         extension = path.substr(path.length() - 5, 5);
       }
-      for(size_t i=0; i<extension.size();++i)
-        extension[i] = tolower(extension[i]);
+      Util::ascii_str_tolower(&extension);
       if (extension == ".sass" && contents != 0) {
         char * converted = sass2scss(contents, SASS2SCSS_PRETTIFY_1 | SASS2SCSS_KEEP_COMMENT);
         free(contents); // free the indented contents

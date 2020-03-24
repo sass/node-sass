@@ -28,8 +28,8 @@ namespace Sass {
     void prepend(const Offset& offset);
     void append(const OutputBuffer& out);
     void prepend(const OutputBuffer& out);
-    void add_open_mapping(const AST_Node_Ptr node);
-    void add_close_mapping(const AST_Node_Ptr node);
+    void add_open_mapping(const AST_Node* node);
+    void add_close_mapping(const AST_Node* node);
 
     std::string render_srcmap(Context &ctx);
     ParserState remap(const ParserState& pstate);

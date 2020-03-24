@@ -402,7 +402,7 @@ char *json_encode_string(const char *str)
   try {
     emit_string(&sb, str);
   }
-  catch (std::exception) {
+  catch (std::exception&) {
     sb_free(&sb);
     throw;
   }
@@ -421,7 +421,7 @@ char *json_stringify(const JsonNode *node, const char *space)
     else
       emit_value(&sb, node);
   }
-  catch (std::exception) {
+  catch (std::exception&) {
     sb_free(&sb);
     throw;
   }

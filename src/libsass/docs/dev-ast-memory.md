@@ -50,7 +50,7 @@ I often use the terminology of "pickup". This means the moment when
 a raw pointer not under any control is assigned to a reference counted
 object (`XYZ_Obj = XYZ_Ptr`). From that point on memory will be
 automatically released once the object goes out of scope (but only
-if the reference counter reaches zero). Main point beeing, you don't
+if the reference counter reaches zero). Main point being, you don't
 have to worry about memory management yourself.
 
 ### Object detach
@@ -212,7 +212,7 @@ profound advantages:
 
 - Better GCC 4.4 compatibility (which most code still has OOTB)
 - Not thread safe (give us some free performance on some compiler)
-- Beeing able to track memory allocations for debugging purposes
+- Being able to track memory allocations for debugging purposes
 - Adding additional features if needed (as seen in `detach`)
 - Optional: optimized weak pointer implementation possible
 

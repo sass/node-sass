@@ -2,5 +2,5 @@
 @import "struct";
 
 .myvars {
-    content: quote($import_counter);
+    content: quote(#{$import_counter});
 }
