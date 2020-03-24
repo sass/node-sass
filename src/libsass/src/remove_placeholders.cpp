@@ -1,84 +1,86 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+#include "ast.hpp"
+
 #include "remove_placeholders.hpp"
-#include "context.hpp"
-#include "inspect.hpp"
-#include <iostream>
 
 namespace Sass {
 
     Remove_Placeholders::Remove_Placeholders()
     { }
 
-    void Remove_Placeholders::operator()(Block_Ptr b) {
-        for (size_t i = 0, L = b->length(); i < L; ++i) {
-            Statement_Ptr st = b->at(i);
-            st->perform(this);
-        }
-    }
-
-    Selector_List_Ptr Remove_Placeholders::remove_placeholders(Selector_List_Ptr sl)
-    {
-      Selector_List_Ptr new_sl = SASS_MEMORY_NEW(Selector_List, sl->pstate());
-
-      for (size_t i = 0, L = sl->length(); i < L; ++i) {
-          if (!sl->at(i)->contains_placeholder()) {
-              new_sl->append(sl->at(i));
-          }
+    void Remove_Placeholders::operator()(Block* b) {
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        if (b->get(i)) b->get(i)->perform(this);
       }
-
-      return new_sl;
-
     }
 
+    void Remove_Placeholders::remove_placeholders(SimpleSelector* simple)
+    {
+      if (Pseudo_Selector * pseudo = simple->getPseudoSelector()) {
+        if (pseudo->selector()) remove_placeholders(pseudo->selector());
+      }
+    }
 
-    void Remove_Placeholders::operator()(Ruleset_Ptr r) {
-        // Create a new selector group without placeholders
-        Selector_List_Obj sl = Cast<Selector_List>(r->selector());
+    void Remove_Placeholders::remove_placeholders(CompoundSelector* compound)
+    {
+      for (size_t i = 0, L = compound->length(); i < L; ++i) {
+        if (compound->get(i)) remove_placeholders(compound->get(i));
+      }
+      listEraseItemIf(compound->elements(), listIsEmpty<SimpleSelector>);
+    }
 
-        if (sl) {
-          // Set the new placeholder selector list
-          r->selector(remove_placeholders(sl));
-          // Remove placeholders in wrapped selectors
-          for (Complex_Selector_Obj cs : sl->elements()) {
-            while (cs) {
-              if (cs->head()) {
-                for (Simple_Selector_Obj& ss : cs->head()->elements()) {
-                  if (Wrapped_Selector_Ptr ws = Cast<Wrapped_Selector>(ss)) {
-                    if (Selector_List_Ptr wsl = Cast<Selector_List>(ws->selector())) {
-                      Selector_List_Ptr clean = remove_placeholders(wsl);
-                      // also clean superflous parent selectors
-                      // probably not really the correct place
-                      clean->remove_parent_selectors();
-                      ws->selector(clean);
-                    }
-                  }
-                }
-              }
-              cs = cs->tail();
-            }
+    void Remove_Placeholders::remove_placeholders(ComplexSelector* complex)
+    {
+      if (complex->has_placeholder()) {
+        complex->clear(); // remove all
+      }
+      else {
+        for (size_t i = 0, L = complex->length(); i < L; ++i) {
+          if (CompoundSelector * compound = complex->get(i)->getCompound()) {
+            if (compound) remove_placeholders(compound);
           }
         }
-
-        // Iterate into child blocks
-        Block_Obj b = r->block();
-
-        for (size_t i = 0, L = b->length(); i < L; ++i) {
-            if (b->at(i)) {
-                Statement_Obj st = b->at(i);
-                st->perform(this);
-            }
-        }
+        listEraseItemIf(complex->elements(), listIsEmpty<SelectorComponent>);
+      }
     }
 
-    void Remove_Placeholders::operator()(Media_Block_Ptr m) {
-        operator()(m->block());
-    }
-    void Remove_Placeholders::operator()(Supports_Block_Ptr m) {
-        operator()(m->block());
+    SelectorList* Remove_Placeholders::remove_placeholders(SelectorList* sl)
+    {
+      for (size_t i = 0, L = sl->length(); i < L; ++i) {
+        if (sl->get(i)) remove_placeholders(sl->get(i));
+      }
+      listEraseItemIf(sl->elements(), listIsEmpty<ComplexSelector>);
+      return sl;
     }
 
-    void Remove_Placeholders::operator()(Directive_Ptr a) {
-        if (a->block()) a->block()->perform(this);
+    void Remove_Placeholders::operator()(CssMediaRule* rule)
+    {
+      if (rule->block()) operator()(rule->block());
+    }
+
+    void Remove_Placeholders::operator()(Ruleset* r)
+    {
+      if (SelectorListObj sl = r->selector()) {
+        // Set the new placeholder selector list
+        r->selector((remove_placeholders(sl)));
+      }
+      // Iterate into child blocks
+      Block_Obj b = r->block();
+      for (size_t i = 0, L = b->length(); i < L; ++i) {
+        if (b->get(i)) { b->get(i)->perform(this); }
+      }
+    }
+
+    void Remove_Placeholders::operator()(Supports_Block* m)
+    {
+      if (m->block()) operator()(m->block());
+    }
+
+    void Remove_Placeholders::operator()(Directive* a)
+    {
+      if (a->block()) a->block()->perform(this);
     }
 
 }

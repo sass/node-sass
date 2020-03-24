@@ -1,6 +1,10 @@
 #ifndef SASS_FILE_H
 #define SASS_FILE_H
 
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
+#include "sass.hpp"
+
 #include <string>
 #include <vector>
 
@@ -100,22 +104,11 @@ namespace Sass {
     public:
       // the file contents
       char* contents;
-      // conected sourcemap
+      // connected sourcemap
       char* srcmap;
     public:
       Resource(char* contents, char* srcmap)
       : contents(contents), srcmap(srcmap)
-      { }
-  };
-
-  // parsed stylesheet from loaded resource
-  class StyleSheet : public Resource {
-    public:
-      // parsed root block
-      Block_Obj root;
-    public:
-      StyleSheet(const Resource& res, Block_Obj root)
-      : Resource(res), root(root)
       { }
   };
 

@@ -1,6 +1,6 @@
 OS       ?= $(shell uname -s)
-CC       ?= gcc
-CXX      ?= g++
+CC       ?= cc
+CXX      ?= c++
 RM       ?= rm -f
 CP       ?= cp -a
 MKDIR    ?= mkdir
@@ -15,7 +15,7 @@ INSTALL  ?= install
 CFLAGS   ?= -Wall
 CXXFLAGS ?= -Wall
 LDFLAGS  ?= -Wall
-ifeq "x$(COVERAGE)" "x"
+ifndef COVERAGE
   CFLAGS   += -O2
   CXXFLAGS += -O2
   LDFLAGS  += -O2
@@ -24,66 +24,58 @@ else
   CXXFLAGS += -O1 -fno-omit-frame-pointer
   LDFLAGS  += -O1 -fno-omit-frame-pointer
 endif
-LDFLAGS  += -Wl,-undefined,error
-CAT      ?= $(if $(filter $(OS),Windows_NT),type,cat)
+CAT ?= $(if $(filter $(OS),Windows_NT),type,cat)
 
 ifneq (,$(findstring /cygdrive/,$(PATH)))
 	UNAME := Cygwin
 else
-	ifneq (,$(findstring Windows_NT,$(OS)))
-		UNAME := Windows
-	else
-		ifneq (,$(findstring mingw32,$(MAKE)))
-			UNAME := Windows
-		else
-			ifneq (,$(findstring MINGW32,$(shell uname -s)))
-				UNAME = Windows
-			else
-				UNAME := $(shell uname -s)
-			endif
-		endif
-	endif
+ifneq (,$(findstring Windows_NT,$(OS)))
+	UNAME := Windows
+else
+ifneq (,$(findstring mingw32,$(MAKE)))
+	UNAME := Windows
+else
+ifneq (,$(findstring MINGW32,$(shell uname -s)))
+	UNAME := Windows
+else
+	UNAME := $(shell uname -s)
+endif
+endif
+endif
 endif
 
-ifeq ($(SASS_LIBSASS_PATH),)
-	SASS_LIBSASS_PATH = $(abspath $(CURDIR))
-endif
-
-ifeq ($(LIBSASS_VERSION),)
+ifndef LIBSASS_VERSION
 	ifneq ($(wildcard ./.git/ ),)
 		LIBSASS_VERSION ?= $(shell git describe --abbrev=4 --dirty --always --tags)
 	endif
-endif
-
-ifeq ($(LIBSASS_VERSION),)
 	ifneq ($(wildcard VERSION),)
 		LIBSASS_VERSION ?= $(shell $(CAT) VERSION)
 	endif
 endif
-
-ifneq ($(LIBSASS_VERSION),)
+ifdef LIBSASS_VERSION
 	CFLAGS   += -DLIBSASS_VERSION="\"$(LIBSASS_VERSION)\""
 	CXXFLAGS += -DLIBSASS_VERSION="\"$(LIBSASS_VERSION)\""
 endif
 
-# enable mandatory flag
+CXXFLAGS += -std=c++11
+LDFLAGS  += -std=c++11
+
 ifeq (Windows,$(UNAME))
 	ifneq ($(BUILD),shared)
 		STATIC_ALL     ?= 1
 	endif
 	STATIC_LIBGCC    ?= 1
 	STATIC_LIBSTDCPP ?= 1
-	CXXFLAGS += -std=gnu++0x
-	LDFLAGS  += -std=gnu++0x
 else
 	STATIC_ALL       ?= 0
 	STATIC_LIBGCC    ?= 0
 	STATIC_LIBSTDCPP ?= 0
-	CXXFLAGS += -std=c++0x
-	LDFLAGS  += -std=c++0x
 endif
 
-ifneq ($(SASS_LIBSASS_PATH),)
+ifndef SASS_LIBSASS_PATH
+	SASS_LIBSASS_PATH = $(CURDIR)
+endif
+ifdef SASS_LIBSASS_PATH
 	CFLAGS   += -I $(SASS_LIBSASS_PATH)/include
 	CXXFLAGS += -I $(SASS_LIBSASS_PATH)/include
 else
@@ -92,20 +84,15 @@ else
 	CXXFLAGS += -I include
 endif
 
-ifneq ($(EXTRA_CFLAGS),)
-	CFLAGS   += $(EXTRA_CFLAGS)
-endif
-ifneq ($(EXTRA_CXXFLAGS),)
-	CXXFLAGS += $(EXTRA_CXXFLAGS)
-endif
-ifneq ($(EXTRA_LDFLAGS),)
-	LDFLAGS  += $(EXTRA_LDFLAGS)
-endif
+CFLAGS   += $(EXTRA_CFLAGS)
+CXXFLAGS += $(EXTRA_CXXFLAGS)
+LDFLAGS  += $(EXTRA_LDFLAGS)
 
 LDLIBS = -lm
-
 ifneq ($(BUILD),shared)
-	LDLIBS += -lstdc++
+	ifneq ($(STATIC_LIBSTDCPP),1)
+		LDLIBS += -lstdc++
+	endif
 endif
 
 # link statically into lib
@@ -143,7 +130,7 @@ ifeq ($(DEBUG),1)
 	BUILD := debug-$(BUILD)
 endif
 
-ifeq (,$(TRAVIS_BUILD_DIR))
+ifndef TRAVIS_BUILD_DIR
 	ifeq ($(OS),SunOS)
 		PREFIX ?= /opt/local
 	else
@@ -153,54 +140,39 @@ else
 	PREFIX ?= $(TRAVIS_BUILD_DIR)
 endif
 
-
 SASS_SASSC_PATH ?= sassc
 SASS_SPEC_PATH ?= sass-spec
 SASS_SPEC_SPEC_DIR ?= spec
 SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc
 RUBY_BIN = ruby
 
-LIB_STATIC = $(SASS_LIBSASS_PATH)/lib/libsass.a
-LIB_SHARED = $(SASS_LIBSASS_PATH)/lib/libsass.so
-
-ifeq (Windows,$(UNAME))
-	ifeq (shared,$(BUILD))
-		CFLAGS     += -D ADD_EXPORTS
-		CXXFLAGS   += -D ADD_EXPORTS
-		LIB_SHARED  = $(SASS_LIBSASS_PATH)/lib/libsass.dll
-	endif
-else
-	ifneq (Cygwin,$(UNAME))
-		CFLAGS   += -fPIC
-		CXXFLAGS += -fPIC
-		LDFLAGS  += -fPIC
-	endif
-endif
-
-ifeq (Windows,$(UNAME))
-	SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc.exe
-endif
-
-include Makefile.conf
-
 RESOURCES =
 STATICLIB = lib/libsass.a
 SHAREDLIB = lib/libsass.so
+LIB_STATIC = $(SASS_LIBSASS_PATH)/lib/libsass.a
+LIB_SHARED = $(SASS_LIBSASS_PATH)/lib/libsass.so
+ifeq ($(UNAME),Darwin)
+	SHAREDLIB = lib/libsass.dylib
+	LIB_SHARED = $(SASS_LIBSASS_PATH)/lib/libsass.dylib
+endif
 ifeq (Windows,$(UNAME))
+	SASSC_BIN = $(SASS_SASSC_PATH)/bin/sassc.exe
 	RESOURCES += res/resource.rc
 	SHAREDLIB  = lib/libsass.dll
 	ifeq (shared,$(BUILD))
 		CFLAGS    += -D ADD_EXPORTS
 		CXXFLAGS  += -D ADD_EXPORTS
+		LIB_SHARED  = $(SASS_LIBSASS_PATH)/lib/libsass.dll
 	endif
 else
-	ifneq (Cygwin,$(UNAME))
-		CFLAGS   += -fPIC
-		CXXFLAGS += -fPIC
-		LDFLAGS  += -fPIC
-	endif
+ifneq (Cygwin,$(UNAME))
+	CFLAGS   += -fPIC
+	CXXFLAGS += -fPIC
+	LDFLAGS  += -fPIC
+endif
 endif
 
+include Makefile.conf
 OBJECTS = $(addprefix src/,$(SOURCES:.cpp=.o))
 COBJECTS = $(addprefix src/,$(CSOURCES:.c=.o))
 RCOBJECTS = $(RESOURCES:.rc=.o)
@@ -230,14 +202,19 @@ debug-shared: shared
 lib:
 	$(MKDIR) lib
 
-lib/libsass.a: lib $(COBJECTS) $(OBJECTS)
+lib/libsass.a: $(COBJECTS) $(OBJECTS) | lib
 	$(AR) rcvs $@ $(COBJECTS) $(OBJECTS)
 
-lib/libsass.so: lib $(COBJECTS) $(OBJECTS)
+lib/libsass.so: $(COBJECTS) $(OBJECTS) | lib
 	$(CXX) -shared $(LDFLAGS) -o $@ $(COBJECTS) $(OBJECTS) $(LDLIBS)
 
-lib/libsass.dll: lib $(COBJECTS) $(OBJECTS) $(RCOBJECTS)
-	$(CXX) -shared $(LDFLAGS) -o $@ $(COBJECTS) $(OBJECTS) $(RCOBJECTS) $(LDLIBS) -s -Wl,--subsystem,windows,--out-implib,lib/libsass.a
+lib/libsass.dylib: $(COBJECTS) $(OBJECTS) | lib
+	$(CXX) -shared $(LDFLAGS) -o $@ $(COBJECTS) $(OBJECTS) $(LDLIBS) \
+	-install_name @rpath/libsass.dylib
+
+lib/libsass.dll: $(COBJECTS) $(OBJECTS) $(RCOBJECTS) | lib
+	$(CXX) -shared $(LDFLAGS) -o $@ $(COBJECTS) $(OBJECTS) $(RCOBJECTS) $(LDLIBS) \
+	-s -Wl,--subsystem,windows,--out-implib,lib/libsass.a
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -259,18 +236,17 @@ shared: $(SHAREDLIB)
 $(DESTDIR)$(PREFIX):
 	$(MKDIR) $(DESTDIR)$(PREFIX)
 
-$(DESTDIR)$(PREFIX)/lib: $(DESTDIR)$(PREFIX)
+$(DESTDIR)$(PREFIX)/lib: | $(DESTDIR)$(PREFIX)
 	$(MKDIR) $(DESTDIR)$(PREFIX)/lib
 
-$(DESTDIR)$(PREFIX)/include: $(DESTDIR)$(PREFIX)
+$(DESTDIR)$(PREFIX)/include: | $(DESTDIR)$(PREFIX)
 	$(MKDIR) $(DESTDIR)$(PREFIX)/include
 
-$(DESTDIR)$(PREFIX)/include/sass: $(DESTDIR)$(PREFIX)/include
+$(DESTDIR)$(PREFIX)/include/sass: | $(DESTDIR)$(PREFIX)/include
 	$(MKDIR) $(DESTDIR)$(PREFIX)/include/sass
 
 $(DESTDIR)$(PREFIX)/include/%.h: include/%.h \
-                                 $(DESTDIR)$(PREFIX)/include \
-                                 $(DESTDIR)$(PREFIX)/include/sass
+                                 | $(DESTDIR)$(PREFIX)/include/sass
 	$(INSTALL) -v -m0644 "$<" "$@"
 
 install-headers: $(DESTDIR)$(PREFIX)/include/sass.h \
@@ -282,46 +258,59 @@ install-headers: $(DESTDIR)$(PREFIX)/include/sass.h \
                  $(DESTDIR)$(PREFIX)/include/sass/functions.h
 
 $(DESTDIR)$(PREFIX)/lib/%.a: lib/%.a \
-                             $(DESTDIR)$(PREFIX)/lib
+                             | $(DESTDIR)$(PREFIX)/lib
 	@$(INSTALL) -v -m0755 "$<" "$@"
 
 $(DESTDIR)$(PREFIX)/lib/%.so: lib/%.so \
-                             $(DESTDIR)$(PREFIX)/lib
+                             | $(DESTDIR)$(PREFIX)/lib
 	@$(INSTALL) -v -m0755 "$<" "$@"
 
 $(DESTDIR)$(PREFIX)/lib/%.dll: lib/%.dll \
-                               $(DESTDIR)$(PREFIX)/lib
+                               | $(DESTDIR)$(PREFIX)/lib
+	@$(INSTALL) -v -m0755 "$<" "$@"
+
+$(DESTDIR)$(PREFIX)/lib/%.dylib: lib/%.dylib \
+                               | $(DESTDIR)$(PREFIX)/lib
 	@$(INSTALL) -v -m0755 "$<" "$@"
 
 install-static: $(DESTDIR)$(PREFIX)/lib/libsass.a
 
-install-shared: $(DESTDIR)$(PREFIX)/lib/libsass.so \
+install-shared: $(DESTDIR)$(PREFIX)/$(SHAREDLIB) \
                 install-headers
 
 $(SASSC_BIN): $(BUILD)
-	$(MAKE) -C $(SASS_SASSC_PATH) build-$(BUILD)-dev
+	$(MAKE) -C $(SASS_SASSC_PATH) build-$(BUILD)
 
 sassc: $(SASSC_BIN)
 	$(SASSC_BIN) -v
 
 version: $(SASSC_BIN)
-	$(SASSC_BIN) -h
 	$(SASSC_BIN) -v
 
-test: $(SASSC_BIN)
-	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -V 3.5 -c $(SASSC_BIN) --impl libsass $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
+test: test_build
 
 test_build: $(SASSC_BIN)
-	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -V 3.5 -c $(SASSC_BIN) --impl libsass $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
+	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) --impl libsass \
+	--cmd-args "-I $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)" \
+	$(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
 
 test_full: $(SASSC_BIN)
-	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -V 3.5 -c $(SASSC_BIN) --impl libsass --run-todo $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
+	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) --impl libsass \
+	--cmd-args "-I $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)" \
+	--run-todo $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
 
 test_probe: $(SASSC_BIN)
-	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -V 3.5 -c $(SASSC_BIN) --impl libsass --probe-todo $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
+	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) --impl libsass \
+	--cmd-args "-I $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)" \
+	--probe-todo $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
 
-clean-objects: lib
-	-$(RM) lib/*.a lib/*.so lib/*.dll lib/*.la
+test_interactive: $(SASSC_BIN)
+	$(RUBY_BIN) $(SASS_SPEC_PATH)/sass-spec.rb -c $(SASSC_BIN) --impl libsass \
+	--cmd-args "-I $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)" \
+	--interactive $(LOG_FLAGS) $(SASS_SPEC_PATH)/$(SASS_SPEC_SPEC_DIR)
+
+clean-objects: | lib
+	-$(RM) lib/*.a lib/*.so lib/*.dll lib/*.dylib lib/*.la
 	-$(RMDIR) lib
 clean: clean-objects
 	$(RM) $(CLEANUPS)
@@ -347,5 +336,6 @@ lib-opts-shared:
         debug debug-static debug-shared \
         install install-static install-shared \
         lib-opts lib-opts-shared lib-opts-static \
-        lib-file lib-file-shared lib-file-static
+        lib-file lib-file-shared lib-file-static \
+        test test_build test_full test_probe
 .DELETE_ON_ERROR:

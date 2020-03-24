@@ -1,6 +1,6 @@
 This document is to serve as a living, changing plan for getting LibSass caught up with Ruby Sass.
 
-_Note: an "s" preceeding a version number is specifying a Ruby Sass version. Without an s, it's a version of LibSass._
+_Note: an "s" preceding a version number is specifying a Ruby Sass version. Without an s, it's a version of LibSass._
 
 # Goal
 **Our goal is to reach full s3.4 compatibility as soon as possible. LibSass version 3.4 will behave just like Ruby Sass 3.4**

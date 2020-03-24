@@ -66,3 +66,6 @@ bundle install
 
 Voila! Now you are testing against Sass too!
 
+## Profiling
+
+Is libsass being slow? See the [Profiling guide](dev-profiling.md).

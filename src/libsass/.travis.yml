@@ -1,6 +1,8 @@
 language: cpp
-sudo: false
 
+# ASan needs ptrace support which currently requires `sudo: required`.
+# See https://github.com/travis-ci/travis-ci/issues/9033.
+sudo: required
 
 # don't create redundant code coverage reports
 # - AUTOTOOLS=yes COVERAGE=yes BUILD=static
@@ -12,7 +14,7 @@ sudo: false
 # this will still catch all coding errors!
 # - AUTOTOOLS=yes COVERAGE=no BUILD=static
 
-# currenty there are various issues when
+# currently there are various issues when
 # built with coverage, clang and autotools
 # - AUTOTOOLS=yes COVERAGE=yes BUILD=shared
 
@@ -31,15 +33,19 @@ matrix:
           packages:
             - g++-5
     - os: linux
-      compiler: clang++-3.7
-      env: AUTOTOOLS=no COVERAGE=yes BUILD=static
+      compiler: g++-8
+      env: AUTOTOOLS=yes COVERAGE=no BUILD=shared
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.7
           packages:
-            - clang-3.7
+            - g++-8
+    - os: linux
+      compiler: clang
+      # This build runs with ASan and we set `detect_odr_violation=0`
+      # to work around https://bugs.llvm.org/show_bug.cgi?id=37545.
+      env: AUTOTOOLS=no COVERAGE=no BUILD=static ASAN_OPTIONS=detect_odr_violation=0
     - os: linux
       compiler: clang
       env: AUTOTOOLS=yes COVERAGE=no BUILD=shared
@@ -48,7 +54,7 @@ matrix:
       env: AUTOTOOLS=no COVERAGE=no BUILD=shared
     - os: osx
       compiler: clang
-      env: AUTOTOOLS=no COVERAGE=yes BUILD=static
+      env: AUTOTOOLS=no COVERAGE=no BUILD=static
     - os: osx
       compiler: clang
       env: AUTOTOOLS=yes COVERAGE=no BUILD=shared

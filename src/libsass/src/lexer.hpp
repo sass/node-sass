@@ -24,19 +24,11 @@ namespace Sass {
     // BASIC CLASS MATCHERS
     //####################################
 
-    // These are locale independant
-    bool is_space(const char& src);
-    bool is_alpha(const char& src);
-    bool is_punct(const char& src);
-    bool is_digit(const char& src);
-    bool is_number(const char& src);
-    bool is_alnum(const char& src);
-    bool is_xdigit(const char& src);
-    bool is_unicode(const char& src);
-    bool is_nonascii(const char& src);
-    bool is_character(const char& src);
-    bool is_uri_character(const char& src);
-    bool escapable_character(const char& src);
+    // Matches ASCII digits, +, and -.
+    bool is_number(char src);
+
+    bool is_uri_character(char src);
+    bool escapable_character(char src);
 
     // Match a single ctype predicate.
     const char* space(const char* src);
@@ -44,11 +36,8 @@ namespace Sass {
     const char* digit(const char* src);
     const char* xdigit(const char* src);
     const char* alnum(const char* src);
-    const char* punct(const char* src);
     const char* hyphen(const char* src);
-    const char* unicode(const char* src);
     const char* nonascii(const char* src);
-    const char* character(const char* src);
     const char* uri_character(const char* src);
     const char* escapable_character(const char* src);
 

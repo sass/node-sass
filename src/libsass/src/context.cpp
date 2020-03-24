@@ -1,34 +1,22 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
-#include <string>
-#include <cstdlib>
-#include <cstring>
-#include <iomanip>
-#include <sstream>
-#include <iostream>
-
 #include "ast.hpp"
-#include "util.hpp"
-#include "sass.h"
-#include "context.hpp"
-#include "plugins.hpp"
-#include "constants.hpp"
-#include "parser.hpp"
-#include "file.hpp"
-#include "inspect.hpp"
-#include "output.hpp"
-#include "expand.hpp"
-#include "eval.hpp"
-#include "check_nesting.hpp"
-#include "cssize.hpp"
-#include "listize.hpp"
-#include "extend.hpp"
+
 #include "remove_placeholders.hpp"
-#include "functions.hpp"
 #include "sass_functions.hpp"
-#include "backtrace.hpp"
-#include "sass2scss.h"
-#include "prelexer.hpp"
-#include "emitter.hpp"
+#include "check_nesting.hpp"
+#include "fn_selectors.hpp"
+#include "fn_strings.hpp"
+#include "fn_numbers.hpp"
+#include "fn_colors.hpp"
+#include "fn_miscs.hpp"
+#include "fn_lists.hpp"
+#include "fn_maps.hpp"
+#include "context.hpp"
+#include "expand.hpp"
+#include "parser.hpp"
+#include "cssize.hpp"
 
 namespace Sass {
   using namespace Constants;
@@ -40,23 +28,17 @@ namespace Sass {
 
   static std::string safe_input(const char* in_path)
   {
-    // enforce some safe defaults
-    // used to create relative file links
-    std::string safe_path(in_path ? in_path : "");
-    return safe_path == "" ? "stdin" : safe_path;
+    if (in_path == nullptr || in_path[0] == '\0') return "stdin";
+    return in_path;
   }
 
-  static std::string safe_output(const char* out_path, const std::string& input_path = "")
+  static std::string safe_output(const char* out_path, std::string input_path)
   {
-    std::string safe_path(out_path ? out_path : "");
-    // maybe we can extract an output path from input path
-    if (safe_path == "" && input_path != "") {
-      int lastindex = static_cast<int>(input_path.find_last_of("."));
-      return (lastindex > -1 ? input_path.substr(0, lastindex) : input_path) + ".css";
+    if (out_path == nullptr || out_path[0] == '\0') {
+      if (input_path.empty()) return "stdout";
+      return input_path.substr(0, input_path.find_last_of(".")) + ".css";
     }
-    // enforce some safe defaults
-    // used to create relative file links
-    return safe_path == "" ? "stdout" : safe_path;
+    return out_path;
   }
 
   Context::Context(struct Sass_Context& c_ctx)
@@ -71,10 +53,10 @@ namespace Sass {
     strings(),
     resources(),
     sheets(),
-    subset_map(),
     import_stack(),
     callee_stack(),
     traces(),
+    extender(Extender::NORMAL, traces),
     c_compiler(NULL),
 
     c_headers               (std::vector<Sass_Importer_Entry>()),
@@ -150,7 +132,7 @@ namespace Sass {
     }
     // clear inner structures (vectors) and input source
     resources.clear(); import_stack.clear();
-    subset_map.clear(), sheets.clear();
+    sheets.clear();
   }
 
   Data_Context::~Data_Context()
@@ -382,7 +364,7 @@ namespace Sass {
 
   }
 
-  void Context::import_url (Import_Ptr imp, std::string load_path, const std::string& ctx_path) {
+  void Context::import_url (Import* imp, std::string load_path, const std::string& ctx_path) {
 
     ParserState pstate(imp->pstate());
     std::string imp_path(unquote(load_path));
@@ -395,17 +377,17 @@ namespace Sass {
       // if (protocol.compare("file") && true) { }
     }
 
-    // add urls (protocol other than file) and urls without procotol to `urls` member
+    // add urls (protocol other than file) and urls without protocol to `urls` member
     // ToDo: if ctx_path is already a file resource, we should not add it here?
     if (imp->import_queries() || protocol != "file" || imp_path.substr(0, 2) == "//") {
       imp->urls().push_back(SASS_MEMORY_NEW(String_Quoted, imp->pstate(), load_path));
     }
     else if (imp_path.length() > 4 && imp_path.substr(imp_path.length() - 4, 4) == ".css") {
-      String_Constant_Ptr loc = SASS_MEMORY_NEW(String_Constant, pstate, unquote(load_path));
+      String_Constant* loc = SASS_MEMORY_NEW(String_Constant, pstate, unquote(load_path));
       Argument_Obj loc_arg = SASS_MEMORY_NEW(Argument, pstate, loc);
       Arguments_Obj loc_args = SASS_MEMORY_NEW(Arguments, pstate);
       loc_args->append(loc_arg);
-      Function_Call_Ptr new_url = SASS_MEMORY_NEW(Function_Call, pstate, "url", loc_args);
+      Function_Call* new_url = SASS_MEMORY_NEW(Function_Call, pstate, std::string("url"), loc_args);
       imp->urls().push_back(new_url);
     }
     else {
@@ -421,7 +403,7 @@ namespace Sass {
 
 
   // call custom importers on the given (unquoted) load_path and eventually parse the resulting style_sheet
-  bool Context::call_loader(const std::string& load_path, const char* ctx_path, ParserState& pstate, Import_Ptr imp, std::vector<Sass_Importer_Entry> importers, bool only_one)
+  bool Context::call_loader(const std::string& load_path, const char* ctx_path, ParserState& pstate, Import* imp, std::vector<Sass_Importer_Entry> importers, bool only_one)
   {
     // unique counter
     size_t count = 0;
@@ -519,7 +501,7 @@ namespace Sass {
     OutputBuffer emitted = emitter.get_buffer();
     // should we append a source map url?
     if (!c_options.omit_source_map_url) {
-      // generate an embeded source map
+      // generate an embedded source map
       if (c_options.source_map_embed) {
         emitted.buffer += linefeed;
         emitted.buffer += format_embedded_source_map();
@@ -556,7 +538,7 @@ namespace Sass {
   {
 
     // check if entry file is given
-    if (input_path.empty()) return 0;
+    if (input_path.empty()) return {};
 
     // create absolute path from input filename
     // ToDo: this should be resolved via custom importers
@@ -602,7 +584,7 @@ namespace Sass {
   {
 
     // check if source string is given
-    if (!source_c_str) return 0;
+    if (!source_c_str) return {};
 
     // convert indented sass syntax
     if(c_options.is_indented_syntax_src) {
@@ -639,17 +621,15 @@ namespace Sass {
     return compile();
   }
 
-
-
   // parse root block from includes
   Block_Obj Context::compile()
   {
     // abort if there is no data
-    if (resources.size() == 0) return 0;
+    if (resources.size() == 0) return {};
     // get root block from the first style sheet
     Block_Obj root = sheets.at(entry_path).root;
     // abort on invalid root
-    if (root.isNull()) return 0;
+    if (root.isNull()) return {};
     Env global; // create root environment
     // register built-in functions on env
     register_built_in_functions(*this, &global);
@@ -668,23 +648,23 @@ namespace Sass {
     }
     // expand and eval the tree
     root = expand(root);
+
+    Extension unsatisfied;
+    // check that all extends were used
+    if (extender.checkForUnsatisfiedExtends(unsatisfied)) {
+      throw Exception::UnsatisfiedExtend(traces, unsatisfied);
+    }
+
     // check nesting
     check_nesting(root);
     // merge and bubble certain rules
     root = cssize(root);
-    // should we extend something?
-    if (!subset_map.empty()) {
-      // create crtp visitor object
-      Extend extend(subset_map);
-      extend.setEval(expand.eval);
-      // extend tree nodes
-      extend(root);
-    }
 
     // clean up by removing empty placeholders
     // ToDo: maybe we can do this somewhere else?
     Remove_Placeholders remove_placeholders;
     root->perform(&remove_placeholders);
+
     // return processed tree
     return root;
   }
@@ -732,14 +712,14 @@ namespace Sass {
 
   void register_function(Context& ctx, Signature sig, Native_Function f, Env* env)
   {
-    Definition_Ptr def = make_native_function(sig, f, ctx);
+    Definition* def = make_native_function(sig, f, ctx);
     def->environment(env);
     (*env)[def->name() + "[f]"] = def;
   }
 
   void register_function(Context& ctx, Signature sig, Native_Function f, size_t arity, Env* env)
   {
-    Definition_Ptr def = make_native_function(sig, f, ctx);
+    Definition* def = make_native_function(sig, f, ctx);
     std::stringstream ss;
     ss << def->name() << "[f]" << arity;
     def->environment(env);
@@ -748,11 +728,11 @@ namespace Sass {
 
   void register_overload_stub(Context& ctx, std::string name, Env* env)
   {
-    Definition_Ptr stub = SASS_MEMORY_NEW(Definition,
+    Definition* stub = SASS_MEMORY_NEW(Definition,
                                        ParserState("[built-in function]"),
                                        0,
                                        name,
-                                       0,
+                                       {},
                                        0,
                                        true);
     (*env)[name + "[f]"] = stub;
@@ -872,7 +852,7 @@ namespace Sass {
   }
   void register_c_function(Context& ctx, Env* env, Sass_Function_Entry descr)
   {
-    Definition_Ptr def = make_c_function(descr, ctx);
+    Definition* def = make_c_function(descr, ctx);
     def->environment(env);
     (*env)[def->name() + "[f]"] = def;
   }

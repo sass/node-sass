@@ -86,7 +86,7 @@ namespace Sass {
 
     size_t length()    const { return end - begin; }
     std::string ws_before() const { return std::string(prefix, begin); }
-    const std::string to_string() const { return std::string(begin, end); }
+    std::string to_string() const { return std::string(begin, end); }
     std::string time_wspace() const {
       std::string str(to_string());
       std::string whitespaces(" \t\f\v\n\r");

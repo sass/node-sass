@@ -32,7 +32,7 @@ direction for corners that lack test coverage). Foremost we rely on good and con
 
 ## My error is hiding in a big code base
 1. we do not have time to support your code base!
-2. to fix occuring issues we need precise bug reports
+2. to fix occurring issues we need precise bug reports
 3. the more precise you are, the faster we can help you
 4. lazy reports get overlooked even when exposing serious bugs
 5. it's not hard to do, it only takes time
@@ -60,6 +60,6 @@ report. Once you verified all of the above, you may use the template below to fi
 [6]: http://www.sassmeister.com/
 [7]: https://rubygems.org/gems/sass
 
-[8]: http://sass-lang.com/
+[8]: https://sass-lang.com/
 [9]: https://github.com/sass/libsass/tree/master/docs
 [10]: https://github.com/sass/sass-spec

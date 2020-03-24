@@ -25,6 +25,7 @@ namespace Sass {
     const char* kwd_gte(const char* src);
     const char* kwd_lt(const char* src);
     const char* kwd_lte(const char* src);
+    const char* kwd_using(const char* src);
 
     // Match standard control chars
     const char* kwd_at(const char* src);
@@ -64,16 +65,15 @@ namespace Sass {
       size_t level = 0;
       bool in_squote = false;
       bool in_dquote = false;
-      // bool in_braces = false;
+      bool in_backslash_escape = false;
 
-      while (*src) {
-
-        // check for abort condition
-        if (end && src >= end) break;
-
+      while ((end == nullptr || src < end) && *src != '\0') {
         // has escaped sequence?
-        if (*src == '\\') {
-          ++ src; // skip this (and next)
+        if (in_backslash_escape) {
+          in_backslash_escape = false;
+        }
+        else if (*src == '\\') {
+          in_backslash_escape = true;
         }
         else if (*src == '"') {
           in_dquote = ! in_dquote;
@@ -119,7 +119,7 @@ namespace Sass {
     // first start/opener must be consumed already!
     template<prelexer start, prelexer stop>
     const char* skip_over_scopes(const char* src) {
-      return skip_over_scopes<start, stop>(src, 0);
+      return skip_over_scopes<start, stop>(src, nullptr);
     }
 
     // Match a sequence of characters delimited by the supplied chars.

@@ -15,6 +15,6 @@ Or make your own!
 
 |   Issue Tracker   |            Issue Triage          |     Community Guidelines    |
 |-------------------|----------------------------------|-----------------------------|
-| We're always needing help, so check out our issue tracker, help some people out, and read our article on [Contributing](contributing.md)! It's got all the details on what to do! | To help understand the process of triaging bugs, have a look at our [Issue-Triage](triage.md) document. | Oh, and don't forget we always follow [[Sass Community Guidelines|http://sass-lang.com/community-guidelines]]. Be nice and everyone else will be nice too! |
+| We're always needing help, so check out our issue tracker, help some people out, and read our article on [Contributing](contributing.md)! It's got all the details on what to do! | To help understand the process of triaging bugs, have a look at our [Issue-Triage](triage.md) document. | Oh, and don't forget we always follow [Sass Community Guidelines](https://sass-lang.com/community-guidelines). Be nice and everyone else will be nice too! |
 
 Please refer to the steps on [Building LibSass](build.md)
