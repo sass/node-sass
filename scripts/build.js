@@ -3,7 +3,7 @@
  */
 
 var fs = require('fs'),
-  mkdir = require('mkdirp'),
+  mkdirp = require('mkdirp'),
   path = require('path'),
   spawn = require('cross-spawn'),
   sass = require('../lib/extensions');
@@ -24,28 +24,29 @@ function afterBuild(options) {
         : 'Release',
     'binding.node');
 
-  mkdir(path.dirname(install), function(err) {
-    if (err && err.code !== 'EEXIST') {
-      console.error(err.message);
-      return;
-    }
-
-    fs.stat(target, function(err) {
-      if (err) {
-        console.error('Build succeeded but target not found');
-        return;
-      }
-
-      fs.rename(target, install, function(err) {
+  mkdirp(path.dirname(install))
+    .then(function() {
+      fs.stat(target, function(err) {
         if (err) {
-          console.error(err.message);
+          console.error('Build succeeded but target not found');
           return;
         }
 
-        console.log('Installed to', install);
+        fs.rename(target, install, function(err) {
+          if (err) {
+            console.error(err.message);
+            return;
+          }
+
+          console.log('Installed to', install);
+        });
       });
+    })
+    .catch(function(err) {
+      if (err && err.code !== 'EEXIST') {
+        console.error(err.message);
+      }
     });
-  });
 }
 
 /**
