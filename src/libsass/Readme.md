@@ -62,8 +62,8 @@ Note that the scripts in the `./script` folder are mainly intended for our CI ne
 Building
 --------
 
-To build LibSass you need GCC 4.6+ or Clang/LLVM. If your OS is older, you may need to upgrade
-them first (or install clang as an alternative). On Windows, you need MinGW with GCC 4.6+ or VS 2013
+To build LibSass you need GCC 4.7+ or Clang/LLVM. If your OS is older, you may need to upgrade
+them first (or install clang as an alternative). On Windows, you need MinGW with GCC 4.7+ or VS 2013
 Update 4+. It is also possible to build LibSass with Clang/LLVM on Windows with various build chains
 and/or command line interpreters.
 
@@ -72,10 +72,11 @@ See the [build docs for further instructions](docs/build.md)!
 Compatibility
 -------------
 
-Current LibSass 3.4 should be compatible with Sass 3.4. Please refer to the [sass compatibility
-page](http://sass-compatibility.github.io/) for a more detailed comparison. But note that there
-are still a few incomplete edges which we are aware of. Otherwise LibSass has reached a good level
-of stability, thanks to our ever growing [Sass-Spec test suite](https://github.com/sass/sass-spec).
+For all intents and purposes LibSass is fully compatible with the Sass language spec. Any known
+differences can be found as open issues.
+
+
+
 
 About Sass
 ----------
@@ -87,7 +88,7 @@ Sass was originally conceived of by the co-creator of this library, Hampton Catl
 Most of the language has been the result of years of work by Natalie Weizenbaum ([@nex3]) and
 Chris Eppstein ([@chriseppstein]).
 
-For more information about Sass itself, please visit http://sass-lang.com
+For more information about Sass itself, please visit https://sass-lang.com
 
 Initial development of LibSass by Aaron Leung and Hampton Catlin was supported by [Moovweb](http://www.moovweb.com).
 

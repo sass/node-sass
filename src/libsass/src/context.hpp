@@ -1,40 +1,32 @@
 #ifndef SASS_CONTEXT_H
 #define SASS_CONTEXT_H
 
-#include <string>
-#include <vector>
-#include <map>
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
+#include "sass.hpp"
+#include "ast.hpp"
+
 
 #define BUFFERSIZE 255
 #include "b64/encode.h"
 
-#include "ast_fwd_decl.hpp"
-#include "kwd_arg_macros.hpp"
-#include "ast_fwd_decl.hpp"
 #include "sass_context.hpp"
-#include "environment.hpp"
-#include "source_map.hpp"
-#include "subset_map.hpp"
-#include "backtrace.hpp"
-#include "output.hpp"
+#include "stylesheet.hpp"
 #include "plugins.hpp"
-#include "file.hpp"
-
-
-struct Sass_Function;
+#include "output.hpp"
 
 namespace Sass {
 
   class Context {
   public:
-    void import_url (Import_Ptr imp, std::string load_path, const std::string& ctx_path);
-    bool call_headers(const std::string& load_path, const char* ctx_path, ParserState& pstate, Import_Ptr imp)
+    void import_url (Import* imp, std::string load_path, const std::string& ctx_path);
+    bool call_headers(const std::string& load_path, const char* ctx_path, ParserState& pstate, Import* imp)
     { return call_loader(load_path, ctx_path, pstate, imp, c_headers, false); };
-    bool call_importers(const std::string& load_path, const char* ctx_path, ParserState& pstate, Import_Ptr imp)
+    bool call_importers(const std::string& load_path, const char* ctx_path, ParserState& pstate, Import* imp)
     { return call_loader(load_path, ctx_path, pstate, imp, c_importers, true); };
 
   private:
-    bool call_loader(const std::string& load_path, const char* ctx_path, ParserState& pstate, Import_Ptr imp, std::vector<Sass_Importer_Entry> importers, bool only_one = true);
+    bool call_loader(const std::string& load_path, const char* ctx_path, ParserState& pstate, Import* imp, std::vector<Sass_Importer_Entry> importers, bool only_one = true);
 
   public:
     const std::string CWD;
@@ -46,16 +38,16 @@ namespace Sass {
 
     // generic ast node garbage container
     // used to avoid possible circular refs
-    std::vector<AST_Node_Obj> ast_gc;
+    CallStack ast_gc;
     // resources add under our control
     // these are guaranteed to be freed
     std::vector<char*> strings;
     std::vector<Resource> resources;
     std::map<const std::string, StyleSheet> sheets;
-    Subset_Map subset_map;
-    std::vector<Sass_Import_Entry> import_stack;
+    ImporterStack import_stack;
     std::vector<Sass_Callee> callee_stack;
     std::vector<Backtrace> traces;
+    Extender extender;
 
     struct Sass_Compiler* c_compiler;
 
@@ -67,10 +59,6 @@ namespace Sass {
 
     std::vector<std::string> plugin_paths; // relative paths to load plugins
     std::vector<std::string> include_paths; // lookup paths for includes
-
-
-
-
 
     void apply_custom_headers(Block_Obj root, const char* path, ParserState pstate);
 

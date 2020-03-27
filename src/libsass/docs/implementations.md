@@ -36,6 +36,8 @@ There are several implementations of `libsass` for a variety of languages. Here 
 * [LibSassHost](https://github.com/Taritsyn/LibSassHost)
 
 ### Nim
+
+* [sass](https://github.com/dom96/sass)
 * [nim-sass](https://github.com/zacharycarter/nim-sass)
 
 ### node.js

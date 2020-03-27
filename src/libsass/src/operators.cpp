@@ -1,4 +1,8 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+
+#include <cmath>
 #include "operators.hpp"
 
 namespace Sass {
@@ -57,26 +61,21 @@ namespace Sass {
     /* colour math deprecation warning */
     void op_color_deprecation(enum Sass_OP op, std::string lsh, std::string rhs, const ParserState& pstate)
     {
-      std::string op_str(
-        op == Sass_OP::ADD ? "plus" :
-          op == Sass_OP::DIV ? "div" :
-            op == Sass_OP::SUB ? "minus" :
-              op == Sass_OP::MUL ? "times" : ""
-      );
-
-      std::string msg("The operation `" + lsh + " " + op_str + " " + rhs + "` is deprecated and will be an error in future versions.");
-      std::string tail("Consider using Sass's color functions instead.\nhttp://sass-lang.com/documentation/Sass/Script/Functions.html#other_color_functions");
-
-      deprecated(msg, tail, false, pstate);
+      deprecated(
+        "The operation `" + lsh + " " + sass_op_to_name(op) + " " + rhs +
+        "` is deprecated and will be an error in future versions.",
+        "Consider using Sass's color functions instead.\n"
+        "https://sass-lang.com/documentation/Sass/Script/Functions.html#other_color_functions",
+        /*with_column=*/false, pstate);
     }
 
     /* static function, throws OperationError, has no traces but optional pstate for returned value */
-    Value_Ptr op_strings(Sass::Operand operand, Value& lhs, Value& rhs, struct Sass_Inspect_Options opt, const ParserState& pstate, bool delayed)
+    Value* op_strings(Sass::Operand operand, Value& lhs, Value& rhs, struct Sass_Inspect_Options opt, const ParserState& pstate, bool delayed)
     {
       enum Sass_OP op = operand.operand;
 
-      String_Quoted_Ptr lqstr = Cast<String_Quoted>(&lhs);
-      String_Quoted_Ptr rqstr = Cast<String_Quoted>(&rhs);
+      String_Quoted* lqstr = Cast<String_Quoted>(&lhs);
+      String_Quoted* rqstr = Cast<String_Quoted>(&rhs);
 
       std::string lstr(lqstr ? lqstr->value() : lhs.to_string(opt));
       std::string rstr(rqstr ? rqstr->value() : rhs.to_string(opt));
@@ -120,8 +119,9 @@ namespace Sass {
       return SASS_MEMORY_NEW(String_Constant, pstate, lstr + sep + rstr);
     }
 
+    /* ToDo: allow to operate also with hsla colors */
     /* static function, throws OperationError, has no traces but optional pstate for returned value */
-    Value_Ptr op_colors(enum Sass_OP op, const Color& lhs, const Color& rhs, struct Sass_Inspect_Options opt, const ParserState& pstate, bool delayed)
+    Value* op_colors(enum Sass_OP op, const Color_RGBA& lhs, const Color_RGBA& rhs, struct Sass_Inspect_Options opt, const ParserState& pstate, bool delayed)
     {
 
       if (lhs.a() != rhs.a()) {
@@ -133,7 +133,7 @@ namespace Sass {
 
       op_color_deprecation(op, lhs.to_string(), rhs.to_string(), pstate);
 
-      return SASS_MEMORY_NEW(Color,
+      return SASS_MEMORY_NEW(Color_RGBA,
                              pstate,
                              ops[op](lhs.r(), rhs.r()),
                              ops[op](lhs.g(), rhs.g()),
@@ -142,7 +142,7 @@ namespace Sass {
     }
 
     /* static function, throws OperationError, has no traces but optional pstate for returned value */
-    Value_Ptr op_numbers(enum Sass_OP op, const Number& lhs, const Number& rhs, struct Sass_Inspect_Options opt, const ParserState& pstate, bool delayed)
+    Value* op_numbers(enum Sass_OP op, const Number& lhs, const Number& rhs, struct Sass_Inspect_Options opt, const ParserState& pstate, bool delayed)
     {
       double lval = lhs.value();
       double rval = rhs.value();
@@ -165,7 +165,7 @@ namespace Sass {
         if (l_n_units + l_d_units <= 1 && r_n_units + r_d_units <= 1) {
           if (lhs.numerators == rhs.numerators) {
             if (lhs.denominators == rhs.denominators) {
-              Number_Ptr v = SASS_MEMORY_COPY(&lhs);
+              Number* v = SASS_MEMORY_COPY(&lhs);
               v->value(ops[op](lval, rval));
               return v;
             }
@@ -212,7 +212,7 @@ namespace Sass {
     }
 
     /* static function, throws OperationError, has no traces but optional pstate for returned value */
-    Value_Ptr op_number_color(enum Sass_OP op, const Number& lhs, const Color& rhs, struct Sass_Inspect_Options opt, const ParserState& pstate, bool delayed)
+    Value* op_number_color(enum Sass_OP op, const Number& lhs, const Color_RGBA& rhs, struct Sass_Inspect_Options opt, const ParserState& pstate, bool delayed)
     {
       double lval = lhs.value();
 
@@ -220,7 +220,7 @@ namespace Sass {
         case Sass_OP::ADD:
         case Sass_OP::MUL: {
           op_color_deprecation(op, lhs.to_string(), rhs.to_string(opt), pstate);
-          return SASS_MEMORY_NEW(Color,
+          return SASS_MEMORY_NEW(Color_RGBA,
                                 pstate,
                                 ops[op](lval, rhs.r()),
                                 ops[op](lval, rhs.g()),
@@ -243,7 +243,7 @@ namespace Sass {
     }
 
     /* static function, throws OperationError, has no traces but optional pstate for returned value */
-    Value_Ptr op_color_number(enum Sass_OP op, const Color& lhs, const Number& rhs, struct Sass_Inspect_Options opt, const ParserState& pstate, bool delayed)
+    Value* op_color_number(enum Sass_OP op, const Color_RGBA& lhs, const Number& rhs, struct Sass_Inspect_Options opt, const ParserState& pstate, bool delayed)
     {
       double rval = rhs.value();
 
@@ -254,7 +254,7 @@ namespace Sass {
 
       op_color_deprecation(op, lhs.to_string(), rhs.to_string(), pstate);
 
-      return SASS_MEMORY_NEW(Color,
+      return SASS_MEMORY_NEW(Color_RGBA,
                             pstate,
                             ops[op](lhs.r(), rval),
                             ops[op](lhs.g(), rval),

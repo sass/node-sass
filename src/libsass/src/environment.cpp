@@ -208,6 +208,20 @@ namespace Sass {
 
   // use array access for getter and setter functions
   template <typename T>
+  T& Environment<T>::get(const std::string& key)
+  {
+    auto cur = this;
+    while (cur) {
+      if (cur->has_local(key)) {
+        return cur->get_local(key);
+      }
+      cur = cur->parent_;
+    }
+    return get_local(key);
+  }
+
+  // use array access for getter and setter functions
+  template <typename T>
   T& Environment<T>::operator[](const std::string& key)
   {
     auto cur = this;
@@ -230,7 +244,7 @@ namespace Sass {
     for (typename environment_map<std::string, T>::iterator i = local_frame_.begin(); i != local_frame_.end(); ++i) {
       if (!ends_with(i->first, "[f]") && !ends_with(i->first, "[f]4") && !ends_with(i->first, "[f]2")) {
         std::cerr << prefix << std::string(indent, ' ') << i->first << " " << i->second;
-        if (Value_Ptr val = Cast<Value>(i->second))
+        if (Value* val = Cast<Value>(i->second))
         { std::cerr << " : " << val->to_string(); }
         std::cerr << std::endl;
       }

@@ -2,6 +2,7 @@
 
 /sassc
 /sass-spec
+/plugins/
 
 VERSION
 .DS_Store
@@ -83,3 +84,13 @@ sassc/
 sass-spec/
 
 installer/
+
+# Visual Studio cache directory
+.vs/
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json

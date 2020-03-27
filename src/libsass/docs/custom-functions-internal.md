@@ -39,7 +39,7 @@ union Sass_Value* call_sass_function(
 
 ### cookie
 
-The cookie can hold any pointer you want. In the `perl-libsass` implementation it holds the structure with the reference of the actual registered callback into the perl interpreter. Before that call `perl-libsass` will convert all `Sass_Values` to corresponding perl data types (so they can be used natively inside the perl interpretor). The callback can also return a `Sass_Value`. In `perl-libsass` the actual function returns a perl value, which has to be converted before `libsass` can work with it again!
+The cookie can hold any pointer you want. In the `perl-libsass` implementation it holds the structure with the reference of the actual registered callback into the perl interpreter. Before that call `perl-libsass` will convert all `Sass_Values` to corresponding perl data types (so they can be used natively inside the perl interpreter). The callback can also return a `Sass_Value`. In `perl-libsass` the actual function returns a perl value, which has to be converted before `libsass` can work with it again!
 
 ## Sass_Values
 

@@ -1,9 +1,11 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+
 #include <cstdlib>
 #include <cstring>
 #include "util.hpp"
 #include "eval.hpp"
-#include "values.hpp"
 #include "operators.hpp"
 #include "sass/values.h"
 #include "sass_values.hpp"
@@ -290,7 +292,7 @@ extern "C" {
   union Sass_Value* ADDCALL sass_value_op (enum Sass_OP op, const union Sass_Value* a, const union Sass_Value* b)
   {
 
-    Sass::Value_Ptr rv;
+    Sass::Value_Obj rv;
 
     try {
 
@@ -312,28 +314,34 @@ extern "C" {
       }
 
       if (sass_value_is_number(a) && sass_value_is_number(b)) {
-        Number_Ptr_Const l_n = Cast<Number>(lhs);
-        Number_Ptr_Const r_n = Cast<Number>(rhs);
+        const Number* l_n = Cast<Number>(lhs);
+        const Number* r_n = Cast<Number>(rhs);
         rv = Operators::op_numbers(op, *l_n, *r_n, options, l_n->pstate());
       }
       else if (sass_value_is_number(a) && sass_value_is_color(a)) {
-        Number_Ptr_Const l_n = Cast<Number>(lhs);
-        Color_Ptr_Const r_c = Cast<Color>(rhs);
+        const Number* l_n = Cast<Number>(lhs);
+        // Direct HSLA operations are not supported
+        // All color maths will be deprecated anyway
+        Color_RGBA_Obj r_c = Cast<Color>(rhs)->toRGBA();
         rv = Operators::op_number_color(op, *l_n, *r_c, options, l_n->pstate());
       }
       else if (sass_value_is_color(a) && sass_value_is_number(b)) {
-        Color_Ptr_Const l_c = Cast<Color>(lhs);
-        Number_Ptr_Const r_n = Cast<Number>(rhs);
+        // Direct HSLA operations are not supported
+        // All color maths will be deprecated anyway
+        Color_RGBA_Obj l_c = Cast<Color>(lhs)->toRGBA();
+        const Number* r_n = Cast<Number>(rhs);
         rv = Operators::op_color_number(op, *l_c, *r_n, options, l_c->pstate());
       }
       else if (sass_value_is_color(a) && sass_value_is_color(b)) {
-        Color_Ptr_Const l_c = Cast<Color>(lhs);
-        Color_Ptr_Const r_c = Cast<Color>(rhs);
+        // Direct HSLA operations are not supported
+        // All color maths will be deprecated anyway
+        Color_RGBA_Obj l_c = Cast<Color>(lhs)->toRGBA();
+        Color_RGBA_Obj r_c = Cast<Color>(rhs)->toRGBA();
         rv = Operators::op_colors(op, *l_c, *r_c, options, l_c->pstate());
       }
       else /* convert other stuff to string and apply operation */ {
-        Value_Ptr l_v = Cast<Value>(lhs);
-        Value_Ptr r_v = Cast<Value>(rhs);
+        Value* l_v = Cast<Value>(lhs);
+        Value* r_v = Cast<Value>(rhs);
         rv = Operators::op_strings(op, *l_v, *r_v, options, l_v->pstate());
       }
 
@@ -341,8 +349,7 @@ extern "C" {
       if (!rv) return sass_make_error("invalid return value");
 
       // convert result back to ast node
-      return ast_node_to_sass_value(rv);
-
+      return ast_node_to_sass_value(rv.ptr());
     }
 
     // simply pass the error message back to the caller for now

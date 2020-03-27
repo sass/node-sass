@@ -1,7 +1,7 @@
 {
   "name": "node-sass",
   "version": "4.13.1",
-  "libsass": "3.5.4",
+  "libsass": "3.6.3",
   "description": "Wrapper around libsass",
   "license": "MIT",
   "bugs": "https://github.com/sass/node-sass/issues",
@@ -27,11 +27,11 @@
   },
   "gypfile": true,
   "scripts": {
-    "coverage": "node scripts/coverage.js",
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
     "install": "node scripts/install.js",
     "postinstall": "node scripts/build.js",
     "lint": "node_modules/.bin/eslint bin/node-sass lib scripts test",
-    "test": "node_modules/.bin/mocha test/{*,**/**}.js",
+    "test": "nyc mocha test/{*,**/**}.js",
     "build": "node scripts/build.js --force",
     "prepublish": "not-in-install && node scripts/prepublish.js || in-install"
   },
@@ -61,7 +61,7 @@
     "in-publish": "^2.0.0",
     "lodash": "^4.17.15",
     "meow": "^5.0.0",
-    "mkdirp": "^0.5.1",
+    "mkdirp": "^1.0.3",
     "nan": "^2.14.0",
     "npmlog": "^4.0.0",
     "request": "^2.88.0",
@@ -77,10 +77,10 @@
     "mocha": "^6.2.2",
     "mocha-lcov-reporter": "^1.2.0",
     "node-gyp": "^6.0.1",
+    "nyc": "^14.1.1",
     "object-merge": "^2.5.1",
     "read-yaml": "^1.0.0",
     "rimraf": "^2.5.2",
-    "sass-spec": "https://github.com/sass/sass-spec.git#dc2d573",
     "unique-temp-dir": "^1.0.0"
   }
 }

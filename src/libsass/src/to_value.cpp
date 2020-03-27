@@ -1,60 +1,62 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+
 #include "ast.hpp"
 #include "to_value.hpp"
 
 namespace Sass {
 
-  Value_Ptr To_Value::fallback_impl(AST_Node_Ptr n)
-  {
-    // throw a runtime error if this happens
-    // we want a well defined set of possible nodes
-    throw std::runtime_error("invalid node for to_value");
-  }
-
   // Custom_Error is a valid value
-  Value_Ptr To_Value::operator()(Custom_Error_Ptr e)
+  Value* To_Value::operator()(Custom_Error* e)
   {
     return e;
   }
 
   // Custom_Warning is a valid value
-  Value_Ptr To_Value::operator()(Custom_Warning_Ptr w)
+  Value* To_Value::operator()(Custom_Warning* w)
   {
     return w;
   }
 
   // Boolean is a valid value
-  Value_Ptr To_Value::operator()(Boolean_Ptr b)
+  Value* To_Value::operator()(Boolean* b)
   {
     return b;
   }
 
   // Number is a valid value
-  Value_Ptr To_Value::operator()(Number_Ptr n)
+  Value* To_Value::operator()(Number* n)
   {
     return n;
   }
 
   // Color is a valid value
-  Value_Ptr To_Value::operator()(Color_Ptr c)
+  Value* To_Value::operator()(Color_RGBA* c)
+  {
+    return c;
+  }
+
+  // Color is a valid value
+  Value* To_Value::operator()(Color_HSLA* c)
   {
     return c;
   }
 
   // String_Constant is a valid value
-  Value_Ptr To_Value::operator()(String_Constant_Ptr s)
+  Value* To_Value::operator()(String_Constant* s)
   {
     return s;
   }
 
   // String_Quoted is a valid value
-  Value_Ptr To_Value::operator()(String_Quoted_Ptr s)
+  Value* To_Value::operator()(String_Quoted* s)
   {
     return s;
   }
 
   // List is a valid value
-  Value_Ptr To_Value::operator()(List_Ptr l)
+  Value* To_Value::operator()(List* l)
   {
     List_Obj ll = SASS_MEMORY_NEW(List,
                                l->pstate(),
@@ -69,32 +71,32 @@ namespace Sass {
   }
 
   // Map is a valid value
-  Value_Ptr To_Value::operator()(Map_Ptr m)
+  Value* To_Value::operator()(Map* m)
   {
     return m;
   }
 
   // Null is a valid value
-  Value_Ptr To_Value::operator()(Null_Ptr n)
+  Value* To_Value::operator()(Null* n)
   {
     return n;
   }
 
   // Function is a valid value
-  Value_Ptr To_Value::operator()(Function_Ptr n)
+  Value* To_Value::operator()(Function* n)
   {
     return n;
   }
 
   // Argument returns its value
-  Value_Ptr To_Value::operator()(Argument_Ptr arg)
+  Value* To_Value::operator()(Argument* arg)
   {
     if (!arg->name().empty()) return 0;
     return arg->value()->perform(this);
   }
 
-  // Selector_List is converted to a string
-  Value_Ptr To_Value::operator()(Selector_List_Ptr s)
+  // SelectorList is converted to a string
+  Value* To_Value::operator()(SelectorList* s)
   {
     return SASS_MEMORY_NEW(String_Quoted,
                            s->pstate(),
@@ -102,7 +104,7 @@ namespace Sass {
   }
 
   // Binary_Expression is converted to a string
-  Value_Ptr To_Value::operator()(Binary_Expression_Ptr s)
+  Value* To_Value::operator()(Binary_Expression* s)
   {
     return SASS_MEMORY_NEW(String_Quoted,
                            s->pstate(),

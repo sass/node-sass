@@ -1,9 +1,14 @@
 #ifndef SASS_ERROR_HANDLING_H
 #define SASS_ERROR_HANDLING_H
 
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
+#include "sass.hpp"
+
 #include <string>
 #include <sstream>
 #include <stdexcept>
+#include "units.hpp"
 #include "position.hpp"
 #include "backtrace.hpp"
 #include "ast_fwd_decl.hpp"
@@ -36,16 +41,28 @@ namespace Sass {
 
     class InvalidSass : public Base {
       public:
-        InvalidSass(ParserState pstate, Backtraces traces, std::string msg);
-        virtual ~InvalidSass() throw() {};
+        InvalidSass(InvalidSass& other) : Base(other), owned_src(other.owned_src) {
+          // Assumes that `this` will outlive `other`.
+          other.owned_src = nullptr;
+        }
+
+        // Required because the copy constructor's argument is not const.
+        // Can't use `std::move` here because we build on Visual Studio 2013.
+        InvalidSass(InvalidSass &&other) : Base(other), owned_src(other.owned_src) {
+          other.owned_src = nullptr;
+        }
+
+        InvalidSass(ParserState pstate, Backtraces traces, std::string msg, char* owned_src = nullptr);
+        virtual ~InvalidSass() throw() { sass_free_memory(owned_src); };
+        char *owned_src;
     };
 
     class InvalidParent : public Base {
       protected:
-        Selector_Ptr parent;
-        Selector_Ptr selector;
+        Selector* parent;
+        Selector* selector;
       public:
-        InvalidParent(Selector_Ptr parent, Backtraces traces, Selector_Ptr selector);
+        InvalidParent(Selector* parent, Backtraces traces, Selector* selector);
         virtual ~InvalidParent() throw() {};
     };
 
@@ -64,18 +81,18 @@ namespace Sass {
         std::string fn;
         std::string arg;
         std::string type;
-        const Value_Ptr value;
+        const Value* value;
       public:
-        InvalidArgumentType(ParserState pstate, Backtraces traces, std::string fn, std::string arg, std::string type, const Value_Ptr value = 0);
+        InvalidArgumentType(ParserState pstate, Backtraces traces, std::string fn, std::string arg, std::string type, const Value* value = 0);
         virtual ~InvalidArgumentType() throw() {};
     };
 
     class InvalidVarKwdType : public Base {
       protected:
         std::string name;
-        const Argument_Ptr arg;
+        const Argument* arg;
       public:
-        InvalidVarKwdType(ParserState pstate, Backtraces traces, std::string name, const Argument_Ptr arg = 0);
+        InvalidVarKwdType(ParserState pstate, Backtraces traces, std::string name, const Argument* arg = 0);
         virtual ~InvalidVarKwdType() throw() {};
     };
 
@@ -165,36 +182,54 @@ namespace Sass {
 
     class UndefinedOperation : public OperationError {
       protected:
-        Expression_Ptr_Const lhs;
-        Expression_Ptr_Const rhs;
+        const Expression* lhs;
+        const Expression* rhs;
         const Sass_OP op;
       public:
-        UndefinedOperation(Expression_Ptr_Const lhs, Expression_Ptr_Const rhs, enum Sass_OP op);
+        UndefinedOperation(const Expression* lhs, const Expression* rhs, enum Sass_OP op);
         // virtual const char* errtype() const { return "Error"; }
         virtual ~UndefinedOperation() throw() {};
     };
 
     class InvalidNullOperation : public UndefinedOperation {
       public:
-        InvalidNullOperation(Expression_Ptr_Const lhs, Expression_Ptr_Const rhs, enum Sass_OP op);
+        InvalidNullOperation(const Expression* lhs, const Expression* rhs, enum Sass_OP op);
         virtual ~InvalidNullOperation() throw() {};
     };
 
     class AlphaChannelsNotEqual : public OperationError {
       protected:
-        Expression_Ptr_Const lhs;
-        Expression_Ptr_Const rhs;
+        const Expression* lhs;
+        const Expression* rhs;
         const Sass_OP op;
       public:
-        AlphaChannelsNotEqual(Expression_Ptr_Const lhs, Expression_Ptr_Const rhs, enum Sass_OP op);
+        AlphaChannelsNotEqual(const Expression* lhs, const Expression* rhs, enum Sass_OP op);
         // virtual const char* errtype() const { return "Error"; }
         virtual ~AlphaChannelsNotEqual() throw() {};
     };
 
     class SassValueError : public Base {
-      public:
-        SassValueError(Backtraces traces, ParserState pstate, OperationError& err);
-        virtual ~SassValueError() throw() {};
+    public:
+      SassValueError(Backtraces traces, ParserState pstate, OperationError& err);
+      virtual ~SassValueError() throw() {};
+    };
+
+    class TopLevelParent : public Base {
+    public:
+      TopLevelParent(Backtraces traces, ParserState pstate);
+      virtual ~TopLevelParent() throw() {};
+    };
+
+    class UnsatisfiedExtend : public Base {
+    public:
+      UnsatisfiedExtend(Backtraces traces, Extension extension);
+      virtual ~UnsatisfiedExtend() throw() {};
+    };
+
+    class ExtendAcrossMedia : public Base {
+    public:
+      ExtendAcrossMedia(Backtraces traces, Extension extension);
+      virtual ~ExtendAcrossMedia() throw() {};
     };
 
   }
