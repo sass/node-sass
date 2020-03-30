@@ -5,7 +5,6 @@
 var Mocha = require('mocha'),
   fs = require('fs'),
   path = require('path'),
-  mkdirp = require('mkdirp'),
   coveralls = require('coveralls'),
   istanbul = require('istanbul'),
   sourcefiles = ['index.js', 'binding.js', 'extensions.js', 'render.js', 'errors.js'],
@@ -20,7 +19,7 @@ function coverage() {
       var cov = global.__coverage__,
         collector = new istanbul.Collector();
       if (cov) {
-        mkdirp(path.join('coverage', 'html'), function(err) {
+        fs.mkdir(path.join('coverage', 'html'), { recursive: true }, function(err) {
           if (err) { throw err; }
           collector.add(cov);
           summary.writeReport(collector, true);
@@ -44,7 +43,8 @@ function coverage() {
   var processfile = function(source) {
     fs.readFile(path.join('lib', source), function(err, data) {
       if (err) { throw err; }
-      mkdirp('lib-cov', function(err) {
+
+      fs.mkdir('lib-cov', { recursive: true }, function(err) {
         if (err) { throw err; }
         fs.writeFile(path.join('lib-cov', source),
                instrumenter.instrumentSync(data.toString(),
