@@ -69,7 +69,7 @@ function build(options) {
   console.log('Building:', [process.execPath].concat(args).join(' '));
 
   var proc = spawn(process.execPath, args, {
-    stdio: 'inherit'
+    stdio: [0, 1, 2]
   });
 
   proc.on('exit', function (errorCode) {
