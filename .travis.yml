@@ -35,6 +35,12 @@ jobs:
       node_js: "10"
       os: osx
     - stage: platform-test
+      node_js: "12"
+      os: linux
+    - stage: platform-test
+      node_js: "12"
+      os: osx
+    - stage: platform-test
       node_js: "13"
       os: linux
     - stage: platform-test
@@ -55,7 +61,7 @@ before_install:
   - echo $TRAVIS_NODE_VERSION
   - npm config set python `which python`
   - if [ $TRAVIS_OS_NAME == "linux" ]; then
-      if [[ $(node -v) =~ v1[234] ]]; then
+      if [[ $(node -v) =~ v1[2-9] ]]; then
         export CC="gcc-6";
         export CXX="g++-6";
         export LINK="gcc-6";
