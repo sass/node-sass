@@ -4,6 +4,7 @@
 
 NodeJS  | Minimum node-sass version | Node Module
 --------|--------------------------|------------
+Node 14 | 4.14+                    | 83
 Node 13 | 4.13+                    | 79
 Node 12 | 4.12+                    | 72
 Node 11 | 4.10+                    | 67
@@ -311,9 +312,11 @@ Used to determine how many digits after the decimal will be allowed. For instanc
 * Type: `Boolean | String | undefined`
 * Default: `undefined`
 
-**Special:** Setting the `sourceMap` option requires also setting the `outFile` option
+Enables source map generation during `render` and `renderSync`.
 
-Enables the outputting of a source map during `render` and `renderSync`. When `sourceMap === true`, the value of `outFile` is used as the target output location for the source map. When `typeof sourceMap === "string"`, the value of `sourceMap` will be used as the writing location for the file.
+When `sourceMap === true`, the value of `outFile` is used as the target output location for the source map with the suffix `.map` appended. If no `outFile` is set, `sourceMap` parameter is ignored.
+
+When `typeof sourceMap === "string"`, the value of `sourceMap` will be used as the writing location for the file.
 
 ### sourceMapContents
 
@@ -422,7 +425,7 @@ var result = sass.renderSync({
     var result = someSyncFunction(url, prev);
     return {file: result.path, contents: result.data};
   }
-}));
+});
 
 console.log(result.css);
 console.log(result.map);
