@@ -7,7 +7,8 @@ describe('binary errors', function() {
   function getCurrentPlatform() {
     if (process.platform === 'win32') {
       return 'Windows';
-    } else if (process.platform === 'darwin') {
+    }
+    if (process.platform === 'darwin') {
       return 'OS X';
     }
     return '';
@@ -16,7 +17,8 @@ describe('binary errors', function() {
   function getCurrentArchitecture() {
     if (process.arch === 'x86' || process.arch === 'ia32') {
       return '32-bit';
-    } else if (process.arch === 'x64') {
+    }
+    if (process.arch === 'x64') {
       return '64-bit';
     }
     return '';

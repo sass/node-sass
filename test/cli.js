@@ -377,9 +377,9 @@ describe('cli', function() {
         '--watch', srcDir
       ]);
 
-      setTimeout(function () {
+      setTimeout(function() {
         fs.appendFileSync(srcFile, 'body{background:white}\n');
-        setTimeout(function () {
+        setTimeout(function() {
           bin.kill();
           var files = fs.readdirSync(destDir);
           assert.deepEqual(files, ['foo.css', 'index.css']);

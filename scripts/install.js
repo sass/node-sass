@@ -140,7 +140,7 @@ function checkAndDownloadBinary() {
         mkdir.sync(path.dirname(cachedBinary));
         fs.createReadStream(binaryPath)
           .pipe(fs.createWriteStream(cachedBinary))
-          .on('error', function (err) {
+          .on('error', function(err) {
             console.log('Failed to cache binary:', err);
           });
       } catch (err) {

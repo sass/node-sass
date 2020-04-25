@@ -101,7 +101,8 @@ function parseArgs(args) {
     if (arg === '-f' || arg === '--force') {
       options.force = true;
       return false;
-    } else if (arg.substring(0, 13) === '--target_arch') {
+    }
+    if (arg.substring(0, 13) === '--target_arch') {
       options.arch = arg.substring(14);
     } else if (arg === '-d' || arg === '--debug') {
       options.debug = true;
@@ -135,7 +136,7 @@ function testBinary(options) {
   console.log('Testing binary');
 
   try {
-    require('../').renderSync({
+    require('..').renderSync({
       data: 's { a: ss }'
     });
 

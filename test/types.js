@@ -2,7 +2,7 @@
 'use strict';
 
 var assert = require('assert');
-var sass = require('../');
+var sass = require('..');
 
 describe('sass.types', function() {
   describe('Boolean', function() {

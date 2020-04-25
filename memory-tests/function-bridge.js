@@ -1,6 +1,6 @@
-"use strict";
+'use strict';
 
-var sass = require("../");
+var sass = require('..');
 var iterateAndMeasure = require('./_measure');
 
 iterateAndMeasure(function() {

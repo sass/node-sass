@@ -29,7 +29,7 @@ function coverage() {
             fs.readFile(path.join('coverage', 'lcov.info'), function(err, data) {
               if (err) { console.error(err); }
               coveralls.handleInput(data.toString(),
-                   function (err) { if (err) { console.error(err); } });
+                   function(err) { if (err) { console.error(err); } });
             });
           });
           lcov.writeReport(collector, true);
@@ -64,7 +64,7 @@ function coverage() {
                    });
                    process.env.NODESASS_COV = 1;
                    mocha.reporter(rep).run(function(failures) {
-                     process.on('exit', function () {
+                     process.on('exit', function() {
                        process.exit(failures);
                      });
                    });

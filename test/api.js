@@ -68,7 +68,7 @@ describe('api', function() {
         file: fixture('simple/index.scss'),
         sourceMap: false
       }, function(error, result) {
-        assert.strictEqual(result.hasOwnProperty('map'), false, 'result has a map property');
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(result, 'map'), false, 'result has a map property');
         done();
       });
     });
@@ -78,7 +78,7 @@ describe('api', function() {
         file: fixture('simple/index.scss'),
         sourceMap: true
       }, function(error, result) {
-        assert.strictEqual(result.hasOwnProperty('map'), false, 'result has a map property');
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(result, 'map'), false, 'result has a map property');
         done();
       });
     });
@@ -357,7 +357,7 @@ describe('api', function() {
       });
     });
 
-    it('should should resolve imports depth first', function (done) {
+    it('should should resolve imports depth first', function(done) {
       var actualImportOrder = [];
       var expectedImportOrder = [
         'a', '_common', 'vars', 'struct', 'a1', 'common', 'vars', 'struct', 'b', 'b1'
@@ -366,7 +366,7 @@ describe('api', function() {
 
       sass.render({
         file: fixture('depth-first/index.scss'),
-        importer: function (url, prev, done) {
+        importer: function(url, prev, done) {
           actualImportOrder.push(url);
           done();
         }
@@ -654,7 +654,7 @@ describe('api', function() {
           done(new Error('doesn\'t exist!'));
         }
       }, function(error) {
-        assert(/doesn\'t exist!/.test(error.message));
+        assert(/doesn't exist!/.test(error.message));
         done();
       });
     });
@@ -666,7 +666,7 @@ describe('api', function() {
           return new Error('doesn\'t exist!');
         }
       }, function(error) {
-        assert(/doesn\'t exist!/.test(error.message));
+        assert(/doesn't exist!/.test(error.message));
         done();
       });
     });
@@ -1374,7 +1374,7 @@ describe('api', function() {
         sourceMap: false
       });
 
-      assert.strictEqual(result.hasOwnProperty('map'), false, 'result has a map property');
+      assert.strictEqual(Object.prototype.hasOwnProperty.call(result, 'map'), false, 'result has a map property');
       done();
     });
 
@@ -1384,7 +1384,7 @@ describe('api', function() {
         sourceMap: true
       });
 
-      assert.strictEqual(result.hasOwnProperty('map'), false, 'result has a map property');
+      assert.strictEqual(Object.prototype.hasOwnProperty.call(result, 'map'), false, 'result has a map property');
       done();
     });
 
@@ -1765,7 +1765,7 @@ describe('api', function() {
             return new Error('doesn\'t exist!');
           }
         });
-      }, /doesn\'t exist!/);
+      }, /doesn't exist!/);
 
       done();
     });
@@ -2018,11 +2018,11 @@ describe('api', function() {
   });
 
   describe('.info', function() {
-    var package = require('../package.json'),
+    var pkg = require('../package.json'),
       info = sass.info;
 
     it('should return a correct version info', function(done) {
-      assert(info.indexOf(package.version) > 0);
+      assert(info.indexOf(pkg.version) > 0);
       assert(info.indexOf('(Wrapper)') > 0);
       assert(info.indexOf('[JavaScript]') > 0);
       assert(info.indexOf('[NA]') < 0);

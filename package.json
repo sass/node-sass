@@ -30,7 +30,7 @@
     "coverage": "node scripts/coverage.js",
     "install": "node scripts/install.js",
     "postinstall": "node scripts/build.js",
-    "lint": "node_modules/.bin/eslint bin/node-sass lib scripts test",
+    "lint": "node_modules/.bin/eslint bin/node-sass .",
     "test": "node_modules/.bin/mocha test/{*,**/**}.js",
     "build": "node scripts/build.js --force",
     "prepublish": "not-in-install && node scripts/prepublish.js || in-install"

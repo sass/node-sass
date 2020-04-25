@@ -211,15 +211,13 @@ function getOptions(args, options) {
       options.sourceMap = options.dest + '.map';
     } else if (!sourceMapIsDirectory) {
       options.sourceMap = path.resolve(options.sourceMapOriginal);
-    } else if (sourceMapIsDirectory) {
-      if (!options.directory) {
-        options.sourceMap = path.resolve(options.sourceMapOriginal, path.basename(options.dest) + '.map');
-      } else {
-        sassDir = path.resolve(options.directory);
-        file = path.relative(sassDir, args[0]);
-        mapDir = path.resolve(options.sourceMapOriginal);
-        options.sourceMap = path.join(mapDir, file).replace(path.extname(file), '.css.map');
-      }
+    } else if (!options.directory) {
+      options.sourceMap = path.resolve(options.sourceMapOriginal, path.basename(options.dest) + '.map');
+    } else {
+      sassDir = path.resolve(options.directory);
+      file = path.relative(sassDir, args[0]);
+      mapDir = path.resolve(options.sourceMapOriginal);
+      options.sourceMap = path.join(mapDir, file).replace(path.extname(file), '.css.map');
     }
   }
 
@@ -238,7 +236,7 @@ function watch(options, emitter) {
   var handler = function(files) {
     files.added.forEach(function(file) {
       var watch = gaze.watched();
-      Object.keys(watch).forEach(function (dir) {
+      Object.keys(watch).forEach(function(dir) {
         if (watch[dir].indexOf(file) !== -1) {
           gaze.add(file);
         }
@@ -300,7 +298,7 @@ function run(options, emitter) {
   }
 
   if (options.importer) {
-    if ((path.resolve(options.importer) === path.normalize(options.importer).replace(/(.+)([\/|\\])$/, '$1'))) {
+    if ((path.resolve(options.importer) === path.normalize(options.importer).replace(/(.+)([/|\\])$/, '$1'))) {
       options.importer = require(options.importer);
     } else {
       options.importer = require(path.resolve(options.importer));
@@ -308,7 +306,7 @@ function run(options, emitter) {
   }
 
   if (options.functions) {
-    if ((path.resolve(options.functions) === path.normalize(options.functions).replace(/(.+)([\/|\\])$/, '$1'))) {
+    if ((path.resolve(options.functions) === path.normalize(options.functions).replace(/(.+)([/|\\])$/, '$1'))) {
       options.functions = require(options.functions);
     } else {
       options.functions = require(path.resolve(options.functions));
@@ -352,7 +350,8 @@ function renderDir(options, emitter) {
   glob(globPath, { ignore: '**/_*', follow: options.follow }, function(err, files) {
     if (err) {
       return emitter.emit('error', util.format('You do not have permission to access this path: %s.', err.path));
-    } else if (!files.length) {
+    }
+    if (!files.length) {
       return emitter.emit('error', 'No input file was found.');
     }
 
