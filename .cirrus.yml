@@ -1,0 +1,69 @@
+freebsd_instance:
+  image: freebsd-11-2-release-amd64
+
+freebsd_build_task:
+
+  env:
+    matrix:
+      - node_js: 11
+        nodeTxzKey: node-11
+        npmTxzKey: npm-6
+      - node_js: 10
+        nodeTxzKey: node10
+        npmTxzKey: npm-node10
+      - node_js: 8
+        nodeTxzKey: node8
+        npmTxzKey: npm-node8
+      - node_js: 6
+        nodeTxzKey: node6
+        npmTxzKey: npm-node6
+
+  env:
+    matrix:
+      - abi: freebsd:11:x86:64
+      - abi: freebsd:11:x86:32
+        jailName: j11i386
+        execPrefix: cbsd jexec jname=j11i386
+
+  env:
+    GH_API_TOKEN: ENCRYPTED[5e482f417304528148bb96eca8d030eacd6ab9972d482485fc4d42907283b995f658b351e0676e9493a37d815398f541]
+
+  prepare_script:
+    - sed -i '' 's/quarterly/latest/g' /etc/pkg/FreeBSD.conf
+    - |
+      if test "$abi" = "freebsd:11:x86:32"; then
+        ./scripts/configure_freebsd_ci_jail.sh $jailName $CIRRUS_WORKING_DIR;
+        $execPrefix sed -i -- '' 's/quarterly/latest/g' /etc/pkg/FreeBSD.conf;
+        $execPrefix pkg update -f;
+        $execPrefix pkg install -y python2 > /dev/null;
+      fi
+    - $execPrefix pkg install -y c-ares gmake icu libnghttp2 libuv git > /dev/null
+    - |
+      fetch http://pkg.freebsd.org/$abi/latest/All/ -o list
+      nodeTxz=$(sed -n "/\"$nodeTxzKey/s/.*\"\($nodeTxzKey[^\"]*\).*/\1/p" list)
+      npmTxz=$(sed -n "/\"$npmTxzKey/s/.*\"\($npmTxzKey[^\"]*\).*/\1/p" list)
+      $execPrefix pkg add http://pkg.freebsd.org/$abi/latest/All/$nodeTxz
+      $execPrefix pkg add http://pkg.freebsd.org/$abi/latest/All/$npmTxz
+    - $execPrefix node --version
+    - $execPrefix npm --version
+    - $execPrefix clang++ --version
+
+  build_script:
+    - |
+      if test "$abi" = "freebsd:11:x86:32"; then
+        changeDir="cd /etc/skel &&"
+      fi
+      echo "$changeDir npm install --unsafe-perm" | $execPrefix /bin/sh
+
+  publish_script:
+    - |
+      if test "$CIRRUS_TAG" != ""; then
+        for file in `ls vendor/**/*.node`; do
+          parent=${file%/*};
+          name=${parent##*/};
+          fullyQualifiedName="$(pwd)/$parent/${name}_binding.node";
+          mv "$file" "$parent/${name}_binding.node";
+          echo -e "New filename\072 $fullyQualifiedName";
+          ./scripts/upload-github-release-asset.sh github_api_token=$GH_API_TOKEN owner=sass repo=node-sass tag=$CIRRUS_TAG filename=$fullyQualifiedName;
+        done
+      fi
