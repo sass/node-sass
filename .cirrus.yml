@@ -1,22 +1,19 @@
 freebsd_instance:
-  image: freebsd-11-2-release-amd64
+  image_family: freebsd-11-3-snap
 
 freebsd_build_task:
 
   env:
     matrix:
-      - node_js: 11
-        nodeTxzKey: node-11
+      - node_js: 13
+        nodeTxzKey: node-13
         npmTxzKey: npm-6
+      - node_js: 12
+        nodeTxzKey: node12
+        npmTxzKey: npm-node12
       - node_js: 10
         nodeTxzKey: node10
         npmTxzKey: npm-node10
-      - node_js: 8
-        nodeTxzKey: node8
-        npmTxzKey: npm-node8
-      - node_js: 6
-        nodeTxzKey: node6
-        npmTxzKey: npm-node6
 
   env:
     matrix:
