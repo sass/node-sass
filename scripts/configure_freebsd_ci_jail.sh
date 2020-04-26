@@ -6,12 +6,17 @@ jailName=$1
 skelDirectory=$2
 cbsd_workdir=/usr/jails
 jail_arch="i386"
-jail_ver="11.2"
+jail_ver="11.3"
 
 pkg install -y cbsd
 
+echo "Pkg configuration:"
+cat /etc/pkg/FreeBSD.conf
+
 # determine uplink ip address
 # determine uplink iface
+echo "Interface configuration:"
+/sbin/ifconifg -a
 auto_iface=$( /sbin/route -n get 0.0.0.0 |/usr/bin/awk '/interface/{print $2}' )
 my_ipv4=$( /sbin/ifconfig ${auto_iface} | /usr/bin/awk '/inet [0-9]+/{print $2}' )
 
@@ -19,6 +24,11 @@ if [ -z "${my_ipv4}" ]; then
 	echo "IPv4 not detected"
 	exit 1
 fi
+echo "IPv4 routing table:"
+netstat -rnf inet
+echo "IPv6 routing table:"
+netstat -rnf inet6
+echo "${auto_iface} has been selected, with ${my_ipv4} IPv4 address"
 
 echo "Writing '${jailName}' configuration file"
 cat > /tmp/${jailName}.jconf << EOF
