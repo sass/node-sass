@@ -23,10 +23,10 @@ freebsd_build_task:
     GH_API_TOKEN: ENCRYPTED[5e482f417304528148bb96eca8d030eacd6ab9972d482485fc4d42907283b995f658b351e0676e9493a37d815398f541]
 
   prepare_script:
-    - pkg update -f;
+    - pkg -R .cirrus/pkg/repos update -f;
     - |
       if test "$abi" = "freebsd:11:x86:32"; then
-        $pkg_latest -y cbsd 
+        pkg -R .cirrus/pkg/repos install -y cbsd 
         ./scripts/configure_freebsd_ci_jail.sh $jail_name $CIRRUS_WORKING_DIR;
         $exec_prefix pkg update -f
       fi
@@ -37,7 +37,7 @@ freebsd_build_task:
 
   build_script:
     - |
-      [ -n "$working_dir} ] && change_dir="cd ${working_dir} &&"
+      if [ -n "{$working_dir}" ]; then change_dir="cd ${working_dir} &&"; fi
       echo "$change_dir npm install --unsafe-perm" | $exec_prefix /bin/sh
 
   publish_script:
