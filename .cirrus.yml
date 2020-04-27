@@ -20,6 +20,7 @@ freebsd_build_task:
   env:
     GH_API_TOKEN: ENCRYPTED[5e482f417304528148bb96eca8d030eacd6ab9972d482485fc4d42907283b995f658b351e0676e9493a37d815398f541]
     SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: yes
+    CPPFLAGS: -I/usr/local/include
 
   prepare_script:
     - pkg -R .cirrus/pkg/repos update -f;
