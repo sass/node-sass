@@ -5,8 +5,6 @@ freebsd_build_task:
 
   env:
     matrix:
-      - package: npm
-      - package: npm-node12
       - package: npm-node10
 
   env:
