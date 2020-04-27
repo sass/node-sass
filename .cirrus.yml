@@ -12,33 +12,33 @@ freebsd_build_task:
   env:
     matrix:
       - abi: freebsd:11:x86:64
+        REPOS_DIR: .cirrus/pkg/repos
       - abi: freebsd:11:x86:32
         jail_name: j11i386
         exec_prefix: cbsd jexec jname=j11i386
+        working_dir: /etc/skel
+        REPOS_DIR: /etc/skel/.cirrus/pkg/repos
 
   env:
     GH_API_TOKEN: ENCRYPTED[5e482f417304528148bb96eca8d030eacd6ab9972d482485fc4d42907283b995f658b351e0676e9493a37d815398f541]
-A   pkg_latest: pkg -R "${CIRRUS_WORKING_DIR}/.cirrus/pkg/repos"
 
   prepare_script:
-    - $pkg_latest update -f;
+    - pkg update -f;
     - |
       if test "$abi" = "freebsd:11:x86:32"; then
         $pkg_latest -y cbsd 
         ./scripts/configure_freebsd_ci_jail.sh $jail_name $CIRRUS_WORKING_DIR;
-        $exec_prefix $pkg_latest update -f;
+        $exec_prefix pkg update -f
       fi
-    - $exec_prefix $pkg_latest install -y "${package}" python2 
+    - $exec_prefix pkg install -y "${package}" python2 
     - $exec_prefix node --version
     - $exec_prefix npm --version
     - $exec_prefix clang++ --version
 
   build_script:
     - |
-      if test "$abi" = "freebsd:11:x86:32"; then
-        changeDir="cd /etc/skel &&"
-      fi
-      echo "$changeDir npm install --unsafe-perm" | $exec_prefix /bin/sh
+      [ -n "$working_dir} ] && change_dir="cd ${working_dir} &&"
+      echo "$change_dir npm install --unsafe-perm" | $exec_prefix /bin/sh
 
   publish_script:
     - |
