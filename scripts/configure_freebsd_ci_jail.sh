@@ -8,11 +8,6 @@ cbsd_workdir=/usr/jails
 jail_arch="i386"
 jail_ver="11.3"
 
-pkg install -y cbsd
-
-echo "Pkg configuration:"
-cat /etc/pkg/FreeBSD.conf
-
 # determine uplink ip address
 # determine uplink iface
 echo "Interface configuration:"

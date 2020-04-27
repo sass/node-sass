@@ -5,52 +5,40 @@ freebsd_build_task:
 
   env:
     matrix:
-      - node_js: 13
-        nodeTxzKey: node-13
-        npmTxzKey: npm-6
-      - node_js: 12
-        nodeTxzKey: node12
-        npmTxzKey: npm-node12
-      - node_js: 10
-        nodeTxzKey: node10
-        npmTxzKey: npm-node10
+      - package: npm
+      - package: npm-node12
+      - package: npm-node10
 
   env:
     matrix:
       - abi: freebsd:11:x86:64
       - abi: freebsd:11:x86:32
-        jailName: j11i386
-        execPrefix: cbsd jexec jname=j11i386
+        jail_name: j11i386
+        exec_prefix: cbsd jexec jname=j11i386
 
   env:
     GH_API_TOKEN: ENCRYPTED[5e482f417304528148bb96eca8d030eacd6ab9972d482485fc4d42907283b995f658b351e0676e9493a37d815398f541]
+A   pkg_latest: pkg -R "${CIRRUS_WORKING_DIR}/.cirrus/pkg/repos"
 
   prepare_script:
-    - sed -i '' 's/quarterly/latest/g' /etc/pkg/FreeBSD.conf
+    - $pkg_latest update -f;
     - |
       if test "$abi" = "freebsd:11:x86:32"; then
-        ./scripts/configure_freebsd_ci_jail.sh $jailName $CIRRUS_WORKING_DIR;
-        $execPrefix sed -i -- '' 's/quarterly/latest/g' /etc/pkg/FreeBSD.conf;
-        $execPrefix pkg update -f;
-        $execPrefix pkg install -y python2 > /dev/null;
+        $pkg_latest -y cbsd 
+        ./scripts/configure_freebsd_ci_jail.sh $jail_name $CIRRUS_WORKING_DIR;
+        $exec_prefix $pkg_latest update -f;
       fi
-    - $execPrefix pkg install -y c-ares gmake icu libnghttp2 libuv git > /dev/null
-    - |
-      fetch http://pkg.freebsd.org/$abi/latest/All/ -o list
-      nodeTxz=$(sed -n "/\"$nodeTxzKey/s/.*\"\($nodeTxzKey[^\"]*\).*/\1/p" list)
-      npmTxz=$(sed -n "/\"$npmTxzKey/s/.*\"\($npmTxzKey[^\"]*\).*/\1/p" list)
-      $execPrefix pkg add http://pkg.freebsd.org/$abi/latest/All/$nodeTxz
-      $execPrefix pkg add http://pkg.freebsd.org/$abi/latest/All/$npmTxz
-    - $execPrefix node --version
-    - $execPrefix npm --version
-    - $execPrefix clang++ --version
+    - $exec_prefix $pkg_latest install -y "${package}" python2 
+    - $exec_prefix node --version
+    - $exec_prefix npm --version
+    - $exec_prefix clang++ --version
 
   build_script:
     - |
       if test "$abi" = "freebsd:11:x86:32"; then
         changeDir="cd /etc/skel &&"
       fi
-      echo "$changeDir npm install --unsafe-perm" | $execPrefix /bin/sh
+      echo "$changeDir npm install --unsafe-perm" | $exec_prefix /bin/sh
 
   publish_script:
     - |
