@@ -28,7 +28,7 @@ freebsd_build_task:
         ./scripts/configure_freebsd_ci_jail.sh $jail_name $CIRRUS_WORKING_DIR;
         $exec_prefix pkg update -f
       fi
-    - $exec_prefix pkg install -y "${package}" python2 
+    - $exec_prefix pkg install -y "${package}" python2 git
     - $exec_prefix node --version
     - $exec_prefix npm --version
     - $exec_prefix clang++ --version
@@ -38,9 +38,10 @@ freebsd_build_task:
       if [ -n "${working_dir}" ]; then change_dir="cd ${working_dir} &&"; fi
       echo "$change_dir npm install --unsafe-perm" | $exec_prefix /bin/sh
 
-  publish_script:
+publish_task:
+  only_if: $CIRRUS_TAG != ""
+  script:
     - |
-      if test "$CIRRUS_TAG" != ""; then
         for file in `ls vendor/**/*.node`; do
           parent=${file%/*};
           name=${parent##*/};
@@ -49,4 +50,3 @@ freebsd_build_task:
           echo -e "New filename\072 $fullyQualifiedName";
           ./scripts/upload-github-release-asset.sh github_api_token=$GH_API_TOKEN owner=sass repo=node-sass tag=$CIRRUS_TAG filename=$fullyQualifiedName;
         done
-      fi
