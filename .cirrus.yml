@@ -39,7 +39,7 @@ freebsd_build_task:
       if [ -n "${working_dir}" ]; then change_dir="cd ${working_dir} &&"; fi
       echo "$change_dir npm install --unsafe-perm --production" | $exec_prefix /bin/sh
       echo "Generated files:"
-      echo "$change_dir find vendor | $exec_prefix /bin/sh
+      echo "$change_dir find vendor" | $exec_prefix /bin/sh
 
 publish_task:
   only_if: $CIRRUS_TAG != ""
