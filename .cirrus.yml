@@ -3,9 +3,31 @@ freebsd_instance:
 
 freebsd_build_task:
 
+  #
+  # We support only node versions available in the FreeBSD ports tree
+  # Currently supported node versions can be figured out as follows:
+  # 
+  # Check the node versions supported by the npm port:
+  #   https://svnweb.freebsd.org/ports/head/www/npm/Makefile?view=markup
+  #
+  # www/npm port contains options to build with different node engines
+  # in the form of
+  #     xxx_RUN_DEPENDS=   node>0.8:pppppp
+  # "ppppp" above is the port name, for example www/node12
+  #
+  # "www/node" port is the latest and its is a moving target
+  # You have to check its Makefile to figure out which version it represents:
+  #   https://svnweb.freebsd.org/ports/head/www/node/Makefile?view=markup
+  #
+  # Typically this means once www/node gets promoted from node 19 to 20
+  # "- package: npm-node19" needs to be added before the "package: npm"
+  # line.
+  #
   env:
     matrix:
       - package: npm-node10
+      - package: npm-node12
+      - package: npm
 
   env:
     matrix:
