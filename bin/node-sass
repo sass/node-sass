@@ -204,15 +204,15 @@ function getOptions(args, options) {
       options.sourceMapOriginal = options.sourceMap;
     }
 
-    // check if sourceMap path ends with .map to avoid isDirectory false-positive
-    var sourceMapIsDirectory = options.sourceMapOriginal.indexOf('.map', options.sourceMapOriginal.length - 4) === -1 && isDirectory(options.sourceMapOriginal);
-
     if (options.sourceMapOriginal === 'true') {
       options.sourceMap = options.dest + '.map';
-    } else if (!sourceMapIsDirectory) {
-      options.sourceMap = path.resolve(options.sourceMapOriginal);
-    } else if (sourceMapIsDirectory) {
-      if (!options.directory) {
+    } else {
+      // check if sourceMap path ends with .map to avoid isDirectory false-positive
+      var sourceMapIsDirectory = options.sourceMapOriginal.indexOf('.map', options.sourceMapOriginal.length - 4) === -1 && isDirectory(options.sourceMapOriginal);
+
+      if (!sourceMapIsDirectory) {
+        options.sourceMap = path.resolve(options.sourceMapOriginal);
+      } else if (!options.directory) {
         options.sourceMap = path.resolve(options.sourceMapOriginal, path.basename(options.dest) + '.map');
       } else {
         sassDir = path.resolve(options.directory);
