@@ -16,7 +16,7 @@
     "url": "http://andrew.github.com"
   },
   "engines": {
-    "node": ">=0.10.0"
+    "node": ">= 6"
   },
   "main": "lib/index.js",
   "nodeSassConfig": {
@@ -33,7 +33,7 @@
     "lint": "eslint bin/node-sass lib scripts test",
     "test": "mocha test/{*,**/**}.js",
     "build": "node scripts/build.js --force",
-    "prepublish": "not-in-install && node scripts/prepublish.js || in-install"
+    "prepublishOnly": "node scripts/prepublish.js"
   },
   "files": [
     "bin",
@@ -59,12 +59,11 @@
     "gaze": "^1.0.0",
     "get-stdin": "^4.0.1",
     "glob": "^7.0.3",
-    "in-publish": "^2.0.0",
     "lodash": "^4.17.15",
     "meow": "^3.7.0",
     "mkdirp": "^0.5.1",
     "nan": "^2.13.2",
-    "node-gyp": "^3.8.0",
+    "node-gyp": "^6.1.0",
     "npmlog": "^4.0.0",
     "request": "^2.88.0",
     "sass-graph": "2.2.5",
