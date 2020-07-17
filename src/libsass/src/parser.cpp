@@ -540,7 +540,7 @@ namespace Sass {
     // update for end position
     ruleset->update_pstate(pstate);
     ruleset->block()->update_pstate(pstate);
-    // need this info for sanity checks
+    // need this info for coherence checks
     ruleset->is_root(is_root);
     // return AST Node
     return ruleset;
