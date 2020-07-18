@@ -191,7 +191,7 @@ namespace Sass {
 
       bool empty_parent_ref = pToConvert->head() && pToConvert->head()->is_empty_reference();
 
-      // the first Complex_Selector may contain a fake head pointer, skip it.
+      // the first Complex_Selector may contain a dummy head pointer, skip it.
       if (pToConvert->head() && !empty_parent_ref) {
         node.collection()->push_back(Node::createSelector(*pToConvert));
         if (has_lf) node.collection()->back().got_line_feed = has_lf;
@@ -269,7 +269,7 @@ namespace Sass {
       }
     }
 
-    // Put the fake Compound_Selector in the first position, for consistency with the rest of libsass
+    // Put the dummy Compound_Selector in the first position, for consistency with the rest of libsass
     Compound_Selector_Ptr fakeHead = SASS_MEMORY_NEW(Compound_Selector, ParserState("[NODE]"), 1);
     Parent_Selector_Ptr selectorRef = SASS_MEMORY_NEW(Parent_Selector, ParserState("[NODE]"));
     fakeHead->elements().push_back(selectorRef);
