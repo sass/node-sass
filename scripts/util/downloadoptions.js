@@ -14,12 +14,11 @@ var proxy = require('./proxy'),
  */
 module.exports = function() {
   var options = {
-    rejectUnauthorized: false,
     timeout: 60000,
     headers: {
       'User-Agent': userAgent(),
     },
-    encoding: null,
+    responseType: 'arraybuffer',
   };
 
   var proxyConfig = proxy();
