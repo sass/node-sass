@@ -1,5 +1,5 @@
 var assert = require('assert'),
-  ua = require('../scripts/util/useragent'),
+  userAgent = require('../scripts/util/useragent'),
   opts = require('../scripts/util/downloadoptions');
 
 
@@ -8,12 +8,11 @@ describe('util', function() {
     describe('without a proxy', function() {
       it('should look as we expect', function() {
         var expected = {
-          rejectUnauthorized: false,
           timeout: 60000,
           headers: {
-            'User-Agent': ua(),
+            'User-Agent': userAgent(),
           },
-          encoding: null,
+          responseType: 'arraybuffer',
         };
 
         assert.deepEqual(opts(), expected);
@@ -33,13 +32,11 @@ describe('util', function() {
 
       it('should look as we expect', function() {
         var expected = {
-          rejectUnauthorized: false,
-          proxy: proxy,
           timeout: 60000,
           headers: {
-            'User-Agent': ua(),
+            'User-Agent': userAgent(),
           },
-          encoding: null,
+          responseType: 'arraybuffer',
         };
 
         assert.deepEqual(opts(), expected);
@@ -59,12 +56,11 @@ describe('util', function() {
 
       it('should look as we expect', function() {
         var expected = {
-          rejectUnauthorized: false,
           timeout: 60000,
           headers: {
-            'User-Agent': ua(),
+            'User-Agent': userAgent(),
           },
-          encoding: null,
+          responseType: 'arraybuffer',
         };
 
         assert.deepEqual(opts(), expected);
