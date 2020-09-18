@@ -11,23 +11,23 @@ describe('sass.types', function() {
     });
 
     it('names the constructor correctly', function() {
-      assert.equal(sass.types.Boolean.name, 'SassBoolean');
+      assert.strictEqual(sass.types.Boolean.name, 'SassBoolean');
     });
 
     it('supports call constructor', function() {
       var t = sass.types.Boolean(true);
-      assert.equal(t.toString(), '[object SassBoolean]');
+      assert.strictEqual(t.toString(), '[object SassBoolean]');
 
       var f = sass.types.Boolean(false);
-      assert.equal(f.toString(), '[object SassBoolean]');
+      assert.strictEqual(f.toString(), '[object SassBoolean]');
     });
 
     it('has true and false singletons', function() {
-      assert.equal(sass.types.Boolean(true), sass.types.Boolean(true));
-      assert.equal(sass.types.Boolean(false), sass.types.Boolean(false));
-      assert.notEqual(sass.types.Boolean(false), sass.types.Boolean(true));
-      assert.equal(sass.types.Boolean(true), sass.types.Boolean.TRUE);
-      assert.equal(sass.types.Boolean(false), sass.types.Boolean.FALSE);
+      assert.strictEqual(sass.types.Boolean(true), sass.types.Boolean(true));
+      assert.strictEqual(sass.types.Boolean(false), sass.types.Boolean(false));
+      assert.notStrictEqual(sass.types.Boolean(false), sass.types.Boolean(true));
+      assert.strictEqual(sass.types.Boolean(true), sass.types.Boolean.TRUE);
+      assert.strictEqual(sass.types.Boolean(false), sass.types.Boolean.FALSE);
     });
 
     it('supports DOES NOT support new constructor', function() {
@@ -35,7 +35,7 @@ describe('sass.types', function() {
         new sass.types.Boolean(true);
       }, function(error) {
         assert.ok(error instanceof TypeError);
-        assert.equal(error.message, 'Cannot instantiate SassBoolean');
+        assert.strictEqual(error.message, 'Cannot instantiate SassBoolean');
         return true;
       });
     });
@@ -45,7 +45,7 @@ describe('sass.types', function() {
         sass.types.Boolean();
       }, function(error) {
         assert.ok(error instanceof TypeError);
-        assert.equal(error.message, 'Expected one boolean argument');
+        assert.strictEqual(error.message, 'Expected one boolean argument');
         return true;
       });
 
@@ -54,7 +54,7 @@ describe('sass.types', function() {
           sass.types.Boolean(arg);
         }, function(error) {
           assert.ok(error instanceof TypeError);
-          assert.equal(error.message, 'Expected one boolean argument');
+          assert.strictEqual(error.message, 'Expected one boolean argument');
           return true;
         });
       });
@@ -63,19 +63,19 @@ describe('sass.types', function() {
         sass.types.Boolean(true, false);
       }, function(error) {
         assert.ok(error instanceof TypeError);
-        assert.equal(error.message, 'Expected one boolean argument');
+        assert.strictEqual(error.message, 'Expected one boolean argument');
         return true;
       });
     });
 
     it('implements getValue', function() {
       var t = sass.types.Boolean(true);
-      assert.equal(typeof t.getValue, 'function');
-      assert.equal(t.getValue(), true);
+      assert.strictEqual(typeof t.getValue, 'function');
+      assert.strictEqual(t.getValue(), true);
 
       var f = sass.types.Boolean(false);
-      assert.equal(typeof f.getValue, 'function');
-      assert.equal(f.getValue(), false);
+      assert.strictEqual(typeof f.getValue, 'function');
+      assert.strictEqual(f.getValue(), false);
     });
   });
 
@@ -85,61 +85,61 @@ describe('sass.types', function() {
     });
 
     it('names the constructor correctly', function() {
-      assert.equal(sass.types.Color.name, 'SassColor');
+      assert.strictEqual(sass.types.Color.name, 'SassColor');
     });
 
     it('supports call constructor', function() {
       var t = sass.types.Color();
-      assert.equal(t.toString(), '[object SassColor]');
+      assert.strictEqual(t.toString(), '[object SassColor]');
     });
 
     it('supports new constructor', function() {
       var t = new sass.types.Color(1);
-      assert.equal(t.toString(), '[object SassColor]');
+      assert.strictEqual(t.toString(), '[object SassColor]');
     });
 
     it('supports variadic constructor args', function() {
       var a = new sass.types.Color();
 
-      assert.equal(a.getR(), 0);
-      assert.equal(a.getG(), 0);
-      assert.equal(a.getB(), 0);
-      assert.equal(a.getA(), 1);
+      assert.strictEqual(a.getR(), 0);
+      assert.strictEqual(a.getG(), 0);
+      assert.strictEqual(a.getB(), 0);
+      assert.strictEqual(a.getA(), 1);
 
       var b = new sass.types.Color(1);
 
-      assert.equal(b.getR(), 0);
-      assert.equal(b.getG(), 0);
-      assert.equal(b.getB(), 1);
-      assert.equal(b.getA(), 0); // why ?
+      assert.strictEqual(b.getR(), 0);
+      assert.strictEqual(b.getG(), 0);
+      assert.strictEqual(b.getB(), 1);
+      assert.strictEqual(b.getA(), 0); // why ?
 
       assert.throws(function() {
         new sass.types.Color(1, 2);
       }, function(error) {
         // assert.ok(error instanceof TypeError);
-        assert.equal(error.message, 'Constructor should be invoked with either 0, 1, 3 or 4 arguments.');
+        assert.strictEqual(error.message, 'Constructor should be invoked with either 0, 1, 3 or 4 arguments.');
         return true;
       });
 
       var c = new sass.types.Color(1, 2, 3);
 
-      assert.equal(c.getR(), 1);
-      assert.equal(c.getG(), 2);
-      assert.equal(c.getB(), 3);
-      assert.equal(c.getA(), 1);
+      assert.strictEqual(c.getR(), 1);
+      assert.strictEqual(c.getG(), 2);
+      assert.strictEqual(c.getB(), 3);
+      assert.strictEqual(c.getA(), 1);
 
       var d = new sass.types.Color(1, 2, 3, 4);
 
-      assert.equal(d.getR(), 1);
-      assert.equal(d.getG(), 2);
-      assert.equal(d.getB(), 3);
-      assert.equal(d.getA(), 4);
+      assert.strictEqual(d.getR(), 1);
+      assert.strictEqual(d.getG(), 2);
+      assert.strictEqual(d.getB(), 3);
+      assert.strictEqual(d.getA(), 4);
 
       assert.throws(function() {
         new sass.types.Color(1, 2, 3, 4, 5);
       }, function(error) {
         // assert.ok(error instanceof TypeError);
-        assert.equal(error.message, 'Constructor should be invoked with either 0, 1, 3 or 4 arguments.');
+        assert.strictEqual(error.message, 'Constructor should be invoked with either 0, 1, 3 or 4 arguments.');
         return true;
       });
     });
@@ -147,38 +147,38 @@ describe('sass.types', function() {
     it('supports get{R,G,B,A} and set{R,G,B,A}', function() {
       var c = new sass.types.Color();
 
-      assert.equal(c.getR(), 0);
-      assert.equal(c.getG(), 0);
-      assert.equal(c.getB(), 0);
-      assert.equal(c.getA(), 1);
+      assert.strictEqual(c.getR(), 0);
+      assert.strictEqual(c.getG(), 0);
+      assert.strictEqual(c.getB(), 0);
+      assert.strictEqual(c.getA(), 1);
 
-      assert.equal(c.setR(1), undefined);
+      assert.strictEqual(c.setR(1), undefined);
 
-      assert.equal(c.getR(), 1);
-      assert.equal(c.getG(), 0);
-      assert.equal(c.getB(), 0);
-      assert.equal(c.getA(), 1);
+      assert.strictEqual(c.getR(), 1);
+      assert.strictEqual(c.getG(), 0);
+      assert.strictEqual(c.getB(), 0);
+      assert.strictEqual(c.getA(), 1);
 
-      assert.equal(c.setG(1), undefined);
+      assert.strictEqual(c.setG(1), undefined);
 
-      assert.equal(c.getR(), 1);
-      assert.equal(c.getG(), 1);
-      assert.equal(c.getB(), 0);
-      assert.equal(c.getA(), 1);
+      assert.strictEqual(c.getR(), 1);
+      assert.strictEqual(c.getG(), 1);
+      assert.strictEqual(c.getB(), 0);
+      assert.strictEqual(c.getA(), 1);
 
-      assert.equal(c.setB(1), undefined);
+      assert.strictEqual(c.setB(1), undefined);
 
-      assert.equal(c.getR(), 1);
-      assert.equal(c.getG(), 1);
-      assert.equal(c.getB(), 1);
-      assert.equal(c.getA(), 1);
+      assert.strictEqual(c.getR(), 1);
+      assert.strictEqual(c.getG(), 1);
+      assert.strictEqual(c.getB(), 1);
+      assert.strictEqual(c.getA(), 1);
 
-      assert.equal(c.setA(0), undefined);
+      assert.strictEqual(c.setA(0), undefined);
 
-      assert.equal(c.getR(), 1);
-      assert.equal(c.getG(), 1);
-      assert.equal(c.getB(), 1);
-      assert.equal(c.getA(), 0);
+      assert.strictEqual(c.getR(), 1);
+      assert.strictEqual(c.getG(), 1);
+      assert.strictEqual(c.getB(), 1);
+      assert.strictEqual(c.getA(), 0);
     });
 
     it('throws with incorrect set{R,G,B,A} arguments', function() {
@@ -189,7 +189,7 @@ describe('sass.types', function() {
           cb();
         }, function(error) {
           assert.ok(error instanceof TypeError);
-          assert.equal(error.message, 'Expected just one argument');
+          assert.strictEqual(error.message, 'Expected just one argument');
 
           return true;
         });
@@ -200,7 +200,7 @@ describe('sass.types', function() {
           cb();
         }, function(error) {
           assert.ok(error instanceof TypeError);
-          assert.equal(error.message, 'Supplied value should be a number');
+          assert.strictEqual(error.message, 'Supplied value should be a number');
 
           return true;
         }, 'argument was: ' + arg);
@@ -231,13 +231,13 @@ describe('sass.types', function() {
     });
 
     it('has a correctly named constructor', function() {
-      assert.equal(sass.types.Error.name, 'SassError');
+      assert.strictEqual(sass.types.Error.name, 'SassError');
     });
 
     it('supports call constructor', function() {
       var e = sass.types.Error('Such Error');
       assert.ok(e instanceof sass.types.Error);
-      assert.equal(e.toString(), '[object SassError]');
+      assert.strictEqual(e.toString(), '[object SassError]');
 
       // TODO: I'm not sure this object works well, it likely needs to be fleshed out more...
     });
@@ -245,7 +245,7 @@ describe('sass.types', function() {
     it('supports new constructor', function() {
       var e = new sass.types.Error('Such Error');
       assert.ok(e instanceof sass.types.Error);
-      assert.equal(e.toString(), '[object SassError]');
+      assert.strictEqual(e.toString(), '[object SassError]');
       // TODO: I'm not sure this object works well, it likely needs to be fleshed out more...
     });
   });
@@ -256,43 +256,43 @@ describe('sass.types', function() {
     });
 
     it('has a corectly named constructor', function() {
-      assert.equal(sass.types.List.name, 'SassList');
+      assert.strictEqual(sass.types.List.name, 'SassList');
     });
 
     it('support call constructor', function() {
       var list = sass.types.List();
       assert.ok(list instanceof sass.types.List);
-      assert.equal(list.toString(), '[object SassList]');
+      assert.strictEqual(list.toString(), '[object SassList]');
     });
 
     it('support new constructor', function() {
       var list = new sass.types.List();
       assert.ok(list instanceof sass.types.List);
-      assert.equal(list.toString(), '[object SassList]');
+      assert.strictEqual(list.toString(), '[object SassList]');
     });
 
     it('support variadic constructor', function() {
       var a = new sass.types.List();
-      assert.equal(a.getLength(), 0);
-      assert.equal(a.getSeparator(), true);
+      assert.strictEqual(a.getLength(), 0);
+      assert.strictEqual(a.getSeparator(), true);
       var b = new sass.types.List(1);
-      assert.equal(b.getSeparator(), true);
-      assert.equal(b.getLength(), 1);
+      assert.strictEqual(b.getSeparator(), true);
+      assert.strictEqual(b.getLength(), 1);
       var c = new sass.types.List(1, true);
-      assert.equal(b.getLength(), 1);
-      assert.equal(c.getSeparator(), true);
+      assert.strictEqual(b.getLength(), 1);
+      assert.strictEqual(c.getSeparator(), true);
       var d = new sass.types.List(1, false);
-      assert.equal(b.getLength(), 1);
-      assert.equal(d.getSeparator(), false);
+      assert.strictEqual(b.getLength(), 1);
+      assert.strictEqual(d.getSeparator(), false);
       var e = new sass.types.List(1, true, 2);
-      assert.equal(b.getLength(), 1);
-      assert.equal(e.getSeparator(), true);
+      assert.strictEqual(b.getLength(), 1);
+      assert.strictEqual(e.getSeparator(), true);
 
       assert.throws(function() {
         new sass.types.List('not-a-number');
       }, function(error) {
         // TODO: TypeError
-        assert.equal(error.message, 'First argument should be an integer.');
+        assert.strictEqual(error.message, 'First argument should be an integer.');
         return true;
       });
 
@@ -300,24 +300,24 @@ describe('sass.types', function() {
         new sass.types.List(1, 'not-a-boolean');
       }, function(error) {
         // TODO: TypeError
-        assert.equal(error.message, 'Second argument should be a boolean.');
+        assert.strictEqual(error.message, 'Second argument should be a boolean.');
         return true;
       });
     });
 
     it('supports {get,set}Separator', function() {
       var a = new sass.types.List();
-      assert.equal(a.getSeparator(), true);
-      assert.equal(a.setSeparator(true), undefined);
-      assert.equal(a.getSeparator(), true);
-      assert.equal(a.setSeparator(false), undefined);
-      assert.equal(a.getSeparator(), false);
+      assert.strictEqual(a.getSeparator(), true);
+      assert.strictEqual(a.setSeparator(true), undefined);
+      assert.strictEqual(a.getSeparator(), true);
+      assert.strictEqual(a.setSeparator(false), undefined);
+      assert.strictEqual(a.getSeparator(), false);
 
       assert.throws(function() {
         a.setSeparator();
       }, function(error) {
         assert.ok(error instanceof TypeError);
-        assert.equal(error.message, 'Expected just one argument');
+        assert.strictEqual(error.message, 'Expected just one argument');
         return true;
       });
 
@@ -326,7 +326,7 @@ describe('sass.types', function() {
           a.setSeparator(arg);
         }, function(error) {
           assert.ok(error instanceof TypeError);
-          assert.equal(error.message, 'Supplied value should be a boolean');
+          assert.strictEqual(error.message, 'Supplied value should be a boolean');
           return true;
         }, 'setSeparator(' + arg + ')');
       });
@@ -339,7 +339,7 @@ describe('sass.types', function() {
         a.getValue();
       }, function(error) {
         assert.ok(error instanceof TypeError);
-        assert.equal(error.message, 'Expected just one argument');
+        assert.strictEqual(error.message, 'Expected just one argument');
 
         return true;
       });
@@ -349,7 +349,7 @@ describe('sass.types', function() {
           a.getValue(arg);
         }, function(error) {
           assert.ok(error instanceof TypeError);
-          assert.equal(error.message, 'Supplied index should be an integer');
+          assert.strictEqual(error.message, 'Supplied index should be an integer');
 
           return true;
         }, 'getValue(' + arg + ')');
@@ -359,7 +359,7 @@ describe('sass.types', function() {
         a.getValue(0);
       }, function(error) {
         assert.ok(error instanceof RangeError);
-        assert.equal(error.message, 'Out of bound index');
+        assert.strictEqual(error.message, 'Out of bound index');
 
         return true;
       });
@@ -368,7 +368,7 @@ describe('sass.types', function() {
         a.getValue(-1);
       }, function(error) {
         assert.ok(error instanceof RangeError);
-        assert.equal(error.message, 'Out of bound index');
+        assert.strictEqual(error.message, 'Out of bound index');
 
         return true;
       });
@@ -377,7 +377,7 @@ describe('sass.types', function() {
         a.setValue();
       }, function(error) {
         assert.ok(error instanceof TypeError);
-        assert.equal(error.message, 'Expected two arguments');
+        assert.strictEqual(error.message, 'Expected two arguments');
         return true;
       });
 
@@ -385,7 +385,7 @@ describe('sass.types', function() {
         a.setValue(1);
       }, function(error) {
         assert.ok(error instanceof TypeError);
-        assert.equal(error.message, 'Expected two arguments');
+        assert.strictEqual(error.message, 'Expected two arguments');
         return true;
       });
 
@@ -393,7 +393,7 @@ describe('sass.types', function() {
         a.setValue(0, 'no-a-sass-value');
       }, function(error) {
         assert.ok(error instanceof TypeError);
-        assert.equal(error.message, 'Supplied value should be a SassValue object');
+        assert.strictEqual(error.message, 'Supplied value should be a SassValue object');
         return true;
       });
     });
@@ -407,17 +407,17 @@ describe('sass.types', function() {
     });
 
     it('has a correctly named constructor', function() {
-      assert.equal(sass.types.Map.name, 'SassMap');
+      assert.strictEqual(sass.types.Map.name, 'SassMap');
     });
 
     it('supports call constructor', function() {
       var x = sass.types.Map();
-      assert.equal(x.toString(), '[object SassMap]');
+      assert.strictEqual(x.toString(), '[object SassMap]');
     });
 
     it('supports new constructor', function() {
       var x = new sass.types.Map();
-      assert.equal(x.toString(), '[object SassMap]');
+      assert.strictEqual(x.toString(), '[object SassMap]');
     });
 
     it('supports an optional constructor argument', function() {
@@ -428,23 +428,23 @@ describe('sass.types', function() {
       assert.throws(function() {
         new sass.types.Map('OMG');
       }, function(error) {
-        assert.equal(error.message, 'First argument should be an integer.');
+        assert.strictEqual(error.message, 'First argument should be an integer.');
         // TODO: TypeError
 
         return true;
       });
 
-      assert.equal(x.getLength(), 0);
-      assert.equal(y.getLength(), 1);
-      assert.equal(z.getLength(), 2);
+      assert.strictEqual(x.getLength(), 0);
+      assert.strictEqual(y.getLength(), 1);
+      assert.strictEqual(z.getLength(), 2);
     });
 
     it('supports length', function() {
       var y = new sass.types.Map(1);
       var z = new sass.types.Map(2);
 
-      assert.equal(y.getLength(), 1);
-      assert.equal(z.getLength(), 2);
+      assert.strictEqual(y.getLength(), 1);
+      assert.strictEqual(z.getLength(), 2);
     });
 
     it('supports {get,set}Value {get,set}Key', function() {
@@ -461,7 +461,7 @@ describe('sass.types', function() {
     });
 
     it('has a correctly named constructor', function() {
-      assert.equal(sass.types.Null.name, 'SassNull');
+      assert.strictEqual(sass.types.Null.name, 'SassNull');
     });
 
     it('does not support new constructor', function() {
@@ -469,14 +469,14 @@ describe('sass.types', function() {
         new sass.types.Null();
       }, function(error) {
         assert.ok(error instanceof TypeError);
-        assert.equal(error.message, 'Cannot instantiate SassNull');
+        assert.strictEqual(error.message, 'Cannot instantiate SassNull');
         return true;
       });
     });
 
     it('supports call constructor (and is a singleton)', function() {
-      assert.equal(sass.types.Null(), sass.types.Null());
-      assert.equal(sass.types.Null(), sass.types.Null.NULL);
+      assert.strictEqual(sass.types.Null(), sass.types.Null());
+      assert.strictEqual(sass.types.Null(), sass.types.Null.NULL);
     });
   });
 
@@ -486,17 +486,17 @@ describe('sass.types', function() {
     });
 
     it('has a correctly named constructor', function() {
-      assert.equal(sass.types.Number.name, 'SassNumber');
+      assert.strictEqual(sass.types.Number.name, 'SassNumber');
     });
 
     it('supports new constructor', function() {
       var number = new sass.types.Number();
-      assert.equal(number.toString(), '[object SassNumber]');
+      assert.strictEqual(number.toString(), '[object SassNumber]');
     });
 
     it('supports call constructor', function() {
       var number = sass.types.Number();
-      assert.equal(number.toString(), '[object SassNumber]');
+      assert.strictEqual(number.toString(), '[object SassNumber]');
     });
 
     it('supports multiple constructor arguments', function() {
@@ -508,7 +508,7 @@ describe('sass.types', function() {
         new sass.types.Number('OMG');
       }, function(error) {
         // TODO: TypeError
-        assert.equal(error.message, 'First argument should be a number.');
+        assert.strictEqual(error.message, 'First argument should be a number.');
         return true;
       });
 
@@ -516,36 +516,36 @@ describe('sass.types', function() {
         new sass.types.Number(1, 2);
       }, function(error) {
         // TODO: TypeError
-        assert.equal(error.message, 'Second argument should be a string.');
+        assert.strictEqual(error.message, 'Second argument should be a string.');
         return true;
       });
 
-      assert.equal(a.getValue(), 0);
-      assert.equal(a.getUnit(), '');
-      assert.equal(b.getValue(), 1);
-      assert.equal(b.getUnit(), '');
-      assert.equal(c.getValue(), 2);
-      assert.equal(c.getUnit(), 'px');
+      assert.strictEqual(a.getValue(), 0);
+      assert.strictEqual(a.getUnit(), '');
+      assert.strictEqual(b.getValue(), 1);
+      assert.strictEqual(b.getUnit(), '');
+      assert.strictEqual(c.getValue(), 2);
+      assert.strictEqual(c.getUnit(), 'px');
     });
 
     it('supports get{Unit,Value}, set{Unit,Value}', function() {
       var number = new sass.types.Number(1, 'px');
-      assert.equal(number.getValue(), 1);
-      assert.equal(number.getUnit(), 'px');
+      assert.strictEqual(number.getValue(), 1);
+      assert.strictEqual(number.getUnit(), 'px');
 
       number.setValue(2);
-      assert.equal(number.getValue(), 2);
-      assert.equal(number.getUnit(), 'px');
+      assert.strictEqual(number.getValue(), 2);
+      assert.strictEqual(number.getUnit(), 'px');
 
       number.setUnit('em');
-      assert.equal(number.getValue(), 2);
-      assert.equal(number.getUnit(), 'em');
+      assert.strictEqual(number.getValue(), 2);
+      assert.strictEqual(number.getUnit(), 'em');
 
       assert.throws(function() {
         number.setValue('OMG');
       }, function(error) {
         assert.ok(error instanceof TypeError);
-        assert.equal(error.message, 'Supplied value should be a number');
+        assert.strictEqual(error.message, 'Supplied value should be a number');
         return true;
       });
 
@@ -553,7 +553,7 @@ describe('sass.types', function() {
         number.setValue();
       }, function(error) {
         assert.ok(error instanceof TypeError);
-        assert.equal(error.message, 'Expected just one argument');
+        assert.strictEqual(error.message, 'Expected just one argument');
         return true;
       });
 
@@ -561,7 +561,7 @@ describe('sass.types', function() {
         number.setUnit();
       }, function(error) {
         assert.ok(error instanceof TypeError);
-        assert.equal(error.message, 'Expected just one argument');
+        assert.strictEqual(error.message, 'Expected just one argument');
         return true;
       });
 
@@ -569,7 +569,7 @@ describe('sass.types', function() {
         number.setUnit(1);
       }, function(error) {
         assert.ok(error instanceof TypeError);
-        assert.equal(error.message, 'Supplied value should be a string');
+        assert.strictEqual(error.message, 'Supplied value should be a string');
         return true;
       });
     });
@@ -581,21 +581,21 @@ describe('sass.types', function() {
     });
 
     it('has a properly named constructor', function() {
-      assert.equal(sass.types.String.name, 'SassString');
+      assert.strictEqual(sass.types.String.name, 'SassString');
     });
 
     it('supports call constructor', function() {
       var x = sass.types.String('OMG');
 
-      assert.equal(x.toString(), '[object SassString]');
-      assert.equal(x.getValue(), 'OMG');
+      assert.strictEqual(x.toString(), '[object SassString]');
+      assert.strictEqual(x.getValue(), 'OMG');
     });
 
     it('supports new constructor', function() {
       var x = new sass.types.String('OMG');
 
-      assert.equal(x.toString(), '[object SassString]');
-      assert.equal(x.getValue(), 'OMG');
+      assert.strictEqual(x.toString(), '[object SassString]');
+      assert.strictEqual(x.getValue(), 'OMG');
     });
 
     it('supports multiple constructor arg combinations', function() {
@@ -608,7 +608,7 @@ describe('sass.types', function() {
           new sass.types.String(arg);
         }, function(error) {
           // TODO: TypeError
-          assert.equal(error.message, 'Argument should be a string.');
+          assert.strictEqual(error.message, 'Argument should be a string.');
           return true;
         });
       });
@@ -617,17 +617,17 @@ describe('sass.types', function() {
     it('supports {get,set}Value', function() {
       var x = new sass.types.String();
 
-      assert.equal(x.getValue(), '');
-      assert.equal(x.setValue('hi'), undefined);
-      assert.equal(x.getValue(), 'hi');
-      assert.equal(x.setValue('bye'), undefined);
-      assert.equal(x.getValue(), 'bye');
+      assert.strictEqual(x.getValue(), '');
+      assert.strictEqual(x.setValue('hi'), undefined);
+      assert.strictEqual(x.getValue(), 'hi');
+      assert.strictEqual(x.setValue('bye'), undefined);
+      assert.strictEqual(x.getValue(), 'bye');
 
       assert.throws(function() {
         x.setValue();
       }, function(error) {
         assert.ok(error instanceof TypeError);
-        assert.equal(error.message, 'Expected just one argument');
+        assert.strictEqual(error.message, 'Expected just one argument');
         return true;
       });
 
@@ -635,7 +635,7 @@ describe('sass.types', function() {
         x.setValue('hi', 'hi');
       }, function(error) {
         assert.ok(error instanceof TypeError);
-        assert.equal(error.message, 'Expected just one argument');
+        assert.strictEqual(error.message, 'Expected just one argument');
         return true;
       });
     });
