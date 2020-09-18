@@ -5,8 +5,8 @@ var assert = require('assert'),
   path = require('path'),
   read = fs.readFileSync,
   sassPath = process.env.NODESASS_COV
-      ? require.resolve('../lib-cov')
-      : require.resolve('../lib'),
+    ? require.resolve('../lib-cov')
+    : require.resolve('../lib'),
   sass = require(sassPath),
   fixture = path.join.bind(null, __dirname, 'fixtures'),
   resolveFixture = path.resolve.bind(null, __dirname, 'fixtures');
@@ -68,7 +68,7 @@ describe('api', function() {
         file: fixture('simple/index.scss'),
         sourceMap: false
       }, function(error, result) {
-        assert.strictEqual(result.hasOwnProperty('map'), false, 'result has a map property');
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(result, 'map'), false, 'result has a map property');
         done();
       });
     });
@@ -78,7 +78,7 @@ describe('api', function() {
         file: fixture('simple/index.scss'),
         sourceMap: true
       }, function(error, result) {
-        assert.strictEqual(result.hasOwnProperty('map'), false, 'result has a map property');
+        assert.strictEqual(Object.prototype.hasOwnProperty.call(result, 'map'), false, 'result has a map property');
         done();
       });
     });
@@ -654,7 +654,7 @@ describe('api', function() {
           done(new Error('doesn\'t exist!'));
         }
       }, function(error) {
-        assert(/doesn\'t exist!/.test(error.message));
+        assert(/doesn't exist!/.test(error.message));
         done();
       });
     });
@@ -666,7 +666,7 @@ describe('api', function() {
           return new Error('doesn\'t exist!');
         }
       }, function(error) {
-        assert(/doesn\'t exist!/.test(error.message));
+        assert(/doesn't exist!/.test(error.message));
         done();
       });
     });
@@ -1196,7 +1196,7 @@ describe('api', function() {
           },
           bar: function(a) {
             assert.strictEqual(a, sass.NULL,
-                'Supplied value should be the same instance as sass.NULL');
+              'Supplied value should be the same instance as sass.NULL');
 
             assert.throws(function() {
               return new sass.types.Null();
@@ -1374,7 +1374,7 @@ describe('api', function() {
         sourceMap: false
       });
 
-      assert.strictEqual(result.hasOwnProperty('map'), false, 'result has a map property');
+      assert.strictEqual(Object.prototype.hasOwnProperty.call(result, 'map'), false, 'result has a map property');
       done();
     });
 
@@ -1384,7 +1384,7 @@ describe('api', function() {
         sourceMap: true
       });
 
-      assert.strictEqual(result.hasOwnProperty('map'), false, 'result has a map property');
+      assert.strictEqual(Object.prototype.hasOwnProperty.call(result, 'map'), false, 'result has a map property');
       done();
     });
 
@@ -1765,7 +1765,7 @@ describe('api', function() {
             return new Error('doesn\'t exist!');
           }
         });
-      }, /doesn\'t exist!/);
+      }, /doesn't exist!/);
 
       done();
     });

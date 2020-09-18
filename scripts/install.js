@@ -68,22 +68,22 @@ function download(url, dest, cb) {
         }
       }
     })
-    .on('response', function(response) {
-      var length = parseInt(response.headers['content-length'], 10);
-      var progress = log.newItem('', length);
+      .on('response', function(response) {
+        var length = parseInt(response.headers['content-length'], 10);
+        var progress = log.newItem('', length);
 
-      // The `progress` is true by default. However if it has not
-      // been explicitly set it's `undefined` which is considered
-      // as far as npm is concerned.
-      if (process.env.npm_config_progress === 'true') {
-        log.enableProgress();
+        // The `progress` is true by default. However if it has not
+        // been explicitly set it's `undefined` which is considered
+        // as far as npm is concerned.
+        if (process.env.npm_config_progress === 'true') {
+          log.enableProgress();
 
-        response.on('data', function(chunk) {
-          progress.completeWork(chunk.length);
-        })
-        .on('end', progress.finish);
-      }
-    });
+          response.on('data', function(chunk) {
+            progress.completeWork(chunk.length);
+          })
+            .on('end', progress.finish);
+        }
+      });
   } catch (err) {
     cb(err);
   }
