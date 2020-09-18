@@ -255,7 +255,7 @@ describe('sass.types', function() {
       assert(sass.types.List);
     });
 
-    it('has a corectly named constructor', function() {
+    it('has a correctly named constructor', function() {
       assert.strictEqual(sass.types.List.name, 'SassList');
     });
 
