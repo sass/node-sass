@@ -30,7 +30,7 @@ describe('watcher', function() {
           it('should record its ancestors as changed', function() {
             var file = path.join(main, 'partials', '_one.scss');
             var files = watcher.changed(file);
-            assert.deepEqual(files.changed, [
+            assert.deepStrictEqual(files.changed, [
               path.join(main, 'one.scss'),
             ]);
           });
@@ -38,7 +38,7 @@ describe('watcher', function() {
           it('should record its descendants as added', function() {
             var file = path.join(main, 'partials', '_one.scss');
             var files = watcher.changed(file);
-            assert.deepEqual(files.added, [
+            assert.deepStrictEqual(files.added, [
               path.join(main, 'partials', '_three.scss'),
             ]);
           });
@@ -46,7 +46,7 @@ describe('watcher', function() {
           it('should record nothing as removed', function() {
             var file = path.join(main, 'partials', '_one.scss');
             var files = watcher.changed(file);
-            assert.deepEqual(files.removed, []);
+            assert.deepStrictEqual(files.removed, []);
           });
         });
 
@@ -54,7 +54,7 @@ describe('watcher', function() {
           it('should record itself as changed', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.changed(file);
-            assert.deepEqual(files.changed, [
+            assert.deepStrictEqual(files.changed, [
               file,
             ]);
           });
@@ -62,7 +62,7 @@ describe('watcher', function() {
           it('should record its descendants as added', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.changed(file);
-            assert.deepEqual(files.added, [
+            assert.deepStrictEqual(files.added, [
               path.join(main, 'partials', '_one.scss'),
               path.join(main, 'partials', '_three.scss'),
             ]);
@@ -71,7 +71,7 @@ describe('watcher', function() {
           it('should record nothing as removed', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.changed(file);
-            assert.deepEqual(files.removed, []);
+            assert.deepStrictEqual(files.removed, []);
           });
         });
       });
@@ -81,7 +81,7 @@ describe('watcher', function() {
           it('should not record anything', function() {
             var file = path.join(sibling, 'partials', '_three.scss');
             var files = watcher.changed(file);
-            assert.deepEqual(files, {
+            assert.deepStrictEqual(files, {
               added: [],
               changed: [],
               removed: [],
@@ -93,7 +93,7 @@ describe('watcher', function() {
           it('should record itself as changed', function() {
             var file = path.join(sibling, 'three.scss');
             var files = watcher.changed(file);
-            assert.deepEqual(files, {
+            assert.deepStrictEqual(files, {
               added: [],
               changed: [file],
               removed: [],
@@ -109,13 +109,13 @@ describe('watcher', function() {
           it('should record nothing as added', function() {
             var file = path.join(main, 'partials', '_three.scss');
             var files = watcher.added(file);
-            assert.deepEqual(files.added, []);
+            assert.deepStrictEqual(files.added, []);
           });
 
           it('should record its descendants as added', function() {
             var file = path.join(main, 'partials', '_one.scss');
             var files = watcher.added(file);
-            assert.deepEqual(files.added, [
+            assert.deepStrictEqual(files.added, [
               path.join(main, 'partials', '_three.scss')
             ]);
           });
@@ -123,13 +123,13 @@ describe('watcher', function() {
           it('should record nothing as changed', function() {
             var file = path.join(main, 'partials', '_three.scss');
             var files = watcher.added(file);
-            assert.deepEqual(files.changed, []);
+            assert.deepStrictEqual(files.changed, []);
           });
 
           it('should record nothing as removed', function() {
             var file = path.join(main, 'partials', '_three.scss');
             var files = watcher.added(file);
-            assert.deepEqual(files.removed, []);
+            assert.deepStrictEqual(files.removed, []);
           });
         });
 
@@ -137,13 +137,13 @@ describe('watcher', function() {
           it('should record nothing as added', function() {
             var file = path.join(main, 'three.scss');
             var files = watcher.added(file);
-            assert.deepEqual(files.added, []);
+            assert.deepStrictEqual(files.added, []);
           });
 
           it('should record its descendants as added', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.added(file);
-            assert.deepEqual(files.added, [
+            assert.deepStrictEqual(files.added, [
               path.join(main, 'partials', '_one.scss'),
               path.join(main, 'partials', '_three.scss'),
             ]);
@@ -152,13 +152,13 @@ describe('watcher', function() {
           it('should record nothing as changed', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.added(file);
-            assert.deepEqual(files.changed, []);
+            assert.deepStrictEqual(files.changed, []);
           });
 
           it('should record nothing as removed', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.added(file);
-            assert.deepEqual(files.removed, []);
+            assert.deepStrictEqual(files.removed, []);
           });
         });
       });
@@ -170,13 +170,13 @@ describe('watcher', function() {
           it('should record nothing as added', function() {
             var file = path.join(main, 'partials', '_one.scss');
             var files = watcher.removed(file);
-            assert.deepEqual(files.added, []);
+            assert.deepStrictEqual(files.added, []);
           });
 
           it('should record its ancestors as changed', function() {
             var file = path.join(main, 'partials', '_one.scss');
             var files = watcher.removed(file);
-            assert.deepEqual(files.changed, [
+            assert.deepStrictEqual(files.changed, [
               path.join(main, 'one.scss'),
             ]);
           });
@@ -184,7 +184,7 @@ describe('watcher', function() {
           it('should record itself as removed', function() {
             var file = path.join(main, 'partials', '_one.scss');
             var files = watcher.removed(file);
-            assert.deepEqual(files.removed, [file]);
+            assert.deepStrictEqual(files.removed, [file]);
           });
         });
 
@@ -192,19 +192,19 @@ describe('watcher', function() {
           it('should record nothing as added', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.removed(file);
-            assert.deepEqual(files.added, []);
+            assert.deepStrictEqual(files.added, []);
           });
 
           it('should record nothing as changed', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.removed(file);
-            assert.deepEqual(files.changed, []);
+            assert.deepStrictEqual(files.changed, []);
           });
 
           it('should record itself as removed', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.removed(file);
-            assert.deepEqual(files.removed, [file]);
+            assert.deepStrictEqual(files.removed, [file]);
           });
         });
       });
@@ -214,7 +214,7 @@ describe('watcher', function() {
           it('should record nothing', function() {
             var file = path.join(sibling, 'partials', '_three.scss');
             var files = watcher.removed(file);
-            assert.deepEqual(files, {
+            assert.deepStrictEqual(files, {
               added: [],
               changed: [],
               removed: [],
@@ -226,7 +226,7 @@ describe('watcher', function() {
           it('should record nothing', function() {
             var file = path.join(sibling, 'three.scss');
             var files = watcher.removed(file);
-            assert.deepEqual(files, {
+            assert.deepStrictEqual(files, {
               added: [],
               changed: [],
               removed: [],
@@ -251,7 +251,7 @@ describe('watcher', function() {
           it('should record its descendants as added', function() {
             var file = path.join(main, 'partials', '_one.scss');
             var files = watcher.changed(file);
-            assert.deepEqual(files.added, [
+            assert.deepStrictEqual(files.added, [
               path.join(main, 'partials', '_three.scss'),
             ]);
           });
@@ -259,7 +259,7 @@ describe('watcher', function() {
           it('should record its ancenstors as changed', function() {
             var file = path.join(main, 'partials', '_one.scss');
             var files = watcher.changed(file);
-            assert.deepEqual(files.changed, [
+            assert.deepStrictEqual(files.changed, [
               path.join(main, 'one.scss'),
             ]);
           });
@@ -267,7 +267,7 @@ describe('watcher', function() {
           it('should record nothing as removed', function() {
             var file = path.join(main, 'partials', '_one.scss');
             var files = watcher.changed(file);
-            assert.deepEqual(files.removed, []);
+            assert.deepStrictEqual(files.removed, []);
           });
         });
 
@@ -275,7 +275,7 @@ describe('watcher', function() {
           it('should record its descendants as added', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.changed(file);
-            assert.deepEqual(files.added, [
+            assert.deepStrictEqual(files.added, [
               path.join(main, 'partials', '_one.scss'),
               path.join(main, 'partials', '_three.scss'),
             ]);
@@ -284,13 +284,13 @@ describe('watcher', function() {
           it('should record itself as changed', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.changed(file);
-            assert.deepEqual(files.changed, [file]);
+            assert.deepStrictEqual(files.changed, [file]);
           });
 
           it('should record nothing as removed', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.changed(file);
-            assert.deepEqual(files.removed, []);
+            assert.deepStrictEqual(files.removed, []);
           });
         });
       });
@@ -300,7 +300,7 @@ describe('watcher', function() {
           it('should record nothing', function() {
             var file = path.join(sibling, 'partials', '_three.scss');
             var files = watcher.changed(file);
-            assert.deepEqual(files, {
+            assert.deepStrictEqual(files, {
               added: [],
               changed: [],
               removed: [],
@@ -312,19 +312,19 @@ describe('watcher', function() {
           it('should record nothing as added', function() {
             var file = path.join(sibling, 'three.scss');
             var files = watcher.changed(file);
-            assert.deepEqual(files.added, []);
+            assert.deepStrictEqual(files.added, []);
           });
 
           it('should record itself as changed', function() {
             var file = path.join(sibling, 'three.scss');
             var files = watcher.changed(file);
-            assert.deepEqual(files.changed, [file]);
+            assert.deepStrictEqual(files.changed, [file]);
           });
 
           it('should record nothing as removed', function() {
             var file = path.join(sibling, 'three.scss');
             var files = watcher.changed(file);
-            assert.deepEqual(files.removed, []);
+            assert.deepStrictEqual(files.removed, []);
           });
         });
       });
@@ -335,13 +335,13 @@ describe('watcher', function() {
         it('should record nothing as added', function() {
           var file = path.join(main, 'partials', '_three.scss');
           var files = watcher.added(file);
-          assert.deepEqual(files.added, []);
+          assert.deepStrictEqual(files.added, []);
         });
 
         it('should record its descendants as added', function() {
           var file = path.join(main, 'partials', '_one.scss');
           var files = watcher.added(file);
-          assert.deepEqual(files.added, [
+          assert.deepStrictEqual(files.added, [
             path.join(main, 'partials', '_three.scss'),
           ]);
         });
@@ -349,13 +349,13 @@ describe('watcher', function() {
         it('should record nothing as changed', function() {
           var file = path.join(main, 'partials', '_three.scss');
           var files = watcher.added(file);
-          assert.deepEqual(files.changed, []);
+          assert.deepStrictEqual(files.changed, []);
         });
 
         it('should record nothing as removed', function() {
           var file = path.join(main, 'partials', '_three.scss');
           var files = watcher.added(file);
-          assert.deepEqual(files.removed, []);
+          assert.deepStrictEqual(files.removed, []);
         });
       });
 
@@ -371,7 +371,7 @@ describe('watcher', function() {
           it('should record nothing as added', function() {
             var file = path.join(main, 'partials', '_three.scss');
             var files = watcher.added(file);
-            assert.deepEqual(files.added, [
+            assert.deepStrictEqual(files.added, [
               file,
             ]);
           });
@@ -379,7 +379,7 @@ describe('watcher', function() {
           it('should not record its descendants as added', function() {
             var file = path.join(main, 'partials', '_one.scss');
             var files = watcher.added(file);
-            assert.deepEqual(files.added, [
+            assert.deepStrictEqual(files.added, [
               file,
             ]);
           });
@@ -387,13 +387,13 @@ describe('watcher', function() {
           it('should record nothing as changed', function() {
             var file = path.join(main, 'partials', '_three.scss');
             var files = watcher.added(file);
-            assert.deepEqual(files.changed, []);
+            assert.deepStrictEqual(files.changed, []);
           });
 
           it('should record nothing as removed', function() {
             var file = path.join(main, 'partials', '_three.scss');
             var files = watcher.added(file);
-            assert.deepEqual(files.removed, []);
+            assert.deepStrictEqual(files.removed, []);
           });
         });
 
@@ -401,7 +401,7 @@ describe('watcher', function() {
           it('should record itself as added', function() {
             var file = path.join(main, 'three.scss');
             var files = watcher.added(file);
-            assert.deepEqual(files.added, [
+            assert.deepStrictEqual(files.added, [
               file,
             ]);
           });
@@ -409,13 +409,13 @@ describe('watcher', function() {
           it('should record nothing as changed', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.added(file);
-            assert.deepEqual(files.changed, []);
+            assert.deepStrictEqual(files.changed, []);
           });
 
           it('should record nothing as removed', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.added(file);
-            assert.deepEqual(files.removed, []);
+            assert.deepStrictEqual(files.removed, []);
           });
         });
       });
@@ -427,13 +427,13 @@ describe('watcher', function() {
           it('should record nothing as added', function() {
             var file = path.join(main, 'partials', '_one.scss');
             var files = watcher.removed(file);
-            assert.deepEqual(files.added, []);
+            assert.deepStrictEqual(files.added, []);
           });
 
           it('should record its ancestors as changed', function() {
             var file = path.join(main, 'partials', '_one.scss');
             var files = watcher.removed(file);
-            assert.deepEqual(files.changed, [
+            assert.deepStrictEqual(files.changed, [
               path.join(main, 'one.scss'),
             ]);
           });
@@ -441,7 +441,7 @@ describe('watcher', function() {
           it('should record itself as removed', function() {
             var file = path.join(main, 'partials', '_one.scss');
             var files = watcher.removed(file);
-            assert.deepEqual(files.removed, [file]);
+            assert.deepStrictEqual(files.removed, [file]);
           });
         });
 
@@ -449,19 +449,19 @@ describe('watcher', function() {
           it('should record nothing as added', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.removed(file);
-            assert.deepEqual(files.added, []);
+            assert.deepStrictEqual(files.added, []);
           });
 
           it('should record nothing as changed', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.removed(file);
-            assert.deepEqual(files.changed, []);
+            assert.deepStrictEqual(files.changed, []);
           });
 
           it('should record itself as removed', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.removed(file);
-            assert.deepEqual(files.removed, [file]);
+            assert.deepStrictEqual(files.removed, [file]);
           });
         });
       });
@@ -478,7 +478,7 @@ describe('watcher', function() {
           it('should record nothing as added', function() {
             var file = path.join(main, 'partials', '_one.scss');
             var files = watcher.removed(file);
-            assert.deepEqual(files, {
+            assert.deepStrictEqual(files, {
               added: [],
               changed: [],
               removed: [],
@@ -490,7 +490,7 @@ describe('watcher', function() {
           it('should record nothing', function() {
             var file = path.join(main, 'one.scss');
             var files = watcher.removed(file);
-            assert.deepEqual(files, {
+            assert.deepStrictEqual(files, {
               added: [],
               changed: [],
               removed: [],

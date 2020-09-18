@@ -256,7 +256,7 @@ describe('api', function() {
         data: src,
         includePaths: [fixture('include-files')]
       }, function(error, result) {
-        assert.deepEqual(result.stats.includedFiles, expected);
+        assert.deepStrictEqual(result.stats.includedFiles, expected);
         done();
       });
     });
@@ -372,7 +372,7 @@ describe('api', function() {
         }
       }, function(error, result) {
         assert.strictEqual(result.css.toString().trim(), expected);
-        assert.deepEqual(actualImportOrder, expectedImportOrder);
+        assert.deepStrictEqual(actualImportOrder, expectedImportOrder);
         done();
       });
     });
@@ -1291,7 +1291,7 @@ describe('api', function() {
         file: fixture('include-files/index.scss')
       }, function(error, result) {
         assert(!error);
-        assert.deepEqual(result.stats.includedFiles.sort(), expected.sort());
+        assert.deepStrictEqual(result.stats.includedFiles.sort(), expected.sort());
         done();
       });
     });
@@ -1302,7 +1302,7 @@ describe('api', function() {
       sass.render({
         file: fixture('simple/index.scss')
       }, function(error, result) {
-        assert.deepEqual(result.stats.includedFiles, [expected]);
+        assert.deepStrictEqual(result.stats.includedFiles, [expected]);
         done();
       });
     });
@@ -1320,7 +1320,7 @@ describe('api', function() {
       sass.render({
         data: read(fixture('simple/index.scss'), 'utf8')
       }, function(error, result) {
-        assert.deepEqual(result.stats.includedFiles, []);
+        assert.deepStrictEqual(result.stats.includedFiles, []);
         done();
       });
     });
@@ -1558,7 +1558,7 @@ describe('api', function() {
         includePaths: [fixture('include-files')]
       });
 
-      assert.deepEqual(result.stats.includedFiles, expected);
+      assert.deepStrictEqual(result.stats.includedFiles, expected);
       done();
     });
 
@@ -1994,7 +1994,7 @@ describe('api', function() {
         file: fixture('simple/index.scss')
       });
 
-      assert.deepEqual(result.stats.includedFiles, [expected]);
+      assert.deepStrictEqual(result.stats.includedFiles, [expected]);
       done();
     });
 
@@ -2012,7 +2012,7 @@ describe('api', function() {
         data: read(fixture('simple/index.scss'), 'utf8')
       });
 
-      assert.deepEqual(result.stats.includedFiles, []);
+      assert.deepStrictEqual(result.stats.includedFiles, []);
       done();
     });
   });

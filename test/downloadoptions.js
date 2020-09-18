@@ -16,7 +16,7 @@ describe('util', function() {
           encoding: null,
         };
 
-        assert.deepEqual(opts(), expected);
+        assert.deepStrictEqual(opts(), expected);
       });
     });
 
@@ -42,7 +42,7 @@ describe('util', function() {
           encoding: null,
         };
 
-        assert.deepEqual(opts(), expected);
+        assert.deepStrictEqual(opts(), expected);
       });
     });
 
@@ -67,7 +67,7 @@ describe('util', function() {
           encoding: null,
         };
 
-        assert.deepEqual(opts(), expected);
+        assert.deepStrictEqual(opts(), expected);
       });
     });
   });
