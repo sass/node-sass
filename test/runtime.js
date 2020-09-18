@@ -26,25 +26,25 @@ describe('runtime parameters', function() {
       });
 
       it('command line argument', function() {
-        assert.equal(sass.getBinaryName(), 'aaa_binding.node');
+        assert.strictEqual(sass.getBinaryName(), 'aaa_binding.node');
       });
 
       it('environment variable', function() {
         process.argv = [];
-        assert.equal(sass.getBinaryName(), 'bbb_binding.node');
+        assert.strictEqual(sass.getBinaryName(), 'bbb_binding.node');
       });
 
       it('npm config variable', function() {
         process.argv = [];
         process.env.SASS_BINARY_NAME = null;
-        assert.equal(sass.getBinaryName(), 'ccc_binding.node');
+        assert.strictEqual(sass.getBinaryName(), 'ccc_binding.node');
       });
 
       it('package.json', function() {
         process.argv = [];
         process.env.SASS_BINARY_NAME = null;
         process.env.npm_config_sass_binary_name = null;
-        assert.equal(sass.getBinaryName(), 'ddd_binding.node');
+        assert.strictEqual(sass.getBinaryName(), 'ddd_binding.node');
       });
     });
 
@@ -58,20 +58,20 @@ describe('runtime parameters', function() {
 
       it('command line argument', function() {
         var URL = 'http://aaa.example.com:9999';
-        assert.equal(sass.getBinaryUrl().substr(0, URL.length), URL);
+        assert.strictEqual(sass.getBinaryUrl().substr(0, URL.length), URL);
       });
 
       it('environment variable', function() {
         process.argv = [];
         var URL = 'http://bbb.example.com:8888';
-        assert.equal(sass.getBinaryUrl().substr(0, URL.length), URL);
+        assert.strictEqual(sass.getBinaryUrl().substr(0, URL.length), URL);
       });
 
       it('npm config variable', function() {
         process.argv = [];
         process.env.SASS_BINARY_SITE = null;
         var URL = 'http://ccc.example.com:7777';
-        assert.equal(sass.getBinaryUrl().substr(0, URL.length), URL);
+        assert.strictEqual(sass.getBinaryUrl().substr(0, URL.length), URL);
       });
 
       it('package.json', function() {
@@ -79,7 +79,7 @@ describe('runtime parameters', function() {
         process.env.SASS_BINARY_SITE = null;
         process.env.npm_config_sass_binary_site = null;
         var URL = 'http://ddd.example.com:6666';
-        assert.equal(sass.getBinaryUrl().substr(0, URL.length), URL);
+        assert.strictEqual(sass.getBinaryUrl().substr(0, URL.length), URL);
       });
     });
 
@@ -92,25 +92,25 @@ describe('runtime parameters', function() {
       });
 
       it('command line argument', function() {
-        assert.equal(sass.getBinaryDir(), 'aaa');
+        assert.strictEqual(sass.getBinaryDir(), 'aaa');
       });
 
       it('environment variable', function() {
         process.argv = [];
-        assert.equal(sass.getBinaryDir(), 'bbb');
+        assert.strictEqual(sass.getBinaryDir(), 'bbb');
       });
 
       it('npm config variable', function() {
         process.argv = [];
         process.env.SASS_BINARY_DIR = null;
-        assert.equal(sass.getBinaryDir(), 'ccc');
+        assert.strictEqual(sass.getBinaryDir(), 'ccc');
       });
 
       it('package.json', function() {
         process.argv = [];
         process.env.SASS_BINARY_DIR = null;
         process.env.npm_config_sass_binary_dir = null;
-        assert.equal(sass.getBinaryDir(), 'ddd');
+        assert.strictEqual(sass.getBinaryDir(), 'ddd');
       });
     });
 
@@ -123,25 +123,25 @@ describe('runtime parameters', function() {
       });
 
       it('command line argument', function() {
-        assert.equal(sass.getBinaryPath(), 'aaa_binding.node');
+        assert.strictEqual(sass.getBinaryPath(), 'aaa_binding.node');
       });
 
       it('environment variable', function() {
         process.argv = [];
-        assert.equal(sass.getBinaryPath(), 'bbb_binding.node');
+        assert.strictEqual(sass.getBinaryPath(), 'bbb_binding.node');
       });
 
       it('npm config variable', function() {
         process.argv = [];
         process.env.SASS_BINARY_PATH = null;
-        assert.equal(sass.getBinaryPath(), 'ccc_binding.node');
+        assert.strictEqual(sass.getBinaryPath(), 'ccc_binding.node');
       });
 
       it('package.json', function() {
         process.argv = [];
         process.env.SASS_BINARY_PATH = null;
         process.env.npm_config_sass_binary_path = null;
-        assert.equal(sass.getBinaryPath(), 'ddd_binding.node');
+        assert.strictEqual(sass.getBinaryPath(), 'ddd_binding.node');
       });
     });
 
@@ -160,11 +160,11 @@ describe('runtime parameters', function() {
     it('npm config variable', function() {
       var overridenCachePath = '/foo/bar/';
       process.env.npm_config_sass_binary_cache = overridenCachePath;
-      assert.equal(sass.getCachePath(), overridenCachePath);
+      assert.strictEqual(sass.getCachePath(), overridenCachePath);
     });
 
     it('With no value, falls back to NPM cache', function() {
-      assert.equal(sass.getCachePath(), npmCacheDir);
+      assert.strictEqual(sass.getCachePath(), npmCacheDir);
     });
   });
 });
