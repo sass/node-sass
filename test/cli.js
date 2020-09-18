@@ -346,7 +346,7 @@ describe('cli', function() {
         setTimeout(function() {
           bin.kill();
           var files = fs.readdirSync(destDir);
-          assert.deepEqual(files, ['index.css']);
+          assert.deepStrictEqual(files, ['index.css']);
           rimraf(destDir, done);
         }, 200);
       }, 500);
@@ -370,7 +370,7 @@ describe('cli', function() {
         setTimeout(function () {
           bin.kill();
           var files = fs.readdirSync(destDir);
-          assert.deepEqual(files, ['foo.css', 'index.css']);
+          assert.deepStrictEqual(files, ['foo.css', 'index.css']);
           rimraf(destDir, done);
         }, 200);
       }, 500);
@@ -487,9 +487,9 @@ describe('cli', function() {
 
       bin.once('close', function() {
         var files = fs.readdirSync(dest).sort();
-        assert.deepEqual(files, ['one.css', 'two.css', 'nested'].sort());
+        assert.deepStrictEqual(files, ['one.css', 'two.css', 'nested'].sort());
         var nestedFiles = fs.readdirSync(path.join(dest, 'nested'));
-        assert.deepEqual(nestedFiles, ['three.css']);
+        assert.deepStrictEqual(nestedFiles, ['three.css']);
         rimraf.sync(dest);
         done();
       });
@@ -534,7 +534,7 @@ describe('cli', function() {
 
       bin.once('close', function() {
         var files = fs.readdirSync(dest);
-        assert.deepEqual(files, ['one.css', 'two.css']);
+        assert.deepStrictEqual(files, ['one.css', 'two.css']);
         rimraf.sync(dest);
         done();
       });
@@ -573,9 +573,9 @@ describe('cli', function() {
 
       bin.once('close', function() {
         var files = fs.readdirSync(outputDir).sort();
-        assert.deepEqual(files, ['one.css', 'two.css', 'nested'].sort());
+        assert.deepStrictEqual(files, ['one.css', 'two.css', 'nested'].sort());
         var nestedFiles = fs.readdirSync(path.join(outputDir, 'nested'));
-        assert.deepEqual(nestedFiles, ['three.css']);
+        assert.deepStrictEqual(nestedFiles, ['three.css']);
         rimraf.sync(outputDir);
         fs.unlinkSync(symlink);
         done();
