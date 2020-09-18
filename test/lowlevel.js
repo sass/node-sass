@@ -30,7 +30,7 @@ describe('lowlevel', function() {
 
     binding.renderSync(options);
     assert(/Data context created without a source string/.test(options.result.error),
-          'Should fail with error message "Data context created without a source string"');
+      'Should fail with error message "Data context created without a source string"');
     done();
   });
 
@@ -51,7 +51,7 @@ describe('lowlevel', function() {
 
     binding.renderSync(options);
     assert(/Data context created without a source string/.test(options.result.error),
-          'Should fail with error message "Data context created without a source string"');
+      'Should fail with error message "Data context created without a source string"');
     done();
   });
 
@@ -72,7 +72,7 @@ describe('lowlevel', function() {
 
     binding.renderFileSync(options);
     assert(/File context created without an input path/.test(options.result.error),
-          'Should fail with error message "File context created without an input path"');
+      'Should fail with error message "File context created without an input path"');
     done();
   });
 
@@ -93,7 +93,7 @@ describe('lowlevel', function() {
 
     binding.renderFileSync(options);
     assert(/File context created without an input path/.test(options.result.error),
-          'Should fail with error message "File context created without an input path"');
+      'Should fail with error message "File context created without an input path"');
     done();
   });
 
@@ -215,7 +215,7 @@ describe('lowlevel', function() {
 
     binding.renderSync(options);
     assert(/empty source string/.test(options.result.error),
-          'Should fail with error message "Data context created with empty source string"');
+      'Should fail with error message "Data context created with empty source string"');
     done();
   });
 
@@ -236,7 +236,7 @@ describe('lowlevel', function() {
 
     binding.renderFileSync(options);
     assert(/empty input path/.test(options.result.error),
-          'Should fail with error message "File context created with empty input path"');
+      'Should fail with error message "File context created with empty input path"');
     done();
   });
 
