@@ -8,57 +8,12 @@ env:
 
 jobs:
   include:
-    - stage: test
-      node_js: "14.5"
-      os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - gcc-6
-            - g++-6
-      env:
-        - CC="gcc-6"
-        - CXX="g++-6"
-        - LINK="gcc-6"
-        - LINKXX="g++-6"
     - stage: platform-test
       node_js: "14.5"
       os: osx
     - stage: platform-test
       node_js: "12"
-      os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - gcc-6
-            - g++-6
-      env:
-        - CC="gcc-6"
-        - CXX="g++-6"
-        - LINK="gcc-6"
-        - LINKXX="g++-6"
-    - stage: platform-test
-      node_js: "12"
       os: osx
-    - stage: platform-test
-      node_js: "10"
-      os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - gcc-4.9
-            - g++-4.9
-      env:
-        - CC="gcc-4.9"
-        - CXX="g++-4.9"
-        - LINK="gcc-4.9"
-        - LINKXX="g++-4.9"
     - stage: platform-test
       node_js: "10"
       os: osx

@@ -1,0 +1,55 @@
+name: Build bindings for Linux releases
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - 10
+          - 12
+          - 14.5
+        include:
+          - node: 10
+            gcc: "gcc-4.9"
+            gpp: "g++-4.9"
+            os: ubuntu-16.04
+          - node: 12
+            gcc: "gcc-6"
+            gpp: "g++-6"
+            os: ubuntu-18.04
+          - node: 14.5
+            gcc: "gcc-6"
+            gpp: "g++-6"
+            os: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v1.4.3
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Setup GCC/G++
+        run: sudo apt-get install ${{ matrix.gcc }} ${{ matrix.gpp }}
+
+      - name: Install packages
+        run: npm install --unsafe-perm
+        env:
+          SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
+          CC: ${{ matrix.gcc }}
+          CXX: ${{ matrix.gpp }}
+          LINK: ${{ matrix.gcc }}
+          LINKXX: ${{ matrix.gpp }}
+
+      - name: Run tests
+        run: npm test
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.node }}
+          path: vendor/
