@@ -40,7 +40,7 @@
       - nodejs_version: 12
         GYP_MSVS_VERSION: 2017
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      - nodejs_version: 14.6
+      - nodejs_version: 14.5
         GYP_MSVS_VERSION: 2017
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 
@@ -116,7 +116,7 @@
       - nodejs_version: 12
         GYP_MSVS_VERSION: 2017
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      - nodejs_version: 14.6
+      - nodejs_version: 14.5
         GYP_MSVS_VERSION: 2017
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 
