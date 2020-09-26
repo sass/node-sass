@@ -15,13 +15,13 @@ jobs:
         node:
           - 10
           - 12
-          - 14.5
+          - 14.6
         include:
           - node: 10
             alpine: "3.9"
           - node: 12
             alpine: "3.9"
-          - node: 14.5
+          - node: 14.6
             alpine: "3.10"
     steps:
       - name: Install Alpine build tools
