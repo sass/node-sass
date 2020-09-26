@@ -10,26 +10,18 @@ jobs:
       env:
         SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
     strategy:
+      fail-fast: false
       matrix:
         node:
-          - 6
-          - 8.16.2
           - 10
           - 12
-          - 13
-          - 14
+          - 14.5
         include:
-          - node: 6
-            alpine: ""
-          - node: 8.16.2
-            alpine: "3.9"
           - node: 10
             alpine: "3.9"
           - node: 12
             alpine: "3.9"
-          - node: 13
-            alpine: "3.10"
-          - node: 14
+          - node: 14.5
             alpine: "3.10"
     steps:
       - name: Install Alpine build tools
