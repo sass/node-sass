@@ -35,7 +35,7 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.node }}
           path: vendor/
