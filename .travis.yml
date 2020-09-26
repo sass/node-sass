@@ -9,7 +9,7 @@ env:
 jobs:
   include:
     - stage: test
-      node_js: "14.0"
+      node_js: "14.2"
       os: linux
       before_script: npm run lint || exit 1;
       after_success: npm run-script coverage;
