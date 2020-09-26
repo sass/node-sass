@@ -1,0 +1,34 @@
+name: Lint JS
+
+on:
+  push:
+    paths:
+      - "**/*.js"
+      - ".eslintrc.json"
+      - "package.json"
+      - "bin/node-sass"
+      - ".github/workflows/lint-js.yml"
+  pull_request:
+    paths:
+      - "**/*.js"
+      - ".eslintrc.json"
+      - "package.json"
+      - "bin/node-sass"
+      - ".github/workflows/lint-js.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v1
+
+      - name: Install packages
+        run: npm install --unsafe-perm
+
+      - name: Run Linting
+        run: npm run lint
