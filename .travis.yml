@@ -9,7 +9,7 @@ env:
 jobs:
   include:
     - stage: test
-      node_js: "14.2"
+      node_js: "14.5"
       os: linux
       before_script: npm run lint || exit 1;
       after_success: npm run-script coverage;
@@ -26,7 +26,7 @@ jobs:
         - LINK="gcc-6"
         - LINKXX="g++-6"
     - stage: platform-test
-      node_js: "14"
+      node_js: "14.5"
       os: osx
     - stage: platform-test
       node_js: "12"
