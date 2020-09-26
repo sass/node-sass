@@ -1,0 +1,36 @@
+name: Build bindings for macOS releases
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - 10
+          - 12
+          - 14.5
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v1.4.3
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install packages
+        run: npm install --unsafe-perm
+        env:
+          SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
+
+      - name: Run tests
+        run: npm test
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.node }}
+          path: vendor/
