@@ -5,6 +5,16 @@
   },
   "globals": {},
   "extends": "eslint:recommended",
+  "overrides": [
+    {
+      "files": [
+        "test/**/*.js"
+      ],
+      "env": {
+        "mocha": true
+      }
+    }
+  ],
   "rules": {
     "no-bitwise": 2,
     "curly": 2,
