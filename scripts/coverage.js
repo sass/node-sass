@@ -55,8 +55,7 @@ function coverage() {
                  if (instrumentedfiles.length === sourcefiles.length) {
                    fs.readdirSync('test').filter(function(file){
                      return file.substr(-6)  === 'api.js' ||
-                            file.substr(-11) === 'runtime.js' ||
-                            file.substr(-7)  === 'spec.js';
+                            file.substr(-11) === 'runtime.js';
                    }).forEach(function(file){
                      mocha.addFile(
                        path.join('test', file)
