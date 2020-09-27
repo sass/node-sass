@@ -1,4 +1,4 @@
-var assert = require('assert'),
+var assert = require('assert').strict,
   fs = require('fs-extra'),
   path = require('path'),
   temp = require('unique-temp-dir'),

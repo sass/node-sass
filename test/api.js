@@ -1,6 +1,6 @@
 /*eslint new-cap: ["error", {"capIsNewExceptions": ["Color"]}]*/
 
-var assert = require('assert'),
+var assert = require('assert').strict,
   fs = require('fs'),
   path = require('path'),
   read = fs.readFileSync,

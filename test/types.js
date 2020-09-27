@@ -1,7 +1,7 @@
 /*eslint new-cap: ["error", { "capIsNew": false }]*/
 'use strict';
 
-var assert = require('assert');
+var assert = require('assert').strict;
 var sass = require('../');
 
 describe('sass.types', function() {

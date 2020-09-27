@@ -1,4 +1,4 @@
-var assert = require('assert'),
+var assert = require('assert').strict,
   fs = require('fs'),
   path = require('path'),
   read = require('fs').readFileSync,

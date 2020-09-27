@@ -1,6 +1,6 @@
 process.env.NODESASS_COV ? require('../lib-cov') : require('../lib');
 
-var assert = require('assert'),
+var assert = require('assert').strict,
   sass = require('../lib/extensions'),
   binding = require(sass.getBinaryPath());
 
