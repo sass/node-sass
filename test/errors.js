@@ -1,4 +1,4 @@
-var assert = require('assert'),
+var assert = require('assert').strict,
   path = require('path'),
   errors = require('../lib/errors');
 

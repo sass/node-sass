@@ -1,4 +1,4 @@
-var assert = require('assert'),
+var assert = require('assert').strict,
   sass = process.env.NODESASS_COV
       ? require('../lib-cov/extensions')
       : require('../lib/extensions');

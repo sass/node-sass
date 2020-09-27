@@ -1,4 +1,4 @@
-var assert = require('assert'),
+var assert = require('assert').strict,
   pkg = require('../package.json'),
   ua = require('../scripts/util/useragent');
 

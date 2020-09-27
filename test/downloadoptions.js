@@ -1,4 +1,4 @@
-var assert = require('assert'),
+var assert = require('assert').strict,
   ua = require('../scripts/util/useragent'),
   opts = require('../scripts/util/downloadoptions');
 
