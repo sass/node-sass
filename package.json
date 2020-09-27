@@ -73,7 +73,7 @@
   },
   "devDependencies": {
     "coveralls": "^3.0.2",
-    "eslint": "^3.4.0",
+    "eslint": "^7.10.0",
     "fs-extra": "^0.30.0",
     "istanbul": "^0.4.2",
     "mocha": "^3.1.2",
