@@ -19,8 +19,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
 
     steps:
       - uses: actions/checkout@v2
@@ -28,5 +26,10 @@ jobs:
       - name: Install packages
         run: npm install --unsafe-perm
 
-      - name: Run Linting
+      - name: Run Coverage
         run: npm run coverage
+
+      - name: Coveralls GitHub Action
+        uses: coverallsapp/github-action@v1.1.2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
