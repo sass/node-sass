@@ -362,7 +362,7 @@ describe('api', function() {
       var expectedImportOrder = [
         'a', '_common', 'vars', 'struct', 'a1', 'common', 'vars', 'struct', 'b', 'b1'
       ];
-      var expected = read(fixture('depth-first/expected.css'));
+      var expected = read(fixture('depth-first/expected.css'), 'utf-8');
 
       sass.render({
         file: fixture('depth-first/index.scss'),
