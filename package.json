@@ -78,7 +78,6 @@
     "istanbul": "^0.4.2",
     "mocha": "^3.1.2",
     "mocha-lcov-reporter": "^1.2.0",
-    "object-merge": "^2.5.1",
     "rimraf": "^2.5.2",
     "unique-temp-dir": "^1.0.0"
   }
