@@ -388,6 +388,7 @@ describe('api', function() {
         }
       }, function(error, result) {
         assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        assert.deepEqual(result.stats.includedFiles.sort(), [fixture('include-files/index.scss').replace(/\\/g, '/'), '/some/other/path.scss'].sort());
         done();
       });
     });
@@ -536,6 +537,7 @@ describe('api', function() {
         }
       }, function(error, result) {
         assert.equal(result.css.toString().trim(), 'div {\n  color: yellow; }\n\ndiv {\n  color: yellow; }');
+        assert.deepEqual(result.stats.includedFiles, ['bar', 'foo']);
         done();
       });
     });

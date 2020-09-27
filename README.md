@@ -113,7 +113,7 @@ Function Parameters and Information:
 * `url (String)` - the path in import **as-is**, which [LibSass] encountered
 * `prev (String)` - the previously resolved path
 * `done (Function)` - a callback function to invoke on async completion, takes an object literal containing
-  * `file (String)` - an alternate path for [LibSass] to use **OR**
+  * `file (String)` - an alternate path for [LibSass] to use
   * `contents (String)` - the imported contents (for example, read from memory or the file system)
 
 Handles when [LibSass] encounters the `@import` directive. A custom importer allows extension of the [LibSass] engine in both a synchronous and asynchronous manner. In both cases, the goal is to either `return` or call `done()` with an object literal. Depending on the value of the object literal, one of two things will happen.
@@ -121,6 +121,9 @@ Handles when [LibSass] encounters the `@import` directive. A custom importer all
 When returning or calling `done()` with `{ file: "String" }`, the new file path will be assumed for the `@import`. It's recommended to be mindful of the value of `prev` in instances where relative path resolution may be required.
 
 When returning or calling `done()` with `{ contents: "String" }`, the string value will be used as if the file was read in through an external source.
+
+When returning both `file` and `contents`, `file` is considered as imported file path.
+When returning only `contents`, imported file path is considered as import url. As the result, [Result Object](#result-object)'s `includedFiles` contain a file path might not exist. It's highly recommended to return not only `contents` but also `file`.
 
 Starting from v3.0.0:
 
