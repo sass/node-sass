@@ -3,6 +3,7 @@
 
 var assert = require('assert').strict;
 var sass = require('../');
+var semver = require('semver');
 
 describe('sass.types', function() {
   describe('Boolean', function() {
@@ -15,6 +16,10 @@ describe('sass.types', function() {
     });
 
     it('supports call constructor', function() {
+      if(semver.gt(process.version, 'v14.5.0')) {
+        // v8 issue tracked in https://github.com/sass/node-sass/issues/2972
+        this.skip();
+      }
       var t = sass.types.Boolean(true);
       assert.strictEqual(t.toString(), '[object SassBoolean]');
 
@@ -89,11 +94,21 @@ describe('sass.types', function() {
     });
 
     it('supports call constructor', function() {
+      if(semver.gt(process.version, 'v14.5.0')) {
+        // v8 issue tracked in https://github.com/sass/node-sass/issues/2972
+        this.skip();
+      }
+
       var t = sass.types.Color();
       assert.strictEqual(t.toString(), '[object SassColor]');
     });
 
     it('supports new constructor', function() {
+      if(semver.gt(process.version, 'v14.5.0')) {
+        // v8 issue tracked in https://github.com/sass/node-sass/issues/2972
+        this.skip();
+      }
+
       var t = new sass.types.Color(1);
       assert.strictEqual(t.toString(), '[object SassColor]');
     });
@@ -235,6 +250,11 @@ describe('sass.types', function() {
     });
 
     it('supports call constructor', function() {
+      if(semver.gt(process.version, 'v14.5.0')) {
+        // v8 issue tracked in https://github.com/sass/node-sass/issues/2972
+        this.skip();
+      }
+
       var e = sass.types.Error('Such Error');
       assert.ok(e instanceof sass.types.Error);
       assert.strictEqual(e.toString(), '[object SassError]');
@@ -243,6 +263,11 @@ describe('sass.types', function() {
     });
 
     it('supports new constructor', function() {
+      if(semver.gt(process.version, 'v14.5.0')) {
+        // v8 issue tracked in https://github.com/sass/node-sass/issues/2972
+        this.skip();
+      }
+
       var e = new sass.types.Error('Such Error');
       assert.ok(e instanceof sass.types.Error);
       assert.strictEqual(e.toString(), '[object SassError]');
@@ -260,12 +285,22 @@ describe('sass.types', function() {
     });
 
     it('support call constructor', function() {
+      if(semver.gt(process.version, 'v14.5.0')) {
+        // v8 issue tracked in https://github.com/sass/node-sass/issues/2972
+        this.skip();
+      }
+
       var list = sass.types.List();
       assert.ok(list instanceof sass.types.List);
       assert.strictEqual(list.toString(), '[object SassList]');
     });
 
     it('support new constructor', function() {
+      if(semver.gt(process.version, 'v14.5.0')) {
+        // v8 issue tracked in https://github.com/sass/node-sass/issues/2972
+        this.skip();
+      }
+
       var list = new sass.types.List();
       assert.ok(list instanceof sass.types.List);
       assert.strictEqual(list.toString(), '[object SassList]');
@@ -411,11 +446,21 @@ describe('sass.types', function() {
     });
 
     it('supports call constructor', function() {
+      if(semver.gt(process.version, 'v14.5.0')) {
+        // v8 issue tracked in https://github.com/sass/node-sass/issues/2972
+        this.skip();
+      }
+
       var x = sass.types.Map();
       assert.strictEqual(x.toString(), '[object SassMap]');
     });
 
     it('supports new constructor', function() {
+      if(semver.gt(process.version, 'v14.5.0')) {
+        // v8 issue tracked in https://github.com/sass/node-sass/issues/2972
+        this.skip();
+      }
+
       var x = new sass.types.Map();
       assert.strictEqual(x.toString(), '[object SassMap]');
     });
@@ -490,11 +535,21 @@ describe('sass.types', function() {
     });
 
     it('supports new constructor', function() {
+      if(semver.gt(process.version, 'v14.5.0')) {
+        // v8 issue tracked in https://github.com/sass/node-sass/issues/2972
+        this.skip();
+      }
+
       var number = new sass.types.Number();
       assert.strictEqual(number.toString(), '[object SassNumber]');
     });
 
     it('supports call constructor', function() {
+      if(semver.gt(process.version, 'v14.5.0')) {
+        // v8 issue tracked in https://github.com/sass/node-sass/issues/2972
+        this.skip();
+      }
+
       var number = sass.types.Number();
       assert.strictEqual(number.toString(), '[object SassNumber]');
     });
@@ -585,6 +640,11 @@ describe('sass.types', function() {
     });
 
     it('supports call constructor', function() {
+      if(semver.gt(process.version, 'v14.5.0')) {
+        // v8 issue tracked in https://github.com/sass/node-sass/issues/2972
+        this.skip();
+      }
+
       var x = sass.types.String('OMG');
 
       assert.strictEqual(x.toString(), '[object SassString]');
@@ -592,6 +652,11 @@ describe('sass.types', function() {
     });
 
     it('supports new constructor', function() {
+      if(semver.gt(process.version, 'v14.5.0')) {
+        // v8 issue tracked in https://github.com/sass/node-sass/issues/2972
+        this.skip();
+      }
+
       var x = new sass.types.String('OMG');
 
       assert.strictEqual(x.toString(), '[object SassString]');
