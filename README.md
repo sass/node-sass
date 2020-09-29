@@ -32,13 +32,14 @@ Node <8 | <5.0                        | <57
   </tr>
 </table>
 
-[![Build Status](https://travis-ci.org/sass/node-sass.svg?branch=master&style=flat)](https://travis-ci.org/sass/node-sass)
-[![Build status](https://ci.appveyor.com/api/projects/status/22mjbk59kvd55m9y/branch/master?svg=true)](https://ci.appveyor.com/project/sass/node-sass/branch/master)
+![Alpine](https://github.com/sass/node-sass/workflows/Build%20bindings%20for%20Alpine%20releases/badge.svg)
+![Linux](https://github.com/sass/node-sass/workflows/Build%20bindings%20for%20Linux%20releases/badge.svg)
+![macOS](https://github.com/sass/node-sass/workflows/Build%20bindings%20for%20macOS%20releases/badge.svg)
+![Windows x64](https://github.com/sass/node-sass/workflows/Build%20bindings%20for%20Windows%20releases/badge.svg)
+![Linting](https://github.com/sass/node-sass/workflows/Lint%20JS/badge.svg)
+[![Windows x86](https://ci.appveyor.com/api/projects/status/22mjbk59kvd55m9y/branch/master?svg=true)](https://ci.appveyor.com/project/sass/node-sass/branch/master)
 [![npm version](https://badge.fury.io/js/node-sass.svg)](http://badge.fury.io/js/node-sass)
-[![Dependency Status](https://david-dm.org/sass/node-sass.svg?theme=shields.io)](https://david-dm.org/sass/node-sass)
-[![devDependency Status](https://david-dm.org/sass/node-sass/dev-status.svg?theme=shields.io)](https://david-dm.org/sass/node-sass#info=devDependencies)
 [![Coverage Status](https://coveralls.io/repos/sass/node-sass/badge.svg?branch=master)](https://coveralls.io/r/sass/node-sass?branch=master)
-[![Inline docs](http://inch-ci.org/github/sass/node-sass.svg?branch=master)](http://inch-ci.org/github/sass/node-sass)
 [![Join us in Slack](https://libsass-slack.herokuapp.com/badge.svg)](https://libsass-slack.herokuapp.com/)
 
 Node-sass is a library that provides binding for Node.js to [LibSass], the C version of the popular stylesheet preprocessor, Sass.
