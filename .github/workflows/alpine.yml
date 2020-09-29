@@ -11,8 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: node:${{ matrix.node }}-alpine${{ matrix.alpine }}
-      env:
-        SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
     strategy:
       fail-fast: false
       matrix:
@@ -20,6 +18,8 @@ jobs:
           - 10
           - 12
           - 14
+          - 15
+
         include:
           - node: 10
             alpine: "3.9"
@@ -27,6 +27,9 @@ jobs:
             alpine: "3.9"
           - node: 14
             alpine: "3.10"
+          - node: 15
+            alpine: "3.10"
+
     steps:
       - name: Install Alpine build tools
         run: apk add --no-cache python make git gcc g++
@@ -35,6 +38,8 @@ jobs:
 
       - name: Install packages
         run: npm install --unsafe-perm
+        env:
+          SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
 
       - name: Run tests
         run: npm test

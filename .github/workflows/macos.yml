@@ -17,6 +17,7 @@ jobs:
           - 10
           - 12
           - 14
+          - 15
 
     steps:
       - uses: actions/checkout@v2
