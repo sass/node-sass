@@ -1,15 +1,23 @@
 # node-sass
 
-#### Supported Node.js versions vary by release, please consult the [releases page](https://github.com/sass/node-sass/releases). Below is a quick guide for minimum support:
+## Node version support policy
 
-NodeJS  | Minimum node-sass version | Node Module
---------|--------------------------|------------
-Node 14 | 4.14+                    | 83
-Node 13 | 4.13+                    | 79
-Node 12 | 4.12+                    | 72
-Node 11 | 4.10+                    | 67
-Node 10 | 4.9+                     | 64
-Node 8  | 4.5.3+                   | 57
+1. Supported Node.js versions vary by release, please consult the [releases page](https://github.com/sass/node-sass/releases).
+1. Node versions that hit end of life <https://github.com/nodejs/Release>, will be dropped from support at each node-sass release (major, minor).
+1. We will stop building binaries for unsupported releases, testing for breakages in dependency compatibility, but we will not block installations for those that want to support themselves.
+1. New node release require minor internal changes along with support from CI providers (AppVeyor, GitHub Actions). We will open a single issue for interested parties to subscribe to, and close additional issues.
+
+Below is a quick guide for minimum and maximum support supported version of node-sass:
+
+NodeJS  | Supported node-sass version | Node Module
+--------|-----------------------------|------------
+Node 14 | 4.14+                       | 83
+Node 13 | 4.13+, <5.0                 | 79
+Node 12 | 4.12+                       | 72
+Node 11 | 4.10+, <5.0                 | 67
+Node 10 | 4.9+                        | 64
+Node 8  | 4.5.3+, <5.0                | 57
+Node <8 | <5.0                        | <57
 
 <table>
   <tr>
