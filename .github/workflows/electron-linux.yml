@@ -24,6 +24,8 @@ jobs:
             nodeVersion: 75
           - electron: 8
             nodeVersion: 76
+          - electron: 9
+            nodeVersion: 80
 
     steps:
     - uses: actions/checkout@v2
