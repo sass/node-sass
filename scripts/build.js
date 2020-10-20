@@ -16,11 +16,11 @@ var fs = require('fs'),
  */
 
 function afterBuild(options) {
-  var install = sass.getBinaryPath();
+  var install = sass.getBinaryPath(options.arch);
   var target = path.join(__dirname, '..', 'build',
     options.debug ? 'Debug' :
       process.config.target_defaults
-        ?  process.config.target_defaults.default_configuration
+        ? process.config.target_defaults.default_configuration
         : 'Release',
     'binding.node');
 
@@ -58,9 +58,13 @@ function afterBuild(options) {
 
 function build(options) {
   var args = [require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js')), 'rebuild', '--verbose'].concat(
-    ['libsass_ext', 'libsass_cflags', 'libsass_ldflags', 'libsass_library'].map(function(subject) {
+    ['libsass_ext', 'libsass_cflags', 'libsass_ldflags', 'libsass_library'].map(function (subject) {
       return ['--', subject, '=', process.env[subject.toUpperCase()] || ''].join('');
     })).concat(options.args);
+
+  if (process.versions.electron || options.electronVersion) {
+    args.push('--target=' + (process.versions.electron || options.electronVersion), '--dist-url=https://electronjs.org/headers');
+  }
 
   console.log('Building:', [process.execPath].concat(args).join(' '));
 
@@ -68,13 +72,13 @@ function build(options) {
     stdio: [0, 1, 2]
   });
 
-  proc.on('exit', function(errorCode) {
+  proc.on('exit', function (errorCode) {
     if (!errorCode) {
       afterBuild(options);
       return;
     }
 
-    if (errorCode === 127 ) {
+    if (errorCode === 127) {
       console.error('node-gyp not found!');
     } else {
       console.error('Build failed with error code:', errorCode);
@@ -98,7 +102,7 @@ function parseArgs(args) {
     force: process.env.npm_config_force === 'true',
   };
 
-  options.args = args.filter(function(arg) {
+  options.args = args.filter(function (arg) {
     if (arg === '-f' || arg === '--force') {
       options.force = true;
       return false;
@@ -108,6 +112,9 @@ function parseArgs(args) {
       options.debug = true;
     } else if (arg.substring(0, 13) === '--libsass_ext' && arg.substring(14) !== 'no') {
       options.libsassExt = true;
+    } else if (arg.substring(0, 18) === '--electron-version') {
+      options.electronVersion = arg.substring(19);
+      return false;
     }
 
     return true;

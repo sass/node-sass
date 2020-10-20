@@ -1,0 +1,45 @@
+name: Electron Rebuild CI - Linux (x32 & x64)
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        electron:
+          - 5
+          - 6
+          - 7
+          - 8
+          - 9
+        include:
+          # includes a new variable for each electron (essentially a switch statement) 
+          - electron: 5
+            nodeVersion: 70
+          - electron: 6
+            nodeVersion: 73
+          - electron: 7
+            nodeVersion: 75
+          - electron: 8
+            nodeVersion: 76
+          - electron: 9
+            nodeVersion: 80
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+    - name: Install packages
+      run: npm install --unsafe-perm
+      env:
+        SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
+    - name: Run build (electron force)
+      run: node ./scripts/build --electron-version=${{ matrix.electron }}.0.0
+    - name: Check success by getting binary
+      uses: actions/upload-artifact@v1
+      with:
+        name: linux-x64-${{ matrix.nodeVersion }}_binding.node
+        path: vendor/linux-x64-${{ matrix.nodeVersion }}/binding.node
