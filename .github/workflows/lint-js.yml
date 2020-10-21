@@ -2,6 +2,8 @@ name: Lint JS
 
 on:
   push:
+    branches-ignore:
+      - "dependabot/**"
     paths:
       - "**/*.js"
       - ".eslintrc.json"
