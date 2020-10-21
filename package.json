@@ -33,7 +33,7 @@
     "lint": "eslint bin/node-sass lib scripts test",
     "test": "mocha test/{*,**/**}.js",
     "build": "node scripts/build.js --force",
-    "prepublish": "not-in-install && node scripts/prepublish.js || in-install"
+    "prepublishOnly ": "scripts/prepublish.js"
   },
   "files": [
     "bin",
@@ -59,7 +59,6 @@
     "gaze": "^1.0.0",
     "get-stdin": "^4.0.1",
     "glob": "^7.0.3",
-    "in-publish": "^2.0.0",
     "lodash": "^4.17.15",
     "meow": "^3.7.0",
     "mkdirp": "^0.5.1",
