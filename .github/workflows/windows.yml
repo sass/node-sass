@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-2016
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
@@ -17,6 +17,17 @@ jobs:
           - 10
           - 12
           - 14
+          - 15
+
+        include:
+          - node: 10
+            os: windows-2016
+          - node: 12
+            os: windows-2016
+          - node: 14
+            os: windows-2016
+          - node: 15
+            os: windows-2019
 
     steps:
       - uses: actions/checkout@v2

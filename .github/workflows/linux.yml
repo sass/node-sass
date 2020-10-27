@@ -17,6 +17,8 @@ jobs:
           - 10
           - 12
           - 14
+          - 15
+
         include:
           - node: 10
             gcc: "gcc-4.9"
@@ -30,6 +32,11 @@ jobs:
             gcc: "gcc-6"
             gpp: "g++-6"
             os: ubuntu-18.04
+          - node: 15
+            gcc: "gcc-6"
+            gpp: "g++-6"
+            os: ubuntu-18.04
+
     steps:
       - uses: actions/checkout@v2
 

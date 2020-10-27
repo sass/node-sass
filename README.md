@@ -17,6 +17,7 @@ Below is a quick guide for minimum and maximum support supported version of node
 
 NodeJS  | Supported node-sass version | Node Module
 --------|-----------------------------|------------
+Node 15 | 5.0+                        | 88
 Node 14 | 4.14+                       | 83
 Node 13 | 4.13+, <5.0                 | 79
 Node 12 | 4.12+                       | 72
