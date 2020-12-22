@@ -20,7 +20,7 @@ should always follow these steps before opening a new issue.
 
 ### 404s
 
-If you see a 404 when trying to install node-sass, this indicates that your trying
+If you see a 404 when trying to install node-sass, this indicates that you're trying
 to install a version of node-sass that doesn't support your version of NodeJS, or
 uses an alternate V8 environment (Meteor, Electron, etc...) that isn't supported
 by node-sass.
