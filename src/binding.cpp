@@ -108,6 +108,7 @@ int ExtractOptions(v8::Local<v8::Object> options, void* cptr, sass_context_wrapp
   sass_option_set_source_map_embed(sass_options, Nan::To<bool>(Nan::Get(options, Nan::New("sourceMapEmbed").ToLocalChecked()).ToLocalChecked()).FromJust());
   sass_option_set_source_map_contents(sass_options, Nan::To<bool>(Nan::Get(options, Nan::New("sourceMapContents").ToLocalChecked()).ToLocalChecked()).FromJust());
   sass_option_set_source_map_file(sass_options, ctx_w->source_map);
+  sass_option_set_source_map_file_urls(sass_options, Nan::To<bool>(Nan::Get(options, Nan::New("sourceMapFileUrls").ToLocalChecked()).ToLocalChecked()).FromJust());
   sass_option_set_source_map_root(sass_options, ctx_w->source_map_root);
   sass_option_set_include_path(sass_options, ctx_w->include_path);
   sass_option_set_precision(sass_options, Nan::To<int32_t>(Nan::Get(options, Nan::New("precision").ToLocalChecked()).ToLocalChecked()).FromJust());
