@@ -8,7 +8,6 @@ describe('util', function() {
     describe('without a proxy', function() {
       it('should look as we expect', function() {
         var expected = {
-          rejectUnauthorized: false,
           timeout: 60000,
           headers: {
             'User-Agent': ua(),
@@ -33,7 +32,6 @@ describe('util', function() {
 
       it('should look as we expect', function() {
         var expected = {
-          rejectUnauthorized: false,
           proxy: proxy,
           timeout: 60000,
           headers: {
@@ -59,7 +57,6 @@ describe('util', function() {
 
       it('should look as we expect', function() {
         var expected = {
-          rejectUnauthorized: false,
           timeout: 60000,
           headers: {
             'User-Agent': ua(),
