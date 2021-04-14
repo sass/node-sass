@@ -18,6 +18,13 @@ should always follow these steps before opening a new issue.
 
 ## Installation
 
+### Problems Downloading node-sass
+
+If node-sass is unable to download the sass binary, please download the correct build
+for your node version and platform from the [releases page](https://github.com/sass/node-sass/releases)
+and use the [binary configuration parameters](https://github.com/sass/node-sass/blob/master/README.md#binary-configuration-parameters)
+to manually use the downloaded binary. This may occur if your ISP/organisation is interfering with https connections.
+
 ### 404s
 
 If you see a 404 when trying to install node-sass, this indicates that you're trying
