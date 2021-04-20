@@ -19,6 +19,7 @@ jobs:
           - 12
           - 14
           - 15
+          - 16
 
         include:
           - node: 10
@@ -28,6 +29,8 @@ jobs:
           - node: 14
             alpine: "3.10"
           - node: 15
+            alpine: "3.10"
+          - node: 16
             alpine: "3.10"
 
     steps:
