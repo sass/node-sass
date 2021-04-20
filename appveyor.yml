@@ -45,6 +45,9 @@
       - nodejs_version: 15
         GYP_MSVS_VERSION: 2019
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      - nodejs_version: 16
+        GYP_MSVS_VERSION: 2019
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
 
   install:
     # https://www.appveyor.com/docs/lang/nodejs-iojs/#installing-any-version-of-nodejs-or-iojs
@@ -122,6 +125,9 @@
         GYP_MSVS_VERSION: 2017
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       - nodejs_version: 15
+        GYP_MSVS_VERSION: 2019
+        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      - nodejs_version: 16
         GYP_MSVS_VERSION: 2019
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
 
