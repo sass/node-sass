@@ -78,7 +78,7 @@
       'conditions': [
         ['OS=="mac"', {
           'xcode_settings': {
-            'CLANG_CXX_LANGUAGE_STANDARD': 'c++11',
+            'CLANG_CXX_LANGUAGE_STANDARD': 'c++14',
             'CLANG_CXX_LIBRARY': 'libc++',
             'OTHER_LDFLAGS': [],
             'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
@@ -105,7 +105,7 @@
         }],
         ['OS!="win"', {
           'cflags_cc+': [
-            '-std=c++0x'
+            '-std=c++14'
           ]
         }]
       ]
