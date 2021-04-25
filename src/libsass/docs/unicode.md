@@ -36,7 +36,7 @@ LibSass currently reads all kind of BOMs and will error out if it finds somethin
 ### Low priority feature
 
 I guess the current implementation should handle more than 99% of all real world use cases.
-A) Unicode characters are still seldomly seen (as they can be written escaped)
+A) Unicode characters are still seldom seen (as they can be written escaped)
 ~~B) It will still work if it's UTF-8 or in any of the most common known western ISO codepages.
 Although I'm not sure how this applies to asian and other "exotic" codepages!~~
 
