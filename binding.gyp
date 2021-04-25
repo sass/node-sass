@@ -31,7 +31,7 @@
         'CLANG_CXX_LIBRARY': 'libc++',
         'OTHER_LDFLAGS': [],
         'GCC_ENABLE_CPP_EXCEPTIONS': 'NO',
-        'MACOSX_DEPLOYMENT_TARGET': '10.7'
+        'MACOSX_DEPLOYMENT_TARGET': '10.11'
       },
       'include_dirs': [
         '<!(node -e "require(\'nan\')")',
