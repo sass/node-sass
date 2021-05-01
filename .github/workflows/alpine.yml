@@ -15,15 +15,12 @@ jobs:
       fail-fast: false
       matrix:
         node:
-          - 10
           - 12
           - 14
           - 15
           - 16
 
         include:
-          - node: 10
-            alpine: "3.9"
           - node: 12
             alpine: "3.9"
           - node: 14

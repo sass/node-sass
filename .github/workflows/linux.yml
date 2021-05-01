@@ -14,17 +14,12 @@ jobs:
       fail-fast: false
       matrix:
         node:
-          - 10
           - 12
           - 14
           - 15
           - 16
 
         include:
-          - node: 10
-            gcc: "gcc-4.9"
-            gpp: "g++-4.9"
-            os: ubuntu-16.04
           - node: 12
             gcc: "gcc-6"
             gpp: "g++-6"

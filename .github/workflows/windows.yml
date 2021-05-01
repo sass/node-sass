@@ -14,15 +14,12 @@ jobs:
       fail-fast: false
       matrix:
         node:
-          - 10
           - 12
           - 14
           - 15
           - 16
 
         include:
-          - node: 10
-            os: windows-2016
           - node: 12
             os: windows-2016
           - node: 14
