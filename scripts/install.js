@@ -4,11 +4,10 @@
 
 var fs = require('fs'),
   eol = require('os').EOL,
-  mkdir = require('mkdirp'),
   path = require('path'),
-  sass = require('../lib/extensions'),
   request = require('request'),
   log = require('npmlog'),
+  sass = require('../lib/extensions'),
   downloadOptions = require('./util/downloadoptions');
 
 /**
@@ -111,7 +110,7 @@ function checkAndDownloadBinary() {
   }
 
   try {
-    mkdir.sync(path.dirname(binaryPath));
+    fs.mkdirSync(path.dirname(binaryPath), {recursive: true});
   } catch (err) {
     console.error('Unable to save binary', path.dirname(binaryPath), ':', err);
     return;
@@ -137,7 +136,7 @@ function checkAndDownloadBinary() {
       console.log('Caching binary to', cachedBinary);
 
       try {
-        mkdir.sync(path.dirname(cachedBinary));
+        fs.mkdirSync(path.dirname(cachedBinary), {recursive: true});
         fs.createReadStream(binaryPath)
           .pipe(fs.createWriteStream(cachedBinary))
           .on('error', function (err) {
