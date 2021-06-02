@@ -16,7 +16,6 @@ jobs:
         node:
           - 12
           - 14
-          - 15
           - 16
 
         architecture:
@@ -28,8 +27,6 @@ jobs:
             os: windows-2016
           - node: 14
             os: windows-2016
-          - node: 15
-            os: windows-2019
           - node: 16
             os: windows-2019
 

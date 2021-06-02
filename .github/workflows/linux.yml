@@ -16,7 +16,6 @@ jobs:
         node:
           - 12
           - 14
-          - 15
           - 16
 
         include:
@@ -25,10 +24,6 @@ jobs:
             gpp: "g++-6"
             os: ubuntu-18.04
           - node: 14
-            gcc: "gcc-6"
-            gpp: "g++-6"
-            os: ubuntu-18.04
-          - node: 15
             gcc: "gcc-6"
             gpp: "g++-6"
             os: ubuntu-18.04
