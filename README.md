@@ -230,6 +230,12 @@ sass.renderSync({
 
 An array of paths that [LibSass] can look in to attempt to resolve your `@import` declarations. When using `data`, it is recommended that you use this.
 
+### require
+Type: `Array<String>`
+Default: `[]`
+
+An array of node modules that export functions. Each function is called with the current options objects and needs to return a new one. Modules may use this e.g. to register themselves in `includePaths`.
+
 ### indentedSyntax
 
 * Type: `Boolean`
@@ -566,6 +572,7 @@ Example:
     -i, --indented-syntax      Treat data from stdin as sass code (versus scss)
     -q, --quiet                Suppress log output except on error
     -v, --version              Prints version info
+    --require                  Comma separated list of plugins
     --output-style             CSS output style (nested | expanded | compact | compressed)
     --indent-type              Indent type for output CSS (space | tab)
     --indent-width             Indent width; number of spaces or tabs (maximum value: 10)

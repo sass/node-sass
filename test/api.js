@@ -1446,6 +1446,31 @@ describe('api', function() {
       done();
     });
 
+    it('should pass options through required modules', function(done) {
+      var mockModule = function() {
+        return { file: fixture('simple/index.scss') };
+      };
+
+      // mock require()
+      var module = require('module');
+      var originalLoad = module._load;
+      module._load = function(request, parent) {
+        if (request === 'mock') {
+          return mockModule;
+        } else {
+          return originalLoad(request, parent);
+        }
+      };
+
+      var expected = read(fixture('simple/expected.css'), 'utf8').trim();
+      var result = sass.renderSync({ require: ['mock'] });
+
+      assert.equal(result.css.toString().trim(), expected.replace(/\r\n/g, '\n'));
+      module._load = originalLoad;
+
+      done();
+    });
+
     it('should compile with include paths', function(done) {
       var src = read(fixture('include-path/index.scss'), 'utf8');
       var expected = read(fixture('include-path/expected.css'), 'utf8').trim();
