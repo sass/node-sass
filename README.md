@@ -94,6 +94,11 @@ var result = sass.renderSync({
   data: scss_content
   [, options..]
 });
+// OR using it as a script in your package.json file
+"scripts": {
+    "watch_Directories": "node-sass public/sass/*.scss --output public/css/ -w"
+    "watch_Individual_Files": "node-sass public/sass/main.scss public/css/main.css -w"
+  }
 ```
 
 ## Options
