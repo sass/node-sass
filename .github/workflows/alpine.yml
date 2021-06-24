@@ -24,12 +24,14 @@ jobs:
         include:
           - node: 10
             alpine: "3.9"
+            python: python2
           - node: 12
             python: python2
           - node: 14
             python: python3
           - node: 15
             python: python3
+            alpine: "3.10"
           - node: 16
             python: python3
 
