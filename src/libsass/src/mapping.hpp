@@ -2,6 +2,7 @@
 #define SASS_MAPPING_H
 
 #include "position.hpp"
+#include "backtrace.hpp"
 
 namespace Sass {
 

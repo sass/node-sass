@@ -4,6 +4,8 @@ set -e
 
 script/bootstrap
 
+echo Building LibSass $MAKE_OPTS
+
 # export this path right here (was in script/spec before)
 export SASS_LIBSASS_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/../ && pwd )"
 
@@ -85,12 +87,13 @@ if [ "x$AUTOTOOLS" == "xyes" ]; then
 
   make $MAKE_OPTS clean
 
-  # install to prefix directory
-  PREFIX="$PREFIX" make $MAKE_OPTS install
-
 else
 
   make $MAKE_OPTS clean
+
+  # Run C++ unit tests
+  make $MAKE_OPTS -C test clean
+  make $MAKE_OPTS -C test test
 
 fi
 
@@ -125,10 +128,10 @@ then
     echo "Fetching Sass Spec PR $SPEC_PR"
     git -C sass-spec fetch -u origin pull/$SPEC_PR/head:ci-spec-pr-$SPEC_PR
     git -C sass-spec checkout --force ci-spec-pr-$SPEC_PR
-    LD_LIBRARY_PATH="$PREFIX/lib/" make $MAKE_OPTS test_probe
+    make $MAKE_OPTS test_probe
   else
-    LD_LIBRARY_PATH="$PREFIX/lib/" make $MAKE_OPTS test_probe
+    make $MAKE_OPTS test_probe
   fi
 else
-  LD_LIBRARY_PATH="$PREFIX/lib/" make $MAKE_OPTS test_probe
+  make $MAKE_OPTS test_probe
 fi

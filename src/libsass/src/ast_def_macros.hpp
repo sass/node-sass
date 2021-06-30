@@ -35,16 +35,6 @@ class LocalOption {
   LocalOption<size_t> cnt_##name(name, name + 1); \
   if (name > MAX_NESTING) throw Exception::NestingLimitError(pstate, traces); \
 
-#define ATTACH_OPERATIONS()\
-virtual void perform(Operation<void>* op) { (*op)(this); }\
-virtual AST_Node_Ptr perform(Operation<AST_Node_Ptr>* op) { return (*op)(this); }\
-virtual Statement_Ptr perform(Operation<Statement_Ptr>* op) { return (*op)(this); }\
-virtual Expression_Ptr perform(Operation<Expression_Ptr>* op) { return (*op)(this); }\
-virtual Selector_Ptr perform(Operation<Selector_Ptr>* op) { return (*op)(this); }\
-virtual std::string perform(Operation<std::string>* op) { return (*op)(this); }\
-virtual union Sass_Value* perform(Operation<union Sass_Value*>* op) { return (*op)(this); }\
-virtual Value_Ptr perform(Operation<Value_Ptr>* op) { return (*op)(this); }
-
 #define ADD_PROPERTY(type, name)\
 protected:\
   type name##_;\
@@ -76,5 +66,75 @@ public: \
   const type& name() const { return name##_; } \
   void name(type name##__) { hash_ = 0; name##_ = name##__; } \
 private:
+
+#ifdef DEBUG_SHARED_PTR
+
+#define ATTACH_ABSTRACT_AST_OPERATIONS(klass) \
+  virtual klass* copy(sass::string, size_t) const = 0; \
+  virtual klass* clone(sass::string, size_t) const = 0; \
+
+#define ATTACH_VIRTUAL_AST_OPERATIONS(klass) \
+  klass(const klass* ptr); \
+  virtual klass* copy(sass::string, size_t) const override = 0; \
+  virtual klass* clone(sass::string, size_t) const override = 0; \
+
+#define ATTACH_AST_OPERATIONS(klass) \
+  klass(const klass* ptr); \
+  virtual klass* copy(sass::string, size_t) const override; \
+  virtual klass* clone(sass::string, size_t) const override; \
+
+#else
+
+#define ATTACH_ABSTRACT_AST_OPERATIONS(klass) \
+  virtual klass* copy() const = 0; \
+  virtual klass* clone() const = 0; \
+
+#define ATTACH_VIRTUAL_AST_OPERATIONS(klass) \
+  klass(const klass* ptr); \
+  virtual klass* copy() const override = 0; \
+  virtual klass* clone() const override = 0; \
+
+#define ATTACH_AST_OPERATIONS(klass) \
+  klass(const klass* ptr); \
+  virtual klass* copy() const override; \
+  virtual klass* clone() const override; \
+
+#endif
+
+#define ATTACH_VIRTUAL_CMP_OPERATIONS(klass) \
+  virtual bool operator==(const klass& rhs) const = 0; \
+  virtual bool operator!=(const klass& rhs) const { return !(*this == rhs); }; \
+
+#define ATTACH_CMP_OPERATIONS(klass) \
+  virtual bool operator==(const klass& rhs) const; \
+  virtual bool operator!=(const klass& rhs) const { return !(*this == rhs); }; \
+
+#ifdef DEBUG_SHARED_PTR
+
+  #define IMPLEMENT_AST_OPERATORS(klass) \
+    klass* klass::copy(sass::string file, size_t line) const { \
+      klass* cpy = SASS_MEMORY_NEW(klass, this); \
+      cpy->trace(file, line); \
+      return cpy; \
+    } \
+    klass* klass::clone(sass::string file, size_t line) const { \
+      klass* cpy = copy(file, line); \
+      cpy->cloneChildren(); \
+      return cpy; \
+    } \
+
+#else
+
+  #define IMPLEMENT_AST_OPERATORS(klass) \
+    klass* klass::copy() const { \
+      return SASS_MEMORY_NEW(klass, this); \
+    } \
+    klass* klass::clone() const { \
+      klass* cpy = copy(); \
+      cpy->cloneChildren(); \
+      return cpy; \
+    } \
+
+#endif
 
 #endif

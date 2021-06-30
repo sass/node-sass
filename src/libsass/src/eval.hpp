@@ -1,7 +1,11 @@
 #ifndef SASS_EVAL_H
 #define SASS_EVAL_H
 
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
+#include "sass.hpp"
 #include "ast.hpp"
+
 #include "context.hpp"
 #include "listize.hpp"
 #include "operation.hpp"
@@ -12,10 +16,7 @@ namespace Sass {
   class Expand;
   class Context;
 
-  class Eval : public Operation_CRTP<Expression_Ptr, Eval> {
-
-   private:
-    Expression_Ptr fallback_impl(AST_Node_Ptr n);
+  class Eval : public Operation_CRTP<Expression*, Eval> {
 
    public:
     Expand& exp;
@@ -32,71 +33,77 @@ namespace Sass {
     Boolean_Obj bool_false;
 
     Env* environment();
-    Selector_List_Obj selector();
+    EnvStack& env_stack();
+    const sass::string cwd();
+    CalleeStack& callee_stack();
+    struct Sass_Inspect_Options& options();
+    struct Sass_Compiler* compiler();
 
     // for evaluating function bodies
-    Expression_Ptr operator()(Block_Ptr);
-    Expression_Ptr operator()(Assignment_Ptr);
-    Expression_Ptr operator()(If_Ptr);
-    Expression_Ptr operator()(For_Ptr);
-    Expression_Ptr operator()(Each_Ptr);
-    Expression_Ptr operator()(While_Ptr);
-    Expression_Ptr operator()(Return_Ptr);
-    Expression_Ptr operator()(Warning_Ptr);
-    Expression_Ptr operator()(Error_Ptr);
-    Expression_Ptr operator()(Debug_Ptr);
+    Expression* operator()(Block*);
+    Expression* operator()(Assignment*);
+    Expression* operator()(If*);
+    Expression* operator()(ForRule*);
+    Expression* operator()(EachRule*);
+    Expression* operator()(WhileRule*);
+    Expression* operator()(Return*);
+    Expression* operator()(WarningRule*);
+    Expression* operator()(ErrorRule*);
+    Expression* operator()(DebugRule*);
 
-    Expression_Ptr operator()(List_Ptr);
-    Expression_Ptr operator()(Map_Ptr);
-    Expression_Ptr operator()(Binary_Expression_Ptr);
-    Expression_Ptr operator()(Unary_Expression_Ptr);
-    Expression_Ptr operator()(Function_Call_Ptr);
-    Expression_Ptr operator()(Function_Call_Schema_Ptr);
-    Expression_Ptr operator()(Variable_Ptr);
-    Expression_Ptr operator()(Number_Ptr);
-    Expression_Ptr operator()(Color_Ptr);
-    Expression_Ptr operator()(Boolean_Ptr);
-    Expression_Ptr operator()(String_Schema_Ptr);
-    Expression_Ptr operator()(String_Quoted_Ptr);
-    Expression_Ptr operator()(String_Constant_Ptr);
-    // Expression_Ptr operator()(Selector_List_Ptr);
-    Media_Query_Ptr operator()(Media_Query_Ptr);
-    Expression_Ptr operator()(Media_Query_Expression_Ptr);
-    Expression_Ptr operator()(At_Root_Query_Ptr);
-    Expression_Ptr operator()(Supports_Operator_Ptr);
-    Expression_Ptr operator()(Supports_Negation_Ptr);
-    Expression_Ptr operator()(Supports_Declaration_Ptr);
-    Expression_Ptr operator()(Supports_Interpolation_Ptr);
-    Expression_Ptr operator()(Null_Ptr);
-    Expression_Ptr operator()(Argument_Ptr);
-    Expression_Ptr operator()(Arguments_Ptr);
-    Expression_Ptr operator()(Comment_Ptr);
+    Expression* operator()(List*);
+    Expression* operator()(Map*);
+    Expression* operator()(Binary_Expression*);
+    Expression* operator()(Unary_Expression*);
+    Expression* operator()(Function_Call*);
+    Expression* operator()(Variable*);
+    Expression* operator()(Number*);
+    Expression* operator()(Color_RGBA*);
+    Expression* operator()(Color_HSLA*);
+    Expression* operator()(Boolean*);
+    Expression* operator()(String_Schema*);
+    Expression* operator()(String_Quoted*);
+    Expression* operator()(String_Constant*);
+    Media_Query* operator()(Media_Query*);
+    Expression* operator()(Media_Query_Expression*);
+    Expression* operator()(At_Root_Query*);
+    Expression* operator()(SupportsOperation*);
+    Expression* operator()(SupportsNegation*);
+    Expression* operator()(SupportsDeclaration*);
+    Expression* operator()(Supports_Interpolation*);
+    Expression* operator()(Null*);
+    Expression* operator()(Argument*);
+    Expression* operator()(Arguments*);
+    Expression* operator()(Comment*);
 
     // these will return selectors
-    Selector_List_Ptr operator()(Selector_List_Ptr);
-    Selector_List_Ptr operator()(Complex_Selector_Ptr);
-    Compound_Selector_Ptr operator()(Compound_Selector_Ptr);
-    Simple_Selector_Ptr operator()(Simple_Selector_Ptr s);
-    Wrapped_Selector_Ptr operator()(Wrapped_Selector_Ptr s);
-    // they don't have any specific implementation (yet)
-    // Element_Selector_Ptr operator()(Element_Selector_Ptr s) { return s; };
-    // Pseudo_Selector_Ptr operator()(Pseudo_Selector_Ptr s) { return s; };
-    // Class_Selector_Ptr operator()(Class_Selector_Ptr s) { return s; };
-    // Id_Selector_Ptr operator()(Id_Selector_Ptr s) { return s; };
-    // Placeholder_Selector_Ptr operator()(Placeholder_Selector_Ptr s) { return s; };
-    // actual evaluated selectors
-    Selector_List_Ptr operator()(Selector_Schema_Ptr);
-    Expression_Ptr operator()(Parent_Selector_Ptr);
+    SelectorList* operator()(SelectorList*);
+    SelectorList* operator()(ComplexSelector*);
+    CompoundSelector* operator()(CompoundSelector*);
+    SelectorComponent* operator()(SelectorComponent*);
+    SimpleSelector* operator()(SimpleSelector* s);
+    PseudoSelector* operator()(PseudoSelector* s);
 
+    // they don't have any specific implementation (yet)
+    IDSelector* operator()(IDSelector* s) { return s; };
+    ClassSelector* operator()(ClassSelector* s) { return s; };
+    TypeSelector* operator()(TypeSelector* s) { return s; };
+    AttributeSelector* operator()(AttributeSelector* s) { return s; };
+    PlaceholderSelector* operator()(PlaceholderSelector* s) { return s; };
+
+    // actual evaluated selectors
+    SelectorList* operator()(Selector_Schema*);
+    Expression* operator()(Parent_Reference*);
+
+    // generic fallback
     template <typename U>
-    Expression_Ptr fallback(U x) { return fallback_impl(x); }
+    Expression* fallback(U x)
+    { return Cast<Expression>(x); }
 
   private:
-    void interpolation(Context& ctx, std::string& res, Expression_Obj ex, bool into_quotes, bool was_itpl = false);
+    void interpolation(Context& ctx, sass::string& res, ExpressionObj ex, bool into_quotes, bool was_itpl = false);
 
   };
-
-  Expression_Ptr cval_to_astnode(union Sass_Value* v, Backtraces traces, ParserState pstate = ParserState("[AST]"));
 
 }
 

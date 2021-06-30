@@ -3,7 +3,8 @@
 
 #include <string>
 #include <cstring>
-// #include <iostream>
+#include "source_data.hpp"
+#include "ast_fwd_decl.hpp"
 
 namespace Sass {
 
@@ -13,7 +14,7 @@ namespace Sass {
     public: // c-tor
       Offset(const char chr);
       Offset(const char* string);
-      Offset(const std::string& text);
+      Offset(const sass::string& text);
       Offset(const size_t line, const size_t column);
 
       // return new position, incremented by the given string
@@ -85,37 +86,59 @@ namespace Sass {
     : prefix(p), begin(b), end(e) { }
 
     size_t length()    const { return end - begin; }
-    std::string ws_before() const { return std::string(prefix, begin); }
-    const std::string to_string() const { return std::string(begin, end); }
-    std::string time_wspace() const {
-      std::string str(to_string());
-      std::string whitespaces(" \t\f\v\n\r");
+    sass::string ws_before() const { return sass::string(prefix, begin); }
+    sass::string to_string() const { return sass::string(begin, end); }
+    sass::string time_wspace() const {
+      sass::string str(to_string());
+      sass::string whitespaces(" \t\f\v\n\r");
       return str.erase(str.find_last_not_of(whitespaces)+1);
     }
 
     operator bool()        { return begin && end && begin >= end; }
-    operator std::string() { return to_string(); }
+    operator sass::string() { return to_string(); }
 
     bool operator==(Token t)  { return to_string() == t.to_string(); }
   };
 
-  class ParserState : public Position {
-
-    public: // c-tor
-      ParserState(const char* path, const char* src = 0, const size_t file = std::string::npos);
-      ParserState(const char* path, const char* src, const Position& position, Offset offset = Offset(0, 0));
-      ParserState(const char* path, const char* src, const Token& token, const Position& position, Offset offset = Offset(0, 0));
-
-    public: // down casts
-      Offset off() { return *this; }
-      Position pos() { return *this; }
-      ParserState pstate() { return *this; }
+  class SourceSpan {
 
     public:
-      const char* path;
-      const char* src;
+
+      SourceSpan(const char* path);
+
+      SourceSpan(SourceDataObj source,
+        const Offset& position = Offset(0, 0),
+        const Offset& offset = Offset(0, 0));
+
+      const char* getPath() const {
+        return source->getPath();
+      }
+
+      const char* getRawData() const {
+        return source->getRawData();
+      }
+
+      Offset getPosition() const {
+        return position;
+      }
+
+      size_t getLine() const {
+        return position.line + 1;
+      }
+
+      size_t getColumn() const {
+        return position.column + 1;
+      }
+
+      size_t getSrcId() const {
+        return source == nullptr
+          ? std::string::npos
+          : source->getSrcId();
+      }
+
+      SourceDataObj source;
+      Offset position;
       Offset offset;
-      Token token;
 
   };
 

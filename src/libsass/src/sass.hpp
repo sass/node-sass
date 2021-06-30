@@ -11,14 +11,20 @@
 #pragma warning(disable : 4005)
 #endif
 
-// aplies to MSVC and MinGW
+// applies to MSVC and MinGW
 #ifdef _WIN32
 // we do not want the ERROR macro
-# define NOGDI
+# ifndef NOGDI
+#  define NOGDI
+# endif
 // we do not want the min/max macro
-# define NOMINMAX
+# ifndef NOMINMAX
+#  define NOMINMAX
+# endif
 // we do not want the IN/OUT macro
-# define _NO_W32_PSEUDO_MODIFIERS
+# ifndef _NO_W32_PSEUDO_MODIFIERS
+#  define _NO_W32_PSEUDO_MODIFIERS
+# endif
 #endif
 
 
@@ -42,13 +48,17 @@
 #endif
 
 
-// include C-API header
+// Include C-API header
 #include "sass/base.h"
+
+// Include allocator
+#include "memory.hpp"
 
 // For C++ helper
 #include <string>
+#include <vector>
 
-// output behaviours
+// output behavior
 namespace Sass {
 
   // create some C++ aliases for the most used options
@@ -59,14 +69,15 @@ namespace Sass {
   // only used internal to trigger ruby inspect behavior
   const static Sass_Output_Style INSPECT = SASS_STYLE_INSPECT;
   const static Sass_Output_Style TO_SASS = SASS_STYLE_TO_SASS;
+  const static Sass_Output_Style TO_CSS = SASS_STYLE_TO_CSS;
 
   // helper to aid dreaded MSVC debug mode
   // see implementation for more details
-  char* sass_copy_string(std::string str);
+  char* sass_copy_string(sass::string str);
 
 }
 
-// input behaviours
+// input behaviors
 enum Sass_Input_Style {
   SASS_CONTEXT_NULL,
   SASS_CONTEXT_FILE,
@@ -90,13 +101,10 @@ struct Sass_Inspect_Options {
   // Precision for fractional numbers
   int precision;
 
-  // Do not compress colors in selectors
-  bool in_selector;
-
   // initialization list (constructor with defaults)
   Sass_Inspect_Options(Sass_Output_Style style = Sass::NESTED,
-                       int precision = 5, bool in_selector = false)
-  : output_style(style), precision(precision), in_selector(in_selector)
+                       int precision = 10)
+  : output_style(style), precision(precision)
   { }
 
 };
@@ -125,7 +133,7 @@ struct Sass_Output_Options : Sass_Inspect_Options {
 
   // initialization list (constructor with defaults)
   Sass_Output_Options(Sass_Output_Style style = Sass::NESTED,
-                      int precision = 5,
+                      int precision = 10,
                       const char* indent = "  ",
                       const char* linefeed = "\n",
                       bool source_comments = false)

@@ -3,7 +3,7 @@
 
 #include "sass.h"
 #include "environment.hpp"
-#include "functions.hpp"
+#include "fn_utils.hpp"
 
 // Struct to hold custom function callback
 struct Sass_Function {

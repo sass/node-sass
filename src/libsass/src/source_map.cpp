@@ -1,4 +1,7 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -12,13 +15,13 @@
 
 namespace Sass {
   SourceMap::SourceMap() : current_position(0, 0, 0), file("stdin") { }
-  SourceMap::SourceMap(const std::string& file) : current_position(0, 0, 0), file(file) { }
+  SourceMap::SourceMap(const sass::string& file) : current_position(0, 0, 0), file(file) { }
 
-  std::string SourceMap::render_srcmap(Context &ctx) {
+  sass::string SourceMap::render_srcmap(Context &ctx) {
 
     const bool include_sources = ctx.c_options.source_map_contents;
-    const std::vector<std::string> links = ctx.srcmap_links;
-    const std::vector<Resource>& sources(ctx.resources);
+    const sass::vector<sass::string> links = ctx.srcmap_links;
+    const sass::vector<Resource>& sources(ctx.resources);
 
     JsonNode* json_srcmap = json_mkobject();
 
@@ -36,7 +39,7 @@ namespace Sass {
 
     JsonNode *json_sources = json_mkarray();
     for (size_t i = 0; i < source_index.size(); ++i) {
-      std::string source(links[source_index[i]]);
+      sass::string source(links[source_index[i]]);
       if (ctx.c_options.source_map_file_urls) {
         source = File::rel2abs(source);
         // check for windows abs path
@@ -69,19 +72,19 @@ namespace Sass {
     // no problem as we do not alter any identifiers
     json_append_member(json_srcmap, "names", json_names);
 
-    std::string mappings = serialize_mappings();
+    sass::string mappings = serialize_mappings();
     JsonNode *json_mappings = json_mkstring(mappings.c_str());
     json_append_member(json_srcmap, "mappings", json_mappings);
 
     char *str = json_stringify(json_srcmap, "\t");
-    std::string result = std::string(str);
+    sass::string result = sass::string(str);
     free(str);
     json_delete(json_srcmap);
     return result;
   }
 
-  std::string SourceMap::serialize_mappings() {
-    std::string result = "";
+  sass::string SourceMap::serialize_mappings() {
+    sass::string result = "";
 
     size_t previous_generated_line = 0;
     size_t previous_generated_column = 0;
@@ -98,7 +101,7 @@ namespace Sass {
       if (generated_line != previous_generated_line) {
         previous_generated_column = 0;
         if (generated_line > previous_generated_line) {
-          result += std::string(generated_line - previous_generated_line, ';');
+          result += sass::string(generated_line - previous_generated_line, ';');
           previous_generated_line = generated_line;
         }
       }
@@ -170,25 +173,29 @@ namespace Sass {
     current_position += offset;
   }
 
-  void SourceMap::add_open_mapping(const AST_Node_Ptr node)
+  void SourceMap::add_open_mapping(const AST_Node* node)
   {
-    mappings.push_back(Mapping(node->pstate(), current_position));
+    const SourceSpan& span(node->pstate());
+    Position from(span.getSrcId(), span.position);
+    mappings.push_back(Mapping(from, current_position));
   }
 
-  void SourceMap::add_close_mapping(const AST_Node_Ptr node)
+  void SourceMap::add_close_mapping(const AST_Node* node)
   {
-    mappings.push_back(Mapping(node->pstate() + node->pstate().offset, current_position));
+    const SourceSpan& span(node->pstate());
+    Position to(span.getSrcId(), span.position + span.offset);
+    mappings.push_back(Mapping(to, current_position));
   }
 
-  ParserState SourceMap::remap(const ParserState& pstate) {
+  SourceSpan SourceMap::remap(const SourceSpan& pstate) {
     for (size_t i = 0; i < mappings.size(); ++i) {
       if (
-        mappings[i].generated_position.file == pstate.file &&
-        mappings[i].generated_position.line == pstate.line &&
-        mappings[i].generated_position.column == pstate.column
-      ) return ParserState(pstate.path, pstate.src, mappings[i].original_position, pstate.offset);
+        mappings[i].generated_position.file == pstate.getSrcId() &&
+        mappings[i].generated_position.line == pstate.position.line &&
+        mappings[i].generated_position.column == pstate.position.column
+      ) return SourceSpan(pstate.source, mappings[i].original_position, pstate.offset);
     }
-    return ParserState(pstate.path, pstate.src, Position(-1, -1, -1), Offset(0, 0));
+    return SourceSpan(pstate.source, Position(-1, -1, -1), Offset(0, 0));
 
   }
 

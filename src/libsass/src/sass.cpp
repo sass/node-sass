@@ -1,4 +1,7 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+
 #include <cstdlib>
 #include <cstring>
 #include <vector>
@@ -7,15 +10,16 @@
 #include "sass.h"
 #include "file.hpp"
 #include "util.hpp"
+#include "context.hpp"
 #include "sass_context.hpp"
 #include "sass_functions.hpp"
 
 namespace Sass {
 
   // helper to convert string list to vector
-  std::vector<std::string> list2vec(struct string_list* cur)
+  sass::vector<sass::string> list2vec(struct string_list* cur)
   {
-    std::vector<std::string> list;
+    sass::vector<sass::string> list;
     while (cur) {
       list.push_back(cur->string);
       cur = cur->next;
@@ -42,6 +46,7 @@ extern "C" {
 
   char* ADDCALL sass_copy_c_string(const char* str)
   {
+    if (str == nullptr) return nullptr;
     size_t len = strlen(str) + 1;
     char* cpy = (char*) sass_alloc_memory(len);
     std::memcpy(cpy, str, len);
@@ -57,14 +62,14 @@ extern "C" {
   // caller must free the returned memory
   char* ADDCALL sass_string_quote (const char *str, const char quote_mark)
   {
-    std::string quoted = quote(str, quote_mark);
+    sass::string quoted = quote(str, quote_mark);
     return sass_copy_c_string(quoted.c_str());
   }
 
   // caller must free the returned memory
   char* ADDCALL sass_string_unquote (const char *str)
   {
-    std::string unquoted = unquote(str);
+    sass::string unquoted = unquote(str);
     return sass_copy_c_string(unquoted.c_str());
   }
 
@@ -72,13 +77,13 @@ extern "C" {
   {
     // get the last import entry to get current base directory
     Sass_Import_Entry import = sass_compiler_get_last_import(compiler);
-    const std::vector<std::string>& incs = compiler->cpp_ctx->include_paths;
+    const sass::vector<sass::string>& incs = compiler->cpp_ctx->include_paths;
     // create the vector with paths to lookup
-    std::vector<std::string> paths(1 + incs.size());
+    sass::vector<sass::string> paths(1 + incs.size());
     paths.push_back(File::dir_name(import->abs_path));
     paths.insert( paths.end(), incs.begin(), incs.end() );
     // now resolve the file path relative to lookup paths
-    std::string resolved(File::find_include(file, paths));
+    sass::string resolved(File::find_include(file, paths));
     return sass_copy_c_string(resolved.c_str());
   }
 
@@ -86,13 +91,13 @@ extern "C" {
   {
     // get the last import entry to get current base directory
     Sass_Import_Entry import = sass_compiler_get_last_import(compiler);
-    const std::vector<std::string>& incs = compiler->cpp_ctx->include_paths;
+    const sass::vector<sass::string>& incs = compiler->cpp_ctx->include_paths;
     // create the vector with paths to lookup
-    std::vector<std::string> paths(1 + incs.size());
+    sass::vector<sass::string> paths(1 + incs.size());
     paths.push_back(File::dir_name(import->abs_path));
     paths.insert( paths.end(), incs.begin(), incs.end() );
     // now resolve the file path relative to lookup paths
-    std::string resolved(File::find_file(file, paths));
+    sass::string resolved(File::find_file(file, paths));
     return sass_copy_c_string(resolved.c_str());
   }
 
@@ -101,8 +106,8 @@ extern "C" {
   // this has the original resolve logic for sass include
   char* ADDCALL sass_find_include (const char* file, struct Sass_Options* opt)
   {
-    std::vector<std::string> vec(list2vec(opt->include_paths));
-    std::string resolved(File::find_include(file, vec));
+    sass::vector<sass::string> vec(list2vec(opt->include_paths));
+    sass::string resolved(File::find_include(file, vec));
     return sass_copy_c_string(resolved.c_str());
   }
 
@@ -110,8 +115,8 @@ extern "C" {
   // Incs array has to be null terminated!
   char* ADDCALL sass_find_file (const char* file, struct Sass_Options* opt)
   {
-    std::vector<std::string> vec(list2vec(opt->include_paths));
-    std::string resolved(File::find_file(file, vec));
+    sass::vector<sass::string> vec(list2vec(opt->include_paths));
+    sass::string resolved(File::find_file(file, vec));
     return sass_copy_c_string(resolved.c_str());
   }
 
@@ -132,7 +137,7 @@ extern "C" {
 namespace Sass {
 
   // helper to aid dreaded MSVC debug mode
-  char* sass_copy_string(std::string str)
+  char* sass_copy_string(sass::string str)
   {
     // In MSVC the following can lead to segfault:
     // sass_copy_c_string(stream.str().c_str());

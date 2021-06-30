@@ -1,5 +1,9 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+
 #include "position.hpp"
+#include "source.hpp"
 
 namespace Sass {
 
@@ -15,7 +19,7 @@ namespace Sass {
     *this = inc(string, string + strlen(string));
   }
 
-  Offset::Offset(const std::string& text)
+  Offset::Offset(const sass::string& text)
   : line(0), column(0)
   {
     *this = inc(text.c_str(), text.c_str() + text.size());
@@ -29,7 +33,7 @@ namespace Sass {
   {
     Offset offset(0, 0);
     if (end == 0) {
-      end += strlen(beg);
+      end = beg + strlen(beg);
     }
     offset.add(beg, end);
     return offset;
@@ -50,15 +54,13 @@ namespace Sass {
         // https://stackoverflow.com/a/9356203/1550314
         // https://en.wikipedia.org/wiki/UTF-8#Description
         unsigned char chr = *begin;
-        // skip over 10xxxxxx
-        // is 1st bit not set
-        if ((chr & 128) == 0) {
-          // regular ascii char
-          column += 1;
-        }
-        // is 2nd bit not set
-        else if ((chr & 64) == 0) {
-          // first utf8 byte
+        // Ignore all `10xxxxxx` chars
+        // '0xxxxxxx' are ASCII chars
+        // '11xxxxxx' are utf8 starts
+        // 64 => initial utf8 byte
+        // 128 => regular ASCII char
+        if ((chr & 192) != 128) {
+          // regular ASCII char
           column += 1;
         }
       }
@@ -114,14 +116,11 @@ namespace Sass {
   : Offset(line, column), file(file) { }
 
 
-  ParserState::ParserState(const char* path, const char* src, const size_t file)
-  : Position(file, 0, 0), path(path), src(src), offset(0, 0), token() { }
+  SourceSpan::SourceSpan(const char* path)
+  : source(SASS_MEMORY_NEW(SynthFile, path)), position(0, 0), offset(0, 0) { }
 
-  ParserState::ParserState(const char* path, const char* src, const Position& position, Offset offset)
-  : Position(position), path(path), src(src), offset(offset), token() { }
-
-  ParserState::ParserState(const char* path, const char* src, const Token& token, const Position& position, Offset offset)
-  : Position(position), path(path), src(src), offset(offset), token(token) { }
+  SourceSpan::SourceSpan(SourceDataObj source, const Offset& position, const Offset& offset)
+    : source(source), position(position), offset(offset) { }
 
   Position Position::add(const char* begin, const char* end)
   {
@@ -160,22 +159,5 @@ namespace Sass {
   {
     return Offset(line - off.line, off.line == line ? column - off.column : column);
   }
-
-  /* not used anymore - remove?
-  std::ostream& operator<<(std::ostream& strm, const Offset& off)
-  {
-    if (off.line == string::npos) strm << "-1:"; else strm << off.line << ":";
-    if (off.column == string::npos) strm << "-1"; else strm << off.column;
-    return strm;
-  } */
-
-  /* not used anymore - remove?
-  std::ostream& operator<<(std::ostream& strm, const Position& pos)
-  {
-    if (pos.file != string::npos) strm << pos.file << ":";
-    if (pos.line == string::npos) strm << "-1:"; else strm << pos.line << ":";
-    if (pos.column == string::npos) strm << "-1"; else strm << pos.column;
-    return strm;
-  } */
 
 }

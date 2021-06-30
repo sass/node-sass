@@ -10,19 +10,19 @@ namespace Sass {
 
   struct Backtrace {
 
-    ParserState pstate;
-    std::string caller;
+    SourceSpan pstate;
+    sass::string caller;
 
-    Backtrace(ParserState pstate, std::string c = "")
+    Backtrace(SourceSpan pstate, sass::string c = "")
     : pstate(pstate),
       caller(c)
     { }
 
   };
 
-  typedef std::vector<Backtrace> Backtraces;
+  typedef sass::vector<Backtrace> Backtraces;
 
-  const std::string traces_to_string(Backtraces traces, std::string indent = "\t");
+  const sass::string traces_to_string(Backtraces traces, sass::string indent = "\t");
 
 }
 

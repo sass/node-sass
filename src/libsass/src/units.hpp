@@ -55,8 +55,8 @@ namespace Sass {
 
   class Units {
   public:
-    std::vector<std::string> numerators;
-    std::vector<std::string> denominators;
+    sass::vector<sass::string> numerators;
+    sass::vector<sass::string> denominators;
   public:
     // default constructor
     Units() :
@@ -69,7 +69,7 @@ namespace Sass {
       denominators(ptr->denominators)
     { }
     // convert to string
-    std::string unit() const;
+    sass::string unit() const;
     // get if units are empty
     bool is_unitless() const;
     // return if valid for css
@@ -83,6 +83,7 @@ namespace Sass {
     // compare operations
     bool operator< (const Units& rhs) const;
     bool operator== (const Units& rhs) const;
+    bool operator!= (const Units& rhs) const;
     // factor to convert into given units
     double convert_factor(const Units&) const;
   };
@@ -94,15 +95,15 @@ namespace Sass {
   extern const double resolution_conversion_factors[3][3];
 
   UnitType get_main_unit(const UnitClass unit);
-  enum Sass::UnitType string_to_unit(const std::string&);
+  enum Sass::UnitType string_to_unit(const sass::string&);
   const char* unit_to_string(Sass::UnitType unit);
   enum Sass::UnitClass get_unit_type(Sass::UnitType unit);
-  std::string get_unit_class(Sass::UnitType unit);
-  std::string unit_to_class(const std::string&);
+  sass::string get_unit_class(Sass::UnitType unit);
+  sass::string unit_to_class(const sass::string&);
   // throws incompatibleUnits exceptions
-  double conversion_factor(const std::string&, const std::string&);
+  double conversion_factor(const sass::string&, const sass::string&);
   double conversion_factor(UnitType, UnitType, UnitClass, UnitClass);
-  double convert_units(const std::string&, const std::string&, int&, int&);
+  double convert_units(const sass::string&, const sass::string&, int&, int&);
 
 }
 

@@ -1,0 +1,8 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="LibSass Includes">{{includes}}</ItemGroup>
+  <ItemGroup Label="LibSass Headers">{{headers}}</ItemGroup>
+  <ItemGroup Label="LibSass Sources">{{sources}}</ItemGroup>
+  <ItemGroup Label="LibSass Compatibility">
+    <ClCompile Condition="$(VisualStudioVersion) &lt; 14.0" Include="$(LIBSASS_SRC_DIR)\c99func.c" />
+  </ItemGroup>
+</Project>

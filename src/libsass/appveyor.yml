@@ -2,7 +2,7 @@ os: Visual Studio 2013
 
 environment:
   CTEST_OUTPUT_ON_FAILURE: 1
-  ruby_version: 22-x64
+  ruby_version: 24-x64
   TargetPath: sassc/bin/sassc.exe
   matrix:
   - Compiler: msvc
@@ -23,12 +23,21 @@ cache:
   - C:\Ruby%ruby_version%\lib\ruby\gems
   - C:\mingw64
 
+# Uncomment to debug hanging builds via RDP, password can be found/set under Environment-Variables in appveyor settings!
+#
+# init:
+#   - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+#
+# on_finish:
+#   - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
 install:
   - git clone https://github.com/sass/sassc.git
   - git clone https://github.com/sass/sass-spec.git
   - set PATH=C:\Ruby%ruby_version%\bin;%PATH%
   - ps: |
       if(!(gem which minitest 2>$nul)) { gem install minitest --no-ri --no-rdoc }
+      if(!(gem which hrx 2>$nul)) { gem install hrx --no-ri --no-rdoc }
       if ($env:Compiler -eq "mingw" -AND -Not (Test-Path "C:\mingw64")) {
         # Install MinGW.
         $file = "x86_64-4.9.2-release-win32-seh-rt_v4-rev3.7z"
@@ -70,7 +79,7 @@ test_script:
       }
       $env:TargetPath = Join-Path $pwd.Path $env:TargetPath
       If (Test-Path "$env:TargetPath") {
-        ruby sass-spec/sass-spec.rb -V 3.5 --probe-todo --impl libsass -c $env:TargetPath -s sass-spec/spec
+        ruby sass-spec/sass-spec.rb --probe-todo --impl libsass -c $env:TargetPath -s sass-spec/spec
         if(-not($?)) {
           echo "sass-spec tests failed"
           exit 1
@@ -79,9 +88,9 @@ test_script:
         echo "spec runner not found (compile error?)"
         exit 1
       }
-      Write-Host "Explicitly testing the case when cwd has Cyrillic characters: " -nonewline
+      Write-Host "Explicitly testing the case when cwd has Unicode characters: " -nonewline
       # See comments in gh-1774 for details.
-      cd sass-spec/spec/libsass/Sáss-UŢF8/
+      cd test/e2e/unicode-pwd/Sáss-UŢF8/
       &$env:TargetPath ./input.scss 2>&1>$null
       if(-not($?)) {
         echo "Failed!"

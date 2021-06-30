@@ -1,7 +1,11 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+
 #include <iostream>
 #include "output.hpp"
 #include "plugins.hpp"
+#include "util.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -40,18 +44,18 @@ namespace Sass {
     if (!strcmp(our_version, "[na]")) return false;
 
     // find the position of the second dot
-    size_t pos = std::string(our_version).find('.', 0);
-    if (pos != std::string::npos) pos = std::string(our_version).find('.', pos + 1);
+    size_t pos = sass::string(our_version).find('.', 0);
+    if (pos != sass::string::npos) pos = sass::string(our_version).find('.', pos + 1);
 
     // if we do not have two dots we fallback to compare complete string
-    if (pos == std::string::npos) { return strcmp(their_version, our_version) ? 0 : 1; }
+    if (pos == sass::string::npos) { return strcmp(their_version, our_version) ? 0 : 1; }
     // otherwise only compare up to the second dot (major versions)
     else { return strncmp(their_version, our_version, pos) ? 0 : 1; }
 
   }
 
   // load one specific plugin
-  bool Plugins::load_plugin (const std::string& path)
+  bool Plugins::load_plugin (const sass::string& path)
   {
 
     typedef const char* (*__plugin_version__)(void);
@@ -108,7 +112,7 @@ namespace Sass {
 
   }
 
-  size_t Plugins::load_plugins(const std::string& path)
+  size_t Plugins::load_plugins(const sass::string& path)
   {
 
     // count plugins
@@ -122,7 +126,7 @@ namespace Sass {
         // use wchar (utf16)
         WIN32_FIND_DATAW data;
         // trailing slash is guaranteed
-        std::string globsrch(path + "*.dll");
+        sass::string globsrch(path + "*.dll");
         // convert to wide chars (utf16) for system call
         std::wstring wglobsrch(UTF_8::convert_to_utf16(globsrch));
         HANDLE hFile = FindFirstFileW(wglobsrch.c_str(), &data);
@@ -136,7 +140,7 @@ namespace Sass {
           try
           {
             // the system will report the filenames with wide chars (utf16)
-            std::string entry = UTF_8::convert_from_utf16(data.cFileName);
+            sass::string entry = UTF_8::convert_from_utf16(data.cFileName);
             // check if file ending matches exactly
             if (!ends_with(entry, ".dll")) continue;
             // load the plugin and increase counter
@@ -154,7 +158,7 @@ namespace Sass {
           }
         }
       }
-      catch (utf8::invalid_utf8)
+      catch (utf8::invalid_utf8&)
       {
         // report the error to the console (should not happen)
         // implementors should make sure to provide valid utf8

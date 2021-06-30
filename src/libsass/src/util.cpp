@@ -2,6 +2,7 @@
 #include "sass.h"
 #include "ast.hpp"
 #include "util.hpp"
+#include "util_string.hpp"
 #include "lexer.hpp"
 #include "prelexer.hpp"
 #include "constants.hpp"
@@ -26,8 +27,8 @@ namespace Sass {
     #endif
 
     // https://github.com/sass/sass/commit/4e3e1d5684cc29073a507578fc977434ff488c93
-    if (fmod(val, 1) - 0.5 > - std::pow(0.1, precision + 1)) return std::ceil(val);
-    else if (fmod(val, 1) - 0.5 > std::pow(0.1, precision)) return std::floor(val);
+    if (std::fmod(val, 1) - 0.5 > - std::pow(0.1, precision + 1)) return std::ceil(val);
+    else if (std::fmod(val, 1) - 0.5 > std::pow(0.1, precision)) return std::floor(val);
     // work around some compiler issue
     // cygwin has it not defined in std
     using namespace std;
@@ -75,7 +76,7 @@ namespace Sass {
     free(arr);
   }
 
-  char **copy_strings(const std::vector<std::string>& strings, char*** array, int skip) {
+  char **copy_strings(const sass::vector<sass::string>& strings, char*** array, int skip) {
     int num = static_cast<int>(strings.size()) - skip;
     char** arr = (char**) calloc(num + 1, sizeof(char*));
     if (arr == 0)
@@ -96,10 +97,10 @@ namespace Sass {
   }
 
   // read css string (handle multiline DELIM)
-  std::string read_css_string(const std::string& str, bool css)
+  sass::string read_css_string(const sass::string& str, bool css)
   {
     if (!css) return str;
-    std::string out("");
+    sass::string out("");
     bool esc = false;
     for (auto i : str) {
       if (i == '\\') {
@@ -124,9 +125,9 @@ namespace Sass {
 
   // double escape all escape sequences
   // keep unescaped quotes and backslashes
-  std::string evacuate_escapes(const std::string& str)
+  sass::string evacuate_escapes(const sass::string& str)
   {
-    std::string out("");
+    sass::string out("");
     bool esc = false;
     for (auto i : str) {
       if (i == '\\' && !esc) {
@@ -158,56 +159,77 @@ namespace Sass {
   }
 
   // bell characters are replaced with spaces
-  void newline_to_space(std::string& str)
+  void newline_to_space(sass::string& str)
   {
     std::replace(str.begin(), str.end(), '\n', ' ');
   }
 
-  // bell characters are replaced with spaces
-  // also eats spaces after line-feeds (ltrim)
-  std::string string_to_output(const std::string& str)
+  // 1. Removes whitespace after newlines.
+  // 2. Replaces newlines with spaces.
+  //
+  // This method only considers LF and CRLF as newlines.
+  sass::string string_to_output(const sass::string& str)
   {
-    std::string out("");
-    bool lf = false;
-    for (auto i : str) {
-      if (i == '\n') {
-        out += ' ';
-        lf = true;
-      } else if (!(lf && isspace(i))) {
-        out += i;
-        lf = false;
-      }
-    }
-    return out;
-  }
-
-  std::string escape_string(const std::string& str)
-  {
-    std::string out("");
-    for (auto i : str) {
-      if (i == '\n') {
-        out += "\\n";
-      } else if (i == '\r') {
-        out += "\\r";
-      } else if (i == '\t') {
-        out += "\\t";
+    sass::string result;
+    result.reserve(str.size());
+    std::size_t pos = 0;
+    while (true) {
+      const std::size_t newline = str.find_first_of("\n\r", pos);
+      if (newline == sass::string::npos) break;
+      result.append(str, pos, newline - pos);
+      if (str[newline] == '\r') {
+        if (str[newline + 1] == '\n') {
+          pos = newline + 2;
+        } else {
+          // CR without LF: append as-is and continue.
+          result += '\r';
+          pos = newline + 1;
+          continue;
+        }
       } else {
-        out += i;
+        pos = newline + 1;
+      }
+      result += ' ';
+      const std::size_t non_space = str.find_first_not_of(" \f\n\r\t\v", pos);
+      if (non_space != sass::string::npos) {
+        pos = non_space;
+      }
+    }
+    result.append(str, pos, sass::string::npos);
+    return result;
+  }
+
+  sass::string escape_string(const sass::string& str)
+  {
+    sass::string out;
+    out.reserve(str.size());
+    for (char c : str) {
+      switch (c) {
+        case '\n':
+          out.append("\\n");
+          break;
+        case '\r':
+          out.append("\\r");
+          break;
+        case '\f':
+          out.append("\\f");
+          break;
+        default:
+          out += c;
       }
     }
     return out;
   }
 
-  std::string comment_to_string(const std::string& text)
+  sass::string comment_to_compact_string(const sass::string& text)
   {
-    std::string str = "";
+    sass::string str = "";
     size_t has = 0;
     char prev = 0;
     bool clean = false;
     for (auto i : text) {
       if (clean) {
         if (i == '\n') { has = 0; }
-        else if (i == '\r') { has = 0; }
         else if (i == '\t') { ++ has; }
         else if (i == ' ') { ++ has; }
         else if (i == '*') {}
@@ -218,8 +240,6 @@ namespace Sass {
           else str += i;
         }
       } else if (i == '\n') {
-        clean = true;
-      } else if (i == '\r') {
         clean = true;
       } else {
         str += i;
@@ -250,10 +270,10 @@ namespace Sass {
     return quote_mark;
   }
 
-  std::string read_hex_escapes(const std::string& s)
+  sass::string read_hex_escapes(const sass::string& s)
   {
 
-    std::string result;
+    sass::string result;
     bool skipped = false;
 
     for (size_t i = 0, L = s.length(); i < L; ++i) {
@@ -270,7 +290,7 @@ namespace Sass {
 
         // parse as many sequence chars as possible
         // ToDo: Check if ruby aborts after possible max
-        while (i + len < L && s[i + len] && isxdigit(s[i + len])) ++ len;
+        while (i + len < L && s[i + len] && Util::ascii_isxdigit(static_cast<unsigned char>(s[i + len]))) ++ len;
 
         if (len > 1) {
 
@@ -319,7 +339,7 @@ namespace Sass {
 
   }
 
-  std::string unquote(const std::string& s, char* qd, bool keep_utf8_sequences, bool strict)
+  sass::string unquote(const sass::string& s, char* qd, bool keep_utf8_sequences, bool strict)
   {
 
     // not enough room for quotes
@@ -335,7 +355,7 @@ namespace Sass {
     else if (*s.begin() == '\'' && *s.rbegin() == '\'') q = '\'';
     else                                                return s;
 
-    std::string unq;
+    sass::string unq;
     unq.reserve(s.length()-2);
 
     for (size_t i = 1, L = s.length() - 1; i < L; ++i) {
@@ -356,7 +376,7 @@ namespace Sass {
 
         // parse as many sequence chars as possible
         // ToDo: Check if ruby aborts after possible max
-        while (i + len < L && s[i + len] && isxdigit(s[i + len])) ++ len;
+        while (i + len < L && s[i + len] && Util::ascii_isxdigit(static_cast<unsigned char>(s[i + len]))) ++ len;
 
         // hex string?
         if (keep_utf8_sequences) {
@@ -394,7 +414,7 @@ namespace Sass {
       //   // don't be that strict
       //   return s;
       //   // this basically always means an internal error and not users fault
-      //   error("Unescaped delimiter in string to unquote found. [" + s + "]", ParserState("[UNQUOTE]"));
+      //   error("Unescaped delimiter in string to unquote found. [" + s + "]", SourceSpan("[UNQUOTE]"));
       // }
       else {
         if (strict && !skipped) {
@@ -411,16 +431,16 @@ namespace Sass {
 
   }
 
-  std::string quote(const std::string& s, char q)
+  sass::string quote(const sass::string& s, char q)
   {
 
     // autodetect with fallback to given quote
     q = detect_best_quotemark(s.c_str(), q);
 
     // return an empty quoted string
-    if (s.empty()) return std::string(2, q ? q : '"');
+    if (s.empty()) return sass::string(2, q ? q : '"');
 
-    std::string quoted;
+    sass::string quoted;
     quoted.reserve(s.length()+2);
     quoted.push_back(q);
 
@@ -508,42 +528,15 @@ namespace Sass {
   }
 
   namespace Util {
-    using std::string;
 
-    std::string rtrim(const std::string &str) {
-      std::string trimmed = str;
-      size_t pos_ws = trimmed.find_last_not_of(" \t\n\v\f\r");
-      if (pos_ws != std::string::npos)
-      { trimmed.erase(pos_ws + 1); }
-      else { trimmed.clear(); }
-      return trimmed;
-    }
-
-    std::string normalize_underscores(const std::string& str) {
-      std::string normalized = str;
-      for(size_t i = 0, L = normalized.length(); i < L; ++i) {
-        if(normalized[i] == '_') {
-          normalized[i] = '-';
-        }
-      }
-      return normalized;
-    }
-
-    std::string normalize_decimals(const std::string& str) {
-      std::string prefix = "0";
-      std::string normalized = str;
-
-      return normalized[0] == '.' ? normalized.insert(0, prefix) : normalized;
-    }
-
-    bool isPrintable(Ruleset_Ptr r, Sass_Output_Style style) {
+    bool isPrintable(StyleRule* r, Sass_Output_Style style) {
       if (r == NULL) {
         return false;
       }
 
       Block_Obj b = r->block();
 
-      Selector_List_Ptr sl = Cast<Selector_List>(r->selector());
+      SelectorList* sl = r->selector();
       bool hasSelectors = sl ? sl->length() > 0 : false;
 
       if (!hasSelectors) {
@@ -554,16 +547,16 @@ namespace Sass {
       bool hasPrintableChildBlocks = false;
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement_Obj stm = b->at(i);
-        if (Cast<Directive>(stm)) {
+        if (Cast<AtRule>(stm)) {
           return true;
-        } else if (Declaration_Ptr d = Cast<Declaration>(stm)) {
+        } else if (Declaration* d = Cast<Declaration>(stm)) {
           return isPrintable(d, style);
-        } else if (Has_Block_Ptr p = Cast<Has_Block>(stm)) {
+        } else if (ParentStatement* p = Cast<ParentStatement>(stm)) {
           Block_Obj pChildBlock = p->block();
           if (isPrintable(pChildBlock, style)) {
             hasPrintableChildBlocks = true;
           }
-        } else if (Comment_Ptr c = Cast<Comment>(stm)) {
+        } else if (Comment* c = Cast<Comment>(stm)) {
           // keep for uncompressed
           if (style != COMPRESSED) {
             hasDeclarations = true;
@@ -584,25 +577,25 @@ namespace Sass {
       return false;
     }
 
-    bool isPrintable(String_Constant_Ptr s, Sass_Output_Style style)
+    bool isPrintable(String_Constant* s, Sass_Output_Style style)
     {
       return ! s->value().empty();
     }
 
-    bool isPrintable(String_Quoted_Ptr s, Sass_Output_Style style)
+    bool isPrintable(String_Quoted* s, Sass_Output_Style style)
     {
       return true;
     }
 
-    bool isPrintable(Declaration_Ptr d, Sass_Output_Style style)
+    bool isPrintable(Declaration* d, Sass_Output_Style style)
     {
-      Expression_Obj val = d->value();
+      ExpressionObj val = d->value();
       if (String_Quoted_Obj sq = Cast<String_Quoted>(val)) return isPrintable(sq.ptr(), style);
       if (String_Constant_Obj sc = Cast<String_Constant>(val)) return isPrintable(sc.ptr(), style);
       return true;
     }
 
-    bool isPrintable(Supports_Block_Ptr f, Sass_Output_Style style) {
+    bool isPrintable(SupportsRule* f, Sass_Output_Style style) {
       if (f == NULL) {
         return false;
       }
@@ -613,10 +606,10 @@ namespace Sass {
       bool hasPrintableChildBlocks = false;
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement_Obj stm = b->at(i);
-        if (Cast<Declaration>(stm) || Cast<Directive>(stm)) {
+        if (Cast<Declaration>(stm) || Cast<AtRule>(stm)) {
           hasDeclarations = true;
         }
-        else if (Has_Block_Ptr b = Cast<Has_Block>(stm)) {
+        else if (ParentStatement* b = Cast<ParentStatement>(stm)) {
           Block_Obj pChildBlock = b->block();
           if (!b->is_invisible()) {
             if (isPrintable(pChildBlock, style)) {
@@ -633,36 +626,37 @@ namespace Sass {
       return false;
     }
 
-    bool isPrintable(Media_Block_Ptr m, Sass_Output_Style style)
+    bool isPrintable(CssMediaRule* m, Sass_Output_Style style)
     {
-      if (m == 0) return false;
+      if (m == nullptr) return false;
       Block_Obj b = m->block();
-      if (b == 0) return false;
+      if (b == nullptr) return false;
+      if (m->empty()) return false;
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement_Obj stm = b->at(i);
-        if (Cast<Directive>(stm)) return true;
+        if (Cast<AtRule>(stm)) return true;
         else if (Cast<Declaration>(stm)) return true;
-        else if (Comment_Ptr c = Cast<Comment>(stm)) {
+        else if (Comment* c = Cast<Comment>(stm)) {
           if (isPrintable(c, style)) {
             return true;
           }
         }
-        else if (Ruleset_Ptr r = Cast<Ruleset>(stm)) {
+        else if (StyleRule* r = Cast<StyleRule>(stm)) {
           if (isPrintable(r, style)) {
             return true;
           }
         }
-        else if (Supports_Block_Ptr f = Cast<Supports_Block>(stm)) {
+        else if (SupportsRule* f = Cast<SupportsRule>(stm)) {
           if (isPrintable(f, style)) {
             return true;
           }
         }
-        else if (Media_Block_Ptr mb = Cast<Media_Block>(stm)) {
+        else if (CssMediaRule* mb = Cast<CssMediaRule>(stm)) {
           if (isPrintable(mb, style)) {
             return true;
           }
         }
-        else if (Has_Block_Ptr b = Cast<Has_Block>(stm)) {
+        else if (ParentStatement* b = Cast<ParentStatement>(stm)) {
           if (isPrintable(b->block(), style)) {
             return true;
           }
@@ -671,7 +665,7 @@ namespace Sass {
       return false;
     }
 
-    bool isPrintable(Comment_Ptr c, Sass_Output_Style style)
+    bool isPrintable(Comment* c, Sass_Output_Style style)
     {
       // keep for uncompressed
       if (style != COMPRESSED) {
@@ -692,30 +686,30 @@ namespace Sass {
 
       for (size_t i = 0, L = b->length(); i < L; ++i) {
         Statement_Obj stm = b->at(i);
-        if (Cast<Declaration>(stm) || Cast<Directive>(stm)) {
+        if (Cast<Declaration>(stm) || Cast<AtRule>(stm)) {
           return true;
         }
-        else if (Comment_Ptr c = Cast<Comment>(stm)) {
+        else if (Comment* c = Cast<Comment>(stm)) {
           if (isPrintable(c, style)) {
             return true;
           }
         }
-        else if (Ruleset_Ptr r = Cast<Ruleset>(stm)) {
+        else if (StyleRule* r = Cast<StyleRule>(stm)) {
           if (isPrintable(r, style)) {
             return true;
           }
         }
-        else if (Supports_Block_Ptr f = Cast<Supports_Block>(stm)) {
+        else if (SupportsRule* f = Cast<SupportsRule>(stm)) {
           if (isPrintable(f, style)) {
             return true;
           }
         }
-        else if (Media_Block_Ptr m = Cast<Media_Block>(stm)) {
+        else if (CssMediaRule * m = Cast<CssMediaRule>(stm)) {
           if (isPrintable(m, style)) {
             return true;
           }
         }
-        else if (Has_Block_Ptr b = Cast<Has_Block>(stm)) {
+        else if (ParentStatement* b = Cast<ParentStatement>(stm)) {
           if (isPrintable(b->block(), style)) {
             return true;
           }
@@ -723,10 +717,6 @@ namespace Sass {
       }
 
       return false;
-    }
-
-    bool isAscii(const char chr) {
-      return unsigned(chr) < 128;
     }
 
   }

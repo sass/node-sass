@@ -28,7 +28,7 @@ if (lex< custom_property_name >()) {
 
 ## How is the `source_position` calculated
 
-This is automatically done with `lex` in `parser.hpp`. Whenever something is lexed, the `source_position` is updated. But be aware that `source_position` points to the begining of the parsed text. If you need a mapping for the position where the parsing ended, you need to add another call to `lex` (to match nothing)!
+This is automatically done with `lex` in `parser.hpp`. Whenever something is lexed, the `source_position` is updated. But be aware that `source_position` points to the beginning of the parsed text. If you need a mapping for the position where the parsing ended, you need to add another call to `lex` (to match nothing)!
 
 ```
 lex< exactly < empty_str > >();

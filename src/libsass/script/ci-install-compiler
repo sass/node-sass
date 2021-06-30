@@ -1,6 +1,8 @@
 #!/bin/bash
 
-gem install minitest
-gem install minitap
+sudo gem install minitest
+sudo gem install minitap
+sudo gem install rspec
+sudo gem install hrx
 
-pip2 install --user 'requests[security]'
+# sudo pip2 install --user 'requests[security]'

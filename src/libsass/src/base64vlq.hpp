@@ -9,7 +9,7 @@ namespace Sass {
 
   public:
 
-    std::string encode(const int number) const;
+    sass::string encode(const int number) const;
 
   private:
 

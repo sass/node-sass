@@ -1,6 +1,7 @@
 #include "sass.hpp"
 #include "bind.hpp"
 #include "ast.hpp"
+#include "backtrace.hpp"
 #include "context.hpp"
 #include "expand.hpp"
 #include "eval.hpp"
@@ -10,11 +11,11 @@
 
 namespace Sass {
 
-  void bind(std::string type, std::string name, Parameters_Obj ps, Arguments_Obj as, Context* ctx, Env* env, Eval* eval)
+  void bind(sass::string type, sass::string name, Parameters_Obj ps, Arguments_Obj as, Env* env, Eval* eval, Backtraces& traces)
   {
-    std::string callee(type + " " + name);
+    sass::string callee(type + " " + name);
 
-    std::map<std::string, Parameter_Obj> param_map;
+    std::map<sass::string, Parameter_Obj> param_map;
     List_Obj varargs = SASS_MEMORY_NEW(List, as->pstate());
     varargs->is_arglist(true); // enable keyword size handling
 
@@ -51,10 +52,10 @@ namespace Sass {
             }
           }
         }
-        std::stringstream msg;
+        sass::ostream msg;
         msg << "wrong number of arguments (" << LA << " for " << LP << ")";
         msg << " for `" << name << "'";
-        return error(msg.str(), as->pstate(), eval->exp.traces);
+        return error(msg.str(), as->pstate(), traces);
       }
       Parameter_Obj p = ps->at(ip);
 
@@ -66,13 +67,13 @@ namespace Sass {
           // We should always get a list for rest arguments
           if (List_Obj rest = Cast<List>(a->value())) {
               // create a new list object for wrapped items
-              List_Ptr arglist = SASS_MEMORY_NEW(List,
+              List* arglist = SASS_MEMORY_NEW(List,
                                               p->pstate(),
                                               0,
                                               rest->separator(),
                                               true);
               // wrap each item from list as an argument
-              for (Expression_Obj item : rest->elements()) {
+              for (ExpressionObj item : rest->elements()) {
                 if (Argument_Obj arg = Cast<Argument>(item)) {
                   arglist->append(SASS_MEMORY_COPY(arg)); // copy
                 } else {
@@ -94,12 +95,12 @@ namespace Sass {
         } else if (a->is_keyword_argument()) {
 
           // expand keyword arguments into their parameters
-          List_Ptr arglist = SASS_MEMORY_NEW(List, p->pstate(), 0, SASS_COMMA, true);
+          List* arglist = SASS_MEMORY_NEW(List, p->pstate(), 0, SASS_COMMA, true);
           env->local_frame()[p->name()] = arglist;
           Map_Obj argmap = Cast<Map>(a->value());
           for (auto key : argmap->keys()) {
             if (String_Constant_Obj str = Cast<String_Constant>(key)) {
-              std::string param = unquote(str->value());
+              sass::string param = unquote(str->value());
               arglist->append(SASS_MEMORY_NEW(Argument,
                                               key->pstate(),
                                               argmap->at(key),
@@ -107,8 +108,8 @@ namespace Sass {
                                               false,
                                               false));
             } else {
-              eval->exp.traces.push_back(Backtrace(key->pstate()));
-              throw Exception::InvalidVarKwdType(key->pstate(), eval->exp.traces, key->inspect(), a);
+              traces.push_back(Backtrace(key->pstate()));
+              throw Exception::InvalidVarKwdType(key->pstate(), traces, key->inspect(), a);
             }
           }
 
@@ -129,7 +130,7 @@ namespace Sass {
             // skip any list completely if empty
             if (ls && ls->empty() && a->is_rest_argument()) continue;
 
-            Expression_Obj value = a->value();
+            ExpressionObj value = a->value();
             if (Argument_Obj arg = Cast<Argument>(value)) {
               arglist->append(arg);
             }
@@ -140,7 +141,7 @@ namespace Sass {
                 arglist->separator(rest->separator());
 
                 for (size_t i = 0, L = rest->length(); i < L; ++i) {
-                  Expression_Obj obj = rest->value_at_index(i);
+                  ExpressionObj obj = rest->value_at_index(i);
                   arglist->append(SASS_MEMORY_NEW(Argument,
                                                 obj->pstate(),
                                                 obj,
@@ -167,7 +168,7 @@ namespace Sass {
         }
         // consumed parameter
         ++ip;
-        // no more paramaters
+        // no more parameters
         break;
       }
 
@@ -176,7 +177,7 @@ namespace Sass {
         // normal param and rest arg
         List_Obj arglist = Cast<List>(a->value());
         if (!arglist) {
-          if (Expression_Obj arg = Cast<Expression>(a->value())) {
+          if (ExpressionObj arg = Cast<Expression>(a->value())) {
             arglist = SASS_MEMORY_NEW(List, a->pstate(), 1);
             arglist->append(arg);
           }
@@ -188,7 +189,7 @@ namespace Sass {
         } else {
           if (arglist->length() > LP - ip && !ps->has_rest_parameter()) {
             size_t arg_count = (arglist->length() + LA - 1);
-            std::stringstream msg;
+            sass::ostream msg;
             msg << callee << " takes " << LP;
             msg << (LP == 1 ? " argument" : " arguments");
             msg << " but " << arg_count;
@@ -201,9 +202,9 @@ namespace Sass {
           }
         }
         // otherwise move one of the rest args into the param, converting to argument if necessary
-        Expression_Obj obj = arglist->at(0);
+        ExpressionObj obj = arglist->at(0);
         if (!(a = Cast<Argument>(obj))) {
-          Expression_Ptr a_to_convert = obj;
+          Expression* a_to_convert = obj;
           a = SASS_MEMORY_NEW(Argument,
                               a_to_convert->pstate(),
                               a_to_convert,
@@ -220,17 +221,17 @@ namespace Sass {
         Map_Obj argmap = Cast<Map>(a->value());
 
         for (auto key : argmap->keys()) {
-          String_Constant_Ptr val = Cast<String_Constant>(key);
+          String_Constant* val = Cast<String_Constant>(key);
           if (val == NULL) {
-            eval->exp.traces.push_back(Backtrace(key->pstate()));
-            throw Exception::InvalidVarKwdType(key->pstate(), eval->exp.traces, key->inspect(), a);
+            traces.push_back(Backtrace(key->pstate()));
+            throw Exception::InvalidVarKwdType(key->pstate(), traces, key->inspect(), a);
           }
-          std::string param = "$" + unquote(val->value());
+          sass::string param = "$" + unquote(val->value());
 
           if (!param_map.count(param)) {
-            std::stringstream msg;
+            sass::ostream msg;
             msg << callee << " has no parameter named " << param;
-            error(msg.str(), a->pstate(), eval->exp.traces);
+            error(msg.str(), a->pstate(), traces);
           }
           env->local_frame()[param] = argmap->at(key);
         }
@@ -242,10 +243,10 @@ namespace Sass {
 
       if (a->name().empty()) {
         if (env->has_local(p->name())) {
-          std::stringstream msg;
+          sass::ostream msg;
           msg << "parameter " << p->name()
           << " provided more than once in call to " << callee;
-          error(msg.str(), a->pstate(), eval->exp.traces);
+          error(msg.str(), a->pstate(), traces);
         }
         // ordinal arg -- bind it to the next param
         env->local_frame()[p->name()] = a->value();
@@ -257,24 +258,24 @@ namespace Sass {
           if (ps->has_rest_parameter()) {
             varargs->append(a);
           } else {
-            std::stringstream msg;
+            sass::ostream msg;
             msg << callee << " has no parameter named " << a->name();
-            error(msg.str(), a->pstate(), eval->exp.traces);
+            error(msg.str(), a->pstate(), traces);
           }
         }
         if (param_map[a->name()]) {
           if (param_map[a->name()]->is_rest_parameter()) {
-            std::stringstream msg;
+            sass::ostream msg;
             msg << "argument " << a->name() << " of " << callee
                 << "cannot be used as named argument";
-            error(msg.str(), a->pstate(), eval->exp.traces);
+            error(msg.str(), a->pstate(), traces);
           }
         }
         if (env->has_local(a->name())) {
-          std::stringstream msg;
+          sass::ostream msg;
           msg << "parameter " << p->name()
               << "provided more than once in call to " << callee;
-          error(msg.str(), a->pstate(), eval->exp.traces);
+          error(msg.str(), a->pstate(), traces);
         }
         env->local_frame()[a->name()] = a->value();
       }
@@ -294,12 +295,12 @@ namespace Sass {
           env->local_frame()[leftover->name()] = varargs;
         }
         else if (leftover->default_value()) {
-          Expression_Ptr dv = leftover->default_value()->perform(eval);
+          Expression* dv = leftover->default_value()->perform(eval);
           env->local_frame()[leftover->name()] = dv;
         }
         else {
           // param is unbound and has no default value -- error
-          throw Exception::MissingArgument(as->pstate(), eval->exp.traces, name, leftover->name(), type);
+          throw Exception::MissingArgument(as->pstate(), traces, name, leftover->name(), type);
         }
       }
     }

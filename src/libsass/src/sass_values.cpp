@@ -1,9 +1,11 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+
 #include <cstdlib>
 #include <cstring>
 #include "util.hpp"
 #include "eval.hpp"
-#include "values.hpp"
 #include "operators.hpp"
 #include "sass/values.h"
 #include "sass_values.hpp"
@@ -281,21 +283,21 @@ extern "C" {
 
   union Sass_Value* ADDCALL sass_value_stringify (const union Sass_Value* v, bool compressed, int precision)
   {
-    Value_Obj val = sass_value_to_ast_node(v);
+    ValueObj val = sass_value_to_ast_node(v);
     Sass_Inspect_Options options(compressed ? COMPRESSED : NESTED, precision);
-    std::string str(val->to_string(options));
+    sass::string str(val->to_string(options));
     return sass_make_qstring(str.c_str());
   }
 
   union Sass_Value* ADDCALL sass_value_op (enum Sass_OP op, const union Sass_Value* a, const union Sass_Value* b)
   {
 
-    Sass::Value_Ptr rv;
+    Sass::ValueObj rv;
 
     try {
 
-      Value_Obj lhs = sass_value_to_ast_node(a);
-      Value_Obj rhs = sass_value_to_ast_node(b);
+      ValueObj lhs = sass_value_to_ast_node(a);
+      ValueObj rhs = sass_value_to_ast_node(b);
       struct Sass_Inspect_Options options(NESTED, 5);
 
       // see if it's a relational expression
@@ -312,44 +314,47 @@ extern "C" {
       }
 
       if (sass_value_is_number(a) && sass_value_is_number(b)) {
-        Number_Ptr_Const l_n = Cast<Number>(lhs);
-        Number_Ptr_Const r_n = Cast<Number>(rhs);
+        const Number* l_n = Cast<Number>(lhs);
+        const Number* r_n = Cast<Number>(rhs);
         rv = Operators::op_numbers(op, *l_n, *r_n, options, l_n->pstate());
       }
       else if (sass_value_is_number(a) && sass_value_is_color(a)) {
-        Number_Ptr_Const l_n = Cast<Number>(lhs);
-        Color_Ptr_Const r_c = Cast<Color>(rhs);
+        const Number* l_n = Cast<Number>(lhs);
+        // Direct HSLA operations are not supported
+        // All color maths will be deprecated anyway
+        Color_RGBA_Obj r_c = Cast<Color>(rhs)->toRGBA();
         rv = Operators::op_number_color(op, *l_n, *r_c, options, l_n->pstate());
       }
       else if (sass_value_is_color(a) && sass_value_is_number(b)) {
-        Color_Ptr_Const l_c = Cast<Color>(lhs);
-        Number_Ptr_Const r_n = Cast<Number>(rhs);
+        // Direct HSLA operations are not supported
+        // All color maths will be deprecated anyway
+        Color_RGBA_Obj l_c = Cast<Color>(lhs)->toRGBA();
+        const Number* r_n = Cast<Number>(rhs);
         rv = Operators::op_color_number(op, *l_c, *r_n, options, l_c->pstate());
       }
       else if (sass_value_is_color(a) && sass_value_is_color(b)) {
-        Color_Ptr_Const l_c = Cast<Color>(lhs);
-        Color_Ptr_Const r_c = Cast<Color>(rhs);
+        // Direct HSLA operations are not supported
+        // All color maths will be deprecated anyway
+        Color_RGBA_Obj l_c = Cast<Color>(lhs)->toRGBA();
+        Color_RGBA_Obj r_c = Cast<Color>(rhs)->toRGBA();
         rv = Operators::op_colors(op, *l_c, *r_c, options, l_c->pstate());
       }
       else /* convert other stuff to string and apply operation */ {
-        Value_Ptr l_v = Cast<Value>(lhs);
-        Value_Ptr r_v = Cast<Value>(rhs);
-        rv = Operators::op_strings(op, *l_v, *r_v, options, l_v->pstate());
+        rv = Operators::op_strings(op, *lhs, *rhs, options, lhs->pstate());
       }
 
-      // ToDo: maybe we should should return null value?
+      // ToDo: maybe we should return null value?
       if (!rv) return sass_make_error("invalid return value");
 
       // convert result back to ast node
-      return ast_node_to_sass_value(rv);
-
+      return ast_node_to_sass_value(rv.ptr());
     }
 
     // simply pass the error message back to the caller for now
     catch (Exception::InvalidSass& e) { return sass_make_error(e.what()); }
     catch (std::bad_alloc&) { return sass_make_error("memory exhausted"); }
     catch (std::exception& e) { return sass_make_error(e.what()); }
-    catch (std::string& e) { return sass_make_error(e.c_str()); }
+    catch (sass::string& e) { return sass_make_error(e.c_str()); }
     catch (const char* e) { return sass_make_error(e); }
     catch (...) { return sass_make_error("unknown"); }
   }

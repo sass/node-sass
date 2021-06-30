@@ -1,4 +1,8 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+
+#include <cmath>
 #include "operators.hpp"
 
 namespace Sass {
@@ -27,7 +31,7 @@ namespace Sass {
     };
 
     /* static function, has no pstate or traces */
-    bool eq(Expression_Obj lhs, Expression_Obj rhs)
+    bool eq(ExpressionObj lhs, ExpressionObj rhs)
     {
       // operation is undefined if one is not a number
       if (!lhs || !rhs) throw Exception::UndefinedOperation(lhs, rhs, Sass_OP::EQ);
@@ -36,7 +40,7 @@ namespace Sass {
     }
 
     /* static function, throws OperationError, has no pstate or traces */
-    bool cmp(Expression_Obj lhs, Expression_Obj rhs, const Sass_OP op)
+    bool cmp(ExpressionObj lhs, ExpressionObj rhs, const Sass_OP op)
     {
       // can only compare numbers!?
       Number_Obj l = Cast<Number>(lhs);
@@ -48,43 +52,38 @@ namespace Sass {
     }
 
     /* static functions, throws OperationError, has no pstate or traces */
-    bool lt(Expression_Obj lhs, Expression_Obj rhs) { return cmp(lhs, rhs, Sass_OP::LT); }
-    bool neq(Expression_Obj lhs, Expression_Obj rhs) { return eq(lhs, rhs) == false; }
-    bool gt(Expression_Obj lhs, Expression_Obj rhs) { return !cmp(lhs, rhs, Sass_OP::GT) && neq(lhs, rhs); }
-    bool lte(Expression_Obj lhs, Expression_Obj rhs) { return cmp(lhs, rhs, Sass_OP::LTE) || eq(lhs, rhs); }
-    bool gte(Expression_Obj lhs, Expression_Obj rhs) { return !cmp(lhs, rhs, Sass_OP::GTE) || eq(lhs, rhs); }
+    bool lt(ExpressionObj lhs, ExpressionObj rhs) { return cmp(lhs, rhs, Sass_OP::LT); }
+    bool neq(ExpressionObj lhs, ExpressionObj rhs) { return eq(lhs, rhs) == false; }
+    bool gt(ExpressionObj lhs, ExpressionObj rhs) { return !cmp(lhs, rhs, Sass_OP::GT) && neq(lhs, rhs); }
+    bool lte(ExpressionObj lhs, ExpressionObj rhs) { return cmp(lhs, rhs, Sass_OP::LTE) || eq(lhs, rhs); }
+    bool gte(ExpressionObj lhs, ExpressionObj rhs) { return !cmp(lhs, rhs, Sass_OP::GTE) || eq(lhs, rhs); }
 
     /* colour math deprecation warning */
-    void op_color_deprecation(enum Sass_OP op, std::string lsh, std::string rhs, const ParserState& pstate)
+    void op_color_deprecation(enum Sass_OP op, sass::string lsh, sass::string rhs, const SourceSpan& pstate)
     {
-      std::string op_str(
-        op == Sass_OP::ADD ? "plus" :
-          op == Sass_OP::DIV ? "div" :
-            op == Sass_OP::SUB ? "minus" :
-              op == Sass_OP::MUL ? "times" : ""
-      );
-
-      std::string msg("The operation `" + lsh + " " + op_str + " " + rhs + "` is deprecated and will be an error in future versions.");
-      std::string tail("Consider using Sass's color functions instead.\nhttp://sass-lang.com/documentation/Sass/Script/Functions.html#other_color_functions");
-
-      deprecated(msg, tail, false, pstate);
+      deprecated(
+        "The operation `" + lsh + " " + sass_op_to_name(op) + " " + rhs +
+        "` is deprecated and will be an error in future versions.",
+        "Consider using Sass's color functions instead.\n"
+        "https://sass-lang.com/documentation/Sass/Script/Functions.html#other_color_functions",
+        /*with_column=*/false, pstate);
     }
 
     /* static function, throws OperationError, has no traces but optional pstate for returned value */
-    Value_Ptr op_strings(Sass::Operand operand, Value& lhs, Value& rhs, struct Sass_Inspect_Options opt, const ParserState& pstate, bool delayed)
+    Value* op_strings(Sass::Operand operand, Value& lhs, Value& rhs, struct Sass_Inspect_Options opt, const SourceSpan& pstate, bool delayed)
     {
       enum Sass_OP op = operand.operand;
 
-      String_Quoted_Ptr lqstr = Cast<String_Quoted>(&lhs);
-      String_Quoted_Ptr rqstr = Cast<String_Quoted>(&rhs);
+      String_Quoted* lqstr = Cast<String_Quoted>(&lhs);
+      String_Quoted* rqstr = Cast<String_Quoted>(&rhs);
 
-      std::string lstr(lqstr ? lqstr->value() : lhs.to_string(opt));
-      std::string rstr(rqstr ? rqstr->value() : rhs.to_string(opt));
+      sass::string lstr(lqstr ? lqstr->value() : lhs.to_string(opt));
+      sass::string rstr(rqstr ? rqstr->value() : rhs.to_string(opt));
 
       if (Cast<Null>(&lhs)) throw Exception::InvalidNullOperation(&lhs, &rhs, op);
       if (Cast<Null>(&rhs)) throw Exception::InvalidNullOperation(&lhs, &rhs, op);
 
-      std::string sep;
+      sass::string sep;
       switch (op) {
         case Sass_OP::ADD: sep = "";   break;
         case Sass_OP::SUB: sep = "-";  break;
@@ -120,8 +119,9 @@ namespace Sass {
       return SASS_MEMORY_NEW(String_Constant, pstate, lstr + sep + rstr);
     }
 
+    /* ToDo: allow to operate also with hsla colors */
     /* static function, throws OperationError, has no traces but optional pstate for returned value */
-    Value_Ptr op_colors(enum Sass_OP op, const Color& lhs, const Color& rhs, struct Sass_Inspect_Options opt, const ParserState& pstate, bool delayed)
+    Value* op_colors(enum Sass_OP op, const Color_RGBA& lhs, const Color_RGBA& rhs, struct Sass_Inspect_Options opt, const SourceSpan& pstate, bool delayed)
     {
 
       if (lhs.a() != rhs.a()) {
@@ -133,7 +133,7 @@ namespace Sass {
 
       op_color_deprecation(op, lhs.to_string(), rhs.to_string(), pstate);
 
-      return SASS_MEMORY_NEW(Color,
+      return SASS_MEMORY_NEW(Color_RGBA,
                              pstate,
                              ops[op](lhs.r(), rhs.r()),
                              ops[op](lhs.g(), rhs.g()),
@@ -142,7 +142,7 @@ namespace Sass {
     }
 
     /* static function, throws OperationError, has no traces but optional pstate for returned value */
-    Value_Ptr op_numbers(enum Sass_OP op, const Number& lhs, const Number& rhs, struct Sass_Inspect_Options opt, const ParserState& pstate, bool delayed)
+    Value* op_numbers(enum Sass_OP op, const Number& lhs, const Number& rhs, struct Sass_Inspect_Options opt, const SourceSpan& pstate, bool delayed)
     {
       double lval = lhs.value();
       double rval = rhs.value();
@@ -152,7 +152,7 @@ namespace Sass {
       }
 
       if (op == Sass_OP::DIV && rval == 0) {
-        std::string result(lval ? "Infinity" : "NaN");
+        sass::string result(lval ? "Infinity" : "NaN");
         return SASS_MEMORY_NEW(String_Quoted, pstate, result);
       }
 
@@ -165,7 +165,7 @@ namespace Sass {
         if (l_n_units + l_d_units <= 1 && r_n_units + r_d_units <= 1) {
           if (lhs.numerators == rhs.numerators) {
             if (lhs.denominators == rhs.denominators) {
-              Number_Ptr v = SASS_MEMORY_COPY(&lhs);
+              Number* v = SASS_MEMORY_COPY(&lhs);
               v->value(ops[op](lval, rval));
               return v;
             }
@@ -212,7 +212,7 @@ namespace Sass {
     }
 
     /* static function, throws OperationError, has no traces but optional pstate for returned value */
-    Value_Ptr op_number_color(enum Sass_OP op, const Number& lhs, const Color& rhs, struct Sass_Inspect_Options opt, const ParserState& pstate, bool delayed)
+    Value* op_number_color(enum Sass_OP op, const Number& lhs, const Color_RGBA& rhs, struct Sass_Inspect_Options opt, const SourceSpan& pstate, bool delayed)
     {
       double lval = lhs.value();
 
@@ -220,7 +220,7 @@ namespace Sass {
         case Sass_OP::ADD:
         case Sass_OP::MUL: {
           op_color_deprecation(op, lhs.to_string(), rhs.to_string(opt), pstate);
-          return SASS_MEMORY_NEW(Color,
+          return SASS_MEMORY_NEW(Color_RGBA,
                                 pstate,
                                 ops[op](lval, rhs.r()),
                                 ops[op](lval, rhs.g()),
@@ -229,7 +229,7 @@ namespace Sass {
         }
         case Sass_OP::SUB:
         case Sass_OP::DIV: {
-          std::string color(rhs.to_string(opt));
+          sass::string color(rhs.to_string(opt));
           op_color_deprecation(op, lhs.to_string(), color, pstate);
           return SASS_MEMORY_NEW(String_Quoted,
                                 pstate,
@@ -243,18 +243,18 @@ namespace Sass {
     }
 
     /* static function, throws OperationError, has no traces but optional pstate for returned value */
-    Value_Ptr op_color_number(enum Sass_OP op, const Color& lhs, const Number& rhs, struct Sass_Inspect_Options opt, const ParserState& pstate, bool delayed)
+    Value* op_color_number(enum Sass_OP op, const Color_RGBA& lhs, const Number& rhs, struct Sass_Inspect_Options opt, const SourceSpan& pstate, bool delayed)
     {
       double rval = rhs.value();
 
-      if ((op == Sass_OP::DIV || op == Sass_OP::DIV) && rval == 0) {
+      if ((op == Sass_OP::DIV || op == Sass_OP::MOD) && rval == 0) {
         // comparison of Fixnum with Float failed?
         throw Exception::ZeroDivisionError(lhs, rhs);
       }
 
       op_color_deprecation(op, lhs.to_string(), rhs.to_string(), pstate);
 
-      return SASS_MEMORY_NEW(Color,
+      return SASS_MEMORY_NEW(Color_RGBA,
                             pstate,
                             ops[op](lhs.r(), rval),
                             ops[op](lhs.g(), rval),

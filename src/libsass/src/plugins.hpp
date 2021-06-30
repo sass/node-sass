@@ -36,19 +36,19 @@ namespace Sass {
 
     public: // methods
       // load one specific plugin
-      bool load_plugin(const std::string& path);
+      bool load_plugin(const sass::string& path);
       // load all plugins from a directory
-      size_t load_plugins(const std::string& path);
+      size_t load_plugins(const sass::string& path);
 
     public: // public accessors
-      const std::vector<Sass_Importer_Entry> get_headers(void) { return headers; }
-      const std::vector<Sass_Importer_Entry> get_importers(void) { return importers; }
-      const std::vector<Sass_Function_Entry> get_functions(void) { return functions; }
+      const sass::vector<Sass_Importer_Entry> get_headers(void) { return headers; }
+      const sass::vector<Sass_Importer_Entry> get_importers(void) { return importers; }
+      const sass::vector<Sass_Function_Entry> get_functions(void) { return functions; }
 
     private: // private vars
-      std::vector<Sass_Importer_Entry> headers;
-      std::vector<Sass_Importer_Entry> importers;
-      std::vector<Sass_Function_Entry> functions;
+      sass::vector<Sass_Importer_Entry> headers;
+      sass::vector<Sass_Importer_Entry> importers;
+      sass::vector<Sass_Function_Entry> functions;
 
   };
 

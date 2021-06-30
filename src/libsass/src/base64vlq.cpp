@@ -1,11 +1,14 @@
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
 #include "sass.hpp"
+
 #include "base64vlq.hpp"
 
 namespace Sass {
 
-  std::string Base64VLQ::encode(const int number) const
+  sass::string Base64VLQ::encode(const int number) const
   {
-    std::string encoded = "";
+    sass::string encoded = "";
 
     int vlq = to_vlq_signed(number);
 

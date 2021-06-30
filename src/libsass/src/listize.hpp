@@ -1,32 +1,35 @@
 #ifndef SASS_LISTIZE_H
 #define SASS_LISTIZE_H
 
-#include <vector>
-#include <iostream>
+// sass.hpp must go before all system headers to get the
+// __EXTENSIONS__ fix on Solaris.
+#include "sass.hpp"
 
-#include "ast.hpp"
-#include "context.hpp"
+#include "ast_fwd_decl.hpp"
 #include "operation.hpp"
-#include "environment.hpp"
 
 namespace Sass {
 
   struct Backtrace;
 
-  class Listize : public Operation_CRTP<Expression_Ptr, Listize> {
+  class Listize : public Operation_CRTP<Expression*, Listize> {
 
-    Expression_Ptr fallback_impl(AST_Node_Ptr n);
+  public:
+
+    static Expression* perform(AST_Node* node);
 
   public:
     Listize();
     ~Listize() { }
 
-    Expression_Ptr operator()(Selector_List_Ptr);
-    Expression_Ptr operator()(Complex_Selector_Ptr);
-    Expression_Ptr operator()(Compound_Selector_Ptr);
+    Expression* operator()(SelectorList*);
+    Expression* operator()(ComplexSelector*);
+    Expression* operator()(CompoundSelector*);
 
+    // generic fallback
     template <typename U>
-    Expression_Ptr fallback(U x) { return fallback_impl(x); }
+    Expression* fallback(U x)
+    { return Cast<Expression>(x); }
   };
 
 }

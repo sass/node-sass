@@ -9,6 +9,9 @@
 #include "position.hpp"
 #include "mapping.hpp"
 
+#include "backtrace.hpp"
+#include "memory.hpp"
+
 #define VECTOR_PUSH(vec, ins) vec.insert(vec.end(), ins.begin(), ins.end())
 #define VECTOR_UNSHIFT(vec, ins) vec.insert(vec.begin(), ins.begin(), ins.end())
 
@@ -20,28 +23,28 @@ namespace Sass {
   class SourceMap {
 
   public:
-    std::vector<size_t> source_index;
+    sass::vector<size_t> source_index;
     SourceMap();
-    SourceMap(const std::string& file);
+    SourceMap(const sass::string& file);
 
     void append(const Offset& offset);
     void prepend(const Offset& offset);
     void append(const OutputBuffer& out);
     void prepend(const OutputBuffer& out);
-    void add_open_mapping(const AST_Node_Ptr node);
-    void add_close_mapping(const AST_Node_Ptr node);
+    void add_open_mapping(const AST_Node* node);
+    void add_close_mapping(const AST_Node* node);
 
-    std::string render_srcmap(Context &ctx);
-    ParserState remap(const ParserState& pstate);
+    sass::string render_srcmap(Context &ctx);
+    SourceSpan remap(const SourceSpan& pstate);
 
   private:
 
-    std::string serialize_mappings();
+    sass::string serialize_mappings();
 
-    std::vector<Mapping> mappings;
+    sass::vector<Mapping> mappings;
     Position current_position;
 public:
-    std::string file;
+    sass::string file;
 private:
     Base64VLQ base64vlq;
   };
@@ -49,11 +52,11 @@ private:
   class OutputBuffer {
     public:
       OutputBuffer(void)
-      : buffer(""),
+      : buffer(),
         smap()
       { }
     public:
-      std::string buffer;
+      sass::string buffer;
       SourceMap smap;
   };
 
