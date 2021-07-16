@@ -595,12 +595,13 @@ When compiling a directory `--source-map` can either be a boolean value or a dir
 
 node-sass supports different configuration parameters to change settings related to the sass binary such as binary name, binary path or alternative download path. Following parameters are supported by node-sass:
 
-Variable name    | .npmrc parameter | Process argument   | Value
------------------|------------------|--------------------|------
-SASS_BINARY_NAME | sass_binary_name | --sass-binary-name | path
-SASS_BINARY_SITE | sass_binary_site | --sass-binary-site | URL
-SASS_BINARY_PATH | sass_binary_path | --sass-binary-path | path
-SASS_BINARY_DIR  | sass_binary_dir  | --sass-binary-dir  | path
+Variable name            | .npmrc parameter         | Process argument           | Value
+-------------------------|--------------------------|----------------------------|------
+SASS_BINARY_NAME         | sass_binary_name         | --sass-binary-name         | path
+SASS_BINARY_SITE         | sass_binary_site         | --sass-binary-site         | URL
+SASS_BINARY_PATH         | sass_binary_path         | --sass-binary-path         | path
+SASS_BINARY_DIR          | sass_binary_dir          | --sass-binary-dir          | path
+SASS_REJECT_UNAUTHORIZED | sass_reject_unauthorized | --sass-reject-unauthorized | value
 
 These parameters can be used as environment variable:
 
@@ -613,6 +614,8 @@ As local or global [.npmrc](https://docs.npmjs.com/misc/config) configuration fi
 As a process argument:
 
 * E.g. `npm install node-sass --sass-binary-site=http://example.com/`
+
+If you are using self-signed certificates for your binary then `SASS_REJECT_UNAUTHORIZED` will override (rejectUnauthorized)[https://nodejs.org/docs/latest/api/tls.html#tls_tls_createserver_options_secureconnectionlistener].
 
 ## Post-install Build
 

@@ -1,5 +1,6 @@
 var proxy = require('./proxy'),
-  userAgent = require('./useragent');
+  userAgent = require('./useragent'),
+  rejectUnauthorized = require('./rejectUnauthorized');
 
 /**
  * The options passed to request when downloading the bibary
@@ -14,7 +15,7 @@ var proxy = require('./proxy'),
  */
 module.exports = function() {
   var options = {
-    rejectUnauthorized: false,
+    rejectUnauthorized: rejectUnauthorized(),
     timeout: 60000,
     headers: {
       'User-Agent': userAgent(),
