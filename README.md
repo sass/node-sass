@@ -13,7 +13,7 @@ Projects that still use it should move onto
 1. We will stop building binaries for unsupported releases, testing for breakages in dependency compatibility, but we will not block installations for those that want to support themselves.
 1. New node release require minor internal changes along with support from CI providers (AppVeyor, GitHub Actions). We will open a single issue for interested parties to subscribe to, and close additional issues.
 
-Below is a quick guide for minimum and maximum support supported version of node-sass:
+Below is a quick guide for minimum and maximum supported version of node-sass:
 
 NodeJS  | Supported node-sass version | Node Module
 --------|-----------------------------|------------
