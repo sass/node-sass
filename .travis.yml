@@ -1,0 +1,62 @@
+language: node_js
+arch: ppc64le
+dist: bionic
+compiler: gcc
+
+env:
+  global:
+    - SKIP_SASS_BINARY_DOWNLOAD_FOR_CI=true
+
+jobs:
+  include:
+    - stage: test
+      node_js: "16"
+      os: linux
+      before_script: npm run lint || exit 1;
+      after_success: npm run-script coverage;
+    - stage: platform-test
+      node_js: "15"
+      os: linux
+    - stage: platform-test
+      node_js: "14"
+      os: linux
+    - stage: platform-test
+      node_js: "12"
+      os: linux
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - gcc-6
+      - g++-6
+
+before_install:
+  - echo $TRAVIS_NODE_VERSION
+  - npm config set python `which python`
+  - if [ $TRAVIS_OS_NAME == "linux" ]; then
+      if [[ $(node -v) =~ v1[234] ]]; then
+        export CC="gcc-6";
+        export CXX="g++-6";
+        export LINK="gcc-6";
+        export LINKXX="g++-6";
+      fi
+    fi
+  - nvm --version
+  - node --version
+  - npm --version
+  - ${CC:-gcc} --version
+  - ${CXX:-g++} --version
+
+install:
+  - npm install --unsafe-perm
+
+script:
+  - npm test
+
+cache:
+  directories:
+    - $HOME/.node-gyp
+    - $HOME/.npm
+    - node_modules
