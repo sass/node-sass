@@ -19,6 +19,10 @@ jobs:
           - 15
           - 16
 
+        architecture:
+          - x64
+          - x86
+
         include:
           - node: 12
             os: windows-2016
@@ -36,9 +40,10 @@ jobs:
         uses: actions/setup-node@v2.4.0
         with:
           node-version: ${{ matrix.node }}
+          architecture: ${{ matrix.architecture }}
 
       - name: Install packages
-        run: npm install --unsafe-perm
+        run: npm install
         env:
           SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
 
@@ -48,7 +53,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         if: github.repository_owner == 'sass' && github.event_name != 'pull_request'
         with:
-          name: ${{ matrix.node }}
+          name: ${{ matrix.node }}-${{ matrix.architecture }}
           path: |
             vendor/**/binding.node
             build/Release/binding.pdb
