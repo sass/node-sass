@@ -22,7 +22,7 @@ jobs:
 
         include:
           - node: 12
-            python: python2
+            python: python3
           - node: 14
             python: python3
           - node: 15

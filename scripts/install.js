@@ -5,8 +5,7 @@
 var fs = require('fs'),
   eol = require('os').EOL,
   path = require('path'),
-  request = require('request'),
-  log = require('npmlog'),
+  fetch = require('make-fetch-happen'),
   sass = require('../lib/extensions'),
   downloadOptions = require('./util/downloadoptions');
 
@@ -21,21 +20,8 @@ var fs = require('fs'),
 
 function download(url, dest, cb) {
   var reportError = function(err) {
-    var timeoutMessge;
-
-    if (err.code === 'ETIMEDOUT') {
-      if (err.connect === true) {
-        // timeout is hit while your client is attempting to establish a connection to a remote machine
-        timeoutMessge = 'Timed out attemping to establish a remote connection';
-      } else {
-        timeoutMessge = 'Timed out whilst downloading the prebuilt binary';
-        // occurs any time the server is too slow to send back a part of the response
-      }
-
-    }
     cb(['Cannot download "', url, '": ', eol, eol,
       typeof err.message === 'string' ? err.message : err, eol, eol,
-      timeoutMessge ? timeoutMessge + eol + eol : timeoutMessge,
       'Hint: If github.com is not accessible in your location', eol,
       '      try setting a proxy via HTTP_PROXY, e.g. ', eol, eol,
       '      export HTTP_PROXY=http://example.com:1234',eol, eol,
@@ -44,45 +30,22 @@ function download(url, dest, cb) {
   };
 
   var successful = function(response) {
-    return response.statusCode >= 200 && response.statusCode < 300;
+    return response.status >= 200 && response.status < 300;
   };
 
   console.log('Downloading binary from', url);
 
   try {
-    request(url, downloadOptions(), function(err, response, buffer) {
-      if (err) {
-        reportError(err);
-      } else if (!successful(response)) {
-        reportError(['HTTP error', response.statusCode, response.statusMessage].join(' '));
+    fetch(url, downloadOptions()).then(function (response) {
+      fs.createWriteStream(dest).on('error', cb).end(response.data, cb);
+      console.log('Download complete');
+    }).catch(function(err) {
+      if(!successful(err)) {
+        reportError(['HTTP error', err.code, err.message].join(' '));
       } else {
-        console.log('Download complete');
-
-        if (successful(response)) {
-          fs.createWriteStream(dest)
-            .on('error', cb)
-            .end(buffer, cb);
-        } else {
-          cb();
-        }
+        reportError(err);
       }
-    })
-      .on('response', function(response) {
-        var length = parseInt(response.headers['content-length'], 10);
-        var progress = log.newItem('', length);
-
-        // The `progress` is true by default. However if it has not
-        // been explicitly set it's `undefined` which is considered
-        // as far as npm is concerned.
-        if (process.env.npm_config_progress === 'true') {
-          log.enableProgress();
-
-          response.on('data', function(chunk) {
-            progress.completeWork(chunk.length);
-          })
-            .on('end', progress.finish);
-        }
-      });
+    });
   } catch (err) {
     cb(err);
   }

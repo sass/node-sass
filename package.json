@@ -60,11 +60,10 @@
     "get-stdin": "^4.0.1",
     "glob": "^7.0.3",
     "lodash": "^4.17.15",
+    "make-fetch-happen": "^9.1.0",
     "meow": "^9.0.0",
     "nan": "^2.13.2",
-    "node-gyp": "^7.1.0",
-    "npmlog": "^5.0.0",
-    "request": "^2.88.0",
+    "node-gyp": "^8.2.0",
     "sass-graph": "2.2.5",
     "stdout-stream": "^1.4.0",
     "true-case-path": "^1.0.2"

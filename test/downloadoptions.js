@@ -8,12 +8,10 @@ describe('util', function() {
     describe('without a proxy', function() {
       it('should look as we expect', function() {
         var expected = {
-          rejectUnauthorized: false,
           timeout: 60000,
           headers: {
             'User-Agent': ua(),
           },
-          encoding: null,
         };
 
         assert.deepStrictEqual(opts(), expected);
@@ -33,13 +31,11 @@ describe('util', function() {
 
       it('should look as we expect', function() {
         var expected = {
-          rejectUnauthorized: false,
           proxy: proxy,
           timeout: 60000,
           headers: {
             'User-Agent': ua(),
           },
-          encoding: null,
         };
 
         assert.deepStrictEqual(opts(), expected);
@@ -59,12 +55,10 @@ describe('util', function() {
 
       it('should look as we expect', function() {
         var expected = {
-          rejectUnauthorized: false,
           timeout: 60000,
           headers: {
             'User-Agent': ua(),
           },
-          encoding: null,
         };
 
         assert.deepStrictEqual(opts(), expected);
