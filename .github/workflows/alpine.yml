@@ -19,6 +19,7 @@ jobs:
           - 14
           - 15
           - 16
+          - 17
 
         include:
           - node: 12
@@ -28,6 +29,8 @@ jobs:
           - node: 15
             python: python3
           - node: 16
+            python: python3
+          - node: 17
             python: python3
 
     steps:
