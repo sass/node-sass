@@ -19,7 +19,7 @@ NodeJS  | Supported node-sass version | Node Module
 --------|-----------------------------|------------
 Node 17 | 7.0+                        | 102
 Node 16 | 6.0+                        | 93
-Node 15 | 5.0+                        | 88
+Node 15 | 5.0+, <7.0                 | 88
 Node 14 | 4.14+                       | 83
 Node 13 | 4.13+, <5.0                 | 79
 Node 12 | 4.12+                       | 72

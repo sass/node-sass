@@ -17,7 +17,6 @@ jobs:
         node:
           - 12
           - 14
-          - 15
           - 16
           - 17
 
@@ -25,8 +24,6 @@ jobs:
           - node: 12
             python: python2
           - node: 14
-            python: python3
-          - node: 15
             python: python3
           - node: 16
             python: python3
