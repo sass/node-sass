@@ -596,12 +596,12 @@ When compiling a directory `--source-map` can either be a boolean value or a dir
 
 node-sass supports different configuration parameters to change settings related to the sass binary such as binary name, binary path or alternative download path. Following parameters are supported by node-sass:
 
-Variable name    | .npmrc parameter | Process argument   | Value
------------------|------------------|--------------------|------
-SASS_BINARY_NAME | sass_binary_name | --sass-binary-name | path
-SASS_BINARY_SITE | sass_binary_site | --sass-binary-site | URL
-SASS_BINARY_PATH | sass_binary_path | --sass-binary-path | path
-SASS_BINARY_DIR  | sass_binary_dir  | --sass-binary-dir  | path
+Variable name    | .npmrc parameter | Process argument   | Value | Example
+-----------------|------------------|--------------------|-------|----------------------------
+SASS_BINARY_NAME | sass_binary_name | --sass-binary-name | path  | win32-x64-57
+SASS_BINARY_SITE | sass_binary_site | --sass-binary-site | URL   | http://example.com/
+SASS_BINARY_PATH | sass_binary_path | --sass-binary-path | path  | /usr/var/local/binding.node
+SASS_BINARY_DIR  | sass_binary_dir  | --sass-binary-dir  | path  | /usr/var/my_cache/
 
 These parameters can be used as environment variable:
 
