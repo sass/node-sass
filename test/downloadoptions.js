@@ -8,7 +8,7 @@ describe('util', function() {
     describe('without a proxy', function() {
       it('should look as we expect', function() {
         var expected = {
-          rejectUnauthorized: false,
+          rejectUnauthorized: true,
           timeout: 60000,
           headers: {
             'User-Agent': ua(),
@@ -33,7 +33,7 @@ describe('util', function() {
 
       it('should look as we expect', function() {
         var expected = {
-          rejectUnauthorized: false,
+          rejectUnauthorized: true,
           proxy: proxy,
           timeout: 60000,
           headers: {
@@ -59,6 +59,25 @@ describe('util', function() {
 
       it('should look as we expect', function() {
         var expected = {
+          rejectUnauthorized: true,
+          timeout: 60000,
+          headers: {
+            'User-Agent': ua(),
+          },
+          encoding: null,
+        };
+
+        assert.deepStrictEqual(opts(), expected);
+      });
+    });
+
+    describe('with SASS_REJECT_UNAUTHORIZED set to false', function() {
+      beforeEach(function() {
+        process.env.SASS_REJECT_UNAUTHORIZED = '0';
+      });
+
+      it('should look as we expect', function() {
+        var expected = {
           rejectUnauthorized: false,
           timeout: 60000,
           headers: {
@@ -68,6 +87,48 @@ describe('util', function() {
         };
 
         assert.deepStrictEqual(opts(), expected);
+      });
+    });
+
+    describe('with SASS_REJECT_UNAUTHORIZED set to true', function() {
+      beforeEach(function() {
+        process.env.SASS_REJECT_UNAUTHORIZED = '1';
+      });
+
+      it('should look as we expect', function() {
+        var expected = {
+          rejectUnauthorized: true,
+          timeout: 60000,
+          headers: {
+            'User-Agent': ua(),
+          },
+          encoding: null,
+        };
+
+        assert.deepStrictEqual(opts(), expected);
+      });
+    });
+
+    describe('with npm_config_sass_reject_unauthorized set to true', function() {
+      beforeEach(function() {
+        process.env.npm_config_sass_reject_unauthorized = true;
+      });
+
+      it('should look as we expect', function() {
+        var expected = {
+          rejectUnauthorized: true,
+          timeout: 60000,
+          headers: {
+            'User-Agent': ua(),
+          },
+          encoding: null,
+        };
+
+        assert.deepStrictEqual(opts(), expected);
+      });
+
+      afterEach(function() {
+        process.env.npm_config_sass_reject_unauthorized = undefined;
       });
     });
   });
