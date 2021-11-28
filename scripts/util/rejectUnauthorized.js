@@ -7,7 +7,7 @@ var pkg = require('../../package.json');
  * @param {Array} args
  * @api private
  */
- function getArgument(name, args) {
+function getArgument(name, args) {
   var flags = args || process.argv.slice(2),
     index = flags.lastIndexOf(name);
 
