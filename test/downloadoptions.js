@@ -68,6 +68,24 @@ describe('util', function() {
       });
     });
 
+    describe('with SASS_REJECT_UNAUTHORIZED set to false', function() {
+      beforeEach(function() {
+        process.env.SASS_REJECT_UNAUTHORIZED = '0';
+      });
+
+      it('should look as we expect', function() {
+        var expected = {
+          strictSSL: false,
+          timeout: 60000,
+          headers: {
+            'User-Agent': ua(),
+          },
+        };
+
+        assert.deepStrictEqual(opts(), expected);
+      });
+    });
+
     describe('with SASS_REJECT_UNAUTHORIZED set to true', function() {
       beforeEach(function() {
         process.env.SASS_REJECT_UNAUTHORIZED = '1';
@@ -75,12 +93,11 @@ describe('util', function() {
 
       it('should look as we expect', function() {
         var expected = {
-          rejectUnauthorized: true,
+          strictSSL: true,
           timeout: 60000,
           headers: {
             'User-Agent': ua(),
           },
-          encoding: null,
         };
 
         assert.deepStrictEqual(opts(), expected);
@@ -94,12 +111,11 @@ describe('util', function() {
 
       it('should look as we expect', function() {
         var expected = {
-          rejectUnauthorized: true,
+          strictSSL: true,
           timeout: 60000,
           headers: {
             'User-Agent': ua(),
           },
-          encoding: null,
         };
 
         assert.deepStrictEqual(opts(), expected);
