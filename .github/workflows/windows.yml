@@ -16,8 +16,8 @@ jobs:
         node:
           - 12
           - 14
-          - 15
           - 16
+          - 17
 
         architecture:
           - x64
@@ -28,16 +28,16 @@ jobs:
             os: windows-2016
           - node: 14
             os: windows-2016
-          - node: 15
-            os: windows-2019
           - node: 16
+            os: windows-2019
+          - node: 17
             os: windows-2019
 
     steps:
       - uses: actions/checkout@v2
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v2.4.1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
           architecture: ${{ matrix.architecture }}

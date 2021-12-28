@@ -1,5 +1,6 @@
 var proxy = require('./proxy'),
-  userAgent = require('./useragent');
+  userAgent = require('./useragent'),
+  rejectUnauthorized = require('./rejectUnauthorized');
 
 /**
  * The options passed to make-fetch-happen when downloading the binary
@@ -9,7 +10,7 @@ var proxy = require('./proxy'),
  */
 module.exports = function() {
   var options = {
-    strictSSL: false,
+    strictSSL: rejectUnauthorized(),
     timeout: 60000,
     headers: {
       'User-Agent': userAgent(),

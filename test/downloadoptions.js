@@ -8,7 +8,7 @@ describe('util', function() {
     describe('without a proxy', function() {
       it('should look as we expect', function() {
         var expected = {
-          strictSSL: false,
+          strictSSL: true,
           timeout: 60000,
           headers: {
             'User-Agent': ua(),
@@ -32,7 +32,7 @@ describe('util', function() {
 
       it('should look as we expect', function() {
         var expected = {
-          strictSSL: false,
+          strictSSL: true,
           proxy: proxy,
           timeout: 60000,
           headers: {
@@ -57,7 +57,7 @@ describe('util', function() {
 
       it('should look as we expect', function() {
         var expected = {
-          strictSSL: false,
+          strictSSL: true,
           timeout: 60000,
           headers: {
             'User-Agent': ua(),
@@ -65,6 +65,48 @@ describe('util', function() {
         };
 
         assert.deepStrictEqual(opts(), expected);
+      });
+    });
+
+    describe('with SASS_REJECT_UNAUTHORIZED set to true', function() {
+      beforeEach(function() {
+        process.env.SASS_REJECT_UNAUTHORIZED = '1';
+      });
+
+      it('should look as we expect', function() {
+        var expected = {
+          rejectUnauthorized: true,
+          timeout: 60000,
+          headers: {
+            'User-Agent': ua(),
+          },
+          encoding: null,
+        };
+
+        assert.deepStrictEqual(opts(), expected);
+      });
+    });
+
+    describe('with npm_config_sass_reject_unauthorized set to true', function() {
+      beforeEach(function() {
+        process.env.npm_config_sass_reject_unauthorized = true;
+      });
+
+      it('should look as we expect', function() {
+        var expected = {
+          rejectUnauthorized: true,
+          timeout: 60000,
+          headers: {
+            'User-Agent': ua(),
+          },
+          encoding: null,
+        };
+
+        assert.deepStrictEqual(opts(), expected);
+      });
+
+      afterEach(function() {
+        process.env.npm_config_sass_reject_unauthorized = undefined;
       });
     });
   });
