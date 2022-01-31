@@ -1,5 +1,12 @@
 version: 2.1
 
+
+# Windows build is disabled, because npm test fails on windonws environment doesn't exist even when all the tests pass
+# (note: pending tests are skipped tests)
+# 
+# orbs:
+#   win: circleci/windows@2.4.1
+
 commands:
   build:
     description: "Checkout, build, and test the package"
@@ -51,47 +58,6 @@ commands:
             echo 'export NVM_DIR="$HOME/.nvm"' >> $BASH_ENV
             echo "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"" >> $BASH_ENV
 jobs:
-  build-linux-node-6:
-    docker:
-      - image: circleci/node:6
-    steps:
-      - build
-      - release
-
-  build-linux-node-7:
-    docker:
-      - image: circleci/node:7
-    steps:
-      - build
-      - release
-
-  build-linux-node-8:
-    docker:
-      - image: circleci/node:8
-    steps:
-      - build
-      - release
-
-  build-linux-node-9:
-    docker:
-      - image: circleci/node:9
-    steps:
-      - build
-      - release
-
-  build-linux-node-10:
-    docker:
-      - image: circleci/node:10
-    steps:
-      - build
-      - release
-
-  build-linux-node-11:
-    docker:
-      - image: circleci/node:11
-    steps:
-      - build
-      - release
 
   build-linux-node-12:
     docker:
@@ -100,68 +66,43 @@ jobs:
       - build
       - release
 
-  build-darwin-node-6:
-    macos:
-      xcode: "9.0.1"
+  build-linux-node-14:
+    docker:
+      - image: circleci/node:14
     steps:
-      - install-node:
-          version: 6
       - build
       - release
-
-  build-darwin-node-7:
-    macos:
-      xcode: "10.0.0"
-    steps:
-      - install-node:
-          version: 7
-      - build
-      - release
-
-  build-darwin-node-8:
-    macos:
-      xcode: "10.0.0"
-    steps:
-      - install-node:
-          version: 8
-      - build
-      - release
-
-  build-darwin-node-9:
-    macos:
-      xcode: "10.0.0"
-    steps:
-      - install-node:
-          version: 9
-      - build
-      - release
-
-  build-darwin-node-10:
-    macos:
-      xcode: "10.0.0"
-    steps:
-      - install-node:
-          version: 10
-      - build
-      - release
-
-  build-darwin-node-11:
-    macos:
-      xcode: "10.0.0"
-    steps:
-      - install-node:
-          version: 11
-      - build
-      - release
+      - run: npm -v
 
   build-darwin-node-12:
     macos:
-      xcode: "10.0.0"
+      xcode: "13.0.0"
     steps:
       - install-node:
           version: 12
       - build
       - release
+  
+  build-darwin-node-14:
+    macos:
+      xcode: "13.0.0"
+    steps:
+      - install-node:
+          version: 14
+      - build
+      - release
+
+  # build-win-node-14:
+  #   executor:
+  #     name: win/default
+  #     size: large
+  #   steps:
+  #     - run: Install-Module nvm
+  #     - run: nvm install 14.18.3
+  #     - run: nvm use 14.18.3
+  #     - run: choco install python2
+  #     - build
+  #     - release
 
   publish-github-release:
     docker:
@@ -181,55 +122,11 @@ workflows:
   version: 2
   build:
     jobs:
-      - build-linux-node-6:
-          filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
-      - build-linux-node-7:
-        filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
-      - build-linux-node-8:
-          filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
-      - build-linux-node-9:
-          filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
-      - build-linux-node-10:
-          filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
-      - build-linux-node-11:
-          filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
       - build-linux-node-12:
           filters:
             tags:
               only: /v\d+\.\d+\.\d+$/
-      - build-darwin-node-6:
-          filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
-      - build-darwin-node-7:
-          filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
-      - build-darwin-node-8:
-          filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
-      - build-darwin-node-9:
-          filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
-      - build-darwin-node-10:
-          filters:
-            tags:
-              only: /v\d+\.\d+\.\d+$/
-      - build-darwin-node-11:
+      - build-linux-node-14:
           filters:
             tags:
               only: /v\d+\.\d+\.\d+$/
@@ -237,23 +134,22 @@ workflows:
           filters:
             tags:
               only: /v\d+\.\d+\.\d+$/
+      - build-darwin-node-14:
+          filters:
+            tags:
+              only: /v\d+\.\d+\.\d+$/
+      # - build-win-node-14:
+      #     filters:
+      #       tags:
+      #         only: /v\d+\.\d+\.\d+$/
 
       - publish-github-release:
           requires:
-            - build-linux-node-6
-            - build-linux-node-7
-            - build-linux-node-8
-            - build-linux-node-9
-            - build-linux-node-10
-            - build-linux-node-11
             - build-linux-node-12
-            - build-darwin-node-6
-            - build-darwin-node-7
-            - build-darwin-node-8
-            - build-darwin-node-9
-            - build-darwin-node-10
-            - build-darwin-node-11
+            - build-linux-node-14
             - build-darwin-node-12
+            - build-darwin-node-14
+            # - build-win-node-14
 
           filters:
             branches:
