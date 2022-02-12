@@ -78,7 +78,7 @@ SyntaxError: Use of const in strict mode.
 ### Install from mirror in China
 
 ```shell
-npm install -g mirror-config-china --registry=http://registry.npm.taobao.org
+npm install -g mirror-config-china --registry=https://registry.npmmirror.com
 npm install node-sass
 ```
 
