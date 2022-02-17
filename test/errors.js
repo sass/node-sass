@@ -16,7 +16,8 @@ describe('binary errors', function() {
   function getCurrentArchitecture() {
     if (process.arch === 'x86' || process.arch === 'ia32') {
       return '32-bit';
-    } else if (process.arch === 'x64') {
+    } else if (process.arch === 'x64' || process.arch === 'ppc64' ||
+               process.arch === 's390x') {
       return '64-bit';
     }
     return '';
