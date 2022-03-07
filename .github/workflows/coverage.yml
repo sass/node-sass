@@ -26,7 +26,7 @@ jobs:
     if: github.repository_owner == 'sass'
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install packages
         run: npm install --unsafe-perm
