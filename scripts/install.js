@@ -104,20 +104,15 @@ function checkAndDownloadBinary() {
     return;
   } catch (e) { }
 
-  mkdir(path.dirname(process.sass.binaryPath), function(err) {
+  mkdir.sync(path.dirname(process.sass.binaryPath));
+  mkdir(path.dirname(process.sass.binaryPath));
+  download(process.sass.binaryUrl, process.sass.binaryPath, function(err) {
     if (err) {
       console.error(err);
       return;
     }
 
-    download(process.sass.binaryUrl, process.sass.binaryPath, function(err) {
-      if (err) {
-        console.error(err);
-        return;
-      }
-
-      console.log('Binary downloaded and installed at', process.sass.binaryPath);
-    });
+    console.log('Binary downloaded and installed at', process.sass.binaryPath);
   });
 }
 

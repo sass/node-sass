@@ -24,26 +24,28 @@ function afterBuild(options) {
     options.debug ? 'Debug' : process.config.target_defaults.default_configuration,
     'binding.node');
 
-  mkdir(path.dirname(install), function(err) {
+  try {
+    mkdir.sync(path.dirname(install));
+  } catch (err) {
     if (err && err.code !== 'EEXIST') {
       console.error(err.message);
       return;
     }
+  }
 
-    fs.stat(target, function(err) {
+  fs.stat(target, function(err) {
+    if (err) {
+      console.error('Build succeeded but target not found');
+      return;
+    }
+
+    fs.rename(target, install, function(err) {
       if (err) {
-        console.error('Build succeeded but target not found');
+        console.error(err.message);
         return;
       }
 
-      fs.rename(target, install, function(err) {
-        if (err) {
-          console.error(err.message);
-          return;
-        }
-
-        console.log('Installed in `', install, '`');
-      });
+      console.log('Installed in `', install, '`');
     });
   });
 }
