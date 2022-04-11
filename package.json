@@ -16,7 +16,7 @@
     "url": "http://andrew.github.com"
   },
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   },
   "main": "lib/index.js",
   "nodeSassConfig": {
