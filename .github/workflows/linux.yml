@@ -61,7 +61,7 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: github.repository_owner == 'sass' && github.event_name != 'pull_request'
         with:
           name: ${{ matrix.node }}
