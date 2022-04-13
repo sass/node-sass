@@ -25,9 +25,9 @@ jobs:
 
         include:
           - node: 12
-            os: windows-2016
+            os: windows-2019
           - node: 14
-            os: windows-2016
+            os: windows-2019
           - node: 16
             os: windows-2019
           - node: 17
