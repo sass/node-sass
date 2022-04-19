@@ -17,6 +17,7 @@ jobs:
           - 14
           - 16
           - 17
+          - 18
 
         include:
           - node: 14
@@ -31,6 +32,10 @@ jobs:
             gcc: "gcc-8"
             gpp: "g++-8"
             os: ubuntu-18.04
+          - node: 18
+            gcc: "gcc-8"
+            gpp: "g++-8"
+            os: ubuntu-20.04
 
 
     steps:

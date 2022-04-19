@@ -19,6 +19,7 @@ jobs:
           # Node 16 and 17 are perma-red for the tests right now
           # - 16
           # - 17
+          # - 18
 
     steps:
       - name: Install Alpine build tools

@@ -17,6 +17,7 @@ jobs:
           - 14
           - 16
           - 17
+          - 18
 
         architecture:
           - x64
@@ -28,6 +29,8 @@ jobs:
           - node: 16
             os: windows-2019
           - node: 17
+            os: windows-2019
+          - node: 18
             os: windows-2019
 
     steps:
