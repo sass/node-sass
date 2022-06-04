@@ -39,9 +39,6 @@
       - nodejs_version: 16
         GYP_MSVS_VERSION: 2019
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-      - nodejs_version: 17
-        GYP_MSVS_VERSION: 2019
-        APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
       - nodejs_version: 18
         GYP_MSVS_VERSION: 2019
         APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019

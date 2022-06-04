@@ -16,9 +16,8 @@ jobs:
       matrix:
         node:
           - 14
-          # Node 16 and 17 are perma-red for the tests right now
+          # Node 16 and 18 are perma-red for the tests right now
           # - 16
-          # - 17
           # - 18
 
     steps:
