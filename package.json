@@ -74,6 +74,6 @@
     "mocha": "^9.0.1",
     "nyc": "^15.1.0",
     "rimraf": "^3.0.2",
-    "unique-temp-dir": "^1.0.0"
+    "unique-temp-dir": "^2.0.0"
   }
 }
