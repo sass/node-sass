@@ -4,7 +4,6 @@
 
 var fs = require('fs'),
     eol = require('os').EOL,
-    mkdir = require('mkdirp'),
     npmconf = require('npmconf'),
     path = require('path'),
     request = require('request'),
@@ -104,8 +103,7 @@ function checkAndDownloadBinary() {
     return;
   } catch (e) { }
 
-  mkdir.sync(path.dirname(process.sass.binaryPath));
-  mkdir(path.dirname(process.sass.binaryPath));
+  fs.mkdirSync(path.dirname(process.sass.binaryPath), { recursive: true });
   download(process.sass.binaryUrl, process.sass.binaryPath, function(err) {
     if (err) {
       console.error(err);

@@ -5,7 +5,6 @@
 var eol = require('os').EOL,
     pkg = require('../package.json'),
     fs = require('fs'),
-    mkdir = require('mkdirp'),
     path = require('path'),
     spawn = require('cross-spawn');
 
@@ -25,7 +24,7 @@ function afterBuild(options) {
     'binding.node');
 
   try {
-    mkdir.sync(path.dirname(install));
+    fs.mkdirSync(path.dirname(install), { recursive: true});
   } catch (err) {
     if (err && err.code !== 'EEXIST') {
       console.error(err.message);
