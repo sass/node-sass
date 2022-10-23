@@ -31,6 +31,10 @@ jobs:
             gcc: "gcc-8"
             gpp: "g++-8"
             os: ubuntu-20.04
+          - node: 19
+            gcc: "gcc-8"
+            gpp: "g++-8"
+            os: ubuntu-20.04
 
 
     steps:

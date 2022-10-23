@@ -16,9 +16,10 @@ jobs:
       matrix:
         node:
           - 14
-          # Node 16 and 18 are perma-red for the tests right now
+          # Node 16+ are perma-red for the tests right now
           # - 16
           # - 18
+          # - 19
 
     steps:
       - name: Install Alpine build tools

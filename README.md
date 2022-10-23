@@ -17,6 +17,7 @@ Below is a quick guide for minimum and maximum supported versions of node-sass:
 
 NodeJS  | Supported node-sass version | Node Module
 --------|-----------------------------|------------
+Node 19 | 8.0+                        | 111
 Node 18 | 8.0+                        | 108
 Node 17 | 7.0+, <8.0                  | 102
 Node 16 | 6.0+                        | 93
