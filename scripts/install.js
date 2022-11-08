@@ -37,7 +37,9 @@ function download(url, dest, cb) {
 
   try {
     fetch(url, downloadOptions()).then(function (response) {
-      fs.createWriteStream(dest).on('error', cb).end(response.data, cb);
+      return response.buffer();
+    }).then(function (buffer) {
+      fs.createWriteStream(dest).on('error', cb).end(buffer, cb);
       console.log('Download complete');
     }).catch(function(err) {
       if(!successful(err)) {
