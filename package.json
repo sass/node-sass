@@ -65,7 +65,7 @@
     "nan": "^2.17.0",
     "node-gyp": "^8.4.1",
     "sass-graph": "^4.0.1",
-    "stdout-stream": "^1.4.0",
+    "stdout-stream": "^2.0.0",
     "true-case-path": "^2.2.1"
   },
   "devDependencies": {
