@@ -16,7 +16,8 @@ jobs:
         node:
           - 14
           - 16
-          - 17
+          - 18
+          - 19
 
     steps:
       - uses: actions/checkout@v3
