@@ -71,7 +71,7 @@
   "devDependencies": {
     "eslint": "^8.0.0",
     "fs-extra": "^10.0.0",
-    "mocha": "^9.0.1",
+    "mocha": "^10.2.0",
     "nyc": "^15.1.0",
     "rimraf": "^3.0.2",
     "unique-temp-dir": "^1.0.0"
