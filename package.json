@@ -63,7 +63,7 @@
     "make-fetch-happen": "^10.0.4",
     "meow": "^9.0.0",
     "nan": "^2.17.0",
-    "node-gyp": "^8.4.1",
+    "node-gyp": "^9.3.1",
     "sass-graph": "^4.0.1",
     "stdout-stream": "^1.4.0",
     "true-case-path": "^2.2.1"
