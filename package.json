@@ -58,7 +58,7 @@
     "cross-spawn": "^7.0.3",
     "gaze": "^1.0.0",
     "get-stdin": "^4.0.1",
-    "glob": "^7.0.3",
+    "glob": "^8.1.0",
     "lodash": "^4.17.15",
     "make-fetch-happen": "^10.0.4",
     "meow": "^9.0.0",
