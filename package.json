@@ -60,7 +60,7 @@
     "get-stdin": "^4.0.1",
     "glob": "^7.0.3",
     "lodash": "^4.17.15",
-    "make-fetch-happen": "^10.0.4",
+    "make-fetch-happen": "^11.0.3",
     "meow": "^9.0.0",
     "nan": "^2.17.0",
     "node-gyp": "^8.4.1",
