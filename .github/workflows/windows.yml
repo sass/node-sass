@@ -18,6 +18,7 @@ jobs:
           - 16
           - 18
           - 19
+          - 20
 
         architecture:
           - x64
