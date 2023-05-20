@@ -1,6 +1,6 @@
 {
   "name": "node-sass",
-  "version": "8.0.0",
+  "version": "9.0.0",
   "libsass": "3.5.5",
   "description": "Wrapper around libsass",
   "license": "MIT",
@@ -16,7 +16,7 @@
     "url": "http://andrew.github.com"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=16"
   },
   "main": "lib/index.js",
   "nodeSassConfig": {

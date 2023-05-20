@@ -13,20 +13,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node:
-          - 14
-          - 16
-          - 18
-
         include:
-          - node: 14
-            gcc: "gcc-6"
-            gpp: "g++-6"
-            os: ubuntu-18.04
           - node: 16
             gcc: "gcc-8"
             gpp: "g++-8"
-            os: ubuntu-18.04
+            os: ubuntu-20.04
           - node: 18
             gcc: "gcc-8"
             gpp: "g++-8"
@@ -35,6 +26,10 @@ jobs:
             gcc: "gcc-8"
             gpp: "g++-8"
             os: ubuntu-20.04
+          - node: 20
+            gcc: "gcc-10"
+            gpp: "g++-10"
+            os: ubuntu-22.04
 
 
     steps:
