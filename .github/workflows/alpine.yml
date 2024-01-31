@@ -24,7 +24,7 @@ jobs:
       - name: Install Alpine build tools
         run: apk add --no-cache python3 make git gcc g++
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install packages
         run: npm install --unsafe-perm

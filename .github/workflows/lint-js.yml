@@ -25,7 +25,7 @@ jobs:
       SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: true
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v3
 
