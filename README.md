@@ -558,7 +558,8 @@ Output will be sent to stdout if the `--output` flag is omitted.
 
 Example:
 
-`node-sass src/style.scss dest/style.css`
+`node-sass src/style.scss dist/style.css`
+`node-sass -w scss/ -o dist/css/ --recursive`
 
  **Options:**
 
