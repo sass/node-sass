@@ -55,10 +55,18 @@ function afterBuild(options) {
  */
 
 function build(options) {
-  var args = [require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js')), 'rebuild', '--verbose'].concat(
-    ['libsass_ext', 'libsass_cflags', 'libsass_ldflags', 'libsass_library'].map(function(subject) {
-      return ['--', subject, '=', process.env[subject.toUpperCase()] || ''].join('');
-    })).concat(options.args);
+  var libargs = ['ext', 'cflags', 'ldflags', 'library'].reduce(function(prev, cur) {
+    var arg = `libsass_${cur}`;
+    var env = process.env[arg.toUpperCase()];
+    if (env) {
+      return prev.push(['--', arg, '=', env].join(''));
+    } else {
+      return prev;
+    }
+  }, []);
+  var args = [require.resolve(path.join('node-gyp', 'bin', 'node-gyp.js')), 'rebuild', '--verbose']
+    .concat(libargs)
+    .concat(options.args);
 
   console.log('Building:', [process.execPath].concat(args).join(' '));
 
