@@ -30,7 +30,10 @@ jobs:
             gcc: "gcc-10"
             gpp: "g++-10"
             os: ubuntu-22.04
-
+          - node: 21
+            gcc: "gcc-10"
+            gpp: "g++-10"
+            os: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
