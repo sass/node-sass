@@ -69,7 +69,7 @@
     "true-case-path": "^2.2.1"
   },
   "devDependencies": {
-    "eslint": "^8.0.0",
+    "eslint": "^9.0.0",
     "fs-extra": "^10.0.0",
     "mocha": "^9.0.1",
     "nyc": "^15.1.0",
