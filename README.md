@@ -1,10 +1,10 @@
 # node-sass
 
-**Warning:** [LibSass and Node Sass are deprecated](https://sass-lang.com/blog/libsass-is-deprecated).
-While they will continue to receive maintenance releases indefinitely, there are no
-plans to add additional features or compatibility with any new CSS or Sass features.
-Projects that still use it should move onto
+**Warning:** [Node Sass has reached end of life]. It will receive no more
+releases, even for security fixes. Projects that still use it should move onto
 [Dart Sass](https://sass-lang.com/dart-sass).
+
+[Node Sass has reached end of life]: https://sass-lang.com/blog/node-sass-is-end-of-life
 
 ## Node version support policy
 
