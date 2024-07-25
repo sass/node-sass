@@ -15,10 +15,9 @@ jobs:
       fail-fast: false
       matrix:
         node:
-          - 16
           - 18
-          - 19
           - 20
+          - 22
 
     steps:
       - name: Install Alpine build tools
