@@ -71,7 +71,7 @@
         '-fexceptions',
         '-frtti',
       ],
-      'include_dirs': [ 'libsass/include' ],
+      'include_dirs+': [ 'libsass/include' ],
       'direct_dependent_settings': {
         'include_dirs': [ 'libsass/include' ],
       },

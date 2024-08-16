@@ -33,8 +33,9 @@
         'GCC_ENABLE_CPP_EXCEPTIONS': 'NO',
         'MACOSX_DEPLOYMENT_TARGET': '10.11'
       },
-      'include_dirs': [
+      'include_dirs+': [
         '<!(node -e "require(\'nan\')")',
+        'src/libsass/include',
       ],
       'conditions': [
         ['libsass_ext == "" or libsass_ext == "no"', {
