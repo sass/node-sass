@@ -499,5 +499,51 @@ describe('watcher', function() {
         });
       });
     });
+    describe('with syntax errors', function() {
+      it('should produce a one-file graph', function() {
+        fs.copySync(        
+          path.join(origin, 'crash', 'broken.scss'),
+          path.join(main, 'one.scss')
+        );
+        var files = watcher.reset({
+          src: path.join(main, 'one.scss'),
+          includePath: [main]
+        });
+        assert.deepEqual(files.sort(), [
+          path.join(main, 'one.scss'),
+        ].sort());
+        fs.copySync(        
+          path.join(origin, 'main', 'one.scss'),
+          path.join(main, 'one.scss')
+        );
+        files = watcher.changed(
+          path.join(main, 'one.scss')
+        );
+        assert.deepEqual(files.changed.sort(), [
+          path.join(main, 'one.scss'),
+        ]);
+      });
+      it('should keep the graph even if a file gets broken', function() {
+        var files = watcher.reset({
+          src: path.join(main, 'one.scss'),
+          includePath: [main]
+        });
+        assert.deepEqual(files.sort(), [
+          path.join(main, 'one.scss'),
+          path.join(main, 'partials', '_one.scss'),
+          path.join(main, 'partials', '_three.scss'),
+        ].sort());
+        fs.copySync(        
+          path.join(origin, 'crash', 'broken.scss'),
+          path.join(main, 'one.scss')
+        );
+        files = watcher.changed(
+          path.join(main, 'one.scss')
+        );
+        assert.deepEqual(files.changed.sort(), [
+          path.join(main, 'one.scss'),
+        ]);
+      });
+    });
   });
 });
