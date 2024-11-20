@@ -1,0 +1,78 @@
+freebsd_instance:
+  image_family: freebsd-11-3-snap
+
+freebsd_build_task:
+
+  #
+  # We support only node versions available in the FreeBSD ports tree
+  # Currently supported node versions can be figured out as follows:
+  # 
+  # Check the node versions supported by the npm port:
+  #   https://svnweb.freebsd.org/ports/head/www/npm/Makefile?view=markup
+  #
+  # www/npm port contains options to build with different node engines
+  # in the form of
+  #     xxx_RUN_DEPENDS=   node>0.8:pppppp
+  # "ppppp" above is the port name, for example www/node12
+  #
+  # "www/node" port is the latest and its is a moving target
+  # You have to check its Makefile to figure out which version it represents:
+  #   https://svnweb.freebsd.org/ports/head/www/node/Makefile?view=markup
+  #
+  # Typically this means once www/node gets promoted from node 19 to 20
+  # "- package: npm-node19" needs to be added before the "package: npm"
+  # line.
+  #
+  env:
+    matrix:
+      - package: npm-node10
+      - package: npm-node12
+      - package: npm
+
+  env:
+    matrix:
+      - abi: freebsd:11:x86:64
+        REPOS_DIR: .cirrus/pkg/repos
+      - abi: freebsd:11:x86:32
+        jail_name: j11i386
+        exec_prefix: cbsd jexec jname=j11i386
+        working_dir: /etc/skel
+        REPOS_DIR: /etc/skel/.cirrus/pkg/repos
+
+  env:
+    GH_API_TOKEN: ENCRYPTED[5e482f417304528148bb96eca8d030eacd6ab9972d482485fc4d42907283b995f658b351e0676e9493a37d815398f541]
+    SKIP_SASS_BINARY_DOWNLOAD_FOR_CI: yes
+    CPPFLAGS: -I/usr/local/include
+
+  prepare_script:
+    - pkg -R .cirrus/pkg/repos update -f;
+    - |
+      if test "$abi" = "freebsd:11:x86:32"; then
+        pkg -R .cirrus/pkg/repos install -y cbsd 
+        ./scripts/configure_freebsd_ci_jail.sh $jail_name $CIRRUS_WORKING_DIR;
+        $exec_prefix pkg update -f
+      fi
+    - $exec_prefix pkg install -y "${package}" python2 git-lite
+    - $exec_prefix node --version
+    - $exec_prefix npm --version
+    - $exec_prefix clang++ --version
+
+  build_script:
+    - |
+      if [ -n "${working_dir}" ]; then change_dir="cd ${working_dir} &&"; fi
+      echo "$change_dir npm install --unsafe-perm --production --nodedir=/usr/local" | $exec_prefix /bin/sh
+      echo "Generated files:"
+      echo "$change_dir find vendor" | $exec_prefix /bin/sh
+
+publish_task:
+  only_if: $CIRRUS_TAG != ""
+  script:
+    - |
+        for file in `ls vendor/**/*.node`; do
+          parent=${file%/*};
+          name=${parent##*/};
+          fullyQualifiedName="$(pwd)/$parent/${name}_binding.node";
+          mv "$file" "$parent/${name}_binding.node";
+          echo -e "New filename\072 $fullyQualifiedName";
+          ./scripts/upload-github-release-asset.sh github_api_token=$GH_API_TOKEN owner=sass repo=node-sass tag=$CIRRUS_TAG filename=$fullyQualifiedName;
+        done
