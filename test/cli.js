@@ -375,6 +375,31 @@ describe('cli', function() {
         }, 200);
       }, 500);
     });
+
+    it.skip('should not compile changed files outside watched directory', function(done) {
+      var rootDir = fixture('watching-dir-03/');
+      var destDir = fixture('watching-dir-03/dest');
+      var srcDir = fixture('watching-dir-03/src');
+      var outsideFile = path.join(rootDir, 'outside.scss');
+
+      fs.writeFileSync(outsideFile, '');
+
+      var bin = spawn(cli, [
+        '--output', destDir,
+        '--watch', srcDir
+      ]);
+
+      setTimeout(function () {
+        fs.appendFileSync(outsideFile, 'body{background:white}\n');
+        setTimeout(function () {
+          bin.kill();
+          var files = fs.readdirSync(rootDir);
+          assert.deepEqual(files, [ 'dest', 'outside.scss', 'src' ]);
+          rimraf(destDir, done);
+        }, 200);
+      }, 500);
+    });
+
   });
 
   describe('node-sass in.scss --output out.css', function() {

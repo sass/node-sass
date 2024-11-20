@@ -282,7 +282,9 @@ function watch(options, emitter) {
     });
 
     files.changed.forEach(function(file) {
-      if (path.basename(file)[0] !== '_') {
+      var srcDir = options.directory && path.join(process.cwd(), options.directory);
+      var isInclude = srcDir && file.indexOf(srcDir) === -1;
+      if (path.basename(file)[0] !== '_' && !isInclude) {
         renderFile(file, options, emitter);
       }
     });
