@@ -2,6 +2,9 @@
 name: Bug report
 about: If you're having an issue with installing node-sass or the compiled results
   look incorrect
+title: ''
+labels: ''
+assignees: ''
 
 ---
 
